@@ -1,45 +1,50 @@
-version: '3.8'
+version: "3.8"
 
 services:
-  db:
+  database:
     image: postgres:13
-    restart: always
     environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: portfolio_db
-    ports:
-      - "5432:5432"
+      POSTGRES_USER: ${DB_DOCKER_USER}
+      POSTGRES_PASSWORD: ${DB_DOCKER_PASSWORD}
+      POSTGRES_DB: ${DB_DOCKER_DB_NAME}
     volumes:
       - db_data:/var/lib/postgresql/data
+    ports:
+      - "${DB_DOCKER_PORT}:5432" # host:container (container permanece 5432)
+    healthcheck:
+      test:
+        ["CMD-SHELL", "pg_isready -U ${DB_DOCKER_USER} -d ${DB_DOCKER_DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    ports:
-      - "3000:3000"
     environment:
-      DATABASE_URL: postgres://user:password@db:5432/portfolio_db
-      JWT_SECRET: your_jwt_secret_key
+      PORT: ${BACKEND_DOCKER_PORT}
+      BACKEND_JWT_SECRET: ${BACKEND_JWT_SECRET}
+      # Conexão interna pela rede do Docker: host=database, port=5432
+      DATABASE_URL: postgresql://${DB_DOCKER_USER}:${DB_DOCKER_PASSWORD}@database:5432/${DB_DOCKER_DB_NAME}
     depends_on:
-      - db
-    volumes:
-      - ./backend:/app
-      - /app/node_modules
+      database:
+        condition: service_healthy
+    ports:
+      - "${BACKEND_DOCKER_PORT}:${BACKEND_DOCKER_PORT}"
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    ports:
-      - "80:80"
+      args:
+        - API_URL=http://backend:${BACKEND_DOCKER_PORT}
+    environment:
+      - API_URL=http://backend:${BACKEND_DOCKER_PORT}
     depends_on:
       - backend
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
+    ports:
+      - "${FRONTEND_DOCKER_PORT}:80"
 
 volumes:
   db_data:
-

@@ -1,25 +1,29 @@
+import { config } from 'dotenv';
+import { JwtModule } from '@nestjs/jwt';
 import { Module } from '@nestjs/common';
+import { AuthService } from './auth.service';
+import { User } from './entities/user.entity';
+import { ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { PassportModule } from '@nestjs/passport';
-import { JwtModule } from '@nestjs/jwt';
-import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
-import { User } from './entities/user.entity';
-import { LocalStrategy } from './strategies/local.strategy';
 import { JwtStrategy } from './strategies/jwt.strategy';
+import { LocalStrategy } from './strategies/local.strategy';
+
+config();
+const configService = new ConfigService();
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User]),
     PassportModule,
+    TypeOrmModule.forFeature([User]),
     JwtModule.register({
-      secret: process.env.JWT_SECRET || 'your_jwt_secret_key',
       signOptions: { expiresIn: '60m' },
+      secret: configService.get("BACKEND_JWT_SECRET") || 'your_jwt_secret_key',
     }),
   ],
-  providers: [AuthService, LocalStrategy, JwtStrategy],
-  controllers: [AuthController],
   exports: [AuthService],
+  controllers: [AuthController],
+  providers: [AuthService, LocalStrategy, JwtStrategy],
 })
-export class AuthModule {}
-
+export class AuthModule { };

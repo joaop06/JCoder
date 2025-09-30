@@ -1,29 +1,34 @@
+import { config } from 'dotenv';
 import { Module } from '@nestjs/common';
+import { AppService } from './app.service';
+import { AuthModule } from './auth/auth.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { ApplicationsModule } from './applications/applications.module';
-import { AuthModule } from './auth/auth.module';
-import { Application } from './applications/entities/application.entity';
 import { User } from './auth/entities/user.entity';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ApplicationsModule } from './applications/applications.module';
+import { Application } from './applications/entities/application.entity';
+
+config();
+const configService = new ConfigService();
 
 @Module({
-  imports: [
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: 'db',
-      port: 5432,
-      username: process.env.POSTGRES_USER || 'user',
-      password: process.env.POSTGRES_PASSWORD || 'password',
-      database: process.env.POSTGRES_DB || 'portfolio_db',
-      entities: [Application, User],
-      synchronize: true, // Apenas para desenvolvimento, NUNCA em produção
-    }),
-    ApplicationsModule,
-    AuthModule,
-  ],
-  controllers: [AppController],
   providers: [AppService],
+  controllers: [AppController],
+  imports: [
+    AuthModule,
+    ApplicationsModule,
+    ConfigModule.forRoot({ isGlobal: true }),
+    TypeOrmModule.forRoot({
+      host: 'database',
+      type: 'postgres',
+      entities: [Application, User],
+      username: configService.get("POSTGRES_USER") || 'user',
+      port: parseInt(configService.get("DB_DOCKER_PORT"), 10),
+      database: configService.get("POSTGRES_DB") || 'portfolio_db',
+      password: configService.get("POSTGRES_PASSWORD") || 'password',
+      synchronize: configService.get("BACKEND_SYNCHRONIZE_DB") === 'true',
+    }),
+  ],
 })
-export class AppModule {}
-
+export class AppModule { };
