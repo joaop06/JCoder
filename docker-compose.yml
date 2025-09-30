@@ -25,8 +25,6 @@ services:
     environment:
       PORT: ${BACKEND_DOCKER_PORT}
       BACKEND_JWT_SECRET: ${BACKEND_JWT_SECRET}
-      # Conexão interna pela rede do Docker: host=database, port=5432
-      DATABASE_URL: postgresql://${DB_DOCKER_USER}:${DB_DOCKER_PASSWORD}@database:5432/${DB_DOCKER_DB_NAME}
     depends_on:
       database:
         condition: service_healthy
