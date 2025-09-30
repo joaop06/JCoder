@@ -12,7 +12,7 @@ async function bootstrap() {
   app.enableCors(); // Habilita CORS para permitir requisições do frontend
   app.useGlobalPipes(new ValidationPipe()); // Habilita validação global de DTOs
 
-  const port = configService.get("BACKEND_DOCKER_PORT");
-  await app.listen(port ? parseInt(port, 10) : 3000);
+  const port = configService.get("BACKEND_PORT");
+  await app.listen(parseInt(port, 10));
 }
 bootstrap();
