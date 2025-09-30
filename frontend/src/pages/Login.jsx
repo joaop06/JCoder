@@ -15,7 +15,7 @@ export function Login() {
   });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  
+
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -55,7 +55,7 @@ export function Login() {
             <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
               <span className="text-white font-bold">JD</span>
             </div>
-            <span className="text-2xl font-bold text-gray-900">joaop-dock</span>
+            <span className="text-2xl font-bold text-gray-900">JDock</span>
           </Link>
           <h2 className="text-3xl font-bold text-gray-900">
             Faça login em sua conta
@@ -132,8 +132,8 @@ export function Login() {
 
         {/* Footer */}
         <div className="text-center">
-          <Link 
-            to="/" 
+          <Link
+            to="/"
             className="text-sm text-primary hover:underline"
           >
             ← Voltar para o portfólio

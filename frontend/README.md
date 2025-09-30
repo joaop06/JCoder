@@ -1,6 +1,6 @@
-# Frontend - joaop-dock
+# Frontend - JDock
 
-Este é o frontend do projeto joaop-dock, um portfólio de aplicações desenvolvido em React com design moderno e clean.
+Este é o frontend do projeto JDock, um portfólio de aplicações desenvolvido em React com design moderno e clean.
 
 ## 🚀 Tecnologias Utilizadas
 

@@ -22,20 +22,20 @@ export function Header() {
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-sm">JD</span>
             </div>
-            <span className="text-xl font-bold text-gray-900">joaop-dock</span>
+            <span className="text-xl font-bold text-gray-900">JDock</span>
           </Link>
 
           {/* Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
-            <Link 
-              to="/" 
+            <Link
+              to="/"
               className="text-gray-700 hover:text-primary transition-colors"
             >
               Aplicações
             </Link>
             {isAuthenticated && isAdmin() && (
-              <Link 
-                to="/admin" 
+              <Link
+                to="/admin"
                 className="text-gray-700 hover:text-primary transition-colors"
               >
                 Administração
