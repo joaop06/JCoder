@@ -1,4 +1,4 @@
-FROM node:18-alpine as builder
+FROM node:23.11.1 as builder
 WORKDIR /app
 COPY package*.json ./
 RUN npm install --legacy-peer-deps

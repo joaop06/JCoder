@@ -2,18 +2,19 @@ version: "3.8"
 
 services:
   database:
-    image: postgres:13
+    image: mysql:8.0
     environment:
-      POSTGRES_USER: ${DB_DOCKER_USER}
-      POSTGRES_PASSWORD: ${DB_DOCKER_PASSWORD}
-      POSTGRES_DB: ${DB_DOCKER_DB_NAME}
+      MYSQL_USER: ${DB_DOCKER_USER}
+      MYSQL_DATABASE: ${DB_DOCKER_DB_NAME}
+      MYSQL_PASSWORD: ${DB_DOCKER_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_DOCKER_PASSWORD}
     volumes:
-      - db_data:/var/lib/postgresql/data
+      - db_data:/var/lib/mysql
     ports:
-      - "${DB_DOCKER_PORT}:5432" # host:container (container permanece 5432)
+      - "${DB_DOCKER_PORT}:3306"
     healthcheck:
-      test:
-        ["CMD-SHELL", "pg_isready -U ${DB_DOCKER_USER} -d ${DB_DOCKER_DB_NAME}"]
+      test: mysqladmin ping -h 127.0.0.1 -u $$MYSQL_USER --password=$$MYSQL_PASSWORD
+      start_period: 5s
       interval: 5s
       timeout: 5s
       retries: 5

@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Configuração base da API
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000', // URL do backend NestJS
+  baseURL: import.meta.env.BACKEND_BASE_URL || 'http://localhost:8081', // URL do backend NestJS
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
