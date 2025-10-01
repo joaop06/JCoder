@@ -3,7 +3,7 @@ WORKDIR /app
 
 # Copia os arquivos do backend (ajuste conforme seu projeto)
 COPY frontend/package*.json ./
-RUN npm ci
+# RUN npm ci
 
 COPY frontend ./
 

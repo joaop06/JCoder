@@ -19,7 +19,7 @@ const configService = new ConfigService();
     TypeOrmModule.forFeature([User]),
     JwtModule.register({
       signOptions: { expiresIn: '60m' },
-      secret: configService.get("BACKEND_JWT_SECRET") || 'your_jwt_secret_key',
+      secret: configService.get("BACKEND_JWT_SECRET"),
     }),
   ],
   exports: [AuthService],
