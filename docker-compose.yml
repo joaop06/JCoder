@@ -21,15 +21,15 @@ services:
 
   backend:
     build:
-      context: ./backend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: backend/Dockerfile
     environment:
-      BACKEND_JWT_SECRET: ${BACKEND_JWT_SECRET}
       BACKEND_PORT: ${BACKEND_PORT}
-      BACKEND_DATABASE_USER: ${BACKEND_DATABASE_USER}
-      BACKEND_DATABASE_NAME: ${BACKEND_DATABASE_NAME}
+      DATABASE_USER: ${DATABASE_USER}
+      DATABASE_NAME: ${DATABASE_NAME}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+      BACKEND_JWT_SECRET: ${BACKEND_JWT_SECRET}
       BACKEND_SYNCHRONIZE_DATABASE: ${BACKEND_SYNCHRONIZE_DATABASE}
-      BACKEND_DATABASE_PASSWORD: ${BACKEND_DATABASE_PASSWORD}
     depends_on:
       database:
         condition: service_healthy
@@ -38,12 +38,12 @@ services:
 
   frontend:
     build:
-      context: ./frontend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: frontend/Dockerfile
       args:
-        - API_URL=http://backend:${BACKEND_PORT}
+        - BACKEND_BASE_URL=http://backend:${BACKEND_PORT}
     environment:
-      - API_URL=http://backend:${BACKEND_PORT}
+      - BACKEND_BASE_URL=http://backend:${BACKEND_PORT}
     depends_on:
       - backend
     ports:

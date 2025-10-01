@@ -1,8 +1,16 @@
 FROM node:23.11.1 as builder
 WORKDIR /app
-COPY package*.json ./
+
+# Copia os arquivos do backend (ajuste conforme seu projeto)
+COPY frontend/package*.json ./
+RUN npm ci
+
+COPY frontend ./
+
+# Copia o .env da raiz para dentro da imagem (ex: /app/.env)
+COPY .env .env
+
 RUN npm install --legacy-peer-deps
-COPY . .
 RUN npm run build
 
 FROM nginx:alpine
