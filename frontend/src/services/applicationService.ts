@@ -12,7 +12,7 @@ export const applicationService = {
   },
 
   // Buscar uma aplicação por ID
-  async getById(id) {
+  async getById(id: number) {
     try {
       const response = await api.get(`/applications/${id}`);
       return response.data;
@@ -22,7 +22,7 @@ export const applicationService = {
   },
 
   // Criar uma nova aplicação
-  async create(applicationData) {
+  async create(applicationData: any) {
     try {
       const response = await api.post('/applications', applicationData);
       return response.data;
@@ -32,7 +32,7 @@ export const applicationService = {
   },
 
   // Atualizar uma aplicação
-  async update(id, applicationData) {
+  async update(id: number, applicationData: any) {
     try {
       const response = await api.patch(`/applications/${id}`, applicationData);
       return response.data;
@@ -42,7 +42,7 @@ export const applicationService = {
   },
 
   // Deletar uma aplicação
-  async delete(id) {
+  async delete(id: number) {
     try {
       await api.delete(`/applications/${id}`);
     } catch (error) {

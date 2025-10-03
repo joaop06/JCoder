@@ -7,17 +7,18 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, Save, X } from 'lucide-react';
 
-export function ApplicationForm({ 
-  application = null, 
-  onSubmit, 
-  onCancel, 
-  isLoading = false 
+export function ApplicationForm({
+  application = null,
+  onSubmit,
+  onCancel,
+  isLoading = false
 }) {
   const [formData, setFormData] = useState({
+    url: '',
     name: '',
     description: '',
-    url: '',
-    icon: '',
+    redirectUrl: undefined,
+    documentationUrl: undefined,
   });
   const [error, setError] = useState('');
 
@@ -25,10 +26,11 @@ export function ApplicationForm({
   useEffect(() => {
     if (application) {
       setFormData({
-        name: application.name || '',
-        description: application.description || '',
         url: application.url || '',
-        icon: application.icon || '',
+        name: application.name || '',
+        redirectUrl: application.redirectUrl,
+        description: application.description || '',
+        documentationUrl: application.documentationUrl,
       });
     }
   }, [application]);
@@ -62,6 +64,8 @@ export function ApplicationForm({
     // Validar URL
     try {
       new URL(formData.url);
+      if (!!formData.redirectUrl) new URL(formData.redirectUrl);
+      if (!!formData.documentationUrl) new URL(formData.documentationUrl);
     } catch {
       setError('URL inválida');
       return;
@@ -80,8 +84,8 @@ export function ApplicationForm({
           {application ? 'Editar Aplicação' : 'Nova Aplicação'}
         </CardTitle>
         <CardDescription>
-          {application 
-            ? 'Atualize as informações da aplicação' 
+          {application
+            ? 'Atualize as informações da aplicação'
             : 'Preencha os dados para criar uma nova aplicação'
           }
         </CardDescription>
@@ -137,18 +141,34 @@ export function ApplicationForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="icon">URL do Ícone</Label>
+            <Label htmlFor="icon">URL da Documentação</Label>
             <Input
-              id="icon"
-              name="icon"
               type="url"
-              value={formData.icon}
-              onChange={handleChange}
-              placeholder="https://exemplo.com/icon.png (opcional)"
               disabled={isLoading}
+              id="documentationUrl"
+              name="documentationUrl"
+              onChange={handleChange}
+              value={formData.documentationUrl}
+              placeholder="https://exemplo.com/docs (opcional)"
             />
             <p className="text-xs text-gray-500">
-              URL de uma imagem para usar como ícone da aplicação (opcional)
+              URL de uma rota de documentação da aplicação (opcional)
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="icon">URL de Redirecionamento</Label>
+            <Input
+              type="url"
+              id="redirectUrl"
+              name="redirectUrl"
+              disabled={isLoading}
+              onChange={handleChange}
+              value={formData.redirectUrl}
+              placeholder="https://exemplo.com/redirect (opcional)"
+            />
+            <p className="text-xs text-gray-500">
+              URL de redirecionamento da aplicação (opcional)
             </p>
           </div>
 

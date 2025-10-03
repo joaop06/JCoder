@@ -1,4 +1,8 @@
-import { IsString, IsUrl, IsOptional, IsBoolean } from 'class-validator';
+import {
+  IsUrl,
+  IsString,
+  IsOptional,
+} from 'class-validator';
 
 export class CreateApplicationDto {
   @IsString()
@@ -17,9 +21,4 @@ export class CreateApplicationDto {
   @IsOptional()
   @IsUrl()
   redirectUrl?: string;
-
-  @IsOptional()
-  @IsBoolean()
-  isActive?: boolean;
-}
-
+};
