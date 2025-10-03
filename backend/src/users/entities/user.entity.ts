@@ -6,7 +6,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
-import { RoleEnum } from '../enums/role.enum';
+import { RoleEnum } from '../../@common/enums/role.enum';
 
 @Entity('users')
 export class User {

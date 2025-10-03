@@ -5,7 +5,6 @@ import { SignInDto } from "../dto/sign-in.dto";
 import { plainToInstance } from 'class-transformer';
 import { UsersService } from "../../users/users.service";
 import { SignInResponseDto } from '../dto/sign-in-response.dto';
-import { UserNotFoundException } from "../../users/exceptions/user-not-found.exception";
 import { PasswordDoesNotMatchException } from '../exceptions/password-does-not-match.exception';
 
 @Injectable()
@@ -17,7 +16,6 @@ export class SignInUseCase {
 
     async execute(signInDto: SignInDto): Promise<SignInResponseDto> {
         const user = await this.usersService.getByEmail(signInDto.email);
-        if (!user) throw new UserNotFoundException();
 
         const isValidPassword = await bcrypt.compare(signInDto.password, user.password);
         if (!isValidPassword) throw new PasswordDoesNotMatchException();

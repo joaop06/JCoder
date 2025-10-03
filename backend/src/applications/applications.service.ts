@@ -1,45 +1,41 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { FindManyOptions, Repository } from 'typeorm';
 import { Application } from '../applications/entities/application.entity';
 import { CreateApplicationDto } from '../applications/dto/create-application.dto';
 import { UpdateApplicationDto } from '../applications/dto/update-application.dto';
+import { ApplicationNotFoundException } from './exceptions/application-not-found.exception';
 
 @Injectable()
 export class ApplicationsService {
   constructor(
     @InjectRepository(Application)
-    private applicationsRepository: Repository<Application>,
-  ) {}
+    private readonly repository: Repository<Application>,
+  ) { }
 
-  async create(createApplicationDto: CreateApplicationDto): Promise<Application> {
-    const application = this.applicationsRepository.create(createApplicationDto);
-    return this.applicationsRepository.save(application);
+  async findAll(options?: FindManyOptions<Application>): Promise<Application[]> {
+    return this.repository.find(options);
   }
 
-  async findAll(): Promise<Application[]> {
-    return this.applicationsRepository.find();
-  }
+  async findById(id: number): Promise<Application> {
+    const application = await this.repository.findOne({ where: { id } });
+    if (!application) throw new ApplicationNotFoundException();
 
-  async findOne(id: number): Promise<Application> {
-    const application = await this.applicationsRepository.findOne({ where: { id } });
-    if (!application) {
-      throw new NotFoundException(`Application with ID "${id}" not found`);
-    }
     return application;
   }
 
+  async create(createApplicationDto: CreateApplicationDto): Promise<Application> {
+    const application = this.repository.create(createApplicationDto);
+    return this.repository.save(application);
+  }
+
   async update(id: number, updateApplicationDto: UpdateApplicationDto): Promise<Application> {
-    const application = await this.findOne(id);
-    this.applicationsRepository.merge(application, updateApplicationDto);
-    return this.applicationsRepository.save(application);
+    const application = await this.findById(id);
+    this.repository.merge(application, updateApplicationDto);
+    return await this.repository.save(application);
   }
 
-  async remove(id: number): Promise<void> {
-    const result = await this.applicationsRepository.delete(id);
-    if (result.affected === 0) {
-      throw new NotFoundException(`Application with ID "${id}" not found`);
-    }
+  async delete(id: number): Promise<void> {
+    await this.repository.delete(id);
   }
-}
-
+};

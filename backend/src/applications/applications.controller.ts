@@ -1,45 +1,67 @@
-import { RoleEnum } from '../users/enums/role.enum';
-import { RolesGuard } from '../auth/guards/roles.guard';
-import { Roles } from '../users/decorators/roles.decorator';
+import {
+  Put,
+  Get,
+  Post,
+  Body,
+  Param,
+  Delete,
+  UseGuards,
+  Controller,
+} from '@nestjs/common';
+import { RoleEnum } from '../@common/enums/role.enum';
+import { RolesGuard } from '../@common/guards/roles.guard';
+import { Application } from './entities/application.entity';
 import { ApplicationsService } from './applications.service';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { Roles } from '../@common/decorators/roles.decorator';
+import { JwtAuthGuard } from '../@common/guards/jwt-auth.guard';
 import { CreateApplicationDto } from './dto/create-application.dto';
 import { UpdateApplicationDto } from './dto/update-application.dto';
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { CreateApplicationUseCase } from './use-cases/create-application.use-case';
+import { DeleteApplicationUseCase } from './use-cases/delete-application.use-case';
+import { UpdateApplicationUseCase } from './use-cases/update-application.use-case';
 
 @Controller('applications')
 export class ApplicationsController {
-  constructor(private readonly applicationsService: ApplicationsService) { }
-
-  @Post()
-  @Roles(RoleEnum.Admin) // Descomentar após criar os roles
-  @UseGuards(JwtAuthGuard, RolesGuard) // Descomentar após criar os guards
-  create(@Body() createApplicationDto: CreateApplicationDto) {
-    return this.applicationsService.create(createApplicationDto);
-  }
+  constructor(
+    private readonly applicationsService: ApplicationsService,
+    private readonly createApplicationUseCase: CreateApplicationUseCase,
+    private readonly deleteApplicationUseCase: DeleteApplicationUseCase,
+    private readonly updateApplicationUseCase: UpdateApplicationUseCase,
+  ) { }
 
   @Get()
-  findAll() {
+  async findAll() {
     return this.applicationsService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.applicationsService.findOne(+id);
+  async findById(@Param('id') id: string): Promise<Application> {
+    return this.applicationsService.findById(+id);
   }
 
-  // @UseGuards(JwtAuthGuard, RolesGuard) // Descomentar após criar os guards
-  // @Roles(Role.Admin) // Descomentar após criar os roles
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateApplicationDto: UpdateApplicationDto) {
-    return this.applicationsService.update(+id, updateApplicationDto);
+  @Post()
+  @Roles(RoleEnum.Admin)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  async create(
+    @Body() createApplicationDto: CreateApplicationDto,
+  ): Promise<Application> {
+    return await this.createApplicationUseCase.execute(createApplicationDto);
   }
 
-  // @UseGuards(JwtAuthGuard, RolesGuard) // Descomentar após criar os guards
-  // @Roles(Role.Admin) // Descomentar após criar os roles
+  @Put(':id')
+  @Roles(RoleEnum.Admin)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  async update(
+    @Param('id') id: string,
+    @Body() updateApplicationDto: UpdateApplicationDto,
+  ): Promise<Application> {
+    return this.updateApplicationUseCase.execute(+id, updateApplicationDto);
+  }
+
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.applicationsService.remove(+id);
+  @Roles(RoleEnum.Admin)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  async delete(@Param('id') id: string) {
+    return this.deleteApplicationUseCase.execute(+id);
   }
-}
-
+};
