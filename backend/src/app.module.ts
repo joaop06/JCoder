@@ -2,7 +2,8 @@ import { config } from 'dotenv';
 import { Module } from '@nestjs/common';
 import { AuthModule } from './auth/auth.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from './auth/entities/user.entity';
+import { UsersModule } from './users/users.module';
+import { User } from './users/entities/user.entity';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ApplicationsModule } from './applications/applications.module';
 import { Application } from './applications/entities/application.entity';
@@ -13,6 +14,7 @@ const configService = new ConfigService();
 @Module({
   imports: [
     AuthModule,
+    UsersModule,
     ApplicationsModule,
     ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRoot({

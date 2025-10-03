@@ -27,7 +27,7 @@ async function main() {
 
     try {
         const [rows] = await conn.execute(
-            'SELECT id FROM `user` WHERE `username` = ? LIMIT 1',
+            'SELECT id FROM `users` WHERE `email` = ? LIMIT 1',
             [DATABASE_INITIAL_USERNAME_ADMIN]
         );
         const exists = Array.isArray(rows) && rows.length > 0;
@@ -44,7 +44,7 @@ async function main() {
         }
 
         await conn.execute(
-            'INSERT INTO `user` (`username`, `password`, `role`) VALUES (?, ?, ?)',
+            'INSERT INTO `users` (`email`, `password`, `role`) VALUES (?, ?, ?)',
             [DATABASE_INITIAL_USERNAME_ADMIN, passwordToStore, 'admin']
         );
     } finally {

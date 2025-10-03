@@ -1,19 +1,19 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { RoleEnum } from '../users/enums/role.enum';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../users/decorators/roles.decorator';
 import { ApplicationsService } from './applications.service';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CreateApplicationDto } from './dto/create-application.dto';
 import { UpdateApplicationDto } from './dto/update-application.dto';
-// import { JwtAuthGuard } from '../auth/jwt-auth.guard'; // Será criado posteriormente
-// import { RolesGuard } from '../auth/roles.guard'; // Será criado posteriormente
-// import { Roles } from '../auth/roles.decorator'; // Será criado posteriormente
-// import { Role } from '../auth/role.enum'; // Será criado posteriormente
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
 
 @Controller('applications')
 export class ApplicationsController {
-  constructor(private readonly applicationsService: ApplicationsService) {}
+  constructor(private readonly applicationsService: ApplicationsService) { }
 
-  // @UseGuards(JwtAuthGuard, RolesGuard) // Descomentar após criar os guards
-  // @Roles(Role.Admin) // Descomentar após criar os roles
   @Post()
+  @Roles(RoleEnum.Admin) // Descomentar após criar os roles
+  @UseGuards(JwtAuthGuard, RolesGuard) // Descomentar após criar os guards
   create(@Body() createApplicationDto: CreateApplicationDto) {
     return this.applicationsService.create(createApplicationDto);
   }

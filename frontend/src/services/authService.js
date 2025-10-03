@@ -4,17 +4,17 @@ export const authService = {
   // Login do usuário
   async login(email, password) {
     try {
-      const response = await api.post('/auth/login', { email, password });
+      const response = await api.post('/auth/sign-in', { email, password });
       const { access_token } = response.data;
-      
+
       // Armazenar o token no localStorage
       localStorage.setItem('access_token', access_token);
-      
+
       // Buscar informações do usuário
       const userResponse = await api.get('/auth/profile');
       const user = userResponse.data;
       localStorage.setItem('user', JSON.stringify(user));
-      
+
       return { access_token, user };
     } catch (error) {
       throw error;

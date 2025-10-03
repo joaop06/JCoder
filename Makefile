@@ -18,7 +18,7 @@ down.d:
 up.d:
 	make down.d && docker compose up -d --build database
 
-down.d:
+down.f:
 	docker compose down frontend
 up.f:
 	make down.f && docker compose up -d --build frontend

@@ -9,8 +9,18 @@ const configService = new ConfigService();
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  app.enableCors(); // Habilita CORS para permitir requisições do frontend
-  app.useGlobalPipes(new ValidationPipe()); // Habilita validação global de DTOs
+
+  // Habilita CORS para permitir requisições do frontend
+  app.enableCors();
+
+  // Habilita validação global de DTOs
+  app.useGlobalPipes(
+    new ValidationPipe({
+      transform: true,
+      whitelist: true,
+      forbidNonWhitelisted: true,
+    }),
+  );
 
   const port = configService.get("BACKEND_PORT");
   await app.listen(parseInt(port, 10));

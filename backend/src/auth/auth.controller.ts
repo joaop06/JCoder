@@ -1,37 +1,16 @@
-import { Role } from './role.enum';
-import { Roles } from './roles.decorator';
-import { LoginDto } from './dto/login.dto';
-import { AuthService } from './auth.service';
-import { RegisterDto } from './dto/register.dto';
-import { RolesGuard } from './guards/roles.guard';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
-import { Controller, Post, Body, UseGuards, Request, Get } from '@nestjs/common';
+import { SignInDto } from './dto/sign-in.dto';
+import { Controller, Post, Body } from '@nestjs/common';
+import { SignInUseCase } from './use-cases/sign-in.use-case';
+import { SignInResponseDto } from './dto/sign-in-response.dto';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) { }
+  constructor(
+    private readonly signInUseCase: SignInUseCase,
+  ) { }
 
-  @Post('register')
-  async register(@Body() registerDto: RegisterDto) {
-    return this.authService.register(registerDto);
+  @Post('sign-in')
+  async signIn(@Body() signInDto: SignInDto): Promise<SignInResponseDto> {
+    return await this.signInUseCase.execute(signInDto);
   }
-
-  @Post('login')
-  async login(@Body() loginDto: LoginDto) {
-    return this.authService.login(loginDto);
-  }
-
-  @Get('profile')
-  @UseGuards(JwtAuthGuard)
-  getProfile(@Request() req) {
-    return req.user;
-  }
-
-  @Roles(Role.Admin)
-  @Post('admin/register')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  async registerAdmin(@Body() registerDto: RegisterDto) {
-    return this.authService.createAdminUser(registerDto.username, registerDto.password);
-  }
-}
-
+};
