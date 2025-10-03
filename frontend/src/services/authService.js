@@ -5,17 +5,15 @@ export const authService = {
   async login(email, password) {
     try {
       const response = await api.post('/auth/sign-in', { email, password });
-      const { access_token } = response.data;
+      const { user, accessToken } = response.data;
 
       // Armazenar o token no localStorage
-      localStorage.setItem('access_token', access_token);
+      localStorage.setItem('accessToken', accessToken);
 
       // Buscar informações do usuário
-      const userResponse = await api.get('/auth/profile');
-      const user = userResponse.data;
       localStorage.setItem('user', JSON.stringify(user));
 
-      return { access_token, user };
+      return { accessToken, user };
     } catch (error) {
       throw error;
     }
@@ -53,13 +51,13 @@ export const authService = {
 
   // Logout
   logout() {
-    localStorage.removeItem('access_token');
+    localStorage.removeItem('accessToken');
     localStorage.removeItem('user');
   },
 
   // Verificar se o usuário está autenticado
   isAuthenticated() {
-    return !!localStorage.getItem('access_token');
+    return !!localStorage.getItem('accessToken');
   },
 
   // Obter usuário do localStorage

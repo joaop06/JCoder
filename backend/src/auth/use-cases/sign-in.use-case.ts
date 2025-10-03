@@ -23,6 +23,7 @@ export class SignInUseCase {
         const { password, ...userResponse } = user;
 
         return plainToInstance(SignInResponseDto, {
+            user: userResponse,
             accessToken: this.jwtService.sign(userResponse),
         });
     }

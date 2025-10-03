@@ -51,8 +51,10 @@ services:
       context: .
       dockerfile: frontend/Dockerfile
       args:
+        - BACKEND_PORT=${BACKEND_PORT}
         - BACKEND_BASE_URL=http://backend:${BACKEND_PORT}
     environment:
+      - BACKEND_PORT=${BACKEND_PORT}
       - BACKEND_BASE_URL=http://backend:${BACKEND_PORT}
     depends_on:
       - backend

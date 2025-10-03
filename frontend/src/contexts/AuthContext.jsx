@@ -65,7 +65,7 @@ export function AuthProvider({ children }) {
     const checkAuth = () => {
       if (authService.isAuthenticated()) {
         const user = authService.getCurrentUser();
-        const token = localStorage.getItem('access_token');
+        const token = localStorage.getItem('accessToken');
         dispatch({
           type: AUTH_ACTIONS.LOGIN_SUCCESS,
           payload: { user, token },
@@ -82,17 +82,17 @@ export function AuthProvider({ children }) {
   const login = async (email, password) => {
     try {
       dispatch({ type: AUTH_ACTIONS.SET_LOADING, payload: true });
-      const { access_token, user } = await authService.login(email, password);
+      const { accessToken, user } = await authService.login(email, password);
       dispatch({
         type: AUTH_ACTIONS.LOGIN_SUCCESS,
-        payload: { user, token: access_token },
+        payload: { user, token: accessToken },
       });
       return { success: true };
     } catch (error) {
       dispatch({ type: AUTH_ACTIONS.SET_LOADING, payload: false });
-      return { 
-        success: false, 
-        error: error.response?.data?.message || 'Erro ao fazer login' 
+      return {
+        success: false,
+        error: error.response?.data?.message || 'Erro ao fazer login'
       };
     }
   };
@@ -109,9 +109,9 @@ export function AuthProvider({ children }) {
       await authService.register(name, email, password);
       return { success: true };
     } catch (error) {
-      return { 
-        success: false, 
-        error: error.response?.data?.message || 'Erro ao registrar usuário' 
+      return {
+        success: false,
+        error: error.response?.data?.message || 'Erro ao registrar usuário'
       };
     }
   };
@@ -122,9 +122,9 @@ export function AuthProvider({ children }) {
       await authService.registerAdmin(name, email, password);
       return { success: true };
     } catch (error) {
-      return { 
-        success: false, 
-        error: error.response?.data?.message || 'Erro ao registrar administrador' 
+      return {
+        success: false,
+        error: error.response?.data?.message || 'Erro ao registrar administrador'
       };
     }
   };
