@@ -1,37 +1,35 @@
-import { Controller, Post, Body, UseGuards, Request, Get } from '@nestjs/common';
-import { AuthService } from './auth.service';
-import { LoginDto } from './dto/login.dto';
-import { RegisterDto } from './dto/register.dto';
-import { LocalAuthGuard } from './guards/local-auth.guard';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
-import { RolesGuard } from './guards/roles.guard';
-import { Roles } from './roles.decorator';
 import { Role } from './role.enum';
+import { Roles } from './roles.decorator';
+import { LoginDto } from './dto/login.dto';
+import { AuthService } from './auth.service';
+import { RegisterDto } from './dto/register.dto';
+import { RolesGuard } from './guards/roles.guard';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { Controller, Post, Body, UseGuards, Request, Get } from '@nestjs/common';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(private authService: AuthService) { }
 
   @Post('register')
   async register(@Body() registerDto: RegisterDto) {
     return this.authService.register(registerDto);
   }
 
-  @UseGuards(LocalAuthGuard)
   @Post('login')
-  async login(@Request() req) {
-    return this.authService.login(req.user);
+  async login(@Body() loginDto: LoginDto) {
+    return this.authService.login(loginDto);
   }
 
-  @UseGuards(JwtAuthGuard)
   @Get('profile')
+  @UseGuards(JwtAuthGuard)
   getProfile(@Request() req) {
     return req.user;
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.Admin)
   @Post('admin/register')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   async registerAdmin(@Body() registerDto: RegisterDto) {
     return this.authService.createAdminUser(registerDto.username, registerDto.password);
   }
