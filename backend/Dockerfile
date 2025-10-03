@@ -7,9 +7,10 @@ RUN npm ci
 
 COPY backend ./
 
+RUN npm install
+RUN npm run build
+
 # Copia o .env da raiz para dentro da imagem (ex: /app/.env)
 COPY .env .env
 
-RUN npm install
-RUN npm run build
 CMD ["npm", "run", "start:prod"]

@@ -7,11 +7,11 @@ COPY frontend/package*.json ./
 
 COPY frontend ./
 
-# Copia o .env da raiz para dentro da imagem (ex: /app/.env)
-COPY .env .env
-
 RUN npm install --legacy-peer-deps
 RUN npm run build
+
+# Copia o .env da raiz para dentro da imagem (ex: /app/.env)
+COPY .env .env
 
 FROM nginx:alpine
 COPY --from=builder /app/dist /usr/share/nginx/html

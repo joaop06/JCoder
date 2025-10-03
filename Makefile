@@ -4,13 +4,17 @@
 down:
 	docker compose down
 up:
-	make down && docker compose up -d --build
+	make down
+	make up.d
+	make up.b
+	make up.f
 
 
 # Reload individual das aplicações
 down.b:
 	docker compose down backend
 up.b:
+	make env
 	make down.b && docker compose up -d --build backend
 
 down.d:
@@ -21,6 +25,7 @@ up.d:
 down.f:
 	docker compose down frontend
 up.f:
+	make env
 	make down.f && docker compose up -d --build frontend
 
 
