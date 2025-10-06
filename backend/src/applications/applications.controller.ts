@@ -7,6 +7,7 @@ import {
   Delete,
   UseGuards,
   Controller,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { FindManyOptions } from 'typeorm';
 import { RoleEnum } from '../@common/enums/role.enum';
@@ -37,8 +38,8 @@ export class ApplicationsController {
   }
 
   @Get(':id')
-  async findById(@Param('id') id: string): Promise<Application> {
-    return await this.applicationsService.findById(+id);
+  async findById(@Param('id', ParseIntPipe) id: number): Promise<Application> {
+    return await this.applicationsService.findById(id);
   }
 
   @Post()

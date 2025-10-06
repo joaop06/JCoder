@@ -1,9 +1,10 @@
+
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindManyOptions, Repository } from 'typeorm';
-import { Application } from '../applications/entities/application.entity';
-import { CreateApplicationDto } from '../applications/dto/create-application.dto';
-import { UpdateApplicationDto } from '../applications/dto/update-application.dto';
+import { Application } from './entities/application.entity';
+import { CreateApplicationDto } from './dto/create-application.dto';
+import { UpdateApplicationDto } from './dto/update-application.dto';
 import { ApplicationNotFoundException } from './exceptions/application-not-found.exception';
 
 @Injectable()
@@ -14,11 +15,23 @@ export class ApplicationsService {
   ) { }
 
   async findAll(options?: FindManyOptions<Application>): Promise<Application[]> {
-    return this.repository.find(options);
+    return this.repository.find({
+      ...options,
+      relations: { user: true },
+    });
   }
 
   async findById(id: number): Promise<Application> {
-    const application = await this.repository.findOne({ where: { id } });
+    const application = await this.repository.findOne({
+      where: { id },
+      relations: {
+        user: true,
+        applicationComponentApi: true,
+        applicationComponentMobile: true,
+        applicationComponentLibrary: true,
+        applicationComponentFrontend: true,
+      },
+    });
     if (!application) throw new ApplicationNotFoundException();
 
     return application;

@@ -16,11 +16,11 @@ export class User {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column('varchar', { unique: true })
+  @Column({ unique: true })
   email: string;
 
   @Exclude()
-  @Column('varchar')
+  @Column({ nullable: false })
   password: string;
 
   @Column({
@@ -32,7 +32,7 @@ export class User {
   role: RoleEnum;
 
   @OneToMany(() => Application, (application) => application.user)
-  applications?: Application[];
+  applications: Application[];
 
   @CreateDateColumn()
   createdAt: Date;
@@ -40,6 +40,6 @@ export class User {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @DeleteDateColumn({ nullable: true })
+  @DeleteDateColumn()
   deletedAt?: Date;
 };

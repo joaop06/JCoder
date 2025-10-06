@@ -10,35 +10,38 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
-import { ApplicationEnum } from '../enums/application.enum';
-import { ApplicationComponentApi } from './components/application-component-api.entity';
-import { ApplicationComponentMobile } from './components/application-component-mobile.entity';
-import { ApplicationComponentLibrary } from './components/application-component-library.entity';
-import { ApplicationComponentFrontend } from './components/application-component-frontend.entity';
+import { ApplicationTypeEnum } from '../enums/application-type.enum';
+import { ApplicationComponentApi } from '../application-components/entities/application-component-api.entity';
+import { ApplicationComponentMobile } from '../application-components/entities/application-component-mobile.entity';
+import { ApplicationComponentLibrary } from '../application-components/entities/application-component-library.entity';
+import { ApplicationComponentFrontend } from '../application-components/entities/application-component-frontend.entity';
 
 @Entity('applications')
 export class Application {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Column()
+  userId: number;
+
   @ManyToOne(() => User, (user) => user.applications)
-  @JoinColumn()
+  @JoinColumn({ name: 'userId' })
   user: User;
 
   @Column({ unique: true })
   name: string;
 
-  @Column({ type: 'text' })
+  @Column('text')
   description: string;
 
   @Column({
     type: 'enum',
     nullable: false,
-    enum: ApplicationEnum,
+    enum: ApplicationTypeEnum,
   })
-  type: ApplicationEnum;
+  applicationType: ApplicationTypeEnum;
 
-  @Column('varchar', { nullable: true })
+  @Column()
   githubUrl?: string;
 
   @Column({ default: true })
@@ -62,6 +65,6 @@ export class Application {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @DeleteDateColumn({ nullable: true })
+  @DeleteDateColumn()
   deletedAt?: Date;
 };
