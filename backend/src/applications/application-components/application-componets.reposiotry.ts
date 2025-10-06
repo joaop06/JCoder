@@ -22,19 +22,23 @@ export class ApplicationComponentsRepository {
         private readonly frontendRepository: Repository<ApplicationComponentFrontend>,
     ) { }
 
-    createApi(object: Partial<ApplicationComponentApi>): ApplicationComponentApi {
-        return this.apiRepository.create(object);
+    async createApi(object: Partial<ApplicationComponentApi>): Promise<ApplicationComponentApi> {
+        const component = this.apiRepository.create(object);
+        return await this.apiRepository.save(component);
     }
 
-    createMobile(object: Partial<ApplicationComponentMobile>): ApplicationComponentMobile {
-        return this.mobileRepository.create(object);
+    async createMobile(object: Partial<ApplicationComponentMobile>): Promise<ApplicationComponentMobile> {
+        const component = this.mobileRepository.create(object);
+        return await this.mobileRepository.save(component);
     }
 
-    createLibrary(object: Partial<ApplicationComponentLibrary>): ApplicationComponentLibrary {
-        return this.libraryRepository.create(object);
+    async createLibrary(object: Partial<ApplicationComponentLibrary>): Promise<ApplicationComponentLibrary> {
+        const component = this.libraryRepository.create(object);
+        return await this.libraryRepository.save(component);
     }
 
-    createFrontend(object: Partial<ApplicationComponentFrontend>): ApplicationComponentFrontend {
-        return this.frontendRepository.create(object);
+    async createFrontend(object: Partial<ApplicationComponentFrontend>): Promise<ApplicationComponentFrontend> {
+        const component = this.frontendRepository.create(object);
+        return await this.frontendRepository.save(component);
     }
 };

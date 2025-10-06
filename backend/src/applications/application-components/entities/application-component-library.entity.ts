@@ -21,6 +21,6 @@ export class ApplicationComponentLibrary {
     @Column({ nullable: false })
     packageManagerUrl: string;
 
-    @Column('text')
+    @Column('text', { nullable: true })
     readmeContent?: string;
 };

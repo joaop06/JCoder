@@ -32,10 +32,12 @@ export class CreateApplicationUseCase {
         this.validateDetailsForType(createApplicationDto);
 
         // Create the application with the respective components
-        return await this.applicationsService.create({
-            ...createApplicationDto,
-            ...this.createComponentsForType(createApplicationDto),
-        });
+        const application = await this.applicationsService.create(createApplicationDto);
+
+        // Create the components from application
+        await this.createComponentsForType(application, createApplicationDto);
+
+        return this.applicationsService.findById(application.id);
     }
 
     private validateDetailsForType(dto: CreateApplicationDto): void {
@@ -66,43 +68,42 @@ export class CreateApplicationUseCase {
         }
     }
 
-    private createComponentsForType(dto: CreateApplicationDto): {
-        applicationComponentApi?: ApplicationComponentApi;
-        applicationComponentMobile?: ApplicationComponentMobile;
-        applicationComponentLibrary?: ApplicationComponentLibrary;
-        applicationComponentFrontend?: ApplicationComponentFrontend;
-    } {
+    private async createComponentsForType(
+        application: Application,
+        dto: CreateApplicationDto,
+    ): Promise<void> {
         switch (dto.type) {
             case ApplicationTypeEnum.API:
-                return {
-                    applicationComponentApi: this.applicationComponentsRepository.createApi({
-                        ...dto.applicationComponentApi,
-                    })
-                };
+                await this.applicationComponentsRepository.createApi({
+                    application,
+                    ...dto.applicationComponentApi,
+                });
+                break;
 
             case ApplicationTypeEnum.FULLSTACK:
-                return {
-                    applicationComponentApi: this.applicationComponentsRepository.createApi({
-                        ...dto.applicationComponentApi,
-                    }),
-                    applicationComponentFrontend: this.applicationComponentsRepository.createFrontend({
-                        ...dto.applicationComponentFrontend,
-                    }),
-                };
+                await this.applicationComponentsRepository.createApi({
+                    application,
+                    ...dto.applicationComponentApi,
+                });
+                await this.applicationComponentsRepository.createFrontend({
+                    application,
+                    ...dto.applicationComponentFrontend,
+                });
+                break;
 
             case ApplicationTypeEnum.MOBILE:
-                return {
-                    applicationComponentMobile: this.applicationComponentsRepository.createMobile({
-                        ...dto.applicationComponentMobile,
-                    }),
-                };
+                await this.applicationComponentsRepository.createMobile({
+                    application,
+                    ...dto.applicationComponentMobile,
+                });
+                break;
 
             case ApplicationTypeEnum.LIBRARY:
-                return {
-                    applicationComponentLibrary: this.applicationComponentsRepository.createLibrary({
-                        ...dto.applicationComponentLibrary,
-                    }),
-                };
+                await this.applicationComponentsRepository.createLibrary({
+                    application,
+                    ...dto.applicationComponentLibrary,
+                });
+                break;
         }
     }
 };
