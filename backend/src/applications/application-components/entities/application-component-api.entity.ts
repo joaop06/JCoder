@@ -27,6 +27,6 @@ export class ApplicationComponentApi {
     @Column({ nullable: false })
     documentationUrl: string;
 
-    @Column()
+    @Column({ nullable: true })
     healthCheckEndpoint?: string;
 };

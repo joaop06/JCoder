@@ -22,7 +22,7 @@ export class ApplicationComponentFrontend {
     @Column({ nullable: false })
     frontendUrl: string;
 
-    @Column()
+    @Column({ nullable: true })
     screenshotUrl?: string;
 
     @Column({ nullable: true })

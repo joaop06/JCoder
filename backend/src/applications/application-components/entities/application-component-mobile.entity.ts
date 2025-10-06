@@ -27,7 +27,7 @@ export class ApplicationComponentMobile {
     })
     platform: MobilePlatformEnum;
 
-    @Column()
+    @Column({ nullable: true })
     downloadUrl?: string;
 
     @Column({ nullable: true })

@@ -41,7 +41,7 @@ export class Application {
   })
   applicationType: ApplicationTypeEnum;
 
-  @Column()
+  @Column({ nullable: true })
   githubUrl?: string;
 
   @Column({ default: true })
