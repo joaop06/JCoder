@@ -6,12 +6,8 @@ import { ApplicationTypeEnum } from "../enums/application-type.enum";
 import { CreateApplicationDto } from "../dto/create-application.dto";
 import { RequiredApiComponentToApiApplication } from "../exceptions/required-api-component.exception";
 import { ApplicationComponentsRepository } from "../application-components/application-componets.reposiotry";
-import { ApplicationComponentApi } from "../application-components/entities/application-component-api.entity";
 import { RequiredMobileComponentToMobileApplication } from "../exceptions/required-mobile-component.exception";
 import { RequiredLibraryComponentToLibraryApplication } from "../exceptions/required-library-component.exception";
-import { ApplicationComponentMobile } from "../application-components/entities/application-component-mobile.entity";
-import { ApplicationComponentLibrary } from "../application-components/entities/application-component-library.entity";
-import { ApplicationComponentFrontend } from "../application-components/entities/application-component-frontend.entity";
 import { RequiredApiAndFrontendComponentsToFullstackApplication } from "../exceptions/required-api-and-frontend-components.exception";
 
 @Injectable()
