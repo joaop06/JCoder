@@ -4,7 +4,7 @@ import mysql from 'mysql2/promise';
 
 config();
 
-async function main() {
+const createInitialUserAdmin = async () => {
     const {
         DATABASE_NAME,
         DATABASE_USER,
@@ -52,6 +52,4 @@ async function main() {
     }
 }
 
-main().catch(() => {
-    // Evita derrubar o backend caso o seed falhe
-});
+export { createInitialUserAdmin };

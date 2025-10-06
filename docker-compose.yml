@@ -37,12 +37,6 @@ services:
     depends_on:
       database:
         condition: service_healthy
-    command:
-      [
-        "/bin/sh",
-        "-c",
-        "node dist/src/main.js & node dist/scripts/seed-admin.js; wait",
-      ]
     ports:
       - "${BACKEND_PORT}:${BACKEND_PORT}"
 
