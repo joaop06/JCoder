@@ -3,8 +3,8 @@ import axios from 'axios';
 // Configuração base da API
 const api = axios.create({
   timeout: 10000,
+  baseURL: import.meta.env.VITE_BACKEND_BASE_URL, // URL do backend NestJS
   headers: { 'Content-Type': 'application/json' },
-  baseURL: import.meta.env.BACKEND_BASE_URL || 'http://localhost:8081', // URL do backend NestJS
 });
 
 // Interceptor para adicionar o token JWT nas requisições
