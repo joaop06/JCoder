@@ -1,42 +1,50 @@
 'use client';
 
-import { useState } from 'react';
-import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import Header from '@/components/Header';
+import { useEffect, useMemo, useState } from 'react';
 import ApplicationCard from '@/components/ApplicationCard';
 import { Application } from '@/types/entities/application.entity';
-import { ApplicationTypeEnum } from '@/types/enums/application-type.enum';
-
-// Mock data - será substituído por chamadas à API
-const mockApplications: Application[] = [
-  {
-    id: 1,
-    userId: 1,
-    name: 'Interpreter',
-    description: 'Api do aplicativo de finanças pessoais MyMoney',
-    applicationType: ApplicationTypeEnum.Api,
-    isActive: true,
-    githubUrl: 'https://github.com/example/interpreter',
-    applicationComponentApi: {
-      applicationId: 1,
-      domain: 'api.interpreter.com',
-      apiUrl: 'https://api.interpreter.com',
-      documentationUrl: 'https://api.interpreter.com/docs',
-      healthCheckEndpoint: '/health',
-    },
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-];
+import { ApplicationService } from '@/services/applications.service';
 
 export default function Home() {
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [applications] = useState<Application[]>(mockApplications);
+  const [error, setError] = useState<string | null>(null);
+  const [applications, setApplications] = useState<Application[]>([]);
 
-  const filteredApplications = applications.filter((app) =>
-    app.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    app.description.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  useEffect(() => {
+    let isMounted = true;
+    setLoading(true);
+    ApplicationService
+      .getAll()
+      .then(data => {
+        if (!isMounted) return;
+        setApplications(data ?? []);
+        setError(null);
+      })
+      .catch(err => {
+        if (!isMounted) return;
+        console.error('Falha ao carregar aplica\u00e7\u00f5es', err);
+        setError('N\u00e3o foi poss\u00edvel carregar as aplica\u00e7\u00f5es. Tente novamente.');
+      })
+      .finally(() => {
+        if (!isMounted) return;
+        setLoading(false);
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const filteredApplications = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return applications;
+    return applications.filter((app) =>
+      app.name.toLowerCase().includes(q) ||
+      app.description.toLowerCase().includes(q)
+    );
+  }, [applications, searchQuery]);
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
@@ -81,7 +89,28 @@ export default function Home() {
 
         {/* Applications Grid */}
         <div className="max-w-5xl mx-auto">
-          {filteredApplications.length > 0 ? (
+          {loading ? (
+            <div className="text-center py-12 text-gray-600">Loading applications...</div>
+          ) : error ? (
+            <div className="text-center py-12">
+              <p className="text-red-600">{error}</p>
+              <button
+                onClick={() => {
+                  // re-tentar carregamento simples
+                  setError(null);
+                  setLoading(true);
+                  ApplicationService
+                    .getAll()
+                    .then((data) => setApplications(data ?? []))
+                    .catch(() => setError('The applications could not be loaded.'))
+                    .finally(() => setLoading(false));
+                }}
+                className="mt-4 inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-50"
+              >
+                Try again
+              </button>
+            </div>
+          ) : filteredApplications.length > 0 ? (
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                 {filteredApplications.map((app) => (
