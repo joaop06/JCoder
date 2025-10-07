@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "build": "next build --turbopack",
-    "start": "next start -p ${NEXT_PUBLIC_FRONTEND_PORT:-3000}",
-    "dev": "next dev --turbopack -p ${NEXT_PUBLIC_FRONTEND_PORT:-3000}"
+    "start": "next start",
+    "dev": "next dev --turbopack",
+    "build": "next build --turbopack"
   },
   "dependencies": {
     "axios": "^1.12.2",
