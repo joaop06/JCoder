@@ -1,8 +1,8 @@
 import Link from 'next/link';
 
 interface HeaderProps {
-  showAuth?: boolean;
   isAdmin?: boolean;
+  showAuth?: boolean;
   onLogout?: () => void;
 }
 
@@ -21,16 +21,16 @@ export default function Header({ showAuth = true, isAdmin = false, onLogout }: H
 
           {/* Navigation */}
           <nav className="flex items-center gap-8">
-            <Link 
-              href="/" 
+            <Link
+              href="/"
               className="text-gray-700 hover:text-black transition-colors"
             >
               Aplicações
             </Link>
-            
+
             {isAdmin && (
-              <Link 
-                href="/admin" 
+              <Link
+                href="/admin"
                 className="text-gray-700 hover:text-black transition-colors"
               >
                 Administração

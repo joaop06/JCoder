@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Application } from '@/types';
+import { Application } from '@/types/entities/application.entity';
 
 interface ApplicationCardProps {
   application: Application;

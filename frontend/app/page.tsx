@@ -4,7 +4,8 @@ import { useState } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import ApplicationCard from '@/components/ApplicationCard';
-import { Application, ApplicationTypeEnum } from '@/types';
+import { Application } from '@/types/entities/application.entity';
+import { ApplicationTypeEnum } from '@/types/enums/application-type.enum';
 
 // Mock data - será substituído por chamadas à API
 const mockApplications: Application[] = [
@@ -45,10 +46,10 @@ export default function Home() {
         {/* Hero Section */}
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            Portfólio de Aplicações
+            Application Portfolio
           </h1>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Explore e acesse todas as aplicações disponíveis em nosso portfólio
+            Explore and access all the applications available in our portfolio
           </p>
         </div>
 
@@ -70,7 +71,7 @@ export default function Home() {
             </svg>
             <input
               type="text"
-              placeholder="Buscar aplicações..."
+              placeholder="Search for applications..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
@@ -90,12 +91,12 @@ export default function Home() {
 
               {/* Pagination Info */}
               <div className="text-center text-sm text-gray-600">
-                {filteredApplications.length} aplicação(ões) encontrada(s)
+                {filteredApplications.length} application(s) found
               </div>
             </>
           ) : (
             <div className="text-center py-12">
-              <p className="text-gray-600">Nenhuma aplicação encontrada.</p>
+              <p className="text-gray-600">No applications found.</p>
             </div>
           )}
         </div>

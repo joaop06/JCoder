@@ -1,9 +1,10 @@
 'use client';
 
-import { useParams, useRouter } from 'next/navigation';
-import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { Application, ApplicationTypeEnum } from '@/types';
+import Header from '@/components/Header';
+import { useParams, useRouter } from 'next/navigation';
+import { Application } from '@/types/entities/application.entity';
+import { ApplicationTypeEnum } from '@/types/enums/application-type.enum';
 
 // Mock data - será substituído por chamada à API
 const mockApplication: Application = {

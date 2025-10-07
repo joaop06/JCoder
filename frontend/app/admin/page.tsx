@@ -1,10 +1,11 @@
 'use client';
 
+import Footer from '@/components/Footer';
+import Header from '@/components/Header';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import { Application, ApplicationTypeEnum } from '@/types';
+import { Application } from '@/types/entities/application.entity';
+import { ApplicationTypeEnum } from '@/types/enums/application-type.enum';
 
 // Mock data
 const mockApplications: Application[] = [

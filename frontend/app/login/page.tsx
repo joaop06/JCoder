@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
 import Link from 'next/link';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
@@ -19,7 +19,7 @@ export default function LoginPage() {
       // Armazenar token no localStorage
       localStorage.setItem('token', 'mock-token');
       localStorage.setItem('user', JSON.stringify({ email, role: 'admin' }));
-      
+
       setIsLoading(false);
       router.push('/admin');
     }, 1000);
@@ -39,8 +39,8 @@ export default function LoginPage() {
             </Link>
 
             <nav>
-              <Link 
-                href="/" 
+              <Link
+                href="/"
                 className="text-gray-700 hover:text-black transition-colors"
               >
                 Aplicações
