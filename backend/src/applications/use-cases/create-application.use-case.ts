@@ -5,7 +5,7 @@ import { ApplicationsService } from "../applications.service";
 import { ApplicationTypeEnum } from "../enums/application-type.enum";
 import { CreateApplicationDto } from "../dto/create-application.dto";
 import { RequiredApiComponentToApiApplication } from "../exceptions/required-api-component.exception";
-import { ApplicationComponentsRepository } from "../application-components/application-componets.reposiotry";
+import { ApplicationComponentsService } from "../application-components/application-components.service";
 import { RequiredMobileComponentToMobileApplication } from "../exceptions/required-mobile-component.exception";
 import { RequiredLibraryComponentToLibraryApplication } from "../exceptions/required-library-component.exception";
 import { RequiredApiAndFrontendComponentsToFullstackApplication } from "../exceptions/required-api-and-frontend-components.exception";
@@ -17,7 +17,7 @@ export class CreateApplicationUseCase {
 
         private readonly applicationsService: ApplicationsService,
 
-        private readonly applicationComponentsRepository: ApplicationComponentsRepository,
+        private readonly applicationComponentsService: ApplicationComponentsService,
     ) { }
 
     async execute(createApplicationDto: CreateApplicationDto): Promise<Application> {
@@ -30,8 +30,19 @@ export class CreateApplicationUseCase {
         // Create the application with the respective components
         const application = await this.applicationsService.create(createApplicationDto);
 
-        // Create the components from application
-        await this.createComponentsForType(application, createApplicationDto);
+        /**
+         * Create the components from application
+         */
+        await this.applicationComponentsService.saveComponentsForType({
+            application,
+            applicationType: createApplicationDto.type,
+            dtos: {
+                applicationComponentApi: createApplicationDto.applicationComponentApi,
+                applicationComponentMobile: createApplicationDto.applicationComponentMobile,
+                applicationComponentLibrary: createApplicationDto.applicationComponentLibrary,
+                applicationComponentFrontend: createApplicationDto.applicationComponentFrontend,
+            },
+        });
 
         return this.applicationsService.findById(application.id);
     }
@@ -60,45 +71,6 @@ export class CreateApplicationUseCase {
                 if (!dto.applicationComponentLibrary) {
                     throw new RequiredLibraryComponentToLibraryApplication();
                 }
-                break;
-        }
-    }
-
-    private async createComponentsForType(
-        application: Application,
-        dto: CreateApplicationDto,
-    ): Promise<void> {
-        switch (dto.type) {
-            case ApplicationTypeEnum.API:
-                await this.applicationComponentsRepository.createApi({
-                    application,
-                    ...dto.applicationComponentApi,
-                });
-                break;
-
-            case ApplicationTypeEnum.FULLSTACK:
-                await this.applicationComponentsRepository.createApi({
-                    application,
-                    ...dto.applicationComponentApi,
-                });
-                await this.applicationComponentsRepository.createFrontend({
-                    application,
-                    ...dto.applicationComponentFrontend,
-                });
-                break;
-
-            case ApplicationTypeEnum.MOBILE:
-                await this.applicationComponentsRepository.createMobile({
-                    application,
-                    ...dto.applicationComponentMobile,
-                });
-                break;
-
-            case ApplicationTypeEnum.LIBRARY:
-                await this.applicationComponentsRepository.createLibrary({
-                    application,
-                    ...dto.applicationComponentLibrary,
-                });
                 break;
         }
     }
