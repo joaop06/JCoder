@@ -25,8 +25,8 @@ export default function Home() {
       })
       .catch(err => {
         if (!isMounted) return;
-        console.error('Falha ao carregar aplica\u00e7\u00f5es', err);
-        setError('N\u00e3o foi poss\u00edvel carregar as aplica\u00e7\u00f5es. Tente novamente.');
+        console.error('Failure to load applications', err);
+        setError('The applications could not be loaded. Please try again.');
       })
       .finally(() => {
         if (!isMounted) return;
@@ -134,4 +134,4 @@ export default function Home() {
       <Footer />
     </div>
   );
-}
+};

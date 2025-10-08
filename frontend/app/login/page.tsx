@@ -19,37 +19,27 @@ export default function LoginPage() {
     setErrorMsg(null);
 
     try {
-      // Chamada real à API
       const data: LoginResponse = await AuthService.login({ email, password });
 
-      // Ajuste estes nomes de campos conforme seu LoginResponse
-      const accessToken =
-        // tente vários formatos comuns, ou ajuste para o seu contrato
-        (data as any).accessToken ??
-        (data as any).token ??
-        (data as any).data?.accessToken;
-
-      const user =
-        (data as any).user ??
-        (data as any).data?.user ??
-        { email };
+      const user = data.user;
+      const accessToken = data.accessToken;
 
       if (!accessToken) {
-        throw new Error('Token de acesso não encontrado na resposta.');
+        throw new Error('Access token not found in response.');
       }
 
-      // Persistência do auth no client
+      // Auth persistence on the client
       localStorage.setItem('accessToken', accessToken);
       localStorage.setItem('user', JSON.stringify(user));
 
-      // Redireciona para o admin
+      // Redirects to admin
       router.push('/admin');
     } catch (err: any) {
-      // Tratamento de erro amigável
+      // Friendly error handling
       const apiMessage =
         err?.response?.data?.message ||
         err?.message ||
-        'Falha ao entrar. Verifique suas credenciais e tente novamente.';
+        'Failed to log in. Please check your credentials and try again.';
       setErrorMsg(apiMessage);
     } finally {
       setIsLoading(false);
@@ -74,7 +64,7 @@ export default function LoginPage() {
                 href="/"
                 className="text-gray-700 hover:text-black transition-colors"
               >
-                Aplicações
+                Applications
               </Link>
             </nav>
 
@@ -82,7 +72,7 @@ export default function LoginPage() {
               href="/"
               className="px-4 py-2 text-sm font-medium hover:opacity-80 transition-opacity"
             >
-              Entrar
+              SignIn
             </Link>
           </div>
         </div>
@@ -97,23 +87,23 @@ export default function LoginPage() {
               <span className="text-white font-bold text-2xl">JD</span>
             </div>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">
-              Faça login em sua conta
+              Log in to your account
             </h1>
             <p className="text-gray-600">
-              Acesse o painel administrativo
+              Access the administrative panel
             </p>
           </div>
 
           {/* Login Form */}
           <div className="bg-white border border-gray-200 rounded-lg p-8">
             <div className="mb-6 text-center">
-              <h2 className="text-lg font-semibold mb-1">Login</h2>
+              <h2 className="text-lg font-semibold mb-1">SignIn</h2>
               <p className="text-sm text-gray-600">
-                Digite suas credenciais para acessar o sistema
+                Enter your credentials to access the system
               </p>
             </div>
 
-            {/* Alerta de erro */}
+            {/* Error alert */}
             {errorMsg && (
               <div className="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                 {errorMsg}
@@ -126,29 +116,29 @@ export default function LoginPage() {
                   Email
                 </label>
                 <input
+                  required
                   id="email"
                   type="email"
-                  placeholder="seu@email.com"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
                   disabled={isLoading}
+                  placeholder="your@email.com"
+                  onChange={(e) => setEmail(e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent disabled:opacity-60"
                 />
               </div>
 
               <div>
                 <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                  Senha
+                  Password
                 </label>
                 <input
+                  required
                   id="password"
                   type="password"
-                  placeholder="••••••••"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
                   disabled={isLoading}
+                  placeholder="••••••••"
+                  onChange={(e) => setPassword(e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent disabled:opacity-60"
                 />
               </div>
@@ -159,13 +149,13 @@ export default function LoginPage() {
                 className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading ? (
-                  <span>Entrando...</span>
+                  <span>Entering...</span>
                 ) : (
                   <>
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
                     </svg>
-                    Entrar
+                    SignIn
                   </>
                 )}
               </button>
@@ -181,7 +171,7 @@ export default function LoginPage() {
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
               </svg>
-              Voltar para o portfólio
+              Back to portfolio
             </Link>
           </div>
         </div>

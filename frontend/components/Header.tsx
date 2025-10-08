@@ -64,7 +64,7 @@ export default function Header({
                 href="/login"
                 className="px-4 py-2 text-sm font-medium hover:opacity-80 transition-opacity"
               >
-                Entrar
+                SignIn
               </Link>
             )}
           </div>
@@ -113,7 +113,7 @@ export default function Header({
                   href="/login"
                   className="px-4 py-2 text-sm font-medium hover:opacity-80 transition-opacity"
                 >
-                  Entrar
+                  SignIn
                 </Link>
               ) : (
                 <div className="flex items-center gap-3">
