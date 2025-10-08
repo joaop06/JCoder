@@ -14,10 +14,10 @@ export interface Application {
     applicationType: ApplicationTypeEnum;
     githubUrl?: string;
     isActive: boolean;
-    applicationComponentApi?: ApplicationComponentApi;
-    applicationComponentMobile?: ApplicationComponentMobile;
-    applicationComponentLibrary?: ApplicationComponentLibrary;
-    applicationComponentFrontend?: ApplicationComponentFrontend;
+    applicationComponentApi?: ApplicationComponentApi | null;
+    applicationComponentMobile?: ApplicationComponentMobile | null;
+    applicationComponentLibrary?: ApplicationComponentLibrary | null;
+    applicationComponentFrontend?: ApplicationComponentFrontend | null;
     createdAt: Date;
     updatedAt: Date;
     deletedAt?: Date;

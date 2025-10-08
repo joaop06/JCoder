@@ -1,5 +1,5 @@
 export interface ApplicationComponentLibrary {
     applicationId: number;
     packageManagerUrl: string;
-    readmeContent?: string;
+    readmeContent?: string | null;
 };

@@ -10,4 +10,13 @@ export const ApplicationService = {
             throw error;
         }
     },
+
+    async getById(id: number): Promise<Application> {
+        try {
+            const response = await ApiService.get(`/applications/${id}`);
+            return response.data;
+        } catch (error) {
+            throw error;
+        }
+    }
 };
