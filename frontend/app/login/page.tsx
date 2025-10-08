@@ -3,26 +3,57 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { AuthService } from '@/services/auth.service'; // ajuste o caminho se necessário
+import type { LoginResponse } from '@/types/api/login.type';
 
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setErrorMsg(null);
 
-    // Simulação de login - substituir por chamada à API
-    setTimeout(() => {
-      // Armazenar token no localStorage
-      localStorage.setItem('accessToken', 'mock-token');
-      localStorage.setItem('user', JSON.stringify({ email, role: 'admin' }));
+    try {
+      // Chamada real à API
+      const data: LoginResponse = await AuthService.login({ email, password });
 
-      setIsLoading(false);
+      // Ajuste estes nomes de campos conforme seu LoginResponse
+      const accessToken =
+        // tente vários formatos comuns, ou ajuste para o seu contrato
+        (data as any).accessToken ??
+        (data as any).token ??
+        (data as any).data?.accessToken;
+
+      const user =
+        (data as any).user ??
+        (data as any).data?.user ??
+        { email };
+
+      if (!accessToken) {
+        throw new Error('Token de acesso não encontrado na resposta.');
+      }
+
+      // Persistência do auth no client
+      localStorage.setItem('accessToken', accessToken);
+      localStorage.setItem('user', JSON.stringify(user));
+
+      // Redireciona para o admin
       router.push('/admin');
-    }, 1000);
+    } catch (err: any) {
+      // Tratamento de erro amigável
+      const apiMessage =
+        err?.response?.data?.message ||
+        err?.message ||
+        'Falha ao entrar. Verifique suas credenciais e tente novamente.';
+      setErrorMsg(apiMessage);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -82,6 +113,13 @@ export default function LoginPage() {
               </p>
             </div>
 
+            {/* Alerta de erro */}
+            {errorMsg && (
+              <div className="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                {errorMsg}
+              </div>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
@@ -94,7 +132,8 @@ export default function LoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                  disabled={isLoading}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent disabled:opacity-60"
                 />
               </div>
 
@@ -109,7 +148,8 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                  disabled={isLoading}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent disabled:opacity-60"
                 />
               </div>
 
@@ -148,4 +188,4 @@ export default function LoginPage() {
       </main>
     </div>
   );
-}
+};

@@ -25,5 +25,4 @@ export const UsersService = {
         localStorage.removeItem('user');
         localStorage.removeItem('accessToken');
     }
-
 };
