@@ -17,7 +17,7 @@ export default function LoginPage() {
     // Simulação de login - substituir por chamada à API
     setTimeout(() => {
       // Armazenar token no localStorage
-      localStorage.setItem('token', 'mock-token');
+      localStorage.setItem('accessToken', 'mock-token');
       localStorage.setItem('user', JSON.stringify({ email, role: 'admin' }));
 
       setIsLoading(false);

@@ -44,8 +44,8 @@ export default function AdminPage() {
   }, [router]);
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
     localStorage.removeItem('user');
+    localStorage.removeItem('accessToken');
     router.push('/');
   };
 
