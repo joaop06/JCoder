@@ -50,13 +50,14 @@ export default function Home() {
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Header showAuth={true} isAdmin={false} />
 
-      <main className="flex-1 container mx-auto px-4 py-12">
+      <main className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+
         {/* Hero Section */}
-        <div className="text-center mb-12">
+        <div className="text-center mb-12 max-w-3xl mx-auto">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
             Application Portfolio
           </h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          <p className="text-lg text-gray-600">
             Explore and access all the applications available in our portfolio
           </p>
         </div>
@@ -65,30 +66,30 @@ export default function Home() {
         <div className="max-w-2xl mx-auto mb-12">
           <div className="relative">
             <svg
-              className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400"
               fill="none"
-              stroke="currentColor"
               viewBox="0 0 24 24"
+              stroke="currentColor"
+              className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"
             >
               <path
+                strokeWidth={2}
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                strokeWidth={2}
                 d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
               />
             </svg>
             <input
               type="text"
-              placeholder="Search for applications..."
               value={searchQuery}
+              placeholder="Search for applications..."
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+              className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent bg-white"
             />
           </div>
         </div>
 
         {/* Applications Grid */}
-        <div className="max-w-5xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           {loading ? (
             <div className="text-center py-12 text-gray-600">Loading applications...</div>
           ) : error ? (
@@ -96,7 +97,6 @@ export default function Home() {
               <p className="text-red-600">{error}</p>
               <button
                 onClick={() => {
-                  // re-tentar carregamento simples
                   setError(null);
                   setLoading(true);
                   ApplicationService
@@ -112,7 +112,7 @@ export default function Home() {
             </div>
           ) : filteredApplications.length > 0 ? (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
                 {filteredApplications.map((app) => (
                   <ApplicationCard key={app.id} application={app} />
                 ))}
