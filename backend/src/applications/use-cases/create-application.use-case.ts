@@ -44,7 +44,7 @@ export class CreateApplicationUseCase {
             },
         });
 
-        return this.applicationsService.findById(application.id);
+        return await this.applicationsService.findById(application.id);
     }
 
     private validateDetailsForType(dto: CreateApplicationDto): void {

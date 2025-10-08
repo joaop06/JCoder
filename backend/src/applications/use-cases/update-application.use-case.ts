@@ -30,6 +30,6 @@ export class UpdateApplicationUseCase {
             },
         });
 
-        return this.applicationsService.findById(id);
+        return await this.applicationsService.findById(id);
     }
 };
