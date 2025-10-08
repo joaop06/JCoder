@@ -21,7 +21,7 @@ export class UpdateApplicationUseCase {
          */
         await this.applicationComponentsService.saveComponentsForType({
             application,
-            applicationType: updateApplicationDto.type,
+            applicationType: updateApplicationDto.applicationType,
             dtos: {
                 applicationComponentApi: updateApplicationDto.applicationComponentApi,
                 applicationComponentMobile: updateApplicationDto.applicationComponentMobile,
