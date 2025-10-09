@@ -36,11 +36,10 @@ const createInitialUserAdmin = async () => {
         let passwordToStore = DATABASE_INITIAL_PASSWORD_ADMIN;
 
         try {
-            // Tenta usar bcrypt se disponível
             // eslint-disable-next-line @typescript-eslint/no-var-requires
             passwordToStore = await bcrypt.hash(DATABASE_INITIAL_PASSWORD_ADMIN, 10);
         } catch {
-            // Se bcrypt não estiver disponível, segue com a senha em claro
+            // If bcrypt is unavailable, keep with the original password
         }
 
         await conn.execute(

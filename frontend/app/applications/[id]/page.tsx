@@ -40,7 +40,7 @@ export default function ApplicationDetailPage() {
       .then((data) => {
         if (!isMounted) return;
         if (!data) {
-          setError('Aplicação não encontrada.');
+          setError('Aplication not found.');
           setApplication(null);
           return;
         }
@@ -48,12 +48,11 @@ export default function ApplicationDetailPage() {
       })
       .catch((err: any) => {
         if (!isMounted) return;
-        // Se sua API retorna status, pode tratar 404 aqui
         const status = err?.response?.status;
         if (status === 404) {
-          setError('Aplicação não encontrada.');
+          setError('Aplication not found.');
         } else {
-          setError('Não foi possível carregar a aplicação. Tente novamente.');
+          setError('The application could not be loaded. Please try again.');
         }
         setApplication(null);
       })
@@ -105,10 +104,10 @@ export default function ApplicationDetailPage() {
             Voltar
           </button>
 
-          {/* Estados: carregando / erro / conteúdo */}
+          {/* States: loading / error / content */}
           {loading ? (
             <div className="bg-white border border-gray-200 rounded-lg p-8 text-center text-gray-600">
-              Carregando aplicação...
+              Loading application...
             </div>
           ) : error ? (
             <div className="bg-white border border-red-200 rounded-lg p-8 text-center">
@@ -116,31 +115,31 @@ export default function ApplicationDetailPage() {
               <div className="mt-4 flex items-center justify-center gap-3">
                 <button
                   onClick={() => {
-                    // força re-carregar (se appId válido, o efeito roda novamente ao mudar state dummy se necessário)
+                    // force reload (if appId is valid, the effect runs again when changing the dummy state if necessary)
                     if (appId !== null) {
                       setLoading(true);
                       setError(null);
                       ApplicationService.getById(appId)
                         .then((data) => setApplication(data ?? null))
-                        .catch(() => setError('Não foi possível carregar a aplicação. Tente novamente.'))
+                        .catch(() => setError('The application could not be loaded. Please try again.'))
                         .finally(() => setLoading(false));
                     }
                   }}
                   className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-50"
                 >
-                  Tentar novamente
+                  Try again
                 </button>
                 <button
                   onClick={() => router.push('/')}
                   className="inline-flex items-center px-4 py-2 bg-black text-white rounded-md text-sm hover:bg-gray-800"
                 >
-                  Ir para início
+                  Go to top
                 </button>
               </div>
             </div>
           ) : !application ? (
             <div className="bg-white border border-gray-200 rounded-lg p-8 text-center text-gray-600">
-              Aplicação não encontrada.
+              Application not found.
             </div>
           ) : (
             <div className="bg-white border border-gray-200 rounded-lg p-8 mb-6">
@@ -174,20 +173,20 @@ export default function ApplicationDetailPage() {
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                     </svg>
-                    Abrir Aplicação
+                    Open Application
                   </a>
                 )}
               </div>
 
               {/* Description */}
               <div className="mb-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-3">Descrição</h2>
+                <h2 className="text-lg font-semibold text-gray-900 mb-3">Description</h2>
                 <p className="text-gray-700">{application.description}</p>
               </div>
 
               {/* Technical Information */}
               <div>
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Informações Técnicas</h2>
+                <h2 className="text-lg font-semibold text-gray-900 mb-4">Technical Information</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm font-medium text-gray-600 mb-1">ID:</p>
@@ -205,17 +204,17 @@ export default function ApplicationDetailPage() {
               {/* Component-specific details */}
               {application.applicationComponentApi && (
                 <div className="mt-6 pt-6 border-t border-gray-200">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Detalhes da API</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">API Details</h3>
                   <div className="space-y-3">
                     {application.applicationComponentApi.domain && (
                       <div>
-                        <p className="text-sm font-medium text-gray-600 mb-1">Domínio:</p>
+                        <p className="text-sm font-medium text-gray-600 mb-1">Domain:</p>
                         <p className="text-gray-900 break-all">{application.applicationComponentApi.domain}</p>
                       </div>
                     )}
                     {application.applicationComponentApi.documentationUrl && (
                       <div>
-                        <p className="text-sm font-medium text-gray-600 mb-1">Documentação:</p>
+                        <p className="text-sm font-medium text-gray-600 mb-1">Documentation:</p>
                         <a
                           href={application.applicationComponentApi.documentationUrl}
                           target="_blank"
@@ -250,7 +249,7 @@ export default function ApplicationDetailPage() {
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                     </svg>
-                    Acessar {application.name}
+                    Access {application.name}
                   </a>
                 </div>
               )}

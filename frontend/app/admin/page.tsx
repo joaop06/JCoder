@@ -34,8 +34,8 @@ export default function AdminPage() {
         const data = await ApplicationService.getAll();
         setApplications(Array.isArray(data) ? data : []);
       } catch (err: any) {
-        console.error('Erro ao buscar aplicações:', err);
-        setFetchError('Não foi possível carregar as aplicações. Tente novamente.');
+        console.error('Error retrieving applications:', err);
+        setFetchError('The applications could not be loaded. Please try again..');
       } finally {
         setLoading(false);
       }
@@ -50,21 +50,19 @@ export default function AdminPage() {
     router.push('/');
   }, [router]);
 
-  // Placeholder para futura integração com DELETE em API
   const handleDelete = useCallback(
     async (id: number) => {
-      if (!confirm('Tem certeza que deseja excluir esta aplicação?')) return;
+      if (!confirm('Are you sure you want to delete this application?')) return;
 
-      // Otimismo: remove da UI primeiro e depois confirmaria com a API
       const prev = applications;
-      setApplications((apps) => apps.filter((a) => a.id !== id));
 
       try {
-        // TODO: implemente ApplicationService.delete(id) quando existir no backend.
         // await ApplicationService.delete(id);
+        setApplications((apps) => apps.filter((a) => a.id !== id));
+
       } catch (err) {
-        console.error('Erro ao excluir aplicação:', err);
-        alert('Não foi possível excluir a aplicação. Voltando ao estado anterior.');
+        console.error('Error deleting application:', err);
+        alert('The application could not be deleted. Returning to the previous state.');
         setApplications(prev);
       }
     },
@@ -84,10 +82,72 @@ export default function AdminPage() {
     [applications]
   );
 
+  const formatRelativeDate = (date: Date, locale = 'pt-BR'): string => {
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffSec = Math.floor(diffMs / 1000);
+    const diffMin = Math.floor(diffSec / 60);
+    const diffHrs = Math.floor(diffMin / 60);
+    const diffDays = Math.floor(diffHrs / 24);
+
+    if (diffSec < 60) return 'Now';
+    if (diffMin < 60) return `${diffMin} min ago`;
+    if (diffHrs < 24) return `${diffHrs} h ago`;
+
+    // Same date of the current day -> “Today HH:mm”
+    const sameDay =
+      date.getFullYear() === now.getFullYear() &&
+      date.getMonth() === now.getMonth() &&
+      date.getDate() === now.getDate();
+    if (sameDay) {
+      return `Today ${date.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}`;
+    }
+
+    // Yesterday
+    const yesterday = new Date(now);
+    yesterday.setDate(now.getDate() - 1);
+    const isYesterday =
+      date.getFullYear() === yesterday.getFullYear() &&
+      date.getMonth() === yesterday.getMonth() &&
+      date.getDate() === yesterday.getDate();
+    if (isYesterday) {
+      return `Yesterday ${date.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}`;
+    }
+
+    return date.toLocaleString(locale, {
+      day: '2-digit',
+      hour: '2-digit',
+      year: 'numeric',
+      month: '2-digit',
+      minute: '2-digit',
+    });
+  }
+
+  const parseToDate = (value: string | number | Date | null | undefined): Date | null => {
+    if (!value) return null;
+    const d = value instanceof Date ? value : new Date(value);
+    return isNaN(d.getTime()) ? null : d;
+  }
+
   const lastUpdate = useMemo(() => {
-    if (!applications.length) return 'Nunca';
-    // Caso haja updatedAt/createdAt, poderia formatar a mais recente aqui
-    return 'Hoje';
+    if (!applications?.length) return 'Never';
+
+    // For each application, we took the most recent one between updatedAt e createdAt
+    const latestDates: Date[] = applications
+      .map((app: Application) => {
+        const created = parseToDate(app.createdAt);
+        const updated = parseToDate(app.updatedAt);
+        if (created && updated) return updated > created ? updated : created;
+        return updated ?? created ?? null;
+      })
+      .filter((d): d is Date => d !== null);
+
+    if (!latestDates.length) return 'Never';
+
+    // Select the most recent date from all of them
+    const mostRecent = latestDates.reduce((a, b) => (a > b ? a : b));
+
+    return formatRelativeDate(mostRecent, 'pt-BR');
   }, [applications]);
 
   if (!isAuthenticated) {
@@ -102,13 +162,13 @@ export default function AdminPage() {
         <div className="max-w-7xl mx-auto">
           {/* Page Header */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Painel Administrativo</h1>
-            <p className="text-gray-600">Gerencie as aplicações do seu portfólio</p>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Administrative Panel</h1>
+            <p className="text-gray-600">Manage the applications in your portfolio</p>
           </div>
 
           {/* Loading / Error */}
           {loading && (
-            <div className="mb-6 text-gray-600">Carregando aplicações...</div>
+            <div className="mb-6 text-gray-600">Loading applications...</div>
           )}
           {fetchError && (
             <div className="mb-6 p-4 border border-red-200 bg-red-50 text-red-700 rounded">
@@ -119,15 +179,15 @@ export default function AdminPage() {
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <div className="bg-white border border-gray-200 rounded-lg p-6">
-              <p className="text-sm text-gray-600 mb-2">Total de Aplicações</p>
+              <p className="text-sm text-gray-600 mb-2">Total Applications</p>
               <p className="text-3xl font-bold text-gray-900">{applications.length}</p>
             </div>
             <div className="bg-white border border-gray-200 rounded-lg p-6">
-              <p className="text-sm text-gray-600 mb-2">Aplicações Ativas</p>
+              <p className="text-sm text-gray-600 mb-2">Active Applications</p>
               <p className="text-3xl font-bold text-green-600">{activeApplications}</p>
             </div>
             <div className="bg-white border border-gray-200 rounded-lg p-6">
-              <p className="text-sm text-gray-600 mb-2">Última Atualização</p>
+              <p className="text-sm text-gray-600 mb-2">Last Update</p>
               <p className="text-3xl font-bold text-gray-900">{lastUpdate}</p>
             </div>
           </div>
@@ -137,8 +197,8 @@ export default function AdminPage() {
             <div className="p-6 border-b border-gray-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-xl font-semibold text-gray-900 mb-1">Aplicações</h2>
-                  <p className="text-sm text-gray-600">Gerencie todas as aplicações do portfólio</p>
+                  <h2 className="text-xl font-semibold text-gray-900 mb-1">Applications</h2>
+                  <p className="text-sm text-gray-600">Manage all applications in the portfolio</p>
                 </div>
                 <button
                   onClick={() => router.push('/admin/applications/new')}
@@ -147,7 +207,7 @@ export default function AdminPage() {
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                   </svg>
-                  Nova Aplicação
+                  New Application
                 </button>
               </div>
             </div>
@@ -157,16 +217,16 @@ export default function AdminPage() {
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
-                      Nome
+                      Name
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
                       URL
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
-                      Descrição
+                      Description
                     </th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-600 uppercase tracking-wider">
-                      Ações
+                      Actions
                     </th>
                   </tr>
                 </thead>
@@ -197,7 +257,7 @@ export default function AdminPage() {
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                               </svg>
-                              Abrir
+                              Open
                             </a>
                           ) : (
                             <span className="text-gray-400">—</span>
@@ -211,7 +271,7 @@ export default function AdminPage() {
                             <button
                               onClick={() => router.push(`/admin/applications/${app.id}/edit`)}
                               className="p-2 text-gray-600 hover:text-black transition-colors"
-                              title="Editar"
+                              title="Edit"
                             >
                               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -220,7 +280,7 @@ export default function AdminPage() {
                             <button
                               onClick={() => handleDelete(app.id)}
                               className="p-2 text-red-600 hover:text-red-700 transition-colors"
-                              title="Excluir"
+                              title="Delete"
                             >
                               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a 1 1 0 00-1 1v3M4 7h16" />
@@ -234,14 +294,14 @@ export default function AdminPage() {
                   {loading && (
                     <tr>
                       <td colSpan={4} className="px-6 py-8 text-center text-gray-500">
-                        Carregando...
+                        Loading...
                       </td>
                     </tr>
                   )}
                   {!loading && !applications.length && !fetchError && (
                     <tr>
                       <td colSpan={4} className="px-6 py-8 text-center text-gray-500">
-                        Nenhuma aplicação encontrada.
+                        No applications found.
                       </td>
                     </tr>
                   )}

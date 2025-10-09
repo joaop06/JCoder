@@ -1,13 +1,13 @@
 "use client";
 
 import Link from 'next/link';
-import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { RoleEnum } from '@/types/enums/role.enum';
 import { UsersService } from '@/services/users.service';
+import { useEffect, useState, useCallback } from 'react';
 
 interface HeaderProps {
-  isAdmin?: boolean;         // Fallback opcional
+  isAdmin?: boolean;
   showAuth?: boolean;
   onLogout?: () => void;
 }
@@ -55,16 +55,21 @@ export default function Header({
           <div className="flex items-center justify-between">
             <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
               <div className="w-10 h-10 bg-black rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">JD</span>
+                <img
+                  alt="JDock"
+                  width={400}
+                  height={300}
+                  src="/images/jdock-logo.png"
+                />
               </div>
               <span className="text-xl font-semibold">JDock</span>
             </Link>
             {showAuth && (
               <Link
                 href="/login"
-                className="px-4 py-2 text-sm font-medium hover:opacity-80 transition-opacity"
+                className="px-4 py-2 text-sm font-medium border border-gray-300 rounded hover:opacity-80 transition-opacity"
               >
-                SignIn
+                Sign in
               </Link>
             )}
           </div>
@@ -87,7 +92,12 @@ export default function Header({
           <div className={isAdminView ? "justify-self-start" : ""}>
             <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
               <div className="w-10 h-10 bg-black rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">JD</span>
+                <img
+                  alt="JDock"
+                  width={400}
+                  height={300}
+                  src="/images/jdock-logo.png"
+                />
               </div>
               <span className="text-xl font-semibold">JDock</span>
             </Link>
@@ -111,9 +121,9 @@ export default function Header({
               {!isAdminView ? (
                 <Link
                   href="/login"
-                  className="px-4 py-2 text-sm font-medium hover:opacity-80 transition-opacity"
+                  className="px-4 py-2 text-sm font-medium border border-gray-300 rounded hover:opacity-80 transition-opacity"
                 >
-                  SignIn
+                  Sign in
                 </Link>
               ) : (
                 <div className="flex items-center gap-3">

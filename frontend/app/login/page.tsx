@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { AuthService } from '@/services/auth.service'; // ajuste o caminho se necessário
+import { AuthService } from '@/services/auth.service';
 import type { LoginResponse } from '@/types/api/login.type';
 
 export default function LoginPage() {
@@ -54,7 +54,12 @@ export default function LoginPage() {
           <div className="flex items-center justify-between">
             <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
               <div className="w-10 h-10 bg-black rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">JD</span>
+                <img
+                  alt="JDock"
+                  width={400}
+                  height={300}
+                  src="/images/jdock-logo.png"
+                />
               </div>
               <span className="text-xl font-semibold">JDock</span>
             </Link>
@@ -70,9 +75,9 @@ export default function LoginPage() {
 
             <Link
               href="/"
-              className="px-4 py-2 text-sm font-medium hover:opacity-80 transition-opacity"
+              className="px-4 py-2 text-sm font-medium border border-gray-300 rounded hover:opacity-80 transition-opacity"
             >
-              SignIn
+              Sign in
             </Link>
           </div>
         </div>
@@ -84,7 +89,12 @@ export default function LoginPage() {
           {/* Logo and Title */}
           <div className="text-center mb-8">
             <div className="inline-flex items-center justify-center w-16 h-16 bg-black rounded-lg mb-4">
-              <span className="text-white font-bold text-2xl">JD</span>
+              <img
+                alt="JDock"
+                width={400}
+                height={300}
+                src="/images/jdock-logo.png"
+              />
             </div>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">
               Log in to your account
@@ -97,7 +107,7 @@ export default function LoginPage() {
           {/* Login Form */}
           <div className="bg-white border border-gray-200 rounded-lg p-8">
             <div className="mb-6 text-center">
-              <h2 className="text-lg font-semibold mb-1">SignIn</h2>
+              <h2 className="text-lg font-semibold mb-1">Sign in</h2>
               <p className="text-sm text-gray-600">
                 Enter your credentials to access the system
               </p>
@@ -155,7 +165,7 @@ export default function LoginPage() {
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
                     </svg>
-                    SignIn
+                    Sign in
                   </>
                 )}
               </button>
