@@ -57,7 +57,7 @@ export default function AdminPage() {
       const prev = applications;
 
       try {
-        // await ApplicationService.delete(id);
+        await ApplicationService.delete(id);
         setApplications((apps) => apps.filter((a) => a.id !== id));
 
       } catch (err) {

@@ -5,8 +5,10 @@ import {
   Body,
   Param,
   Delete,
+  HttpCode,
   UseGuards,
   Controller,
+  HttpStatus,
   ParseIntPipe,
 } from '@nestjs/common';
 import { FindManyOptions } from 'typeorm';
@@ -63,6 +65,7 @@ export class ApplicationsController {
 
   @Delete(':id')
   @Roles(RoleEnum.Admin)
+  @HttpCode(HttpStatus.NO_CONTENT)
   @UseGuards(JwtAuthGuard, RolesGuard)
   async delete(@Param('id') id: string) {
     return await this.deleteApplicationUseCase.execute(+id);

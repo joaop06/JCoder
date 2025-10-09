@@ -18,5 +18,13 @@ export const ApplicationService = {
         } catch (error) {
             throw error;
         }
-    }
+    },
+
+    async delete(id: number): Promise<void> {
+        try {
+            await ApiService.delete(`/applications/${id}`);
+        } catch (error) {
+            throw error;
+        }
+    },
 };
