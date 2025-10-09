@@ -29,7 +29,7 @@ export class CreateApplicationDto {
 
   @IsEnum(ApplicationTypeEnum)
   @IsNotEmpty()
-  type: ApplicationTypeEnum;
+  applicationType: ApplicationTypeEnum;
 
   @IsOptional()
   @IsUrl()

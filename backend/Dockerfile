@@ -1,16 +1,19 @@
 FROM node:23.11.1
 WORKDIR /app
 
-# Copia os arquivos do backend (ajuste conforme seu projeto)
-COPY backend/package*.json ./
-RUN npm ci
+# Enable pnpm via corepack
+RUN corepack enable
 
-COPY backend ./
+# Copy only the manifests for better caching
+COPY backend/package.json ./package.json
+COPY backend/pnpm-lock.yaml ./pnpm-lock.yaml
 
-RUN npm install
-RUN npm run build
+# Install dependencies with pnpm (respects the lockfile)
+RUN pnpm install --frozen-lockfile
 
-# Copia o .env da raiz para dentro da imagem (ex: /app/.env)
-COPY .env .env
+COPY backend/ ./
+
+# Build
+RUN pnpm run build
 
 CMD ["npm", "run", "start:prod"]

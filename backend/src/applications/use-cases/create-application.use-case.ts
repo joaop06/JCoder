@@ -35,7 +35,7 @@ export class CreateApplicationUseCase {
          */
         await this.applicationComponentsService.saveComponentsForType({
             application,
-            applicationType: createApplicationDto.type,
+            applicationType: createApplicationDto.applicationType,
             dtos: {
                 applicationComponentApi: createApplicationDto.applicationComponentApi,
                 applicationComponentMobile: createApplicationDto.applicationComponentMobile,
@@ -44,11 +44,11 @@ export class CreateApplicationUseCase {
             },
         });
 
-        return this.applicationsService.findById(application.id);
+        return await this.applicationsService.findById(application.id);
     }
 
     private validateDetailsForType(dto: CreateApplicationDto): void {
-        switch (dto.type) {
+        switch (dto.applicationType) {
             case ApplicationTypeEnum.API:
                 if (!dto.applicationComponentApi) {
                     throw new RequiredApiComponentToApiApplication();

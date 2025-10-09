@@ -15,7 +15,7 @@ export class ApplicationsService {
   ) { }
 
   async findAll(options?: FindManyOptions<Application>): Promise<Application[]> {
-    return this.repository.find({
+    return await this.repository.find({
       ...options,
       relations: { user: true },
     });
@@ -39,7 +39,7 @@ export class ApplicationsService {
 
   async create(createApplicationDto: CreateApplicationDto): Promise<Application> {
     const application = this.repository.create(createApplicationDto);
-    return this.repository.save(application);
+    return await this.repository.save(application);
   }
 
   async update(id: number, updateApplicationDto: UpdateApplicationDto): Promise<Application> {
