@@ -5,6 +5,7 @@ import { ApplicationsService } from "../applications.service";
 import { ApplicationTypeEnum } from "../enums/application-type.enum";
 import { CreateApplicationDto } from "../dto/create-application.dto";
 import { RequiredApiComponentToApiApplication } from "../exceptions/required-api-component.exception";
+import { AlreadyExistsApplicationException } from "../exceptions/already-exists-application-exception";
 import { ApplicationComponentsService } from "../application-components/application-components.service";
 import { RequiredMobileComponentToMobileApplication } from "../exceptions/required-mobile-component.exception";
 import { RequiredLibraryComponentToLibraryApplication } from "../exceptions/required-library-component.exception";
@@ -26,6 +27,10 @@ export class CreateApplicationUseCase {
 
         // Validate whether components are present based on type
         this.validateDetailsForType(createApplicationDto);
+
+        // Verify if alread exists the Application name
+        const exists = await this.applicationsService.existsApplicationName(createApplicationDto.name);
+        if (exists) throw new AlreadyExistsApplicationException();
 
         // Create the application with the respective components
         const application = await this.applicationsService.create(createApplicationDto);

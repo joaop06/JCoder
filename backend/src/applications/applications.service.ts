@@ -37,6 +37,10 @@ export class ApplicationsService {
     return application;
   }
 
+  async existsApplicationName(name: string): Promise<boolean> {
+    return await this.repository.existsBy({ name });
+  }
+
   async create(createApplicationDto: CreateApplicationDto): Promise<Application> {
     const application = this.repository.create(createApplicationDto);
     return await this.repository.save(application);
