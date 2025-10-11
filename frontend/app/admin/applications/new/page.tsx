@@ -116,7 +116,7 @@ export default function NewApplicationPage() {
                         <p className="text-gray-600">Create a new application for your portfolio</p>
                     </div>
 
-                    <div className="bg-white border border-gray-200 rounded-lg p-6">
+                    <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-lg hover:shadow-xl transition-shadow duration-300">
                         <form onSubmit={handleSubmit}>
                             {formError && (
                                 <div className="mb-4 p-3 border border-red-200 bg-red-50 text-red-700 rounded">
@@ -134,7 +134,7 @@ export default function NewApplicationPage() {
                                         value={formData.name}
                                         onChange={handleChange}
                                         required
-                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-black focus:border-black sm:text-sm"
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-black focus:border-black sm:text-sm transition-all duration-200"
                                     />
                                 </div>
                                 <div>
@@ -146,7 +146,7 @@ export default function NewApplicationPage() {
                                         onChange={handleChange}
                                         required
                                         rows={3}
-                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-black focus:border-black sm:text-sm"
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-black focus:border-black sm:text-sm transition-all duration-200"
                                     ></textarea>
                                 </div>
                                 <div>
@@ -157,7 +157,7 @@ export default function NewApplicationPage() {
                                         value={formData.applicationType}
                                         onChange={handleChange}
                                         required
-                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-black focus:border-black sm:text-sm"
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-black focus:border-black sm:text-sm transition-all duration-200"
                                     >
                                         {Object.values(ApplicationTypeEnum).map((type) => (
                                             <option key={type} value={type}>{type}</option>
@@ -172,14 +172,14 @@ export default function NewApplicationPage() {
                                         id="githubUrl"
                                         value={formData.githubUrl || ''}
                                         onChange={handleChange}
-                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-black focus:border-black sm:text-sm"
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-black focus:border-black sm:text-sm transition-all duration-200"
                                     />
                                 </div>
                             </div>
 
                             {/* Conditional Component Fields */}
                             {formData.applicationType === ApplicationTypeEnum.API && (
-                                <div className="mt-6 pt-6 border-t border-gray-200">
+                                <div className="mt-6 pt-6 border-t border-gray-200 border-l-4 border-black pl-4">
                                     <h3 className="text-lg font-medium text-gray-900 mb-4">API Component Details</h3>
                                     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                                         <div>
@@ -191,7 +191,7 @@ export default function NewApplicationPage() {
                                                 value={formData.applicationComponentApi?.domain || ''}
                                                 onChange={handleChange}
                                                 required
-                                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-black focus:border-black sm:text-sm"
+                                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-black focus:border-black sm:text-sm transition-all duration-200"
                                             />
                                         </div>
                                         <div>
@@ -203,7 +203,7 @@ export default function NewApplicationPage() {
                                                 value={formData.applicationComponentApi?.apiUrl || ''}
                                                 onChange={handleChange}
                                                 required
-                                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-black focus:border-black sm:text-sm"
+                                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-black focus:border-black sm:text-sm transition-all duration-200"
                                             />
                                         </div>
                                         <div>
@@ -214,7 +214,7 @@ export default function NewApplicationPage() {
                                                 id="api-documentationUrl"
                                                 value={formData.applicationComponentApi?.documentationUrl || ''}
                                                 onChange={handleChange}
-                                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-black focus:border-black sm:text-sm"
+                                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-black focus:border-black sm:text-sm transition-all duration-200"
                                             />
                                         </div>
                                         <div>
@@ -225,7 +225,7 @@ export default function NewApplicationPage() {
                                                 id="api-healthCheckEndpoint"
                                                 value={formData.applicationComponentApi?.healthCheckEndpoint || ''}
                                                 onChange={handleChange}
-                                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-black focus:border-black sm:text-sm"
+                                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-black focus:border-black sm:text-sm transition-all duration-200"
                                             />
                                         </div>
                                     </div>
@@ -233,7 +233,7 @@ export default function NewApplicationPage() {
                             )}
 
                             {formData.applicationType === ApplicationTypeEnum.FRONTEND && (
-                                <div className="mt-6 pt-6 border-t border-gray-200">
+                                <div className="mt-6 pt-6 border-t border-gray-200 border-l-4 border-black pl-4">
                                     <h3 className="text-lg font-medium text-gray-900 mb-4">Frontend Component Details</h3>
                                     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                                         <div>
@@ -245,7 +245,7 @@ export default function NewApplicationPage() {
                                                 value={formData.applicationComponentFrontend?.frontendUrl || ''}
                                                 onChange={handleChange}
                                                 required
-                                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-black focus:border-black sm:text-sm"
+                                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-black focus:border-black sm:text-sm transition-all duration-200"
                                             />
                                         </div>
                                         <div>
@@ -256,7 +256,7 @@ export default function NewApplicationPage() {
                                                 id="frontend-screenshotUrl"
                                                 value={formData.applicationComponentFrontend?.screenshotUrl || ''}
                                                 onChange={handleChange}
-                                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-black focus:border-black sm:text-sm"
+                                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-black focus:border-black sm:text-sm transition-all duration-200"
                                             />
                                         </div>
                                     </div>
@@ -264,7 +264,7 @@ export default function NewApplicationPage() {
                             )}
 
                             {formData.applicationType === ApplicationTypeEnum.MOBILE && (
-                                <div className="mt-6 pt-6 border-t border-gray-200">
+                                <div className="mt-6 pt-6 border-t border-gray-200 border-l-4 border-black pl-4">
                                     <h3 className="text-lg font-medium text-gray-900 mb-4">Mobile Component Details</h3>
                                     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                                         <div>
@@ -275,7 +275,7 @@ export default function NewApplicationPage() {
                                                 value={formData.applicationComponentMobile?.platform || 'Android'}
                                                 onChange={handleChange}
                                                 required
-                                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-black focus:border-black sm:text-sm"
+                                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-black focus:border-black sm:text-sm transition-all duration-200"
                                             >
                                                 <option value="iOS">iOS</option>
                                                 <option value="Android">Android</option>
@@ -290,7 +290,7 @@ export default function NewApplicationPage() {
                                                 id="mobile-downloadUrl"
                                                 value={formData.applicationComponentMobile?.downloadUrl || ''}
                                                 onChange={handleChange}
-                                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-black focus:border-black sm:text-sm"
+                                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-black focus:border-black sm:text-sm transition-all duration-200"
                                             />
                                         </div>
                                     </div>
@@ -298,7 +298,7 @@ export default function NewApplicationPage() {
                             )}
 
                             {formData.applicationType === ApplicationTypeEnum.LIBRARY && (
-                                <div className="mt-6 pt-6 border-t border-gray-200">
+                                <div className="mt-6 pt-6 border-t border-gray-200 border-l-4 border-black pl-4">
                                     <h3 className="text-lg font-medium text-gray-900 mb-4">Library Component Details</h3>
                                     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                                         <div>
@@ -310,7 +310,7 @@ export default function NewApplicationPage() {
                                                 value={formData.applicationComponentLibrary?.packageManagerUrl || ''}
                                                 onChange={handleChange}
                                                 required
-                                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-black focus:border-black sm:text-sm"
+                                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-black focus:border-black sm:text-sm transition-all duration-200"
                                             />
                                         </div>
                                         <div>
@@ -321,7 +321,7 @@ export default function NewApplicationPage() {
                                                 value={formData.applicationComponentLibrary?.readmeContent || ''}
                                                 onChange={handleChange}
                                                 rows={5}
-                                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-black focus:border-black sm:text-sm"
+                                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-black focus:border-black sm:text-sm transition-all duration-200"
                                             ></textarea>
                                         </div>
                                     </div>
@@ -329,30 +329,30 @@ export default function NewApplicationPage() {
                             )}
 
                             {formData.applicationType === ApplicationTypeEnum.FULLSTACK && (
-                                <div className="mt-6 pt-6 border-t border-gray-200">
+                                <div className="mt-6 pt-6 border-t border-gray-200 border-l-4 border-black pl-4">
                                     <h3 className="text-lg font-medium text-gray-900 mb-4">Frontend Component Details</h3>
                                     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                                         <div>
-                                            <label htmlFor="frontend-frontendUrl" className="block text-sm font-medium text-gray-700">Frontend URL</label>
+                                            <label htmlFor="fullstack-frontendUrl" className="block text-sm font-medium text-gray-700">Frontend URL</label>
                                             <input
                                                 type="url"
                                                 name="applicationComponentFrontend.frontendUrl"
-                                                id="frontend-frontendUrl"
+                                                id="fullstack-frontendUrl"
                                                 value={formData.applicationComponentFrontend?.frontendUrl || ''}
                                                 onChange={handleChange}
                                                 required
-                                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-black focus:border-black sm:text-sm"
+                                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-black focus:border-black sm:text-sm transition-all duration-200"
                                             />
                                         </div>
                                         <div>
-                                            <label htmlFor="frontend-screenshotUrl" className="block text-sm font-medium text-gray-700">Screenshot URL (Optional)</label>
+                                            <label htmlFor="fullstack-screenshotUrl" className="block text-sm font-medium text-gray-700">Screenshot URL (Optional)</label>
                                             <input
                                                 type="url"
                                                 name="applicationComponentFrontend.screenshotUrl"
-                                                id="frontend-screenshotUrl"
+                                                id="fullstack-screenshotUrl"
                                                 value={formData.applicationComponentFrontend?.screenshotUrl || ''}
                                                 onChange={handleChange}
-                                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-black focus:border-black sm:text-sm"
+                                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-black focus:border-black sm:text-sm transition-all duration-200"
                                             />
                                         </div>
                                     </div>
@@ -367,7 +367,7 @@ export default function NewApplicationPage() {
                                                 value={formData.applicationComponentApi?.domain || ''}
                                                 onChange={handleChange}
                                                 required
-                                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-black focus:border-black sm:text-sm"
+                                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-black focus:border-black sm:text-sm transition-all duration-200"
                                             />
                                         </div>
                                         <div>
@@ -379,7 +379,7 @@ export default function NewApplicationPage() {
                                                 value={formData.applicationComponentApi?.apiUrl || ''}
                                                 onChange={handleChange}
                                                 required
-                                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-black focus:border-black sm:text-sm"
+                                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-black focus:border-black sm:text-sm transition-all duration-200"
                                             />
                                         </div>
                                         <div>
@@ -390,7 +390,7 @@ export default function NewApplicationPage() {
                                                 id="fullstack-api-documentationUrl"
                                                 value={formData.applicationComponentApi?.documentationUrl || ''}
                                                 onChange={handleChange}
-                                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-black focus:border-black sm:text-sm"
+                                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-black focus:border-black sm:text-sm transition-all duration-200"
                                             />
                                         </div>
                                         <div>
@@ -401,7 +401,7 @@ export default function NewApplicationPage() {
                                                 id="fullstack-api-healthCheckEndpoint"
                                                 value={formData.applicationComponentApi?.healthCheckEndpoint || ''}
                                                 onChange={handleChange}
-                                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-black focus:border-black sm:text-sm"
+                                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-black focus:border-black sm:text-sm transition-all duration-200"
                                             />
                                         </div>
                                     </div>
@@ -412,14 +412,14 @@ export default function NewApplicationPage() {
                                 <button
                                     type="button"
                                     onClick={() => router.push('/admin')}
-                                    className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                                    className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors duration-200"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
                                     disabled={loading}
-                                    className="px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     {loading ? 'Creating...' : 'Create Application'}
                                 </button>
