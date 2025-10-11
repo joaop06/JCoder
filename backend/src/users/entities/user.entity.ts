@@ -8,9 +8,9 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
+import { ApiProperty } from '@nestjs/swagger';
 import { RoleEnum } from '../../@common/enums/role.enum';
 import { Application } from '../../applications/entities/application.entity';
-import { ApiProperty } from '@nestjs/swagger';
 
 @Entity('users')
 export class User {
