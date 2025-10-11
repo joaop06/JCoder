@@ -25,7 +25,7 @@ export default function Header({
   useEffect(() => {
     setIsClient(true);
     try {
-      const user = UsersService.parseUserStorage?.();
+      const user = UsersService.getUserStorage?.();
       const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
 
       setIsAdmin((user?.role === RoleEnum.Admin) || isAdminProp);

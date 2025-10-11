@@ -1,7 +1,7 @@
 export enum ApplicationTypeEnum {
-    Api = 'api',
-    Mobile = 'mobile',
-    Library = 'library',
-    Frontend = 'frontend',
-    Fullstack = 'fullstack',
+    API = "API",
+    MOBILE = "MOBILE",
+    LIBRARY = "LIBRARY",
+    FRONTEND = 'FRONTEND',
+    FULLSTACK = "FULLSTACK",
 };

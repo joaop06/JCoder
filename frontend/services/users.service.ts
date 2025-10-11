@@ -1,7 +1,7 @@
 import { User } from "@/types/entities/user.entity";
 
 export const UsersService = {
-    parseUserStorage(): User | null {
+    getUserStorage(): User | null {
         const userStr = localStorage.getItem('user');
         if (!userStr) return null;
 
