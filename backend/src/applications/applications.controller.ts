@@ -32,6 +32,7 @@ import { AlreadyExistsApplicationException } from './exceptions/already-exists-a
 import { AlreadyDeletedApplicationException } from './exceptions/already-deleted-application.exception';
 import { ApiExceptionResponse } from '../@common/decorators/documentation/api-exception-response.decorator';
 import { RequiredMobileComponentToMobileApplication } from './exceptions/required-mobile-component.exception';
+import { RequiredFrontendComponentToApiApplication } from './exceptions/required-frontend-component.exception';
 import { RequiredLibraryComponentToLibraryApplication } from './exceptions/required-library-component.exception';
 import { RequiredApiAndFrontendComponentsToFullstackApplication } from './exceptions/required-api-and-frontend-components.exception';
 
@@ -66,6 +67,7 @@ export class ApplicationsController {
     ApplicationNotFoundException,
     AlreadyExistsApplicationException,
     RequiredApiComponentToApiApplication,
+    RequiredFrontendComponentToApiApplication,
     RequiredMobileComponentToMobileApplication,
     RequiredLibraryComponentToLibraryApplication,
     RequiredApiAndFrontendComponentsToFullstackApplication,

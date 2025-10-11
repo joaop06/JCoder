@@ -8,6 +8,7 @@ import { RequiredApiComponentToApiApplication } from "../exceptions/required-api
 import { AlreadyExistsApplicationException } from "../exceptions/already-exists-application-exception";
 import { ApplicationComponentsService } from "../application-components/application-components.service";
 import { RequiredMobileComponentToMobileApplication } from "../exceptions/required-mobile-component.exception";
+import { RequiredFrontendComponentToApiApplication } from "../exceptions/required-frontend-component.exception";
 import { RequiredLibraryComponentToLibraryApplication } from "../exceptions/required-library-component.exception";
 import { RequiredApiAndFrontendComponentsToFullstackApplication } from "../exceptions/required-api-and-frontend-components.exception";
 
@@ -57,6 +58,11 @@ export class CreateApplicationUseCase {
             case ApplicationTypeEnum.API:
                 if (!dto.applicationComponentApi) {
                     throw new RequiredApiComponentToApiApplication();
+                }
+                break;
+            case ApplicationTypeEnum.FRONTEND:
+                if (!dto.applicationComponentApi) {
+                    throw new RequiredFrontendComponentToApiApplication();
                 }
                 break;
 

@@ -22,6 +22,13 @@ export class ApplicationComponentsService {
                 });
                 break;
 
+            case ApplicationTypeEnum.FRONTEND:
+                await this.applicationComponentsRepository.createFrontend({
+                    application,
+                    ...dtos.applicationComponentFrontend,
+                });
+                break;
+
             case ApplicationTypeEnum.FULLSTACK:
                 await this.applicationComponentsRepository.createApi({
                     application,
