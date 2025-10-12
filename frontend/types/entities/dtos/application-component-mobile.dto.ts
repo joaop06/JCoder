@@ -1,4 +1,6 @@
+import { MobilePlatformEnum } from "@/types/enums/mobile-plataform.enum";
+
 export interface ApplicationComponentMobileDto {
-    platform: 'iOS' | 'Android' | 'Multiplatform';
+    platform: MobilePlatformEnum;
     downloadUrl?: string;
 };

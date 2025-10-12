@@ -1,5 +1,5 @@
 export enum MobilePlatformEnum {
-    iOS = 'ios',
-    Both = 'both',
-    Android = 'android',
+    IOS = "iOS",
+    ANDROID = "Android",
+    MULTIPLATFORM = "Multiplatform",
 };

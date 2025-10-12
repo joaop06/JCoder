@@ -1,6 +1,7 @@
 import ApiService from "./api.service";
 import { Application } from "@/types/entities/application.entity";
 import { CreateApplicationDto } from "@/types/entities/dtos/create-application.dto";
+import { UpdateApplicationDto } from "@/types/entities/dtos/update-application.dto";
 
 export const ApplicationService = {
     async getAll(): Promise<Application[]> {
@@ -24,6 +25,15 @@ export const ApplicationService = {
     async create(payload: CreateApplicationDto): Promise<Application> {
         try {
             const response = await ApiService.post(`/applications`, payload);
+            return response.data;
+        } catch (error) {
+            throw error;
+        }
+    },
+
+    async update(id: number, payload: UpdateApplicationDto): Promise<Application> {
+        try {
+            const response = await ApiService.put(`/applications/${id}`, payload);
             return response.data;
         } catch (error) {
             throw error;
