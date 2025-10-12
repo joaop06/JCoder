@@ -55,14 +55,20 @@ export default function AdminPage() {
   }, [router]);
 
   const handleDelete = useCallback(
-    async (id: number) => {
-      if (!confirm('Are you sure you want to delete this application?')) return;
+    async (application: Application) => {
+      const confirmed = await toast.confirm(`Are you sure you want to delete ${application.name}?`, {
+        confirmText: 'Delete',
+        cancelText: 'Cancel',
+      });
+      if (!confirmed) return;
 
       const prev = applications;
 
       try {
-        await ApplicationService.delete(id);
-        setApplications((apps) => apps.filter((a) => a.id !== id));
+        await ApplicationService.delete(application.id);
+        toast.success(`${application.name} successfully deleted!`);
+
+        setApplications((apps) => apps.filter((a) => a.id !== application.id));
 
       } catch (err) {
         toast.error('The application could not be deleted. Returning to the previous state.');
@@ -281,7 +287,7 @@ export default function AdminPage() {
                               </svg>
                             </button>
                             <button
-                              onClick={() => handleDelete(app.id)}
+                              onClick={() => handleDelete(app)}
                               className="p-2 text-red-600 hover:text-red-700 transition-colors"
                               title="Delete"
                             >
