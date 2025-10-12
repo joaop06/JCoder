@@ -5,6 +5,7 @@ import Footer from '@/components/Footer';
 import Header from '@/components/Header';
 import { useRouter, useParams } from 'next/navigation';
 import { useState, useEffect, useCallback } from 'react';
+import { useToast } from '@/components/toast/ToastContext';
 import { ApplicationService } from '@/services/applications.service';
 import { ApplicationTypeEnum } from '@/types/enums/application-type.enum';
 import { UpdateApplicationDto } from '@/types/entities/dtos/update-application.dto';
@@ -12,7 +13,7 @@ import { UpdateApplicationDto } from '@/types/entities/dtos/update-application.d
 export default function EditApplicationPage() {
     const router = useRouter();
     const params = useParams();
-    const applicationId = params.id as string;
+    const applicationId = params?.id as string;
 
     const [loading, setLoading] = useState(true);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -22,6 +23,8 @@ export default function EditApplicationPage() {
         description: '',
         applicationType: ApplicationTypeEnum.API,
     });
+
+    const toast = useToast();
 
     useEffect(() => {
         const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
@@ -68,8 +71,12 @@ export default function EditApplicationPage() {
 
                 setFormData(updateApplicationDto);
             } catch (err: any) {
-                console.error('Error fetching application:', err);
-                setFormError(err?.response?.data?.message || err.message || 'Failed to load application. Please try again.');
+                const errorMessage = err?.response?.data?.message
+                    || err.message
+                    || 'Failed to load application. Please try again.';
+
+                toast.error(errorMessage);
+                setFormError(errorMessage);
             } finally {
                 setLoading(false);
             }
@@ -136,10 +143,17 @@ export default function EditApplicationPage() {
             }
 
             await ApplicationService.update(Number(applicationId), payload);
+            toast.success(`${payload.name} successfully updated!`);
+
             router.push('/admin');
         } catch (err: any) {
             console.error('Error updating application:', err);
-            setFormError(err?.response?.data?.message || err.message || 'Failed to update application. Please try again.');
+            const errorMessage = err?.response?.data?.message
+                || err.message
+                || 'Failed to update application. Please try again.';
+
+            toast.error(errorMessage);
+            setFormError(errorMessage);
         } finally {
             setLoading(false);
         }

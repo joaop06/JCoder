@@ -3,6 +3,7 @@
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
 import { useRouter } from 'next/navigation';
+import { useToast } from '@/components/toast/ToastContext';
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Application } from '@/types/entities/application.entity';
 import { ApplicationService } from '@/services/applications.service';
@@ -14,6 +15,8 @@ export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [applications, setApplications] = useState<Application[]>([]);
+
+  const toast = useToast();
 
   useEffect(() => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
@@ -34,8 +37,9 @@ export default function AdminPage() {
         const data = await ApplicationService.getAll();
         setApplications(Array.isArray(data) ? data : []);
       } catch (err: any) {
-        console.error('Error retrieving applications:', err);
-        setFetchError('The applications could not be loaded. Please try again..');
+        const errorMessage = 'The applications could not be loaded. Please try again.';
+        toast.error(errorMessage);
+        setFetchError(errorMessage);
       } finally {
         setLoading(false);
       }
@@ -61,8 +65,7 @@ export default function AdminPage() {
         setApplications((apps) => apps.filter((a) => a.id !== id));
 
       } catch (err) {
-        console.error('Error deleting application:', err);
-        alert('The application could not be deleted. Returning to the previous state.');
+        toast.error('The application could not be deleted. Returning to the previous state.');
         setApplications(prev);
       }
     },

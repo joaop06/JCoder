@@ -3,9 +3,9 @@
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
 import { useRouter } from 'next/navigation';
-import { User } from '@/types/entities/user.entity';
 import { UsersService } from '@/services/users.service';
 import { useState, useEffect, useCallback } from 'react';
+import { useToast } from '@/components/toast/ToastContext';
 import { ApplicationService } from '@/services/applications.service';
 import { ApplicationTypeEnum } from '@/types/enums/application-type.enum';
 import { CreateApplicationDto } from '@/types/entities/dtos/create-application.dto';
@@ -13,7 +13,6 @@ import { CreateApplicationDto } from '@/types/entities/dtos/create-application.d
 export default function NewApplicationPage() {
     const router = useRouter();
 
-    const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(false);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [formError, setFormError] = useState<string | null>(null);
@@ -24,15 +23,16 @@ export default function NewApplicationPage() {
         applicationType: ApplicationTypeEnum.API,
     });
 
+    const toast = useToast();
+
     // User data
     useEffect(() => {
         if (typeof window === 'undefined') return;
 
-        const userStorage = UsersService.getUserStorage();
-        if (!userStorage) return;
+        const user = UsersService.getUserStorage();
+        if (!user) return;
 
-        setUser(userStorage);
-        setFormData({ ...formData, userId: userStorage.id });
+        setFormData({ ...formData, userId: user.id });
     }, []);
 
     useEffect(() => {
@@ -102,10 +102,16 @@ export default function NewApplicationPage() {
             }
 
             await ApplicationService.create(payload);
+            toast.success(`${payload.name} successfully created!`);
+
             router.push('/admin');
         } catch (err: any) {
-            console.error('Error creating application:', err);
-            setFormError(err?.response?.data?.message || err.message || 'Failed to create application. Please try again.');
+            const errorMessage = err?.response?.data?.message
+                || err.message
+                || 'Failed to create application. Please try again.';
+
+            toast.error(errorMessage);
+            setFormError(errorMessage);
         } finally {
             setLoading(false);
         }

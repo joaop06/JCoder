@@ -10,6 +10,7 @@ import { ApplicationService } from '@/services/applications.service';
 import { ApplicationTypeEnum } from '@/types/enums/application-type.enum';
 
 // Import new components
+import { useToast } from '@/components/toast/ToastContext';
 import ApplicationApiDetails from '@/components/applications/[id]/ApplicationApiDetails';
 import ApplicationDetailsLayout from '@/components/applications/[id]/ApplicationDetailsLayout';
 import ApplicationMobileDetails from '@/components/applications/[id]/ApplicationMobileDetails';
@@ -22,6 +23,8 @@ export default function ApplicationDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [application, setApplication] = useState<Application | null>(null);
+
+  const toast = useToast();
 
   // Found the application ID
   const appId = useMemo(() => {
@@ -36,7 +39,10 @@ export default function ApplicationDetailPage() {
 
     // If is invalid ID, don't call the api and show error
     if (appId === null) {
-      setError('Invalid ID Application');
+      const errorMessage = 'Invalid ID Application';
+      setError(errorMessage);
+      toast.error(errorMessage);
+
       setLoading(false);
       return;
     }
@@ -48,7 +54,10 @@ export default function ApplicationDetailPage() {
       .then((data) => {
         if (!isMounted) return;
         if (!data) {
-          setError('Application not found.');
+          const errorMessage = 'Application not found';
+          setError(errorMessage);
+          toast.error(errorMessage);
+
           setApplication(null);
           return;
         }
@@ -57,12 +66,14 @@ export default function ApplicationDetailPage() {
       .catch((err: any) => {
         if (!isMounted) return;
         const status = err?.response?.status;
-        if (status === 404) {
-          setError('Application not found.');
-        } else {
-          setError('The application could not be loaded. Please try again.');
-        }
+
+        let errorMessage: string;
+        if (status === 404) errorMessage = 'Application not found';
+        else errorMessage = 'The application could not be loaded. Please try again';
+
         setApplication(null);
+        setError(errorMessage);
+        toast.error(errorMessage);
       })
       .finally(() => {
         if (!isMounted) return;
@@ -94,7 +105,7 @@ export default function ApplicationDetailPage() {
           {/* States: loading / error / content */}
           {loading ? (
             <div className="bg-white border border-gray-200 rounded-lg p-8 text-center text-gray-600">
-              Carregando aplicação...
+              Loading application...
             </div>
           ) : error ? (
             <div className="bg-white border border-red-200 rounded-lg p-8 text-center">
@@ -108,25 +119,29 @@ export default function ApplicationDetailPage() {
                       setError(null);
                       ApplicationService.getById(appId)
                         .then((data) => setApplication(data ?? null))
-                        .catch(() => setError('The application could not be loaded. Please try again.'))
+                        .catch(() => {
+                          const errorMessage = 'The application could not be loaded. Please try again';
+                          setError(errorMessage);
+                          toast.error(errorMessage);
+                        })
                         .finally(() => setLoading(false));
                     }
                   }}
                   className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-50"
                 >
-                  Tentar novamente
+                  Try again
                 </button>
                 <button
                   onClick={() => router.push('/')}
                   className="inline-flex items-center px-4 py-2 bg-black text-white rounded-md text-sm hover:bg-gray-800"
                 >
-                  Ir para o início
+                  Go to top
                 </button>
               </div>
             </div>
           ) : !application ? (
             <div className="bg-white border border-gray-200 rounded-lg p-8 text-center text-gray-600">
-              Aplicação não encontrada.
+              Application not found
             </div>
           ) : (
             <ApplicationDetailsLayout application={application}>
