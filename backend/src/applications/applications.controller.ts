@@ -25,7 +25,7 @@ import { ParseQuery } from '../@common/decorators/query/parse-query.decorator';
 import { CreateApplicationUseCase } from './use-cases/create-application.use-case';
 import { DeleteApplicationUseCase } from './use-cases/delete-application.use-case';
 import { UpdateApplicationUseCase } from './use-cases/update-application.use-case';
-import { UserNotFoundException } from 'src/users/exceptions/user-not-found.exception';
+import { UserNotFoundException } from '../users/exceptions/user-not-found.exception';
 import { ApplicationNotFoundException } from './exceptions/application-not-found.exception';
 import { RequiredApiComponentToApiApplication } from './exceptions/required-api-component.exception';
 import { AlreadyExistsApplicationException } from './exceptions/already-exists-application-exception';
