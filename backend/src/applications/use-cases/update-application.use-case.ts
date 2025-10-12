@@ -18,7 +18,7 @@ export class UpdateApplicationUseCase {
         await this.applicationsService.findById(id);
 
         // Verify if alread exists the Application name
-        await this.existsApplicationName(updateApplicationDto.name);
+        await this.existsApplicationName(id, updateApplicationDto.name);
 
         // Update application
         const application = await this.applicationsService.update(id, updateApplicationDto);
@@ -40,10 +40,10 @@ export class UpdateApplicationUseCase {
         return await this.applicationsService.findById(id);
     }
 
-    private async existsApplicationName(name: string): Promise<void> {
+    private async existsApplicationName(id: number, name: string): Promise<void> {
         if (!name) return;
 
-        const exists = await this.applicationsService.existsApplicationName(name);
-        if (exists) throw new AlreadyExistsApplicationException();
+        const exists = await this.applicationsService.findOneBy({ name });
+        if (exists && exists.id !== id) throw new AlreadyExistsApplicationException();
     }
 };

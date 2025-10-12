@@ -30,7 +30,7 @@ export class CreateApplicationUseCase {
         this.validateDetailsForType(createApplicationDto);
 
         // Verify if alread exists the Application name
-        const exists = await this.applicationsService.existsApplicationName(createApplicationDto.name);
+        const exists = await this.applicationsService.findOneBy({ name: createApplicationDto.name });
         if (exists) throw new AlreadyExistsApplicationException();
 
         // Create the application with the respective components

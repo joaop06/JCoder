@@ -40,7 +40,7 @@ export class UpdateApplicationDto {
     })
     @IsOptional()
     @IsEnum(ApplicationTypeEnum)
-    applicationType: ApplicationTypeEnum;
+    applicationType?: ApplicationTypeEnum;
 
     @ApiPropertyOptional({
         nullable: true,

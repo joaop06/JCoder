@@ -1,7 +1,7 @@
 
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindManyOptions, Repository } from 'typeorm';
+import { FindManyOptions, FindOptionsWhere, Repository } from 'typeorm';
 import { Application } from './entities/application.entity';
 import { CreateApplicationDto } from './dto/create-application.dto';
 import { UpdateApplicationDto } from './dto/update-application.dto';
@@ -37,8 +37,8 @@ export class ApplicationsService {
     return application;
   }
 
-  async existsApplicationName(name: string): Promise<boolean> {
-    return await this.repository.existsBy({ name });
+  async findOneBy(options?: FindOptionsWhere<Application>): Promise<Application> {
+    return await this.repository.findOneBy(options);
   }
 
   async create(createApplicationDto: CreateApplicationDto): Promise<Application> {
