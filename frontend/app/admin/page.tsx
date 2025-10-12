@@ -78,20 +78,12 @@ export default function AdminPage() {
     [applications]
   );
 
-  const getMainUrl = useCallback((app: Application) => {
-    if (app?.applicationComponentFrontend?.frontendUrl) return app.applicationComponentFrontend.frontendUrl;
-    if (app?.applicationComponentApi?.apiUrl) return app.applicationComponentApi.apiUrl;
-    if (app?.applicationComponentMobile?.downloadUrl) return app.applicationComponentMobile.downloadUrl;
-    if (app?.applicationComponentLibrary?.packageManagerUrl) return app.applicationComponentLibrary.packageManagerUrl;
-    return '';
-  }, []);
-
   const activeApplications = useMemo(
     () => applications.filter((app) => app.isActive).length,
     [applications]
   );
 
-  const formatRelativeDate = (date: Date, locale = 'pt-BR'): string => {
+  const formatRelativeDate = (date: Date, locale = 'en-US'): string => {
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
     const diffSec = Math.floor(diffMs / 1000);
@@ -99,9 +91,9 @@ export default function AdminPage() {
     const diffHrs = Math.floor(diffMin / 60);
     const diffDays = Math.floor(diffHrs / 24);
 
-    if (diffSec < 60) return 'Now';
+    if (diffSec < 60) return 'Just now';
     if (diffMin < 60) return `${diffMin} min ago`;
-    if (diffHrs < 24) return `${diffHrs} h ago`;
+    if (diffHrs < 24) return `${diffHrs} hours ago`;
 
     // Same date of the current day -> “Today HH:mm”
     const sameDay =
@@ -141,7 +133,7 @@ export default function AdminPage() {
   const lastUpdate = useMemo(() => {
     if (!applications?.length) return 'Never';
 
-    // For each application, we took the most recent one between updatedAt e createdAt
+    // For each application, we took the most recent one between updatedAt and createdAt
     const latestDates: Date[] = applications
       .map((app: Application) => {
         const created = parseToDate(app.createdAt);
@@ -156,7 +148,7 @@ export default function AdminPage() {
     // Select the most recent date from all of them
     const mostRecent = latestDates.reduce((a, b) => (a > b ? a : b));
 
-    return formatRelativeDate(mostRecent, 'pt-BR');
+    return formatRelativeDate(mostRecent, 'en-US');
   }, [applications]);
 
   if (!isAuthenticated) {
@@ -171,8 +163,8 @@ export default function AdminPage() {
         <div className="max-w-7xl mx-auto">
           {/* Page Header */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Administrative Panel</h1>
-            <p className="text-gray-600">Manage the applications in your portfolio</p>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Admin Dashboard</h1>
+            <p className="text-gray-600">Manage your portfolio applications</p>
           </div>
 
           {/* Loading / Error */}
@@ -207,7 +199,7 @@ export default function AdminPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-xl font-semibold text-gray-900 mb-1">Applications</h2>
-                  <p className="text-sm text-gray-600">Manage all applications in the portfolio</p>
+                  <p className="text-sm text-gray-600">Manage all portfolio applications</p>
                 </div>
                 <button
                   onClick={() => router.push('/admin/applications/new')}
@@ -229,10 +221,16 @@ export default function AdminPage() {
                       Name
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
-                      URL
+                      Type
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
+                      URL (GitHub)
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
                       Description
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
+                      Status
                     </th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-600 uppercase tracking-wider">
                       Actions
@@ -241,7 +239,6 @@ export default function AdminPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {!loading && applications.map((app) => {
-                    const mainUrl = getMainUrl(app);
                     return (
                       <tr key={app.id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -254,19 +251,22 @@ export default function AdminPage() {
                             <span className="font-medium text-gray-900">{app.name}</span>
                           </div>
                         </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="text-sm text-gray-900">{app.applicationType}</span>
+                        </td>
                         <td className="px-6 py-4">
-                          {mainUrl ? (
+                          {app.githubUrl ? (
                             <a
-                              href={mainUrl}
+                              href={app.githubUrl}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="text-blue-600 hover:underline inline-flex items-center gap-1"
-                              title={mainUrl}
+                              title={app.githubUrl}
                             >
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                               </svg>
-                              Open
+                              Open GitHub
                             </a>
                           ) : (
                             <span className="text-gray-400">—</span>
@@ -274,6 +274,11 @@ export default function AdminPage() {
                         </td>
                         <td className="px-6 py-4">
                           <p className="text-sm text-gray-600 truncate max-w-md">{app.description}</p>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${app.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                            {app.isActive ? 'Active' : 'Inactive'}
+                          </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right">
                           <div className="flex items-center justify-end gap-2">
@@ -292,7 +297,7 @@ export default function AdminPage() {
                               title="Delete"
                             >
                               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a 1 1 0 00-1 1v3M4 7h16" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a 1 0 00-1 1v3M4 7h16" />
                               </svg>
                             </button>
                           </div>
@@ -302,14 +307,14 @@ export default function AdminPage() {
                   })}
                   {loading && (
                     <tr>
-                      <td colSpan={4} className="px-6 py-8 text-center text-gray-500">
+                      <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
                         Loading...
                       </td>
                     </tr>
                   )}
                   {!loading && !applications.length && !fetchError && (
                     <tr>
-                      <td colSpan={4} className="px-6 py-8 text-center text-gray-500">
+                      <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
                         No applications found.
                       </td>
                     </tr>
