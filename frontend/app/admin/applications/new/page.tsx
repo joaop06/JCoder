@@ -3,6 +3,7 @@
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
 import { useRouter } from 'next/navigation';
+import { User } from '@/types/entities/user.entity';
 import { UsersService } from '@/services/users.service';
 import { useState, useEffect, useCallback } from 'react';
 import { ApplicationService } from '@/services/applications.service';
@@ -12,18 +13,27 @@ import { CreateApplicationDto } from '@/types/entities/dtos/create-application.d
 export default function NewApplicationPage() {
     const router = useRouter();
 
-    // User data
-    const user = UsersService.getUserStorage();
-
+    const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(false);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [formError, setFormError] = useState<string | null>(null);
     const [formData, setFormData] = useState<CreateApplicationDto>({
         name: '',
+        userId: 0,
         description: '',
-        userId: user!.id,
         applicationType: ApplicationTypeEnum.API,
     });
+
+    // User data
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+
+        const userStorage = UsersService.getUserStorage();
+        if (!userStorage) return;
+
+        setUser(userStorage);
+        setFormData({ ...formData, userId: userStorage.id });
+    }, []);
 
     useEffect(() => {
         const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
