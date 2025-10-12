@@ -1,0 +1,236 @@
+'use client';
+
+import {
+    useRef,
+    useMemo,
+    useState,
+    useEffect,
+    useContext,
+    useCallback,
+    createContext,
+} from 'react';
+import React from 'react';
+import {
+    ToastId,
+    ToastType,
+    ToastOptions,
+    ToastInternal,
+    ToastContextValue,
+    ToastProviderProps,
+} from '@/types/components/toast/toast.type';
+
+const ToastContext = createContext<ToastContextValue | null>(null);
+
+export function useToast(): ToastContextValue {
+    const ctx = useContext(ToastContext);
+    if (!ctx) throw new Error('useToast must be used within a ToastProvider');
+    return ctx;
+};
+
+function genId() {
+    return Math.random().toString(36).slice(2, 9);
+};
+
+export function ToastProvider({
+    children,
+    maxVisible = 3,
+    position = 'top-center',
+    defaultDurationMs = 2200,
+}: ToastProviderProps) {
+    const [toasts, setToasts] = useState<ToastInternal[]>([]);
+    const timers = useRef<Map<ToastId, number>>(new Map());
+
+    const addToast = useCallback(
+        (t: ToastOptions & { type: ToastType }) => {
+            const id = t.id ?? genId();
+            const toast: ToastInternal = {
+                id,
+                type: t.type,
+                message: t.message,
+                durationMs: t.durationMs ?? defaultDurationMs,
+            };
+
+            setToasts((curr) => {
+                const next = [toast, ...curr];
+                // keeps up to maxVisible on screen (FIFO in excess)
+                if (next.length > maxVisible) {
+                    return next.slice(0, maxVisible);
+                }
+                return next;
+            });
+
+            const timer = window.setTimeout(() => {
+                setToasts((curr) => curr.filter((it) => it.id !== id));
+                timers.current.delete(id);
+            }, toast.durationMs);
+            timers.current.set(id, timer);
+
+            return id;
+        },
+        [defaultDurationMs, maxVisible]
+    );
+
+    const dismiss = useCallback((id: ToastId) => {
+        setToasts((curr) => curr.filter((t) => t.id !== id));
+        const timer = timers.current.get(id);
+        if (timer) {
+            clearTimeout(timer);
+            timers.current.delete(id);
+        }
+    }, []);
+
+    const dismissAll = useCallback(() => {
+        setToasts([]);
+        timers.current.forEach((timer) => clearTimeout(timer));
+        timers.current.clear();
+    }, []);
+
+    useEffect(() => {
+        return () => {
+            timers.current.forEach((timer) => clearTimeout(timer));
+            timers.current.clear();
+        };
+    }, []);
+
+    const api = useMemo<ToastContextValue>(
+        () => ({
+            success: (message, options) => addToast({ type: 'success', message, ...options }),
+            error: (message, options) => addToast({ type: 'error', message, ...options }),
+            info: (message, options) => addToast({ type: 'info', message, ...options }),
+            dismiss,
+            dismissAll,
+        }),
+        [addToast, dismiss, dismissAll]
+    );
+
+    return (
+        <ToastContext.Provider value={api}>
+            {children}
+            <ToastContainer toasts={toasts} position={position} onDismiss={dismiss} />
+        </ToastContext.Provider>
+    );
+}
+
+function ToastContainer({
+    toasts,
+    position,
+    onDismiss,
+}: {
+    position: 'top-center';
+    toasts: ToastInternal[];
+    onDismiss: (id: ToastId) => void;
+}) {
+    return (
+        <div
+            className={`
+        pointer-events-none fixed inset-0 z-[9999]
+        flex ${position === 'top-center' ? 'items-start justify-center' : ''}
+        p-4
+      `}
+            aria-live="polite"
+            role="status"
+        >
+            <div className="mt-2 flex flex-col gap-2">
+                {toasts.map((t) => (
+                    <ToastItem key={t.id} toast={t} onDismiss={() => onDismiss(t.id)} />
+                ))}
+            </div>
+        </div>
+    );
+}
+
+function ToastItem({ toast, onDismiss }: { toast: ToastInternal; onDismiss: () => void }) {
+    // Transição simples: mount com fade/translateY
+    const [show, setShow] = useState(false);
+    useEffect(() => {
+        const f = requestAnimationFrame(() => setShow(true));
+        return () => cancelAnimationFrame(f);
+    }, []);
+
+    // Palette and style: blend between primary and accent for success; red for error; soft primary for info
+    const background =
+        toast.type === 'success'
+            ? 'linear-gradient(135deg, color-mix(in oklab, var(--primary) 70%, var(--accent) 30%), color-mix(in oklab, var(--primary) 50%, var(--accent) 50%))'
+            : toast.type === 'error'
+                ? 'linear-gradient(135deg, color-mix(in oklab, var(--primary) 70%, #ef4444 30%), color-mix(in oklab, var(--primary) 50%, #ef4444 50%))'
+                : 'linear-gradient(135deg, color-mix(in oklab, var(--primary) 85%, var(--foreground) 15%), color-mix(in oklab, var(--primary) 70%, var(--foreground) 30%))';
+
+    const borderColor =
+        toast.type === 'success'
+            ? 'color-mix(in oklab, var(--accent) 55%, transparent 45%)'
+            : toast.type === 'error'
+                ? 'color-mix(in oklab, #ef4444 55%, transparent 45%)'
+                : 'color-mix(in oklab, var(--foreground) 30%, transparent 70%)';
+
+    const iconBg =
+        toast.type === 'success'
+            ? 'color-mix(in oklab, var(--accent) 85%, var(--background) 15%)'
+            : toast.type === 'error'
+                ? 'color-mix(in oklab, #ef4444 85%, var(--background) 15%)'
+                : 'color-mix(in oklab, var(--foreground) 70%, var(--background) 30%)';
+
+    const shadow =
+        toast.type === 'success'
+            ? '0 8px 30px -8px color-mix(in oklab, var(--accent) 35%, transparent)'
+            : toast.type === 'error'
+                ? '0 8px 30px -8px color-mix(in oklab, #ef4444 35%, transparent)'
+                : '0 8px 30px -8px color-mix(in oklab, var(--foreground) 25%, transparent)';
+
+    return (
+        <div
+            className={`
+        pointer-events-auto
+        flex items-center gap-2
+        rounded-full px-4 py-2 text-sm
+        shadow-lg backdrop-blur-md
+        transition-all duration-300
+        ${show ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'}
+      `}
+            style={{
+                background,
+                color: 'var(--accent-foreground)',
+                border: '1px solid',
+                borderColor,
+                boxShadow: shadow,
+            }}
+            role="alert"
+        >
+            <span
+                aria-hidden="true"
+                className="inline-flex h-5 w-5 items-center justify-center rounded-full"
+                style={{ background: iconBg, color: 'white' }}
+            >
+                {toast.type === 'success' ? (
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                        <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                ) : toast.type === 'error' ? (
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                        <path d="M12 8v5m0 4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                ) : (
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                        <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2.5" />
+                    </svg>
+                )}
+            </span>
+
+            <span className="font-medium" style={{ color: 'var(--primary-foreground)' }}>
+                {toast.message}
+            </span>
+
+            {/* optional close button */}
+            <button
+                type="button"
+                onClick={onDismiss}
+                className="ml-1 inline-flex h-6 w-6 items-center justify-center rounded-full hover:opacity-85 transition-opacity"
+                style={{ color: 'var(--primary-foreground)' }}
+                aria-label="Fechar notificação"
+            >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                    <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
+                </svg>
+            </button>
+        </div>
+    );
+};
