@@ -3,9 +3,9 @@
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
 import { useEffect, useMemo, useState } from 'react';
-import ApplicationCard from '@/components/ApplicationCard';
 import { Application } from '@/types/entities/application.entity';
 import { ApplicationService } from '@/services/applications.service';
+import ApplicationCard from '@/components/applications/ApplicationCard';
 
 export default function Home() {
   const [loading, setLoading] = useState(true);

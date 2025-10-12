@@ -10,11 +10,11 @@ import { ApplicationService } from '@/services/applications.service';
 import { ApplicationTypeEnum } from '@/types/enums/application-type.enum';
 
 // Import new components
-import ApplicationApiDetails from '@/components/ApplicationApiDetails';
-import ApplicationDetailsLayout from '@/components/ApplicationDetailsLayout';
-import ApplicationMobileDetails from '@/components/ApplicationMobileDetails';
-import ApplicationLibraryDetails from '@/components/ApplicationLibraryDetails';
-import ApplicationFrontendDetails from '@/components/ApplicationFrontendDetails';
+import ApplicationApiDetails from '@/components/applications/[id]/ApplicationApiDetails';
+import ApplicationDetailsLayout from '@/components/applications/[id]/ApplicationDetailsLayout';
+import ApplicationMobileDetails from '@/components/applications/[id]/ApplicationMobileDetails';
+import ApplicationLibraryDetails from '@/components/applications/[id]/ApplicationLibraryDetails';
+import ApplicationFrontendDetails from '@/components/applications/[id]/ApplicationFrontendDetails';
 
 export default function ApplicationDetailPage() {
   const params = useParams();

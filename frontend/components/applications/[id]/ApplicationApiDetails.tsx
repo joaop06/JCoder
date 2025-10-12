@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import CopyToClipboardButton from './CopyToClipboardButton';
+import CopyToClipboardButton from '@/components/clipboard/CopyToClipboardButton';
 import { ApplicationComponentApi } from '@/types/entities/application-component-api.entity';
 
 interface ApplicationApiDetailsProps {

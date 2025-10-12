@@ -1,5 +1,5 @@
 import React from 'react';
-import CopyToClipboardButton from './CopyToClipboardButton';
+import CopyToClipboardButton from '@/components/clipboard/CopyToClipboardButton';
 import { ApplicationComponentFrontend } from '@/types/entities/application-component-frontend.entity';
 
 interface ApplicationFrontendDetailsProps {
