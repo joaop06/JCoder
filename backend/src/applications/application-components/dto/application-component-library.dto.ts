@@ -25,6 +25,5 @@ export class ApplicationComponentLibraryDto {
   })
   @IsOptional()
   @IsString()
-  @IsUrl()
   readmeContent?: string;
 };

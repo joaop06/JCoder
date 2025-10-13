@@ -47,6 +47,6 @@ export class ApplicationComponentApiDto {
   })
   @IsOptional()
   @IsString()
-  @IsNotEmpty()
+  @IsUrl()
   healthCheckEndpoint?: string;
 };
