@@ -198,84 +198,93 @@ function ToastItem({
         onDismiss(toast.id);
     };
 
-    // Palette and style: blend between primary and accent for success; red for error; soft primary for info
-    const background =
-        toast.type === 'success'
-            ? 'linear-gradient(135deg, color-mix(in oklab, var(--primary) 70%, var(--accent) 30%), color-mix(in oklab, var(--primary) 50%, var(--accent) 50%))'
-            : toast.type === 'error'
-                ? 'linear-gradient(135deg, color-mix(in oklab, var(--primary) 70%, #ef4444 30%), color-mix(in oklab, var(--primary) 50%, #ef4444 50%))'
-                : toast.type === 'confirm'
-                    ? 'linear-gradient(135deg, color-mix(in oklab, var(--primary) 80%, var(--secondary) 20%), color-mix(in oklab, var(--primary) 60%, var(--secondary) 40%))'
-                    : 'linear-gradient(135deg, color-mix(in oklab, var(--primary) 85%, var(--foreground) 15%), color-mix(in oklab, var(--primary) 70%, var(--foreground) 30%))';
+    // Minimalist design with clear visual differentiation
+    const getToastStyles = (type: ToastType) => {
+        switch (type) {
+            case 'success':
+                return {
+                    background: 'var(--card)',
+                    borderColor: 'rgba(0, 255, 136, 0.3)',
+                    iconColor: '#00ff88',
+                    textColor: 'var(--foreground)',
+                    shadow: '0 4px 20px -4px rgba(0, 255, 136, 0.15)',
+                };
+            case 'error':
+                return {
+                    background: 'var(--card)',
+                    borderColor: 'rgba(255, 68, 68, 0.3)',
+                    iconColor: '#ff4444',
+                    textColor: 'var(--foreground)',
+                    shadow: '0 4px 20px -4px rgba(255, 68, 68, 0.15)',
+                };
+            case 'info':
+                return {
+                    background: 'var(--card)',
+                    borderColor: 'rgba(0, 100, 150, 0.3)',
+                    iconColor: 'rgba(0, 100, 150, 0.8)',
+                    textColor: 'var(--foreground)',
+                    shadow: '0 4px 20px -4px rgba(0, 100, 150, 0.15)',
+                };
+            case 'confirm':
+                return {
+                    background: 'var(--card)',
+                    borderColor: 'rgba(255, 170, 0, 0.3)',
+                    iconColor: '#ffaa00',
+                    textColor: 'var(--foreground)',
+                    shadow: '0 4px 20px -4px rgba(255, 170, 0, 0.15)',
+                };
+            default:
+                return {
+                    background: 'var(--card)',
+                    borderColor: 'var(--border)',
+                    iconColor: 'var(--muted-foreground)',
+                    textColor: 'var(--foreground)',
+                    shadow: '0 4px 20px -4px rgba(0, 0, 0, 0.1)',
+                };
+        }
+    };
 
-    const borderColor =
-        toast.type === 'success'
-            ? 'color-mix(in oklab, var(--accent) 55%, transparent 45%)'
-            : toast.type === 'error'
-                ? 'color-mix(in oklab, #ef4444 55%, transparent 45%)'
-                : toast.type === 'confirm'
-                    ? 'color-mix(in oklab, var(--secondary) 55%, transparent 45%)'
-                    : 'color-mix(in oklab, var(--foreground) 30%, transparent 70%)';
-
-    const iconBg =
-        toast.type === 'success'
-            ? 'color-mix(in oklab, var(--accent) 85%, var(--background) 15%)'
-            : toast.type === 'error'
-                ? 'color-mix(in oklab, #ef4444 85%, var(--background) 15%)'
-                : toast.type === 'confirm'
-                    ? 'color-mix(in oklab, var(--secondary) 85%, var(--background) 15%)'
-                    : 'color-mix(in oklab, var(--foreground) 70%, var(--background) 30%)';
-
-    const shadow =
-        toast.type === 'success'
-            ? '0 8px 30px -8px color-mix(in oklab, var(--accent) 35%, transparent)'
-            : toast.type === 'error'
-                ? '0 8px 30px -8px color-mix(in oklab, #ef4444 35%, transparent)'
-                : toast.type === 'confirm'
-                    ? '0 8px 30px -8px color-mix(in oklab, var(--secondary) 25%, transparent)'
-                    : '0 8px 30px -8px color-mix(in oklab, var(--foreground) 25%, transparent)';
+    const styles = getToastStyles(toast.type!);
 
     return (
         <div
             className={`
         pointer-events-auto
-        flex items-center gap-2
-        rounded-full px-4 py-2 text-sm
-        shadow-lg backdrop-blur-md
+        flex items-center gap-3
+        rounded-lg px-4 py-3 text-sm
+        backdrop-blur-sm
         transition-all duration-300
         ${show ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'}
       `}
             style={{
-                background,
-                color: toast.type === 'confirm' ? 'var(--accent-foreground)' : 'var(--primary-foreground)',
+                background: styles.background,
+                color: styles.textColor,
                 border: '1px solid',
-                borderColor,
-                boxShadow: shadow,
+                borderColor: styles.borderColor,
+                boxShadow: styles.shadow,
             }}
             role="alert"
         >
             <span
                 aria-hidden="true"
                 className="inline-flex h-5 w-5 items-center justify-center rounded-full"
-                style={{ background: iconBg, color: 'var(--primary)' }}
+                style={{ color: styles.iconColor }}
             >
                 {toast.type === 'success' ? (
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                        <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                        <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                 ) : toast.type === 'error' ? (
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                        <path d="M12 8v5m0 4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                        <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                 ) : toast.type === 'confirm' ? (
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                        <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                        <path d="M12 9v4" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                        <path d="M12 17h.01" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                        <path d="M12 9v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                 ) : (
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                        <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2.5" />
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                        <path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                 )}
             </span>
@@ -289,14 +298,14 @@ function ToastItem({
                     <button
                         type="button"
                         onClick={handleConfirm}
-                        className="px-3 py-1 rounded-full bg-red-600 text-white hover:bg-red-700 transition-colors text-xs font-semibold"
+                        className="px-3 py-1 rounded-md bg-red-600 text-white hover:bg-red-700 transition-colors text-xs font-medium"
                     >
                         {toast.confirmText || 'Confirm'}
                     </button>
                     <button
                         type="button"
                         onClick={handleCancel}
-                        className="px-3 py-1 rounded-full bg-gray-300 text-gray-800 hover:bg-gray-400 transition-colors text-xs font-semibold"
+                        className="px-3 py-1 rounded-md bg-jcoder-secondary text-jcoder-muted hover:bg-jcoder-border transition-colors text-xs font-medium border border-jcoder-border"
                     >
                         {toast.cancelText || 'Cancel'}
                     </button>
@@ -305,12 +314,12 @@ function ToastItem({
                 <button
                     type="button"
                     onClick={() => onDismiss(toast.id)}
-                    className="ml-1 inline-flex h-6 w-6 items-center justify-center rounded-full hover:opacity-85 transition-opacity"
-                    style={{ color: 'var(--primary-foreground)' }}
+                    className="ml-1 inline-flex h-5 w-5 items-center justify-center rounded-full hover:bg-jcoder-secondary transition-colors"
+                    style={{ color: 'var(--muted-foreground)' }}
                     aria-label="Fechar notificação"
                 >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                        <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                        <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                     </svg>
                 </button>
             )}
