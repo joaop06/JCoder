@@ -55,7 +55,7 @@ export default function LoginPage() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-              <div className="w-10 h-10 bg-black rounded-lg flex items-center justify-center">
+              <div className="w-10 h-10 bg-transparent rounded-lg flex items-center justify-center">
                 <img
                   alt="JCoder"
                   width={400}
@@ -90,7 +90,7 @@ export default function LoginPage() {
         <div className="w-full max-w-md">
           {/* Logo and Title */}
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-black rounded-lg mb-4">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-transparent rounded-lg mb-4">
               <img
                 alt="JCoder"
                 width={400}

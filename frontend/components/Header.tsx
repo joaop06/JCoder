@@ -54,7 +54,7 @@ export default function Header({
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-              <div className="w-10 h-10 bg-black rounded-lg flex items-center justify-center">
+              <div className="w-10 h-10 bg-transparent rounded-lg flex items-center justify-center">
                 <img
                   alt="JCoder"
                   width={400}
@@ -91,7 +91,7 @@ export default function Header({
           {/* Esquerda: Logo + Nome */}
           <div className={isAdminView ? "justify-self-start" : ""}>
             <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-              <div className="w-10 h-10 bg-black rounded-lg flex items-center justify-center">
+              <div className="w-10 h-10 bg-transparent rounded-lg flex items-center justify-center">
                 <img
                   alt="JCoder"
                   width={400}
