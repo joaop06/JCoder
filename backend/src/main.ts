@@ -40,8 +40,8 @@ async function bootstrap() {
 
 export function setupSwagger(app: INestApplication) {
 	const config = new DocumentBuilder()
-		.setTitle("JDock")
-		.setDescription("JDock Api")
+		.setTitle("JCoder")
+		.setDescription("JCoder Api")
 		.build();
 
 	const document = SwaggerModule.createDocument(app, config, {
@@ -74,7 +74,7 @@ function ScalarDocumentation(app: INestApplication, document: OpenAPIObject) {
 			<html>
 			<head>
 				<meta charset="utf-8" />
-				<title>JDock - API</title>
+				<title>JCoder - API</title>
 				<meta name="viewport" content="width=device-width, initial-scale=1" />
 				<style>
 				body { margin: 0; padding: 0; }

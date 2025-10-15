@@ -57,13 +57,13 @@ export default function LoginPage() {
             <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
               <div className="w-10 h-10 bg-black rounded-lg flex items-center justify-center">
                 <img
-                  alt="JDock"
+                  alt="JCoder"
                   width={400}
                   height={300}
-                  src="/images/jdock-logo.png"
+                  src="/images/jcoder-logo.png"
                 />
               </div>
-              <span className="text-xl font-semibold">JDock</span>
+              <span className="text-xl font-semibold">JCoder</span>
             </Link>
 
             <nav>
@@ -92,10 +92,10 @@ export default function LoginPage() {
           <div className="text-center mb-8">
             <div className="inline-flex items-center justify-center w-16 h-16 bg-black rounded-lg mb-4">
               <img
-                alt="JDock"
+                alt="JCoder"
                 width={400}
                 height={300}
-                src="/images/jdock-logo.png"
+                src="/images/jcoder-logo.png"
               />
             </div>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">
