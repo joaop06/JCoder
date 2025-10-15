@@ -66,7 +66,7 @@ export class CreateApplicationDto {
     type: 'string',
     required: false,
     example: 'https://github.com/user/your-application',
-    description: 'URL do Github para acessar o repositório',
+    description: 'GitHub URL to access the repository',
   })
   @IsOptional()
   @IsString()

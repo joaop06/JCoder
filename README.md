@@ -1,75 +1,75 @@
-# Planejamento da Arquitetura e Estrutura do Projeto
+# Architecture and Project Structure Planning
 
-Este documento detalha o planejamento da arquitetura e estrutura para o projeto de portfólio de aplicações, que será composto por um backend em NestJS com arquitetura DDD, um frontend em React, e utilizará PostgreSQL como banco de dados, tudo orquestrado via Docker Compose.
+This document details the architecture and structure planning for the application portfolio project, which will be composed of a backend in NestJS with DDD architecture, a frontend in React, and will use PostgreSQL as the database, all orchestrated via Docker Compose.
 
-## 1. Estrutura de Pastas do Projeto
+## 1. Project Folder Structure
 
-A estrutura de pastas principal será organizada da seguinte forma:
+The main folder structure will be organized as follows:
 
 ```
 .
-├── backend/          # Aplicação NestJS (API)
-├── frontend/         # Aplicação React (Interface do Usuário)
-├── docker/           # Arquivos de configuração Docker (docker-compose.yml, Dockerfiles)
-└── README.md         # Documentação geral do projeto
+├── backend/          # NestJS Application (API)
+├── frontend/         # React Application (User Interface)
+├── docker/           # Docker configuration files (docker-compose.yml, Dockerfiles)
+└── README.md         # General project documentation
 ```
 
-## 2. Backend (NestJS com Arquitetura DDD)
+## 2. Backend (NestJS with DDD Architecture)
 
-O backend será desenvolvido utilizando NestJS, um framework progressivo Node.js para construir aplicações eficientes, escaláveis e confiáveis. A arquitetura Domain-Driven Design (DDD) será aplicada para garantir uma separação clara de responsabilidades e facilitar a manutenção e evolução do sistema.
+The backend will be developed using NestJS, a progressive Node.js framework for building efficient, scalable, and reliable applications. The Domain-Driven Design (DDD) architecture will be applied to ensure a clear separation of responsibilities and facilitate system maintenance and evolution.
 
-### 2.1. Camadas da Arquitetura DDD
+### 2.1. DDD Architecture Layers
 
-- **Domínio (Domain):** Contém a lógica de negócio central, entidades, objetos de valor, agregados, repositórios (interfaces) e serviços de domínio. É independente de qualquer tecnologia de infraestrutura.
-- **Aplicação (Application):** Orquestra a lógica de domínio para realizar casos de uso específicos. Contém DTOs (Data Transfer Objects) e serviços de aplicação que coordenam as operações.
-- **Infraestrutura (Infrastructure):** Implementa as interfaces definidas no domínio (repositórios), lida com a persistência de dados (PostgreSQL), comunicação externa (APIs), e outras preocupações técnicas.
-- **Apresentação (Presentation/API):** Camada de entrada que expõe os endpoints da API. Contém controladores (controllers) que recebem requisições HTTP, validam DTOs e chamam os serviços de aplicação.
+- **Domain:** Contains the core business logic, entities, value objects, aggregates, repositories (interfaces), and domain services. It is independent of any infrastructure technology.
+- **Application:** Orchestrates domain logic to perform specific use cases. Contains DTOs (Data Transfer Objects) and application services that coordinate operations.
+- **Infrastructure:** Implements interfaces defined in the domain (repositories), handles data persistence (PostgreSQL), external communication (APIs), and other technical concerns.
+- **Presentation (Presentation/API):** Entry layer that exposes API endpoints. Contains controllers that receive HTTP requests, validate DTOs, and call application services.
 
-### 2.2. Módulos Principais
+### 2.2. Main Modules
 
-Os módulos principais do backend incluirão:
+The main backend modules will include:
 
-- **Auth:** Gerenciamento de autenticação e autorização (login, registro, JWT).
-- **Applications:** CRUD para as aplicações/serviços do portfólio.
-- **Users:** Gerenciamento de usuários (especialmente o admin).
+- **Auth:** Authentication and authorization management (login, registration, JWT).
+- **Applications:** CRUD for portfolio applications/services.
+- **Users:** User management (especially admin).
 
-### 2.3. Autenticação e Autorização
+### 2.3. Authentication and Authorization
 
-Será implementado um sistema de autenticação baseado em JWT (JSON Web Tokens). Apenas usuários com perfil de `admin` terão permissão para cadastrar novas aplicações.
+An authentication system based on JWT (JSON Web Tokens) will be implemented. Only users with `admin` profile will have permission to register new applications.
 
 ## 3. Frontend (React)
 
-O frontend será construído com React, uma biblioteca JavaScript para construir interfaces de usuário. Será uma Single Page Application (SPA).
+The frontend will be built with React, a JavaScript library for building user interfaces. It will be a Single Page Application (SPA).
 
-### 3.1. Componentes Principais
+### 3.1. Main Components
 
-- **Página Principal (Home):** Listagem das aplicações cadastradas, semelhante a um marketplace.
-- **Detalhes da Aplicação:** Exibição de informações detalhadas de uma aplicação (URL, documentação, descrição, redirecionamento).
-- **Dashboard Admin:** Interface para o administrador cadastrar, editar e remover aplicações.
-- **Login:** Página de login para o administrador.
+- **Home Page:** List of registered applications, similar to a marketplace.
+- **Application Details:** Display of detailed application information (URL, documentation, description, redirection).
+- **Admin Dashboard:** Interface for administrators to register, edit, and remove applications.
+- **Login:** Login page for administrators.
 
-### 3.2. Gerenciamento de Estado
+### 3.2. State Management
 
-Será utilizado o Context API ou Redux (se a complexidade justificar) para gerenciamento de estado global.
+Context API or Redux (if complexity justifies) will be used for global state management.
 
-## 4. Banco de Dados (PostgreSQL)
+## 4. Database (PostgreSQL)
 
-O PostgreSQL será o banco de dados relacional utilizado para armazenar as informações das aplicações e dos usuários.
+PostgreSQL will be the relational database used to store application and user information.
 
 ## 5. Docker Compose
 
-O Docker Compose será utilizado para orquestrar os serviços do backend, frontend e banco de dados, facilitando o desenvolvimento, teste e implantação.
+Docker Compose will be used to orchestrate backend, frontend, and database services, facilitating development, testing, and deployment.
 
-### 5.1. Serviços
+### 5.1. Services
 
-- `backend`: Contêiner para a aplicação NestJS.
-- `frontend`: Contêiner para a aplicação React (servindo os arquivos estáticos).
-- `db`: Contêiner para o banco de dados PostgreSQL.
+- `backend`: Container for the NestJS application.
+- `frontend`: Container for the React application (serving static files).
+- `db`: Container for the PostgreSQL database.
 
-## 6. Próximos Passos
+## 6. Next Steps
 
-1. Configurar o ambiente Docker e PostgreSQL.
-2. Iniciar o desenvolvimento do backend NestJS.
-3. Iniciar o desenvolvimento do frontend React.
-4. Integrar e testar o sistema.
-5. Empacotar o projeto.
+1. Configure Docker and PostgreSQL environment.
+2. Start NestJS backend development.
+3. Start React frontend development.
+4. Integrate and test the system.
+5. Package the project.

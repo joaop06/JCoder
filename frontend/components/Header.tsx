@@ -88,7 +88,7 @@ export default function Header({
             isAdminView ? "grid grid-cols-3 items-center" : "flex items-center justify-between"
           }
         >
-          {/* Esquerda: Logo + Nome */}
+          {/* Left: Logo + Name */}
           <div className={isAdminView ? "justify-self-start" : ""}>
             <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
               <div className="w-10 h-10 bg-transparent rounded-lg flex items-center justify-center">
@@ -103,7 +103,7 @@ export default function Header({
             </Link>
           </div>
 
-          {/* Centro: Abas somente para Admins logados */}
+          {/* Center: Tabs only for logged-in Admins */}
           {isAdminView && (
             <nav className="flex items-center justify-center gap-8">
               <Link href="/" className="text-gray-700 hover:text-black transition-colors">
@@ -115,7 +115,7 @@ export default function Header({
             </nav>
           )}
 
-          {/* Direita: Auth area */}
+          {/* Right: Auth area */}
           {showAuth && (
             <div className={isAdminView ? "justify-self-end" : ""}>
               {!isAdminView ? (
@@ -127,9 +127,9 @@ export default function Header({
                 </Link>
               ) : (
                 <div className="flex items-center gap-3">
-                  {/* Ícone de perfil */}
+                  {/* Profile icon */}
                   <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-600">
-                    {/* SVG de usuário */}
+                    {/* User SVG */}
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       viewBox="0 0 24 24"

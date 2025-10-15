@@ -39,7 +39,7 @@ const ApplicationApiDetails: React.FC<ApplicationApiDetailsProps> = ({ apiDetail
 
   return (
     <div className="mt-6 pt-6 border-t border-gray-200">
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">API Detalhes</h3>
+      <h3 className="text-lg font-semibold text-gray-900 mb-4">API Details</h3>
       <div className="space-y-4">
         <div>
           <p className="text-sm font-medium text-gray-600 mb-1">Domain:</p>
@@ -57,7 +57,7 @@ const ApplicationApiDetails: React.FC<ApplicationApiDetailsProps> = ({ apiDetail
         </div>
         {apiDetails.healthCheckEndpoint && (
           <div>
-            <p className="text-sm font-medium text-gray-600 mb-1">Endpoint de Health Check:</p>
+            <p className="text-sm font-medium text-gray-600 mb-1">Health Check Endpoint:</p>
             <div className="flex items-center gap-2">
               <p className="text-gray-900 break-all">{apiDetails.healthCheckEndpoint}</p>
               <CopyToClipboardButton textToCopy={apiDetails.healthCheckEndpoint} />
@@ -67,7 +67,7 @@ const ApplicationApiDetails: React.FC<ApplicationApiDetailsProps> = ({ apiDetail
                     : healthStatus === 'error' ? 'bg-red-100 text-red-800'
                       : 'bg-gray-100 text-gray-800'}`}
               >
-                {healthStatus === 'ok' ? 'OK' : healthStatus === 'error' ? 'Erro' : 'Verificando...'}
+                {healthStatus === 'ok' ? 'OK' : healthStatus === 'error' ? 'Error' : 'Checking...'}
               </span>
             </div>
           </div>
@@ -89,7 +89,7 @@ const ApplicationApiDetails: React.FC<ApplicationApiDetailsProps> = ({ apiDetail
             <div className="border border-gray-200 rounded-lg overflow-hidden" style={{ height: '600px' }}>
               <iframe
                 src={apiDetails.documentationUrl}
-                title="Documentação da API"
+                title="API Documentation"
                 className="w-full h-full border-none"
                 sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
               ></iframe>

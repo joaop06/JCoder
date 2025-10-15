@@ -27,7 +27,7 @@ const ApplicationDetailsLayout: React.FC<ApplicationDetailsLayoutProps> = ({
               {application.name}
             </h1>
             <p className="text-sm text-gray-600 overflow-hidden text-ellipsis">
-              Tipo: {application.applicationType}
+              Type: {application.applicationType}
             </p>
           </div>
         </div>
@@ -35,13 +35,13 @@ const ApplicationDetailsLayout: React.FC<ApplicationDetailsLayoutProps> = ({
 
       {/* Description */}
       <div className="mb-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-3">Descrição</h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-3">Description</h2>
         <p className="text-gray-700">{application.description}</p>
       </div>
 
       {/* Technical Information - Common */}
       <div className="mb-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Informações Técnicas</h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">Technical Information</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <p className="text-sm font-medium text-gray-600 mb-1">ID:</p>

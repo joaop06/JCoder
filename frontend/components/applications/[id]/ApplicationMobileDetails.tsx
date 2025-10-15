@@ -9,15 +9,15 @@ interface ApplicationMobileDetailsProps {
 const ApplicationMobileDetails: React.FC<ApplicationMobileDetailsProps> = ({ mobileDetails }) => {
   return (
     <div className="mt-6 pt-6 border-t border-gray-200">
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">Detalhes do Aplicativo Móvel</h3>
+      <h3 className="text-lg font-semibold text-gray-900 mb-4">Mobile Application Details</h3>
       <div className="space-y-4">
         <div>
-          <p className="text-sm font-medium text-gray-600 mb-1">Plataforma:</p>
+          <p className="text-sm font-medium text-gray-600 mb-1">Platform:</p>
           <p className="text-gray-900">{mobileDetails.platform}</p>
         </div>
         {mobileDetails.downloadUrl && (
           <div>
-            <p className="text-sm font-medium text-gray-600 mb-1">URL de Download:</p>
+            <p className="text-sm font-medium text-gray-600 mb-1">Download URL:</p>
             <div className="flex items-center gap-2">
               <a
                 href={mobileDetails.downloadUrl}

@@ -1,28 +1,28 @@
 '''
-# Decorator @ParseQuery para NestJS
+# @ParseQuery Decorator for NestJS
 
-Este decorator simplifica a conversão de query parameters de uma requisição HTTP para o objeto `FindManyOptions` do TypeORM, facilitando a implementação de listagens paginadas, com filtros, ordenação e seleção de campos em APIs NestJS.
+This decorator simplifies the conversion of HTTP request query parameters to TypeORM's `FindManyOptions` object, facilitating the implementation of paginated listings with filters, sorting, and field selection in NestJS APIs.
 
-## Estrutura de Arquivos
+## File Structure
 
 ```
 src/
 ├── @common
     ├── types
-        ├── parse-query.type.ts      # As definições de tipos
-    ├── parse-query.decorator.ts  # O decorator principal
-    ├── typeorm-query.parser.ts     # A lógica de conversão
+        ├── parse-query.type.ts      # Type definitions
+    ├── parse-query.decorator.ts  # Main decorator
+    ├── typeorm-query.parser.ts     # Conversion logic
 ```
 
-## Instalação
+## Installation
 
-Copie os três arquivos (`parse-query.decorator.ts`, `typeorm-query.parser.ts`, `parse-query.type.ts`) para um diretório em seu projeto NestJS, por exemplo, `src/decorators`.
+Copy the three files (`parse-query.decorator.ts`, `typeorm-query.parser.ts`, `parse-query.type.ts`) to a directory in your NestJS project, for example, `src/decorators`.
 
-## Como Usar
+## How to Use
 
-Importe o decorator `@ParseQuery` em sua controller e utilize-o em um método que realiza a busca de dados. O decorator irá injetar o objeto `FindManyOptions` diretamente no método.
+Import the `@ParseQuery` decorator in your controller and use it in a method that performs data searches. The decorator will inject the `FindManyOptions` object directly into the method.
 
-### Exemplo Básico
+### Basic Example
 
 ```typescript
 // src/applications/applications.controller.ts
@@ -48,32 +48,32 @@ export class ApplicationsController {
 }
 ```
 
-Neste exemplo, o método `findAll` da controller receberá um objeto `options` pronto para ser passado para o método `find()` do repositório do TypeORM.
+In this example, the controller's `findAll` method will receive an `options` object ready to be passed to TypeORM repository's `find()` method.
 
-## Parâmetros de Query Suportados
+## Supported Query Parameters
 
-O decorator, por padrão, reconhece os seguintes parâmetros na URL:
+The decorator, by default, recognizes the following URL parameters:
 
-| Parâmetro | Descrição                                                                                             | Exemplo de URL                                                                                             |
+| Parameter | Description                                                                                           | URL Example                                                                                             |
 | :---------- | :---------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------- |
-| `limit`     | Define o número de registros por página (`take`).                                                     | `?limit=10`                                                                                                |
-| `page`      | Define a página atual, que é convertida para `skip`.                                                  | `?limit=10&page=2` (resultará em `skip: 10`)                                                               |
-| `filter`    | Aplica condições de filtro (`where`). O valor deve ser um JSON stringificado.                         | `?filter={"name": "John Doe"}`                                                                             |
-| `sort`      | Define a ordenação dos resultados (`order`). O valor deve ser um JSON stringificado.                  | `?sort={"createdAt": "DESC"}`                                                                              |
-| `fields`    | Seleciona campos específicos para retornar (`select`). O valor deve ser um JSON stringificado.        | `?fields=["id", "name", "email"]`                                                                          |
-| `include`   | Define as relações a serem incluídas na consulta (`relations`). O valor deve ser um JSON stringificado. | `?include=["posts", "profile"]`                                                                            |
+| `limit`     | Defines the number of records per page (`take`).                                                     | `?limit=10`                                                                                                |
+| `page`      | Defines the current page, which is converted to `skip`.                                                  | `?limit=10&page=2` (will result in `skip: 10`)                                                               |
+| `filter`    | Applies filter conditions (`where`). Value must be a stringified JSON.                         | `?filter={"name": "John Doe"}`                                                                             |
+| `sort`      | Defines result ordering (`order`). Value must be a stringified JSON.                  | `?sort={"createdAt": "DESC"}`                                                                              |
+| `fields`    | Selects specific fields to return (`select`). Value must be a stringified JSON.        | `?fields=["id", "name", "email"]`                                                                          |
+| `include`   | Defines relations to be included in the query (`relations`). Value must be a stringified JSON. | `?include=["posts", "profile"]`                                                                            |
 
-**Nota:** Para os parâmetros `filter`, `sort`, `fields` e `include`, os valores na URL devem ser JSON strings devidamente codificadas (URL-encoded).
+**Note:** For the `filter`, `sort`, `fields`, and `include` parameters, the values in the URL must be properly encoded JSON strings (URL-encoded).
 
-### Exemplo de Requisição Completa
+### Complete Request Example
 
-Uma requisição para buscar usuários com o nome "John", na segunda página, com 10 itens por página, ordenados por data de criação decrescente e incluindo seus posts seria:
+A request to fetch users with the name "John", on the second page, with 10 items per page, ordered by descending creation date and including their posts would be:
 
 ```
 GET /users?limit=10&page=2&filter={"name":"John"}&sort={"createdAt":"DESC"}&include=["posts"]
 ```
 
-O decorator converterá essa query para o seguinte objeto `FindManyOptions`:
+The decorator will convert this query to the following `FindManyOptions` object:
 
 ```json
 {
@@ -91,9 +91,9 @@ O decorator converterá essa query para o seguinte objeto `FindManyOptions`:
 }
 ```
 
-## Customizando os Nomes dos Parâmetros
+## Customizing Parameter Names
 
-É possível customizar os nomes dos parâmetros de query passando um objeto de configuração para o decorator.
+It's possible to customize the query parameter names by passing a configuration object to the decorator.
 
 ```typescript
 // src/users/users.controller.ts
@@ -121,7 +121,7 @@ export class UsersController {
 }
 ```
 
-Com essa configuração, a URL da requisição seria:
+With this configuration, the request URL would be:
 
 ```
 GET /users?perPage=10&p=2&q={"name":"John"}&orderBy={"createdAt":"DESC"}

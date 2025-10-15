@@ -48,7 +48,7 @@ export function setupSwagger(app: INestApplication) {
 		deepScanRoutes: true,
 	});
 
-	// Loga refs inválidos/ausentes no startup
+	// Log invalid/missing refs on startup
 	// findMissingRefs(document);
 
 	SwaggerModule.setup("swagger", app, document);
@@ -57,7 +57,7 @@ export function setupSwagger(app: INestApplication) {
 }
 
 function ScalarDocumentation(app: INestApplication, document: OpenAPIObject) {
-	// Configurar Scalar
+	// Configure Scalar
 	const scalarConfig = {
 		layout: "modern",
 		searchHotKey: "k",
@@ -67,7 +67,7 @@ function ScalarDocumentation(app: INestApplication, document: OpenAPIObject) {
 		hideDownloadButton: false,
 	};
 
-	// Configurar Scalar em vez do Swagger UI padrão
+	// Configure Scalar instead of the default Swagger UI
 	app.use(routeDocs, (req, res) => {
 		const html = `
 			<!doctype html>
@@ -111,7 +111,7 @@ function ScalarDocumentation(app: INestApplication, document: OpenAPIObject) {
 		res.send(html);
 	});
 
-	// Endpoint para servir o JSON do OpenAPI
+	// Endpoint to serve the OpenAPI JSON
 	app.use(routeDocsJson, (req, res) => {
 		res.json(document);
 	});
@@ -153,7 +153,7 @@ function findMissingRefs(doc: OpenAPIObject): void {
 
 	if (missingRefs.length) {
 		// eslint-disable-next-line no-console
-		console.warn("[OpenAPI] Refs inválidos/ausentes detectados:", missingRefs);
+		console.warn("[OpenAPI] Invalid/missing refs detected:", missingRefs);
 	}
 }
 
