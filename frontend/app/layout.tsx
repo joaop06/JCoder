@@ -1,6 +1,7 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
+import { ToastProvider } from '@/components/toast/ToastContext';
 
 const inter = Inter({
   variable: "--font-sans",
@@ -15,7 +16,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "JDock",
+  title: "JCoder",
   description: "Application Portfolio",
 };
 
@@ -27,8 +28,8 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.variable} ${jetbrainsMono.variable} antialiased`}>
-        {children}
+        <ToastProvider>{children}</ToastProvider>
       </body>
     </html>
   );
-}
+};

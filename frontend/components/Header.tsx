@@ -25,7 +25,7 @@ export default function Header({
   useEffect(() => {
     setIsClient(true);
     try {
-      const user = UsersService.parseUserStorage?.();
+      const user = UsersService.getUserStorage?.();
       const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
 
       setIsAdmin((user?.role === RoleEnum.Admin) || isAdminProp);
@@ -56,13 +56,13 @@ export default function Header({
             <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
               <div className="w-10 h-10 bg-black rounded-lg flex items-center justify-center">
                 <img
-                  alt="JDock"
+                  alt="JCoder"
                   width={400}
                   height={300}
-                  src="/images/jdock-logo.png"
+                  src="/images/jcoder-logo.png"
                 />
               </div>
-              <span className="text-xl font-semibold">JDock</span>
+              <span className="text-xl font-semibold">JCoder</span>
             </Link>
             {showAuth && (
               <Link
@@ -93,13 +93,13 @@ export default function Header({
             <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
               <div className="w-10 h-10 bg-black rounded-lg flex items-center justify-center">
                 <img
-                  alt="JDock"
+                  alt="JCoder"
                   width={400}
                   height={300}
-                  src="/images/jdock-logo.png"
+                  src="/images/jcoder-logo.png"
                 />
               </div>
-              <span className="text-xl font-semibold">JDock</span>
+              <span className="text-xl font-semibold">JCoder</span>
             </Link>
           </div>
 

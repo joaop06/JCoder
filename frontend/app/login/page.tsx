@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { AuthService } from '@/services/auth.service';
+import { useToast } from '@/components/toast/ToastContext';
 import type { LoginResponse } from '@/types/api/login.type';
 
 export default function LoginPage() {
@@ -11,12 +12,12 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  const toast = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setErrorMsg(null);
 
     try {
       const data: LoginResponse = await AuthService.login({ email, password });
@@ -33,6 +34,7 @@ export default function LoginPage() {
       localStorage.setItem('user', JSON.stringify(user));
 
       // Redirects to admin
+      toast.success('Sign in successful!');
       router.push('/admin');
     } catch (err: any) {
       // Friendly error handling
@@ -40,7 +42,7 @@ export default function LoginPage() {
         err?.response?.data?.message ||
         err?.message ||
         'Failed to log in. Please check your credentials and try again.';
-      setErrorMsg(apiMessage);
+      toast.error(apiMessage);
     } finally {
       setIsLoading(false);
     }
@@ -55,13 +57,13 @@ export default function LoginPage() {
             <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
               <div className="w-10 h-10 bg-black rounded-lg flex items-center justify-center">
                 <img
-                  alt="JDock"
+                  alt="JCoder"
                   width={400}
                   height={300}
-                  src="/images/jdock-logo.png"
+                  src="/images/jcoder-logo.png"
                 />
               </div>
-              <span className="text-xl font-semibold">JDock</span>
+              <span className="text-xl font-semibold">JCoder</span>
             </Link>
 
             <nav>
@@ -90,10 +92,10 @@ export default function LoginPage() {
           <div className="text-center mb-8">
             <div className="inline-flex items-center justify-center w-16 h-16 bg-black rounded-lg mb-4">
               <img
-                alt="JDock"
+                alt="JCoder"
                 width={400}
                 height={300}
-                src="/images/jdock-logo.png"
+                src="/images/jcoder-logo.png"
               />
             </div>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">
@@ -112,13 +114,6 @@ export default function LoginPage() {
                 Enter your credentials to access the system
               </p>
             </div>
-
-            {/* Error alert */}
-            {errorMsg && (
-              <div className="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                {errorMsg}
-              </div>
-            )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>

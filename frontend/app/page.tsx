@@ -3,15 +3,18 @@
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
 import { useEffect, useMemo, useState } from 'react';
-import ApplicationCard from '@/components/ApplicationCard';
+import { useToast } from '@/components/toast/ToastContext';
 import { Application } from '@/types/entities/application.entity';
 import { ApplicationService } from '@/services/applications.service';
+import ApplicationCard from '@/components/applications/ApplicationCard';
 
 export default function Home() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [applications, setApplications] = useState<Application[]>([]);
+
+  const toast = useToast();
 
   useEffect(() => {
     let isMounted = true;
@@ -26,7 +29,10 @@ export default function Home() {
       .catch(err => {
         if (!isMounted) return;
         console.error('Failure to load applications', err);
-        setError('The applications could not be loaded. Please try again.');
+
+        const errorMessage = 'The applications could not be loaded. Please try again.';
+        setError(errorMessage);
+        toast.error(errorMessage);
       })
       .finally(() => {
         if (!isMounted) return;
@@ -102,7 +108,11 @@ export default function Home() {
                   ApplicationService
                     .getAll()
                     .then((data) => setApplications(data ?? []))
-                    .catch(() => setError('The applications could not be loaded.'))
+                    .catch(() => {
+                      const errorMessage = 'The applications could not be loaded.';
+                      setError(errorMessage);
+                      toast.error(errorMessage);
+                    })
                     .finally(() => setLoading(false));
                 }}
                 className="mt-4 inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-50"
