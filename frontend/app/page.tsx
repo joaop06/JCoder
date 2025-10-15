@@ -53,17 +53,17 @@ export default function Home() {
   }, [applications, searchQuery]);
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-jcoder-dark">
       <Header showAuth={true} isAdmin={false} />
 
       <main className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-12">
 
         {/* Hero Section */}
         <div className="text-center mb-12 max-w-3xl mx-auto">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
+          <h1 className="text-4xl font-bold text-white mb-4">
             Application Portfolio
           </h1>
-          <p className="text-lg text-gray-600">
+          <p className="text-lg text-jcoder-muted">
             Explore and access all the applications available in our portfolio
           </p>
         </div>
@@ -75,7 +75,7 @@ export default function Home() {
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
-              className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"
+              className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-jcoder-muted"
             >
               <path
                 strokeWidth={2}
@@ -89,7 +89,7 @@ export default function Home() {
               value={searchQuery}
               placeholder="Search for applications..."
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent bg-white"
+              className="w-full pl-12 pr-4 py-3 border border-jcoder rounded-lg focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-transparent bg-jcoder-card text-white placeholder-jcoder-muted"
             />
           </div>
         </div>
@@ -97,10 +97,10 @@ export default function Home() {
         {/* Applications Grid */}
         <div className="max-w-6xl mx-auto">
           {loading ? (
-            <div className="text-center py-12 text-gray-600">Loading applications...</div>
+            <div className="text-center py-12 text-jcoder-muted">Loading applications...</div>
           ) : error ? (
             <div className="text-center py-12">
-              <p className="text-red-600">{error}</p>
+              <p className="text-red-400">{error}</p>
               <button
                 onClick={() => {
                   setError(null);
@@ -115,7 +115,7 @@ export default function Home() {
                     })
                     .finally(() => setLoading(false));
                 }}
-                className="mt-4 inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-50"
+                className="mt-4 inline-flex items-center px-4 py-2 border border-jcoder-primary text-jcoder-primary rounded-md text-sm hover:bg-jcoder-secondary transition-colors"
               >
                 Try again
               </button>
@@ -129,13 +129,13 @@ export default function Home() {
               </div>
 
               {/* Pagination Info */}
-              <div className="text-center text-sm text-gray-600">
+              <div className="text-center text-sm text-jcoder-muted">
                 {filteredApplications.length} application(s) found
               </div>
             </>
           ) : (
             <div className="text-center py-12">
-              <p className="text-gray-600">No applications found.</p>
+              <p className="text-jcoder-muted">No applications found.</p>
             </div>
           )}
         </div>

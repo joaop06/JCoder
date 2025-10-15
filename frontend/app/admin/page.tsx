@@ -156,54 +156,54 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-jcoder-dark">
       <Header showAuth={true} isAdmin={true} onLogout={handleLogout} />
 
       <main className="flex-1 container mx-auto px-4 py-12">
         <div className="max-w-7xl mx-auto">
           {/* Page Header */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Admin Dashboard</h1>
-            <p className="text-gray-600">Manage your portfolio applications</p>
+            <h1 className="text-3xl font-bold text-white mb-2">Admin Dashboard</h1>
+            <p className="text-jcoder-muted">Manage your portfolio applications</p>
           </div>
 
           {/* Loading / Error */}
           {loading && (
-            <div className="mb-6 text-gray-600">Loading applications...</div>
+            <div className="mb-6 text-jcoder-muted">Loading applications...</div>
           )}
           {fetchError && (
-            <div className="mb-6 p-4 border border-red-200 bg-red-50 text-red-700 rounded">
+            <div className="mb-6 p-4 border border-red-400 bg-red-900/20 text-red-400 rounded">
               {fetchError}
             </div>
           )}
 
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div className="bg-white border border-gray-200 rounded-lg p-6">
-              <p className="text-sm text-gray-600 mb-2">Total Applications</p>
-              <p className="text-3xl font-bold text-gray-900">{applications.length}</p>
+            <div className="bg-jcoder-card border border-jcoder rounded-lg p-6 hover:border-jcoder-primary transition-colors">
+              <p className="text-sm text-jcoder-muted mb-2">Total Applications</p>
+              <p className="text-3xl font-bold text-white">{applications.length}</p>
             </div>
-            <div className="bg-white border border-gray-200 rounded-lg p-6">
-              <p className="text-sm text-gray-600 mb-2">Active Applications</p>
-              <p className="text-3xl font-bold text-green-600">{activeApplications}</p>
+            <div className="bg-jcoder-card border border-jcoder rounded-lg p-6 hover:border-jcoder-primary transition-colors">
+              <p className="text-sm text-jcoder-muted mb-2">Active Applications</p>
+              <p className="text-3xl font-bold text-jcoder-primary">{activeApplications}</p>
             </div>
-            <div className="bg-white border border-gray-200 rounded-lg p-6">
-              <p className="text-sm text-gray-600 mb-2">Last Update</p>
-              <p className="text-3xl font-bold text-gray-900">{lastUpdate}</p>
+            <div className="bg-jcoder-card border border-jcoder rounded-lg p-6 hover:border-jcoder-primary transition-colors">
+              <p className="text-sm text-jcoder-muted mb-2">Last Update</p>
+              <p className="text-3xl font-bold text-white">{lastUpdate}</p>
             </div>
           </div>
 
           {/* Applications Table */}
-          <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-            <div className="p-6 border-b border-gray-200">
+          <div className="bg-jcoder-card border border-jcoder rounded-lg overflow-hidden">
+            <div className="p-6 border-b border-jcoder">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-xl font-semibold text-gray-900 mb-1">Applications</h2>
-                  <p className="text-sm text-gray-600">Manage all portfolio applications</p>
+                  <h2 className="text-xl font-semibold text-white mb-1">Applications</h2>
+                  <p className="text-sm text-jcoder-muted">Manage all portfolio applications</p>
                 </div>
                 <button
                   onClick={() => router.push('/admin/applications/new')}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity font-medium"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -215,44 +215,44 @@ export default function AdminPage() {
 
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50 border-b border-gray-200">
+                <thead className="bg-jcoder-secondary border-b border-jcoder">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-jcoder-muted uppercase tracking-wider">
                       Name
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-jcoder-muted uppercase tracking-wider">
                       Type
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-jcoder-muted uppercase tracking-wider">
                       URL (GitHub)
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-jcoder-muted uppercase tracking-wider">
                       Description
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-jcoder-muted uppercase tracking-wider">
                       Status
                     </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-600 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-right text-xs font-medium text-jcoder-muted uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200">
+                <tbody className="divide-y divide-jcoder">
                   {!loading && applications.map((app) => {
                     return (
-                      <tr key={app.id} className="hover:bg-gray-50">
+                      <tr key={app.id} className="hover:bg-jcoder-secondary transition-colors">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-black rounded-lg flex items-center justify-center flex-shrink-0">
-                              <span className="text-white font-bold text-sm">
+                            <div className="w-10 h-10 bg-jcoder-gradient rounded-lg flex items-center justify-center flex-shrink-0">
+                              <span className="text-black font-bold text-sm">
                                 {app.name?.charAt(0)?.toUpperCase() ?? '?'}
                               </span>
                             </div>
-                            <span className="font-medium text-gray-900">{app.name}</span>
+                            <span className="font-medium text-white">{app.name}</span>
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="text-sm text-gray-900">{app.applicationType}</span>
+                          <span className="text-sm text-jcoder-muted">{app.applicationType}</span>
                         </td>
                         <td className="px-6 py-4">
                           {app.githubUrl ? (
@@ -260,7 +260,7 @@ export default function AdminPage() {
                               href={app.githubUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-blue-600 hover:underline inline-flex items-center gap-1"
+                              className="text-jcoder-primary hover:text-jcoder-accent transition-colors inline-flex items-center gap-1"
                               title={app.githubUrl}
                             >
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -269,14 +269,14 @@ export default function AdminPage() {
                               Open GitHub
                             </a>
                           ) : (
-                            <span className="text-gray-400">—</span>
+                            <span className="text-jcoder-muted">—</span>
                           )}
                         </td>
                         <td className="px-6 py-4">
-                          <p className="text-sm text-gray-600 truncate max-w-md">{app.description}</p>
+                          <p className="text-sm text-jcoder-muted truncate max-w-md">{app.description}</p>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${app.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                          <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${app.isActive ? 'bg-green-900/30 text-green-400 border border-green-400/30' : 'bg-red-900/30 text-red-400 border border-red-400/30'}`}>
                             {app.isActive ? 'Active' : 'Inactive'}
                           </span>
                         </td>
@@ -284,7 +284,7 @@ export default function AdminPage() {
                           <div className="flex items-center justify-end gap-2">
                             <button
                               onClick={() => router.push(`/admin/applications/${app.id}/edit`)}
-                              className="p-2 text-gray-600 hover:text-black transition-colors"
+                              className="p-2 text-jcoder-muted hover:text-jcoder-primary transition-colors"
                               title="Edit"
                             >
                               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -293,7 +293,7 @@ export default function AdminPage() {
                             </button>
                             <button
                               onClick={() => handleDelete(app)}
-                              className="p-2 text-red-600 hover:text-red-700 transition-colors"
+                              className="p-2 text-red-400 hover:text-red-300 transition-colors"
                               title="Delete"
                             >
                               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -307,14 +307,14 @@ export default function AdminPage() {
                   })}
                   {loading && (
                     <tr>
-                      <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
+                      <td colSpan={6} className="px-6 py-8 text-center text-jcoder-muted">
                         Loading...
                       </td>
                     </tr>
                   )}
                   {!loading && !applications.length && !fetchError && (
                     <tr>
-                      <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
+                      <td colSpan={6} className="px-6 py-8 text-center text-jcoder-muted">
                         No applications found.
                       </td>
                     </tr>

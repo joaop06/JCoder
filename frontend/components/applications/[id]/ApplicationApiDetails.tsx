@@ -38,34 +38,34 @@ const ApplicationApiDetails: React.FC<ApplicationApiDetailsProps> = ({ apiDetail
   }, [apiDetails.healthCheckEndpoint]);
 
   return (
-    <div className="mt-6 pt-6 border-t border-gray-200">
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">API Details</h3>
+    <div className="mt-6 pt-6 border-t border-jcoder">
+      <h3 className="text-lg font-semibold text-white mb-4">API Details</h3>
       <div className="space-y-4">
         <div>
-          <p className="text-sm font-medium text-gray-600 mb-1">Domain:</p>
+          <p className="text-sm font-medium text-jcoder-muted mb-1">Domain:</p>
           <div className="flex items-center gap-2">
-            <p className="text-gray-900 break-all">{apiDetails.domain}</p>
+            <p className="text-white break-all">{apiDetails.domain}</p>
             <CopyToClipboardButton textToCopy={apiDetails.domain} />
           </div>
         </div>
         <div>
-          <p className="text-sm font-medium text-gray-600 mb-1">URL:</p>
+          <p className="text-sm font-medium text-jcoder-muted mb-1">URL:</p>
           <div className="flex items-center gap-2">
-            <p className="text-gray-900 break-all">{apiDetails.apiUrl}</p>
+            <p className="text-white break-all">{apiDetails.apiUrl}</p>
             <CopyToClipboardButton textToCopy={apiDetails.apiUrl} />
           </div>
         </div>
         {apiDetails.healthCheckEndpoint && (
           <div>
-            <p className="text-sm font-medium text-gray-600 mb-1">Health Check Endpoint:</p>
+            <p className="text-sm font-medium text-jcoder-muted mb-1">Health Check Endpoint:</p>
             <div className="flex items-center gap-2">
-              <p className="text-gray-900 break-all">{apiDetails.healthCheckEndpoint}</p>
+              <p className="text-white break-all">{apiDetails.healthCheckEndpoint}</p>
               <CopyToClipboardButton textToCopy={apiDetails.healthCheckEndpoint} />
               <span
                 className={`ml-2 px-2 py-1 rounded-full text-xs font-semibold
-                  ${healthStatus === 'ok' ? 'bg-green-100 text-green-800'
-                    : healthStatus === 'error' ? 'bg-red-100 text-red-800'
-                      : 'bg-gray-100 text-gray-800'}`}
+                  ${healthStatus === 'ok' ? 'bg-green-900/30 text-green-400 border border-green-400/30'
+                    : healthStatus === 'error' ? 'bg-red-900/30 text-red-400 border border-red-400/30'
+                      : 'bg-jcoder-secondary text-jcoder-muted border border-jcoder'}`}
               >
                 {healthStatus === 'ok' ? 'OK' : healthStatus === 'error' ? 'Error' : 'Checking...'}
               </span>
@@ -74,19 +74,19 @@ const ApplicationApiDetails: React.FC<ApplicationApiDetailsProps> = ({ apiDetail
         )}
         {apiDetails.documentationUrl && (
           <div>
-            <p className="text-sm font-medium text-gray-600 mb-1">Documentation:</p>
+            <p className="text-sm font-medium text-jcoder-muted mb-1">Documentation:</p>
             <div className="flex items-center gap-2 mb-2">
               <a
                 href={apiDetails.documentationUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-blue-600 hover:underline break-all"
+                className="text-jcoder-primary hover:text-jcoder-accent transition-colors break-all"
               >
                 {apiDetails.documentationUrl}
               </a>
               <CopyToClipboardButton textToCopy={apiDetails.documentationUrl} />
             </div>
-            <div className="border border-gray-200 rounded-lg overflow-hidden" style={{ height: '600px' }}>
+            <div className="border border-jcoder rounded-lg overflow-hidden" style={{ height: '600px' }}>
               <iframe
                 src={apiDetails.documentationUrl}
                 title="API Documentation"

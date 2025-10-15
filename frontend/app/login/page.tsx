@@ -49,9 +49,9 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-jcoder-dark">
       {/* Header */}
-      <header className="border-b border-gray-200 bg-white">
+      <header className="border-b border-jcoder bg-jcoder-card">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
@@ -63,13 +63,13 @@ export default function LoginPage() {
                   src="/images/jcoder-logo.png"
                 />
               </div>
-              <span className="text-xl font-semibold">JCoder</span>
+              <span className="text-xl font-semibold text-white">JCoder</span>
             </Link>
 
             <nav>
               <Link
                 href="/"
-                className="text-gray-700 hover:text-black transition-colors"
+                className="text-jcoder-muted hover:text-jcoder-primary transition-colors"
               >
                 Applications
               </Link>
@@ -77,7 +77,7 @@ export default function LoginPage() {
 
             <Link
               href="/"
-              className="px-4 py-2 text-sm font-medium border border-gray-300 rounded hover:opacity-80 transition-opacity"
+              className="px-4 py-2 text-sm font-medium border border-jcoder-primary text-jcoder-primary rounded hover:bg-jcoder-secondary transition-colors"
             >
               Sign in
             </Link>
@@ -98,26 +98,26 @@ export default function LoginPage() {
                 src="/images/jcoder-logo.png"
               />
             </div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+            <h1 className="text-2xl font-bold text-white mb-2">
               Log in to your account
             </h1>
-            <p className="text-gray-600">
+            <p className="text-jcoder-muted">
               Access the administrative panel
             </p>
           </div>
 
           {/* Login Form */}
-          <div className="bg-white border border-gray-200 rounded-lg p-8">
+          <div className="bg-jcoder-card border border-jcoder rounded-lg p-8">
             <div className="mb-6 text-center">
-              <h2 className="text-lg font-semibold mb-1">Sign in</h2>
-              <p className="text-sm text-gray-600">
+              <h2 className="text-lg font-semibold mb-1 text-white">Sign in</h2>
+              <p className="text-sm text-jcoder-muted">
                 Enter your credentials to access the system
               </p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="email" className="block text-sm font-medium text-jcoder-muted mb-2">
                   Email
                 </label>
                 <input
@@ -128,12 +128,12 @@ export default function LoginPage() {
                   disabled={isLoading}
                   placeholder="your@email.com"
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent disabled:opacity-60"
+                  className="w-full px-4 py-3 border border-jcoder rounded-lg focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-transparent disabled:opacity-60 bg-jcoder-secondary text-white placeholder-jcoder-muted"
                 />
               </div>
 
               <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="password" className="block text-sm font-medium text-jcoder-muted mb-2">
                   Password
                 </label>
                 <input
@@ -144,14 +144,14 @@ export default function LoginPage() {
                   disabled={isLoading}
                   placeholder="••••••••"
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent disabled:opacity-60"
+                  className="w-full px-4 py-3 border border-jcoder rounded-lg focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-transparent disabled:opacity-60 bg-jcoder-secondary text-white placeholder-jcoder-muted"
                 />
               </div>
 
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed font-medium"
               >
                 {isLoading ? (
                   <span>Entering...</span>
@@ -171,7 +171,7 @@ export default function LoginPage() {
           <div className="text-center mt-6">
             <Link
               href="/"
-              className="text-sm text-gray-600 hover:text-black transition-colors inline-flex items-center gap-1"
+              className="text-sm text-jcoder-muted hover:text-jcoder-primary transition-colors inline-flex items-center gap-1"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />

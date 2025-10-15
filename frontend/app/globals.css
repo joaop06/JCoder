@@ -1,21 +1,26 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #000000;
-  --card: #ffffff;
-  --card-foreground: #000000;
-  --primary: #000000;
-  --primary-foreground: #ffffff;
-  --secondary: #f5f5f5;
-  --secondary-foreground: #000000;
-  --accent: #22c55e;
-  --accent-foreground: #ffffff;
-  --muted: #f5f5f5;
-  --muted-foreground: #737373;
-  --border: #e5e5e5;
-  --input: #e5e5e5;
-  --ring: #000000;
+  /* JCoder Dark Theme - Baseado na logo */
+  --background: #000000;
+  --foreground: #ffffff;
+  --card: #0a0a0a;
+  --card-foreground: #ffffff;
+  --primary: #00e5ff;
+  --primary-foreground: #000000;
+  --secondary: #1a1a1a;
+  --secondary-foreground: #ffffff;
+  --accent: #00ffff;
+  --accent-foreground: #000000;
+  --muted: #1a1a1a;
+  --muted-foreground: #a0a0a0;
+  --border: #333333;
+  --input: #1a1a1a;
+  --ring: #00e5ff;
+  --success: #00ff88;
+  --warning: #ffaa00;
+  --error: #ff4444;
+  --info: #00e5ff;
   --font-sans: "Inter", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 }
@@ -50,12 +55,11 @@ body {
   margin: 0;
   background: var(--background);
   color: var(--foreground);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   line-height: 1.5;
+  min-height: 100vh;
 }
 
 /* Scrollbar */
@@ -69,10 +73,72 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--muted-foreground);
+  background: var(--primary);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--foreground);
+  background: var(--accent);
+}
+
+/* JCoder Dark Theme Utilities */
+.bg-jcoder-dark {
+  background-color: var(--background);
+}
+
+.bg-jcoder-card {
+  background-color: var(--card);
+}
+
+.bg-jcoder-secondary {
+  background-color: var(--secondary);
+}
+
+.text-jcoder-primary {
+  color: var(--primary);
+}
+
+.text-jcoder-accent {
+  color: var(--accent);
+}
+
+.text-jcoder-muted {
+  color: var(--muted-foreground);
+}
+
+.border-jcoder {
+  border-color: var(--border);
+}
+
+.border-jcoder-primary {
+  border-color: var(--primary);
+}
+
+.ring-jcoder-primary {
+  --tw-ring-color: var(--primary);
+}
+
+.hover\:bg-jcoder-secondary:hover {
+  background-color: var(--secondary);
+}
+
+.hover\:text-jcoder-primary:hover {
+  color: var(--primary);
+}
+
+.hover\:border-jcoder-primary:hover {
+  border-color: var(--primary);
+}
+
+.focus\:ring-jcoder-primary:focus {
+  --tw-ring-color: var(--primary);
+}
+
+/* Gradient backgrounds inspired by logo */
+.bg-jcoder-gradient {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+}
+
+.bg-jcoder-gradient-dark {
+  background: linear-gradient(135deg, #003d7a 0%, #0066cc 50%, var(--primary) 100%);
 }

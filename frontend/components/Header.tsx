@@ -50,7 +50,7 @@ export default function Header({
 
   if (!isClient) {
     return (
-      <header className="border-b border-gray-200 bg-white">
+      <header className="border-b border-jcoder bg-jcoder-card">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
@@ -62,12 +62,12 @@ export default function Header({
                   src="/images/jcoder-logo.png"
                 />
               </div>
-              <span className="text-xl font-semibold">JCoder</span>
+              <span className="text-xl font-semibold text-white">JCoder</span>
             </Link>
             {showAuth && (
               <Link
                 href="/login"
-                className="px-4 py-2 text-sm font-medium border border-gray-300 rounded hover:opacity-80 transition-opacity"
+                className="px-4 py-2 text-sm font-medium border border-jcoder-primary text-jcoder-primary rounded hover:bg-jcoder-secondary transition-colors"
               >
                 Sign in
               </Link>
@@ -81,7 +81,7 @@ export default function Header({
   const isAdminView = isLoggedIn && isAdmin;
 
   return (
-    <header className="border-b border-gray-200 bg-white">
+    <header className="border-b border-jcoder bg-jcoder-card">
       <div className="container mx-auto px-4 py-4">
         <div
           className={
@@ -99,17 +99,17 @@ export default function Header({
                   src="/images/jcoder-logo.png"
                 />
               </div>
-              <span className="text-xl font-semibold">JCoder</span>
+              <span className="text-xl font-semibold text-white">JCoder</span>
             </Link>
           </div>
 
           {/* Center: Tabs only for logged-in Admins */}
           {isAdminView && (
             <nav className="flex items-center justify-center gap-8">
-              <Link href="/" className="text-gray-700 hover:text-black transition-colors">
+              <Link href="/" className="text-jcoder-muted hover:text-jcoder-primary transition-colors">
                 Applications
               </Link>
-              <Link href="/admin" className="text-gray-700 hover:text-black transition-colors">
+              <Link href="/admin" className="text-jcoder-muted hover:text-jcoder-primary transition-colors">
                 Administration
               </Link>
             </nav>
@@ -121,14 +121,14 @@ export default function Header({
               {!isAdminView ? (
                 <Link
                   href="/login"
-                  className="px-4 py-2 text-sm font-medium border border-gray-300 rounded hover:opacity-80 transition-opacity"
+                  className="px-4 py-2 text-sm font-medium border border-jcoder-primary text-jcoder-primary rounded hover:bg-jcoder-secondary transition-colors"
                 >
                   Sign in
                 </Link>
               ) : (
                 <div className="flex items-center gap-3">
                   {/* Profile icon */}
-                  <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-600">
+                  <div className="w-8 h-8 rounded-full bg-jcoder-secondary flex items-center justify-center text-jcoder-muted">
                     {/* User SVG */}
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -141,7 +141,7 @@ export default function Header({
                   </div>
 
                   {/* Badge Admin */}
-                  <span className="px-3 py-1 rounded-full bg-black text-white text-xs font-medium">
+                  <span className="px-3 py-1 rounded-full bg-jcoder-gradient text-black text-xs font-medium">
                     Admin
                   </span>
 
@@ -149,7 +149,7 @@ export default function Header({
                   <button
                     type="button"
                     onClick={handleLogout}
-                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border border-gray-300 text-sm text-gray-800 hover:bg-gray-50"
+                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border border-jcoder text-sm text-jcoder-muted hover:bg-jcoder-secondary hover:text-white transition-colors"
                     aria-label="Sign out"
                     title="Sign out"
                   >

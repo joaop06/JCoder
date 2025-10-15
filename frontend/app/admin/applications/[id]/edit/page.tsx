@@ -161,12 +161,12 @@ export default function EditApplicationPage() {
 
     if (!isAuthenticated || loading) {
         return (
-            <div className="min-h-screen flex flex-col bg-gray-50">
+            <div className="min-h-screen flex flex-col bg-jcoder-dark">
                 <Header showAuth={true} isAdmin={true} onLogout={() => router.push('/')} />
                 <main className="flex-1 container mx-auto px-4 py-12">
                     <div className="max-w-4xl mx-auto">
-                        <h1 className="text-3xl font-bold text-gray-900 mb-2">Loading Application...</h1>
-                        <p className="text-gray-600">Please wait while we load the application details.</p>
+                        <h1 className="text-3xl font-bold text-white mb-2">Loading Application...</h1>
+                        <p className="text-jcoder-muted">Please wait while we load the application details.</p>
                     </div>
                 </main>
                 <Footer />
@@ -175,27 +175,27 @@ export default function EditApplicationPage() {
     }
 
     return (
-        <div className="min-h-screen flex flex-col bg-gray-50">
+        <div className="min-h-screen flex flex-col bg-jcoder-dark">
             <Header showAuth={true} isAdmin={true} onLogout={() => router.push('/')} />
 
             <main className="flex-1 container mx-auto px-4 py-12">
                 <div className="max-w-4xl mx-auto">
                     <div className="mb-8">
-                        <h1 className="text-3xl font-bold text-gray-900 mb-2">Edit Application</h1>
-                        <p className="text-gray-600">Edit the details of your application</p>
+                        <h1 className="text-3xl font-bold text-white mb-2">Edit Application</h1>
+                        <p className="text-jcoder-muted">Edit the details of your application</p>
                     </div>
 
-                    <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-lg hover:shadow-xl transition-shadow duration-300">
+                    <div className="bg-jcoder-card border border-jcoder rounded-lg p-6 shadow-lg hover:shadow-xl hover:shadow-jcoder-primary/20 transition-all duration-300">
                         <form onSubmit={handleSubmit}>
                             {formError && (
-                                <div className="mb-4 p-3 border border-red-200 bg-red-50 text-red-700 rounded">
+                                <div className="mb-4 p-3 border border-red-400 bg-red-900/20 text-red-400 rounded">
                                     {formError}
                                 </div>
                             )}
 
                             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                                 <div>
-                                    <label htmlFor="name" className="block text-sm font-medium text-gray-700">Name</label>
+                                    <label htmlFor="name" className="block text-sm font-medium text-jcoder-muted">Name</label>
                                     <input
                                         type="text"
                                         name="name"
@@ -203,11 +203,11 @@ export default function EditApplicationPage() {
                                         value={formData.name}
                                         onChange={handleChange}
                                         required
-                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-black focus:border-black sm:text-sm transition-all duration-200"
+                                        className="mt-1 block w-full border border-jcoder rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-white placeholder-jcoder-muted"
                                     />
                                 </div>
                                 <div>
-                                    <label htmlFor="description" className="block text-sm font-medium text-gray-700">Description</label>
+                                    <label htmlFor="description" className="block text-sm font-medium text-jcoder-muted">Description</label>
                                     <textarea
                                         name="description"
                                         id="description"
@@ -215,18 +215,18 @@ export default function EditApplicationPage() {
                                         onChange={handleChange}
                                         required
                                         rows={3}
-                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-black focus:border-black sm:text-sm transition-all duration-200"
+                                        className="mt-1 block w-full border border-jcoder rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-white placeholder-jcoder-muted"
                                     ></textarea>
                                 </div>
                                 <div>
-                                    <label htmlFor="applicationType" className="block text-sm font-medium text-gray-700">Application Type</label>
+                                    <label htmlFor="applicationType" className="block text-sm font-medium text-jcoder-muted">Application Type</label>
                                     <select
                                         name="applicationType"
                                         id="applicationType"
                                         value={formData.applicationType}
                                         onChange={handleChange}
                                         required
-                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-black focus:border-black sm:text-sm transition-all duration-200"
+                                        className="mt-1 block w-full border border-jcoder rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-white placeholder-jcoder-muted"
                                     >
                                         {Object.values(ApplicationTypeEnum).map((type) => (
                                             <option key={type} value={type}>{type}</option>
@@ -234,25 +234,25 @@ export default function EditApplicationPage() {
                                     </select>
                                 </div>
                                 <div>
-                                    <label htmlFor="githubUrl" className="block text-sm font-medium text-gray-700">GitHub URL (Optional)</label>
+                                    <label htmlFor="githubUrl" className="block text-sm font-medium text-jcoder-muted">GitHub URL (Optional)</label>
                                     <input
                                         type="url"
                                         id="githubUrl"
                                         name="githubUrl"
                                         onChange={handleChange}
                                         value={formData.githubUrl || ''}
-                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-black focus:border-black sm:text-sm transition-all duration-200"
+                                        className="mt-1 block w-full border border-jcoder rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-white placeholder-jcoder-muted"
                                     />
                                 </div>
                             </div>
 
                             {/* Conditional Component Fields */}
                             {formData.applicationType === ApplicationTypeEnum.API && (
-                                <div className="mt-6 pt-6 border-t border-gray-200 border-l-4 border-black pl-4">
-                                    <h3 className="text-lg font-medium text-gray-900 mb-4">API Component Details</h3>
+                                <div className="mt-6 pt-6 border-t border-jcoder border-l-4 border-jcoder-primary pl-4">
+                                    <h3 className="text-lg font-medium text-white mb-4">API Component Details</h3>
                                     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                                         <div>
-                                            <label htmlFor="api-domain" className="block text-sm font-medium text-gray-700">Domain</label>
+                                            <label htmlFor="api-domain" className="block text-sm font-medium text-jcoder-muted">Domain</label>
                                             <input
                                                 type="text"
                                                 name="applicationComponentApi.domain"
@@ -260,11 +260,11 @@ export default function EditApplicationPage() {
                                                 value={formData.applicationComponentApi?.domain || ''}
                                                 onChange={handleChange}
                                                 required
-                                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-black focus:border-black sm:text-sm transition-all duration-200"
+                                                className="mt-1 block w-full border border-jcoder rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-white placeholder-jcoder-muted"
                                             />
                                         </div>
                                         <div>
-                                            <label htmlFor="api-apiUrl" className="block text-sm font-medium text-gray-700">API URL</label>
+                                            <label htmlFor="api-apiUrl" className="block text-sm font-medium text-jcoder-muted">API URL</label>
                                             <input
                                                 type="url"
                                                 name="applicationComponentApi.apiUrl"
@@ -272,29 +272,29 @@ export default function EditApplicationPage() {
                                                 value={formData.applicationComponentApi?.apiUrl || ''}
                                                 onChange={handleChange}
                                                 required
-                                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-black focus:border-black sm:text-sm transition-all duration-200"
+                                                className="mt-1 block w-full border border-jcoder rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-white placeholder-jcoder-muted"
                                             />
                                         </div>
                                         <div>
-                                            <label htmlFor="api-documentationUrl" className="block text-sm font-medium text-gray-700">Documentation URL (Optional)</label>
+                                            <label htmlFor="api-documentationUrl" className="block text-sm font-medium text-jcoder-muted">Documentation URL (Optional)</label>
                                             <input
                                                 type="url"
                                                 name="applicationComponentApi.documentationUrl"
                                                 id="api-documentationUrl"
                                                 value={formData.applicationComponentApi?.documentationUrl || ''}
                                                 onChange={handleChange}
-                                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-black focus:border-black sm:text-sm transition-all duration-200"
+                                                className="mt-1 block w-full border border-jcoder rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-white placeholder-jcoder-muted"
                                             />
                                         </div>
                                         <div>
-                                            <label htmlFor="api-healthCheckEndpoint" className="block text-sm font-medium text-gray-700">Health Check Endpoint (Optional)</label>
+                                            <label htmlFor="api-healthCheckEndpoint" className="block text-sm font-medium text-jcoder-muted">Health Check Endpoint (Optional)</label>
                                             <input
                                                 type="text"
                                                 name="applicationComponentApi.healthCheckEndpoint"
                                                 id="api-healthCheckEndpoint"
                                                 value={formData.applicationComponentApi?.healthCheckEndpoint || ''}
                                                 onChange={handleChange}
-                                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-black focus:border-black sm:text-sm transition-all duration-200"
+                                                className="mt-1 block w-full border border-jcoder rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-white placeholder-jcoder-muted"
                                             />
                                         </div>
                                     </div>
@@ -302,11 +302,11 @@ export default function EditApplicationPage() {
                             )}
 
                             {formData.applicationType === ApplicationTypeEnum.FRONTEND && (
-                                <div className="mt-6 pt-6 border-t border-gray-200 border-l-4 border-black pl-4">
-                                    <h3 className="text-lg font-medium text-gray-900 mb-4">Frontend Component Details</h3>
+                                <div className="mt-6 pt-6 border-t border-jcoder border-l-4 border-jcoder-primary pl-4">
+                                    <h3 className="text-lg font-medium text-white mb-4">Frontend Component Details</h3>
                                     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                                         <div>
-                                            <label htmlFor="frontend-frontendUrl" className="block text-sm font-medium text-gray-700">Frontend URL</label>
+                                            <label htmlFor="frontend-frontendUrl" className="block text-sm font-medium text-jcoder-muted">Frontend URL</label>
                                             <input
                                                 type="url"
                                                 name="applicationComponentFrontend.frontendUrl"
@@ -314,18 +314,18 @@ export default function EditApplicationPage() {
                                                 value={formData.applicationComponentFrontend?.frontendUrl || ''}
                                                 onChange={handleChange}
                                                 required
-                                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-black focus:border-black sm:text-sm transition-all duration-200"
+                                                className="mt-1 block w-full border border-jcoder rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-white placeholder-jcoder-muted"
                                             />
                                         </div>
                                         <div>
-                                            <label htmlFor="frontend-screenshotUrl" className="block text-sm font-medium text-gray-700">Screenshot URL (Optional)</label>
+                                            <label htmlFor="frontend-screenshotUrl" className="block text-sm font-medium text-jcoder-muted">Screenshot URL (Optional)</label>
                                             <input
                                                 type="url"
                                                 name="applicationComponentFrontend.screenshotUrl"
                                                 id="frontend-screenshotUrl"
                                                 value={formData.applicationComponentFrontend?.screenshotUrl || ''}
                                                 onChange={handleChange}
-                                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-black focus:border-black sm:text-sm transition-all duration-200"
+                                                className="mt-1 block w-full border border-jcoder rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-white placeholder-jcoder-muted"
                                             />
                                         </div>
                                     </div>
@@ -333,18 +333,18 @@ export default function EditApplicationPage() {
                             )}
 
                             {formData.applicationType === ApplicationTypeEnum.MOBILE && (
-                                <div className="mt-6 pt-6 border-t border-gray-200 border-l-4 border-black pl-4">
-                                    <h3 className="text-lg font-medium text-gray-900 mb-4">Mobile Component Details</h3>
+                                <div className="mt-6 pt-6 border-t border-jcoder border-l-4 border-jcoder-primary pl-4">
+                                    <h3 className="text-lg font-medium text-white mb-4">Mobile Component Details</h3>
                                     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                                         <div>
-                                            <label htmlFor="mobile-platform" className="block text-sm font-medium text-gray-700">Platform</label>
+                                            <label htmlFor="mobile-platform" className="block text-sm font-medium text-jcoder-muted">Platform</label>
                                             <select
                                                 name="applicationComponentMobile.platform"
                                                 id="mobile-platform"
                                                 value={formData.applicationComponentMobile?.platform || 'Android'}
                                                 onChange={handleChange}
                                                 required
-                                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-black focus:border-black sm:text-sm transition-all duration-200"
+                                                className="mt-1 block w-full border border-jcoder rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-white placeholder-jcoder-muted"
                                             >
                                                 <option value="iOS">iOS</option>
                                                 <option value="Android">Android</option>
@@ -352,14 +352,14 @@ export default function EditApplicationPage() {
                                             </select>
                                         </div>
                                         <div>
-                                            <label htmlFor="mobile-downloadUrl" className="block text-sm font-medium text-gray-700">Download URL (Optional)</label>
+                                            <label htmlFor="mobile-downloadUrl" className="block text-sm font-medium text-jcoder-muted">Download URL (Optional)</label>
                                             <input
                                                 type="url"
                                                 name="applicationComponentMobile.downloadUrl"
                                                 id="mobile-downloadUrl"
                                                 value={formData.applicationComponentMobile?.downloadUrl || ''}
                                                 onChange={handleChange}
-                                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-black focus:border-black sm:text-sm transition-all duration-200"
+                                                className="mt-1 block w-full border border-jcoder rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-white placeholder-jcoder-muted"
                                             />
                                         </div>
                                     </div>
@@ -367,11 +367,11 @@ export default function EditApplicationPage() {
                             )}
 
                             {formData.applicationType === ApplicationTypeEnum.LIBRARY && (
-                                <div className="mt-6 pt-6 border-t border-gray-200 border-l-4 border-black pl-4">
-                                    <h3 className="text-lg font-medium text-gray-900 mb-4">Library Component Details</h3>
+                                <div className="mt-6 pt-6 border-t border-jcoder border-l-4 border-jcoder-primary pl-4">
+                                    <h3 className="text-lg font-medium text-white mb-4">Library Component Details</h3>
                                     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                                         <div>
-                                            <label htmlFor="library-packageManagerUrl" className="block text-sm font-medium text-gray-700">Package Manager URL</label>
+                                            <label htmlFor="library-packageManagerUrl" className="block text-sm font-medium text-jcoder-muted">Package Manager URL</label>
                                             <input
                                                 type="url"
                                                 name="applicationComponentLibrary.packageManagerUrl"
@@ -379,18 +379,18 @@ export default function EditApplicationPage() {
                                                 value={formData.applicationComponentLibrary?.packageManagerUrl || ''}
                                                 onChange={handleChange}
                                                 required
-                                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-black focus:border-black sm:text-sm transition-all duration-200"
+                                                className="mt-1 block w-full border border-jcoder rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-white placeholder-jcoder-muted"
                                             />
                                         </div>
                                         <div>
-                                            <label htmlFor="library-readmeContent" className="block text-sm font-medium text-gray-700">README Content (Optional)</label>
+                                            <label htmlFor="library-readmeContent" className="block text-sm font-medium text-jcoder-muted">README Content (Optional)</label>
                                             <textarea
                                                 name="applicationComponentLibrary.readmeContent"
                                                 id="library-readmeContent"
                                                 value={formData.applicationComponentLibrary?.readmeContent || ''}
                                                 onChange={handleChange}
                                                 rows={5}
-                                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-black focus:border-black sm:text-sm transition-all duration-200"
+                                                className="mt-1 block w-full border border-jcoder rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-white placeholder-jcoder-muted"
                                             ></textarea>
                                         </div>
                                     </div>
@@ -398,11 +398,11 @@ export default function EditApplicationPage() {
                             )}
 
                             {formData.applicationType === ApplicationTypeEnum.FULLSTACK && (
-                                <div className="mt-6 pt-6 border-t border-gray-200 border-l-4 border-black pl-4">
-                                    <h3 className="text-lg font-medium text-gray-900 mb-4">Frontend Component Details</h3>
+                                <div className="mt-6 pt-6 border-t border-jcoder border-l-4 border-jcoder-primary pl-4">
+                                    <h3 className="text-lg font-medium text-white mb-4">Frontend Component Details</h3>
                                     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                                         <div>
-                                            <label htmlFor="fullstack-frontendUrl" className="block text-sm font-medium text-gray-700">Frontend URL</label>
+                                            <label htmlFor="fullstack-frontendUrl" className="block text-sm font-medium text-jcoder-muted">Frontend URL</label>
                                             <input
                                                 type="url"
                                                 name="applicationComponentFrontend.frontendUrl"
@@ -410,25 +410,25 @@ export default function EditApplicationPage() {
                                                 value={formData.applicationComponentFrontend?.frontendUrl || ''}
                                                 onChange={handleChange}
                                                 required
-                                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-black focus:border-black sm:text-sm transition-all duration-200"
+                                                className="mt-1 block w-full border border-jcoder rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-white placeholder-jcoder-muted"
                                             />
                                         </div>
                                         <div>
-                                            <label htmlFor="fullstack-screenshotUrl" className="block text-sm font-medium text-gray-700">Screenshot URL (Optional)</label>
+                                            <label htmlFor="fullstack-screenshotUrl" className="block text-sm font-medium text-jcoder-muted">Screenshot URL (Optional)</label>
                                             <input
                                                 type="url"
                                                 name="applicationComponentFrontend.screenshotUrl"
                                                 id="fullstack-screenshotUrl"
                                                 value={formData.applicationComponentFrontend?.screenshotUrl || ''}
                                                 onChange={handleChange}
-                                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-black focus:border-black sm:text-sm transition-all duration-200"
+                                                className="mt-1 block w-full border border-jcoder rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-white placeholder-jcoder-muted"
                                             />
                                         </div>
                                     </div>
-                                    <h3 className="text-lg font-medium text-gray-900 mb-4 mt-6">API Component Details (for Fullstack)</h3>
+                                    <h3 className="text-lg font-medium text-white mb-4 mt-6">API Component Details (for Fullstack)</h3>
                                     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                                         <div>
-                                            <label htmlFor="fullstack-api-domain" className="block text-sm font-medium text-gray-700">Domain</label>
+                                            <label htmlFor="fullstack-api-domain" className="block text-sm font-medium text-jcoder-muted">Domain</label>
                                             <input
                                                 type="text"
                                                 name="applicationComponentApi.domain"
@@ -436,11 +436,11 @@ export default function EditApplicationPage() {
                                                 value={formData.applicationComponentApi?.domain || ''}
                                                 onChange={handleChange}
                                                 required
-                                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-black focus:border-black sm:text-sm transition-all duration-200"
+                                                className="mt-1 block w-full border border-jcoder rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-white placeholder-jcoder-muted"
                                             />
                                         </div>
                                         <div>
-                                            <label htmlFor="fullstack-api-apiUrl" className="block text-sm font-medium text-gray-700">API URL</label>
+                                            <label htmlFor="fullstack-api-apiUrl" className="block text-sm font-medium text-jcoder-muted">API URL</label>
                                             <input
                                                 type="url"
                                                 name="applicationComponentApi.apiUrl"
@@ -448,29 +448,29 @@ export default function EditApplicationPage() {
                                                 value={formData.applicationComponentApi?.apiUrl || ''}
                                                 onChange={handleChange}
                                                 required
-                                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-black focus:border-black sm:text-sm transition-all duration-200"
+                                                className="mt-1 block w-full border border-jcoder rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-white placeholder-jcoder-muted"
                                             />
                                         </div>
                                         <div>
-                                            <label htmlFor="fullstack-api-documentationUrl" className="block text-sm font-medium text-gray-700">Documentation URL (Optional)</label>
+                                            <label htmlFor="fullstack-api-documentationUrl" className="block text-sm font-medium text-jcoder-muted">Documentation URL (Optional)</label>
                                             <input
                                                 type="url"
                                                 name="applicationComponentApi.documentationUrl"
                                                 id="fullstack-api-documentationUrl"
                                                 value={formData.applicationComponentApi?.documentationUrl || ''}
                                                 onChange={handleChange}
-                                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-black focus:border-black sm:text-sm transition-all duration-200"
+                                                className="mt-1 block w-full border border-jcoder rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-white placeholder-jcoder-muted"
                                             />
                                         </div>
                                         <div>
-                                            <label htmlFor="fullstack-api-healthCheckEndpoint" className="block text-sm font-medium text-gray-700">Health Check Endpoint (Optional)</label>
+                                            <label htmlFor="fullstack-api-healthCheckEndpoint" className="block text-sm font-medium text-jcoder-muted">Health Check Endpoint (Optional)</label>
                                             <input
                                                 type="text"
                                                 name="applicationComponentApi.healthCheckEndpoint"
                                                 id="fullstack-api-healthCheckEndpoint"
                                                 value={formData.applicationComponentApi?.healthCheckEndpoint || ''}
                                                 onChange={handleChange}
-                                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-black focus:border-black sm:text-sm transition-all duration-200"
+                                                className="mt-1 block w-full border border-jcoder rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-white placeholder-jcoder-muted"
                                             />
                                         </div>
                                     </div>
@@ -481,13 +481,13 @@ export default function EditApplicationPage() {
                                 <button
                                     type="button"
                                     onClick={() => router.push('/admin')}
-                                    className="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100 transition-colors duration-200"
+                                    className="px-6 py-2 border border-jcoder rounded-md text-jcoder-muted hover:bg-jcoder-secondary hover:text-white transition-colors duration-200"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
-                                    className="px-6 py-2 bg-black text-white rounded-md hover:bg-gray-800 transition-colors duration-200"
+                                    className="px-6 py-2 bg-jcoder-gradient text-black rounded-md hover:opacity-90 transition-opacity duration-200 font-medium"
                                     disabled={loading}
                                 >
                                     {loading ? 'Updating...' : 'Update Application'}
