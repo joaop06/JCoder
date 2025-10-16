@@ -167,11 +167,11 @@ export default function ApplicationDetailPage() {
 
               {application.applicationType === ApplicationTypeEnum.FULLSTACK && (
                 <>
-                  {application.applicationComponentApi && (
-                    <ApplicationApiDetails apiDetails={application.applicationComponentApi} />
-                  )}
                   {application.applicationComponentFrontend && (
                     <ApplicationFrontendDetails frontendDetails={application.applicationComponentFrontend} />
+                  )}
+                  {application.applicationComponentApi && (
+                    <ApplicationApiDetails apiDetails={application.applicationComponentApi} />
                   )}
                 </>
               )}
