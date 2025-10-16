@@ -10,6 +10,7 @@ import {
   Controller,
   HttpStatus,
   ParseIntPipe,
+  Query,
 } from '@nestjs/common';
 import { FindManyOptions } from 'typeorm';
 import { RoleEnum } from '../@common/enums/role.enum';
@@ -25,6 +26,7 @@ import { ParseQuery } from '../@common/decorators/query/parse-query.decorator';
 import { CreateApplicationUseCase } from './use-cases/create-application.use-case';
 import { DeleteApplicationUseCase } from './use-cases/delete-application.use-case';
 import { UpdateApplicationUseCase } from './use-cases/update-application.use-case';
+import { PaginationDto, PaginatedResponseDto } from '../@common/dto/pagination.dto';
 import { UserNotFoundException } from '../users/exceptions/user-not-found.exception';
 import { ApplicationNotFoundException } from './exceptions/application-not-found.exception';
 import { RequiredApiComponentToApiApplication } from './exceptions/required-api-component.exception';
@@ -49,6 +51,12 @@ export class ApplicationsController {
   @ApiOkResponse({ type: () => Application, isArray: true })
   async findAll(@ParseQuery() options: FindManyOptions<Application>) {
     return await this.applicationsService.findAll(options);
+  }
+
+  @Get('paginated')
+  @ApiOkResponse({ type: () => PaginatedResponseDto<Application> })
+  async findAllPaginated(@Query() paginationDto: PaginationDto): Promise<PaginatedResponseDto<Application>> {
+    return await this.applicationsService.findAllPaginated(paginationDto);
   }
 
   @Get(':id')

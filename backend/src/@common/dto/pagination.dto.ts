@@ -13,7 +13,7 @@ export class PaginationDto {
     @Type(() => Number)
     @IsPositive()
     @Min(1)
-    page?: number = 1;
+    page?: number;
 
     @ApiPropertyOptional({
         description: 'Number of items per page',
@@ -27,7 +27,7 @@ export class PaginationDto {
     @IsPositive()
     @Min(1)
     @Max(100)
-    limit?: number = 10;
+    limit?: number;
 
     @ApiPropertyOptional({
         description: 'Field to sort by',
@@ -43,7 +43,7 @@ export class PaginationDto {
         example: 'DESC',
     })
     @IsOptional()
-    sortOrder?: 'ASC' | 'DESC' = 'DESC';
+    sortOrder?: 'ASC' | 'DESC';
 }
 
 export class PaginatedResponseDto<T> {
