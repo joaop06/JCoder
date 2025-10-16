@@ -12,12 +12,18 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor() {
     super({
       ignoreExpiration: false,
-      secretOrKey: configService.get("BACKEND_JWT_SECRET"),
+      secretOrKey: configService.get("BACKEND_JWT_SECRET") || 'default-secret',
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
     });
   }
 
   async validate(payload: any) {
-    return { userId: payload.sub, username: payload.username, role: payload.role };
+    return {
+      role: payload.role,
+      userId: payload.id,
+      email: payload.email,
+      createdAt: payload.createdAt,
+      updatedAt: payload.updatedAt
+    };
   }
 };
