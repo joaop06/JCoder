@@ -53,7 +53,7 @@ export default function LoginPage() {
       {/* Header */}
       <header className="border-b border-jcoder bg-jcoder-card">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center">
             <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
               <div className="w-10 h-10 bg-transparent rounded-lg flex items-center justify-center">
                 <img
@@ -64,22 +64,6 @@ export default function LoginPage() {
                 />
               </div>
               <span className="text-xl font-semibold text-white">JCoder</span>
-            </Link>
-
-            <nav>
-              <Link
-                href="/"
-                className="text-jcoder-muted hover:text-jcoder-primary transition-colors"
-              >
-                Applications
-              </Link>
-            </nav>
-
-            <Link
-              href="/"
-              className="px-4 py-2 text-sm font-medium border border-jcoder-primary text-jcoder-primary rounded hover:bg-jcoder-secondary transition-colors"
-            >
-              Sign in
             </Link>
           </div>
         </div>
