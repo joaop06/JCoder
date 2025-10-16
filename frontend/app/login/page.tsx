@@ -49,7 +49,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-jcoder-dark">
+    <div className="min-h-screen flex flex-col bg-background">
       {/* Header */}
       <header className="border-b border-jcoder bg-jcoder-card">
         <div className="container mx-auto px-4 py-4">
@@ -63,7 +63,7 @@ export default function LoginPage() {
                   src="/images/jcoder-logo.png"
                 />
               </div>
-              <span className="text-xl font-semibold text-white">JCoder</span>
+              <span className="text-xl font-semibold text-jcoder-foreground">JCoder</span>
             </Link>
           </div>
         </div>
@@ -82,7 +82,7 @@ export default function LoginPage() {
                 src="/images/jcoder-logo.png"
               />
             </div>
-            <h1 className="text-2xl font-bold text-white mb-2">
+            <h1 className="text-2xl font-bold text-jcoder-foreground mb-2">
               Log in to your account
             </h1>
             <p className="text-jcoder-muted">
@@ -93,7 +93,7 @@ export default function LoginPage() {
           {/* Login Form */}
           <div className="bg-jcoder-card border border-jcoder rounded-lg p-8">
             <div className="mb-6 text-center">
-              <h2 className="text-lg font-semibold mb-1 text-white">Sign in</h2>
+              <h2 className="text-lg font-semibold mb-1 text-jcoder-foreground">Sign in</h2>
               <p className="text-sm text-jcoder-muted">
                 Enter your credentials to access the system
               </p>
@@ -112,7 +112,7 @@ export default function LoginPage() {
                   disabled={isLoading}
                   placeholder="your@email.com"
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-3 border border-jcoder rounded-lg focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-transparent disabled:opacity-60 bg-jcoder-secondary text-white placeholder-jcoder-muted"
+                  className="w-full px-4 py-3 border border-jcoder rounded-lg focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-transparent disabled:opacity-60 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted"
                 />
               </div>
 
@@ -128,7 +128,7 @@ export default function LoginPage() {
                   disabled={isLoading}
                   placeholder="••••••••"
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-3 border border-jcoder rounded-lg focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-transparent disabled:opacity-60 bg-jcoder-secondary text-white placeholder-jcoder-muted"
+                  className="w-full px-4 py-3 border border-jcoder rounded-lg focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-transparent disabled:opacity-60 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted"
                 />
               </div>
 

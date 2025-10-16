@@ -32,6 +32,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         if (mounted) {
             // Aplicar tema ao documento
             document.documentElement.setAttribute('data-theme', theme);
+            document.body.setAttribute('data-theme', theme);
             localStorage.setItem('jcoder-theme', theme);
         }
     }, [theme, mounted]);

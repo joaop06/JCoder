@@ -123,6 +123,20 @@ body {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
+/* Garantir que o background seja aplicado corretamente */
+.bg-background {
+  background-color: var(--background) !important;
+}
+
+/* Garantir que as classes de tema sejam aplicadas corretamente */
+[data-theme="light"] .bg-background {
+  background-color: var(--background) !important;
+}
+
+[data-theme="dark"] .bg-background {
+  background-color: var(--background) !important;
+}
+
 /* Dark theme background - Inspirado na logo com fundo preto e gradientes azuis */
 [data-theme="dark"] body {
   background:
@@ -143,6 +157,27 @@ body {
     radial-gradient(ellipse at bottom right, rgba(0, 200, 255, 0.03) 0%, transparent 60%),
     radial-gradient(ellipse at center, rgba(0, 80, 160, 0.01) 0%, transparent 70%),
     linear-gradient(135deg, #ffffff 0%, #f8f9fa 25%, #ffffff 50%, #f1f3f4 75%, #ffffff 100%);
+}
+
+/* Garantir que o background seja aplicado corretamente em todos os elementos */
+[data-theme="light"] .bg-background {
+  background:
+    radial-gradient(ellipse at top left, rgba(0, 80, 160, 0.03) 0%, transparent 60%),
+    radial-gradient(ellipse at top right, rgba(0, 200, 255, 0.02) 0%, transparent 60%),
+    radial-gradient(ellipse at bottom left, rgba(0, 80, 160, 0.02) 0%, transparent 60%),
+    radial-gradient(ellipse at bottom right, rgba(0, 200, 255, 0.03) 0%, transparent 60%),
+    radial-gradient(ellipse at center, rgba(0, 80, 160, 0.01) 0%, transparent 70%),
+    linear-gradient(135deg, #ffffff 0%, #f8f9fa 25%, #ffffff 50%, #f1f3f4 75%, #ffffff 100%) !important;
+}
+
+[data-theme="dark"] .bg-background {
+  background:
+    radial-gradient(ellipse at top left, rgba(0, 200, 255, 0.08) 0%, transparent 60%),
+    radial-gradient(ellipse at top right, rgba(0, 80, 160, 0.06) 0%, transparent 60%),
+    radial-gradient(ellipse at bottom left, rgba(0, 200, 255, 0.06) 0%, transparent 60%),
+    radial-gradient(ellipse at bottom right, rgba(0, 80, 160, 0.08) 0%, transparent 60%),
+    radial-gradient(ellipse at center, rgba(0, 200, 255, 0.03) 0%, transparent 70%),
+    linear-gradient(135deg, #000000 0%, #0a0a0a 25%, #000000 50%, #050505 75%, #000000 100%) !important;
 }
 
 /* Scrollbar */
@@ -166,7 +201,32 @@ body {
 
 /* JCoder Theme Utilities - Baseados na identidade visual da logo */
 
-/* Background utilities */
+/* Background utilities - Classes que respondem ao tema atual */
+.bg-jcoder-theme {
+  background: var(--background);
+}
+
+.bg-jcoder-theme-gradient {
+  background:
+    radial-gradient(ellipse at top left, rgba(0, 200, 255, 0.08) 0%, transparent 60%),
+    radial-gradient(ellipse at top right, rgba(0, 80, 160, 0.06) 0%, transparent 60%),
+    radial-gradient(ellipse at bottom left, rgba(0, 200, 255, 0.06) 0%, transparent 60%),
+    radial-gradient(ellipse at bottom right, rgba(0, 80, 160, 0.08) 0%, transparent 60%),
+    radial-gradient(ellipse at center, rgba(0, 200, 255, 0.03) 0%, transparent 70%),
+    linear-gradient(135deg, #000000 0%, #0a0a0a 25%, #000000 50%, #050505 75%, #000000 100%);
+}
+
+[data-theme="light"] .bg-jcoder-theme-gradient {
+  background:
+    radial-gradient(ellipse at top left, rgba(0, 80, 160, 0.03) 0%, transparent 60%),
+    radial-gradient(ellipse at top right, rgba(0, 200, 255, 0.02) 0%, transparent 60%),
+    radial-gradient(ellipse at bottom left, rgba(0, 80, 160, 0.02) 0%, transparent 60%),
+    radial-gradient(ellipse at bottom right, rgba(0, 200, 255, 0.03) 0%, transparent 60%),
+    radial-gradient(ellipse at center, rgba(0, 80, 160, 0.01) 0%, transparent 70%),
+    linear-gradient(135deg, #ffffff 0%, #f8f9fa 25%, #ffffff 50%, #f1f3f4 75%, #ffffff 100%);
+}
+
+/* Background utilities - Classes específicas para compatibilidade */
 .bg-jcoder-dark {
   background:
     radial-gradient(ellipse at top left, rgba(0, 200, 255, 0.08) 0%, transparent 60%),
@@ -210,6 +270,11 @@ body {
 
 .text-jcoder-muted {
   color: var(--muted-foreground);
+  transition: color 0.3s ease;
+}
+
+.text-jcoder-foreground {
+  color: var(--foreground);
   transition: color 0.3s ease;
 }
 
@@ -383,4 +448,29 @@ body {
 
 .hover\:shadow-jcoder-blue:hover {
   box-shadow: 0 4px 20px -4px rgba(0, 80, 160, 0.3);
+}
+
+/* Status Badge Classes - Responsive to theme */
+.status-active {
+  background-color: rgba(34, 197, 94, 0.1);
+  color: #22c55e;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.status-inactive {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+[data-theme="light"] .status-active {
+  background-color: rgba(34, 197, 94, 0.15);
+  color: #16a34a;
+  border: 1px solid rgba(34, 197, 94, 0.4);
+}
+
+[data-theme="light"] .status-inactive {
+  background-color: rgba(239, 68, 68, 0.15);
+  color: #dc2626;
+  border: 1px solid rgba(239, 68, 68, 0.4);
 }

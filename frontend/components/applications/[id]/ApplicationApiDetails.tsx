@@ -40,7 +40,7 @@ const ApplicationApiDetails: React.FC<ApplicationApiDetailsProps> = ({ apiDetail
 
   return (
     <div className="mt-6 pt-6 border-t border-jcoder">
-      <h3 className="text-lg font-semibold text-white mb-4">API Details</h3>
+      <h3 className="text-lg font-semibold text-jcoder-foreground mb-4">API Details</h3>
       <div className="space-y-4">
         <LinkDisplayBlock
           label="Domain"
@@ -76,7 +76,7 @@ const ApplicationApiDetails: React.FC<ApplicationApiDetailsProps> = ({ apiDetail
 
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-jcoder-muted mb-1">Health Check Endpoint</p>
-                  <p className="text-white break-all text-sm">{apiDetails.healthCheckEndpoint}</p>
+                  <p className="text-jcoder-foreground break-all text-sm">{apiDetails.healthCheckEndpoint}</p>
                 </div>
               </div>
 

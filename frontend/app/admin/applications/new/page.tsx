@@ -122,13 +122,13 @@ export default function NewApplicationPage() {
     }
 
     return (
-        <div className="min-h-screen flex flex-col bg-jcoder-dark">
+        <div className="min-h-screen flex flex-col bg-background">
             <Header isAdmin={true} onLogout={() => router.push('/')} />
 
             <main className="flex-1 container mx-auto px-4 py-12">
                 <div className="max-w-4xl mx-auto">
                     <div className="mb-8">
-                        <h1 className="text-3xl font-bold text-white mb-2">New Application</h1>
+                        <h1 className="text-3xl font-bold text-jcoder-foreground mb-2">New Application</h1>
                         <p className="text-jcoder-muted">Create a new application for your portfolio</p>
                     </div>
 
@@ -150,7 +150,7 @@ export default function NewApplicationPage() {
                                         value={formData.name}
                                         onChange={handleChange}
                                         required
-                                        className="mt-1 block w-full border border-jcoder rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-white placeholder-jcoder-muted"
+                                        className="mt-1 block w-full border border-jcoder rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted"
                                     />
                                 </div>
                                 <div>
@@ -162,7 +162,7 @@ export default function NewApplicationPage() {
                                         onChange={handleChange}
                                         required
                                         rows={3}
-                                        className="mt-1 block w-full border border-jcoder rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-white placeholder-jcoder-muted"
+                                        className="mt-1 block w-full border border-jcoder rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted"
                                     ></textarea>
                                 </div>
                                 <div>
@@ -188,7 +188,7 @@ export default function NewApplicationPage() {
                                         id="githubUrl"
                                         value={formData.githubUrl || ''}
                                         onChange={handleChange}
-                                        className="mt-1 block w-full border border-jcoder rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-white placeholder-jcoder-muted"
+                                        className="mt-1 block w-full border border-jcoder rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted"
                                     />
                                 </div>
                             </div>
@@ -196,7 +196,7 @@ export default function NewApplicationPage() {
                             {/* Conditional Component Fields */}
                             {formData.applicationType === ApplicationTypeEnum.API && (
                                 <div className="mt-6 pt-6 border-t border-jcoder border-l-4 border-jcoder-primary pl-4">
-                                    <h3 className="text-lg font-medium text-white mb-4">API Component Details</h3>
+                                    <h3 className="text-lg font-medium text-jcoder-foreground mb-4">API Component Details</h3>
                                     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                                         <div>
                                             <label htmlFor="api-domain" className="block text-sm font-medium text-jcoder-muted">Domain</label>
@@ -207,7 +207,7 @@ export default function NewApplicationPage() {
                                                 value={formData.applicationComponentApi?.domain || ''}
                                                 onChange={handleChange}
                                                 required
-                                                className="mt-1 block w-full border border-jcoder rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-white placeholder-jcoder-muted"
+                                                className="mt-1 block w-full border border-jcoder rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted"
                                             />
                                         </div>
                                         <div>
@@ -219,7 +219,7 @@ export default function NewApplicationPage() {
                                                 value={formData.applicationComponentApi?.apiUrl || ''}
                                                 onChange={handleChange}
                                                 required
-                                                className="mt-1 block w-full border border-jcoder rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-white placeholder-jcoder-muted"
+                                                className="mt-1 block w-full border border-jcoder rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted"
                                             />
                                         </div>
                                         <div>
@@ -230,7 +230,7 @@ export default function NewApplicationPage() {
                                                 id="api-documentationUrl"
                                                 value={formData.applicationComponentApi?.documentationUrl || ''}
                                                 onChange={handleChange}
-                                                className="mt-1 block w-full border border-jcoder rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-white placeholder-jcoder-muted"
+                                                className="mt-1 block w-full border border-jcoder rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted"
                                             />
                                         </div>
                                         <div>
@@ -241,7 +241,7 @@ export default function NewApplicationPage() {
                                                 id="api-healthCheckEndpoint"
                                                 value={formData.applicationComponentApi?.healthCheckEndpoint || ''}
                                                 onChange={handleChange}
-                                                className="mt-1 block w-full border border-jcoder rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-white placeholder-jcoder-muted"
+                                                className="mt-1 block w-full border border-jcoder rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted"
                                             />
                                         </div>
                                     </div>
@@ -250,7 +250,7 @@ export default function NewApplicationPage() {
 
                             {formData.applicationType === ApplicationTypeEnum.FRONTEND && (
                                 <div className="mt-6 pt-6 border-t border-jcoder border-l-4 border-jcoder-primary pl-4">
-                                    <h3 className="text-lg font-medium text-white mb-4">Frontend Component Details</h3>
+                                    <h3 className="text-lg font-medium text-jcoder-foreground mb-4">Frontend Component Details</h3>
                                     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                                         <div>
                                             <label htmlFor="frontend-frontendUrl" className="block text-sm font-medium text-jcoder-muted">Frontend URL</label>
@@ -261,7 +261,7 @@ export default function NewApplicationPage() {
                                                 value={formData.applicationComponentFrontend?.frontendUrl || ''}
                                                 onChange={handleChange}
                                                 required
-                                                className="mt-1 block w-full border border-jcoder rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-white placeholder-jcoder-muted"
+                                                className="mt-1 block w-full border border-jcoder rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted"
                                             />
                                         </div>
                                         <div>
@@ -272,7 +272,7 @@ export default function NewApplicationPage() {
                                                 id="frontend-screenshotUrl"
                                                 value={formData.applicationComponentFrontend?.screenshotUrl || ''}
                                                 onChange={handleChange}
-                                                className="mt-1 block w-full border border-jcoder rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-white placeholder-jcoder-muted"
+                                                className="mt-1 block w-full border border-jcoder rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted"
                                             />
                                         </div>
                                     </div>
@@ -281,7 +281,7 @@ export default function NewApplicationPage() {
 
                             {formData.applicationType === ApplicationTypeEnum.MOBILE && (
                                 <div className="mt-6 pt-6 border-t border-jcoder border-l-4 border-jcoder-primary pl-4">
-                                    <h3 className="text-lg font-medium text-white mb-4">Mobile Component Details</h3>
+                                    <h3 className="text-lg font-medium text-jcoder-foreground mb-4">Mobile Component Details</h3>
                                     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                                         <div>
                                             <label htmlFor="mobile-platform" className="block text-sm font-medium text-jcoder-muted">Platform</label>
@@ -291,7 +291,7 @@ export default function NewApplicationPage() {
                                                 value={formData.applicationComponentMobile?.platform || 'Android'}
                                                 onChange={handleChange}
                                                 required
-                                                className="mt-1 block w-full border border-jcoder rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-white placeholder-jcoder-muted"
+                                                className="mt-1 block w-full border border-jcoder rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted"
                                             >
                                                 <option value="iOS">iOS</option>
                                                 <option value="Android">Android</option>
@@ -306,7 +306,7 @@ export default function NewApplicationPage() {
                                                 id="mobile-downloadUrl"
                                                 value={formData.applicationComponentMobile?.downloadUrl || ''}
                                                 onChange={handleChange}
-                                                className="mt-1 block w-full border border-jcoder rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-white placeholder-jcoder-muted"
+                                                className="mt-1 block w-full border border-jcoder rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted"
                                             />
                                         </div>
                                     </div>
@@ -315,7 +315,7 @@ export default function NewApplicationPage() {
 
                             {formData.applicationType === ApplicationTypeEnum.LIBRARY && (
                                 <div className="mt-6 pt-6 border-t border-jcoder border-l-4 border-jcoder-primary pl-4">
-                                    <h3 className="text-lg font-medium text-white mb-4">Library Component Details</h3>
+                                    <h3 className="text-lg font-medium text-jcoder-foreground mb-4">Library Component Details</h3>
                                     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                                         <div>
                                             <label htmlFor="library-packageManagerUrl" className="block text-sm font-medium text-jcoder-muted">Package Manager URL</label>
@@ -326,7 +326,7 @@ export default function NewApplicationPage() {
                                                 value={formData.applicationComponentLibrary?.packageManagerUrl || ''}
                                                 onChange={handleChange}
                                                 required
-                                                className="mt-1 block w-full border border-jcoder rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-white placeholder-jcoder-muted"
+                                                className="mt-1 block w-full border border-jcoder rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted"
                                             />
                                         </div>
                                         <div>
@@ -337,7 +337,7 @@ export default function NewApplicationPage() {
                                                 value={formData.applicationComponentLibrary?.readmeContent || ''}
                                                 onChange={handleChange}
                                                 rows={5}
-                                                className="mt-1 block w-full border border-jcoder rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-white placeholder-jcoder-muted"
+                                                className="mt-1 block w-full border border-jcoder rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted"
                                             ></textarea>
                                         </div>
                                     </div>
@@ -346,7 +346,7 @@ export default function NewApplicationPage() {
 
                             {formData.applicationType === ApplicationTypeEnum.FULLSTACK && (
                                 <div className="mt-6 pt-6 border-t border-jcoder border-l-4 border-jcoder-primary pl-4">
-                                    <h3 className="text-lg font-medium text-white mb-4">Frontend Component Details</h3>
+                                    <h3 className="text-lg font-medium text-jcoder-foreground mb-4">Frontend Component Details</h3>
                                     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                                         <div>
                                             <label htmlFor="fullstack-frontendUrl" className="block text-sm font-medium text-jcoder-muted">Frontend URL</label>
@@ -357,7 +357,7 @@ export default function NewApplicationPage() {
                                                 value={formData.applicationComponentFrontend?.frontendUrl || ''}
                                                 onChange={handleChange}
                                                 required
-                                                className="mt-1 block w-full border border-jcoder rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-white placeholder-jcoder-muted"
+                                                className="mt-1 block w-full border border-jcoder rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted"
                                             />
                                         </div>
                                         <div>
@@ -368,11 +368,11 @@ export default function NewApplicationPage() {
                                                 id="fullstack-screenshotUrl"
                                                 value={formData.applicationComponentFrontend?.screenshotUrl || ''}
                                                 onChange={handleChange}
-                                                className="mt-1 block w-full border border-jcoder rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-white placeholder-jcoder-muted"
+                                                className="mt-1 block w-full border border-jcoder rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted"
                                             />
                                         </div>
                                     </div>
-                                    <h3 className="text-lg font-medium text-white mb-4 mt-6">API Component Details (for Fullstack)</h3>
+                                    <h3 className="text-lg font-medium text-jcoder-foreground mb-4 mt-6">API Component Details (for Fullstack)</h3>
                                     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                                         <div>
                                             <label htmlFor="fullstack-api-domain" className="block text-sm font-medium text-jcoder-muted">Domain</label>
@@ -383,7 +383,7 @@ export default function NewApplicationPage() {
                                                 value={formData.applicationComponentApi?.domain || ''}
                                                 onChange={handleChange}
                                                 required
-                                                className="mt-1 block w-full border border-jcoder rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-white placeholder-jcoder-muted"
+                                                className="mt-1 block w-full border border-jcoder rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted"
                                             />
                                         </div>
                                         <div>
@@ -395,7 +395,7 @@ export default function NewApplicationPage() {
                                                 value={formData.applicationComponentApi?.apiUrl || ''}
                                                 onChange={handleChange}
                                                 required
-                                                className="mt-1 block w-full border border-jcoder rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-white placeholder-jcoder-muted"
+                                                className="mt-1 block w-full border border-jcoder rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted"
                                             />
                                         </div>
                                         <div>
@@ -406,7 +406,7 @@ export default function NewApplicationPage() {
                                                 id="fullstack-api-documentationUrl"
                                                 value={formData.applicationComponentApi?.documentationUrl || ''}
                                                 onChange={handleChange}
-                                                className="mt-1 block w-full border border-jcoder rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-white placeholder-jcoder-muted"
+                                                className="mt-1 block w-full border border-jcoder rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted"
                                             />
                                         </div>
                                         <div>
@@ -417,7 +417,7 @@ export default function NewApplicationPage() {
                                                 id="fullstack-api-healthCheckEndpoint"
                                                 value={formData.applicationComponentApi?.healthCheckEndpoint || ''}
                                                 onChange={handleChange}
-                                                className="mt-1 block w-full border border-jcoder rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-white placeholder-jcoder-muted"
+                                                className="mt-1 block w-full border border-jcoder rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted"
                                             />
                                         </div>
                                     </div>
@@ -428,7 +428,7 @@ export default function NewApplicationPage() {
                                 <button
                                     type="button"
                                     onClick={() => router.push('/admin')}
-                                    className="px-4 py-2 text-jcoder-muted bg-jcoder-secondary border border-jcoder rounded-md hover:bg-jcoder-secondary hover:text-white transition-colors duration-200"
+                                    className="px-4 py-2 text-jcoder-muted bg-jcoder-secondary border border-jcoder rounded-md hover:bg-jcoder-secondary hover:text-jcoder-foreground transition-colors duration-200"
                                 >
                                     Cancel
                                 </button>

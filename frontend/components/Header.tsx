@@ -72,7 +72,7 @@ export default function Header({
           src="/images/jcoder-logo.png"
         />
       </div>
-      <span className="text-xl font-semibold text-white">JCoder</span>
+      <span className="text-xl font-semibold text-jcoder-foreground">JCoder</span>
     </Link>
   );
 
@@ -106,7 +106,7 @@ export default function Header({
       <button
         type="button"
         onClick={handleLogout}
-        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border border-jcoder text-sm text-jcoder-muted hover:bg-jcoder-secondary hover:text-white transition-colors"
+        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border border-jcoder text-sm text-jcoder-muted hover:bg-jcoder-secondary hover:text-jcoder-foreground transition-colors"
         aria-label="Sign out"
         title="Sign out"
       >
@@ -138,7 +138,7 @@ export default function Header({
       <button
         type="button"
         onClick={handleLogout}
-        className="p-2 rounded-md text-jcoder-muted hover:text-white hover:bg-jcoder-secondary transition-colors"
+        className="p-2 rounded-md text-jcoder-muted hover:text-jcoder-foreground hover:bg-jcoder-secondary transition-colors"
         aria-label="Sign out"
         title="Sign out"
       >

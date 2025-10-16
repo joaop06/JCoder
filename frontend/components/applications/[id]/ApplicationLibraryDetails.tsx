@@ -11,7 +11,7 @@ interface ApplicationLibraryDetailsProps {
 const ApplicationLibraryDetails: React.FC<ApplicationLibraryDetailsProps> = ({ libraryDetails }) => {
   return (
     <div className="mt-6 pt-6 border-t border-jcoder">
-      <h3 className="text-lg font-semibold text-white mb-4">Library Details</h3>
+      <h3 className="text-lg font-semibold text-jcoder-foreground mb-4">Library Details</h3>
       <div className="space-y-4">
         <LinkDisplayBlock
           label="Package Manager URL"

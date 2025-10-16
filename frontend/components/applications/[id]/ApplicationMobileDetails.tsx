@@ -10,11 +10,11 @@ interface ApplicationMobileDetailsProps {
 const ApplicationMobileDetails: React.FC<ApplicationMobileDetailsProps> = ({ mobileDetails }) => {
   return (
     <div className="mt-6 pt-6 border-t border-jcoder">
-      <h3 className="text-lg font-semibold text-white mb-4">Mobile Application Details</h3>
+      <h3 className="text-lg font-semibold text-jcoder-foreground mb-4">Mobile Application Details</h3>
       <div className="space-y-4">
         <div>
           <p className="text-sm font-medium text-jcoder-muted mb-1">Platform:</p>
-          <p className="text-white">{mobileDetails.platform}</p>
+          <p className="text-jcoder-foreground">{mobileDetails.platform}</p>
         </div>
         {mobileDetails.downloadUrl && (
           <LinkDisplayBlock

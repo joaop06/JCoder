@@ -44,7 +44,7 @@ const LinkDisplayBlock: React.FC<LinkDisplayBlockProps> = ({
 
                 {/* Second row: URL (if shown) and Actions */}
                 <div className="flex items-center justify-between">
-                    {showUrl && <p className="text-white break-all text-sm flex-1 min-w-0">{url}</p>}
+                    {showUrl && <p className="text-jcoder-foreground break-all text-sm flex-1 min-w-0">{url}</p>}
 
                     <div className="flex items-center gap-2 flex-shrink-0">
                         {showCopyButton && (
@@ -95,7 +95,7 @@ const LinkDisplayBlock: React.FC<LinkDisplayBlockProps> = ({
                 {/* URL Row */}
                 {showUrl && (
                     <div className="mb-3">
-                        <p className="text-white break-all text-sm leading-relaxed">{url}</p>
+                        <p className="text-jcoder-foreground break-all text-sm leading-relaxed">{url}</p>
                     </div>
                 )}
 
@@ -143,7 +143,7 @@ const LinkDisplayBlock: React.FC<LinkDisplayBlockProps> = ({
                         {/* Content */}
                         <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium text-jcoder-muted mb-1">{label}</p>
-                            {showUrl && <p className="text-white break-all text-sm">{url}</p>}
+                            {showUrl && <p className="text-jcoder-foreground break-all text-sm">{url}</p>}
                         </div>
                     </div>
 

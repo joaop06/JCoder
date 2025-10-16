@@ -24,7 +24,7 @@ const ApplicationDetailsLayout: React.FC<ApplicationDetailsLayoutProps> = ({
             </span>
           </div>
           <div className="min-w-0">
-            <h1 className="text-xl sm:text-2xl font-bold text-white mb-1 sm:mb-2 truncate">
+            <h1 className="text-xl sm:text-2xl font-bold text-jcoder-foreground mb-1 sm:mb-2 truncate">
               {application.name}
             </h1>
             <p className="text-xs sm:text-sm text-jcoder-muted overflow-hidden text-ellipsis">
@@ -60,7 +60,7 @@ const ApplicationDetailsLayout: React.FC<ApplicationDetailsLayoutProps> = ({
 
       {/* Description */}
       <div className="mb-6">
-        <h2 className="text-base sm:text-lg font-semibold text-white mb-2 sm:mb-3">Description</h2>
+        <h2 className="text-base sm:text-lg font-semibold text-jcoder-foreground mb-2 sm:mb-3">Description</h2>
         <p className="text-sm sm:text-base text-jcoder-muted">{application.description}</p>
       </div>
 

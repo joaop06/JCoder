@@ -53,14 +53,14 @@ export default function Home() {
   }, [applications, searchQuery]);
 
   return (
-    <div className="min-h-screen flex flex-col bg-jcoder-dark">
+    <div className="min-h-screen flex flex-col bg-background">
       <Header isAdmin={false} />
 
       <main className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-12">
 
         {/* Hero Section */}
         <div className="text-center mb-12 max-w-3xl mx-auto">
-          <h1 className="text-4xl font-bold text-white mb-4">
+          <h1 className="text-4xl font-bold text-jcoder-foreground mb-4">
             Application Portfolio
           </h1>
           <p className="text-lg text-jcoder-muted">
@@ -89,7 +89,7 @@ export default function Home() {
               value={searchQuery}
               placeholder="Search for applications..."
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 border border-jcoder rounded-lg focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-transparent bg-jcoder-card text-white placeholder-jcoder-muted"
+              className="w-full pl-12 pr-4 py-3 border border-jcoder rounded-lg focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-transparent bg-jcoder-card text-jcoder-foreground placeholder-jcoder-muted"
             />
           </div>
         </div>

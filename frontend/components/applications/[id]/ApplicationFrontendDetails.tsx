@@ -10,7 +10,7 @@ interface ApplicationFrontendDetailsProps {
 const ApplicationFrontendDetails: React.FC<ApplicationFrontendDetailsProps> = ({ frontendDetails }) => {
   return (
     <div className="mt-6 pt-6 border-t border-jcoder">
-      <h3 className="text-lg font-semibold text-white mb-4">Frontend Details</h3>
+      <h3 className="text-lg font-semibold text-jcoder-foreground mb-4">Frontend Details</h3>
       <div className="space-y-4">
         <LinkDisplayBlock
           label="Frontend URL"

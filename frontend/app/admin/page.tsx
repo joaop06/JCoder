@@ -177,14 +177,14 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-jcoder-dark">
+    <div className="min-h-screen flex flex-col bg-background">
       <Header isAdmin={true} onLogout={handleLogout} />
 
       <main className="flex-1 container mx-auto px-4 py-12">
         <div className="max-w-7xl mx-auto">
           {/* Page Header */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-white mb-2">Admin Dashboard</h1>
+            <h1 className="text-3xl font-bold text-jcoder-foreground mb-2">Admin Dashboard</h1>
             <p className="text-jcoder-muted">Manage your portfolio applications</p>
           </div>
 
@@ -202,7 +202,7 @@ export default function AdminPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <div className="bg-jcoder-card border border-jcoder rounded-lg p-6 hover:border-jcoder-primary transition-colors">
               <p className="text-sm text-jcoder-muted mb-2">Total Applications</p>
-              <p className="text-3xl font-bold text-white">{paginationMeta?.total || 0}</p>
+              <p className="text-3xl font-bold text-jcoder-foreground">{paginationMeta?.total || 0}</p>
             </div>
             <div className="bg-jcoder-card border border-jcoder rounded-lg p-6 hover:border-jcoder-primary transition-colors">
               <p className="text-sm text-jcoder-muted mb-2">Active Applications</p>
@@ -210,7 +210,7 @@ export default function AdminPage() {
             </div>
             <div className="bg-jcoder-card border border-jcoder rounded-lg p-6 hover:border-jcoder-primary transition-colors">
               <p className="text-sm text-jcoder-muted mb-2">Last Update</p>
-              <p className="text-3xl font-bold text-white">{lastUpdate}</p>
+              <p className="text-3xl font-bold text-jcoder-foreground">{lastUpdate}</p>
             </div>
           </div>
 
@@ -219,7 +219,7 @@ export default function AdminPage() {
             <div className="p-6 border-b border-jcoder">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-xl font-semibold text-white mb-1">Applications</h2>
+                  <h2 className="text-xl font-semibold text-jcoder-foreground mb-1">Applications</h2>
                   <p className="text-sm text-jcoder-muted">Manage all portfolio applications</p>
                 </div>
                 <button
@@ -269,7 +269,7 @@ export default function AdminPage() {
                                 {app.name?.charAt(0)?.toUpperCase() ?? '?'}
                               </span>
                             </div>
-                            <span className="font-medium text-white">{app.name}</span>
+                            <span className="font-medium text-jcoder-foreground">{app.name}</span>
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -297,7 +297,7 @@ export default function AdminPage() {
                           <p className="text-sm text-jcoder-muted truncate max-w-md">{app.description}</p>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${app.isActive ? 'bg-green-900/30 text-green-400 border border-green-400/30' : 'bg-red-900/30 text-red-400 border border-red-400/30'}`}>
+                          <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${app.isActive ? 'status-active' : 'status-inactive'}`}>
                             {app.isActive ? 'Active' : 'Inactive'}
                           </span>
                         </td>
