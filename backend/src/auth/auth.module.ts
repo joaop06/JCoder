@@ -19,7 +19,7 @@ const configService = new ConfigService();
     PassportModule,
     JwtModule.register({
       signOptions: { expiresIn: '60m' },
-      secret: configService.get("BACKEND_JWT_SECRET"),
+      secret: configService.get("BACKEND_JWT_SECRET") || 'default-secret',
     }),
   ],
 })

@@ -5,6 +5,7 @@ import {
   Controller,
   HttpStatus,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { SignInDto } from './dto/sign-in.dto';
 import { ApiOkResponse } from '@nestjs/swagger';
 import { SignInUseCase } from './use-cases/sign-in.use-case';
@@ -20,6 +21,7 @@ export class AuthController {
 
   @Post('sign-in')
   @HttpCode(HttpStatus.OK)
+  @Throttle({ short: { limit: 5, ttl: 60000 } }) // 5 attempts per minute
   @ApiOkResponse({ type: () => SignInResponseDto })
   @ApiExceptionResponse(() => PasswordDoesNotMatchException)
   async signIn(@Body() signInDto: SignInDto): Promise<SignInResponseDto> {
