@@ -54,7 +54,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen flex flex-col bg-jcoder-dark">
-      <Header showAuth={true} isAdmin={false} />
+      <Header isAdmin={false} />
 
       <main className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-12">
 

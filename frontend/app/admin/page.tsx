@@ -157,7 +157,7 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-jcoder-dark">
-      <Header showAuth={true} isAdmin={true} onLogout={handleLogout} />
+      <Header isAdmin={true} onLogout={handleLogout} />
 
       <main className="flex-1 container mx-auto px-4 py-12">
         <div className="max-w-7xl mx-auto">
