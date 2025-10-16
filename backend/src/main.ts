@@ -1,12 +1,16 @@
-import { join } from 'path';
 import { config } from 'dotenv';
-import { readFileSync } from 'fs';
 import { AppModule } from './app.module';
 import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
+import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { createInitialUserAdmin } from 'scripts/create-initial-user-admin';
+import { PayloadSizeValidationPipe } from './@common/pipes/payload-size.pipe';
 import { DocumentBuilder, OpenAPIObject, SwaggerModule } from '@nestjs/swagger';
+import { LoggingInterceptor } from './@common/interceptors/logging.interceptor';
+import { GlobalExceptionFilter } from './@common/filters/global-exception.filter';
+import { TransformInterceptor } from './@common/interceptors/transform.interceptor';
+import { SecurityMiddleware, CompressionMiddleware } from './@common/middleware/security.middleware';
 
 config();
 const configService = new ConfigService();
@@ -18,23 +22,57 @@ const routeDocsJson = `${routeDocs}-json`;
 async function bootstrap() {
 	const app = await NestFactory.create(AppModule);
 
-	// Enable CORS to allow frontend requests
-	app.enableCors();
+	const logger = app.get(WINSTON_MODULE_NEST_PROVIDER);
+	app.useLogger(logger);
 
-	// Enable global validations of the DTOs
+	// Configure CORS with specific origins
+	const allowedOrigins = configService.get("ALLOWED_ORIGINS")?.split(',') || ['http://localhost:3000'];
+	app.enableCors({
+		origin: allowedOrigins,
+		methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+		allowedHeaders: ['Content-Type', 'Authorization'],
+		credentials: true,
+	});
+
+	// Apply security middleware
+	app.use(new SecurityMiddleware().use.bind(new SecurityMiddleware()));
+	app.use(new CompressionMiddleware().use.bind(new CompressionMiddleware()));
+
+	// Global interceptors
+	app.useGlobalInterceptors(
+		new LoggingInterceptor(),
+		new TransformInterceptor(),
+	);
+
+	// Global exception filter
+	app.useGlobalFilters(new GlobalExceptionFilter());
+
+	// Enable global validations of the DTOs with enhanced security
 	app.useGlobalPipes(
 		new ValidationPipe({
 			transform: true,
 			whitelist: true,
 			forbidNonWhitelisted: true,
+			disableErrorMessages: configService.get('NODE_ENV') === 'production',
+			validationError: {
+				target: false,
+				value: false,
+			},
 		}),
+		new PayloadSizeValidationPipe(5 * 1024 * 1024), // 5MB limit
 	);
+
+	// Set global prefix
+	app.setGlobalPrefix('api/v1');
 
 	await setupSwagger(app);
 	await createInitialUserAdmin();
 
-	const port = configService.get("BACKEND_PORT");
+	const port = configService.get("BACKEND_PORT") || 3001;
 	await app.listen(parseInt(port, 10));
+
+	logger.log(`🚀 Application is running on: http://localhost:${port}/api/v1`);
+	logger.log(`📚 API Documentation: http://localhost:${port}/docs`);
 }
 
 
@@ -68,7 +106,7 @@ function ScalarDocumentation(app: INestApplication, document: OpenAPIObject) {
 	};
 
 	// Configure Scalar instead of the default Swagger UI
-	app.use(routeDocs, (req, res) => {
+	app.use(routeDocs, (_req: any, res: any) => {
 		const html = `
 			<!doctype html>
 			<html>
@@ -112,12 +150,12 @@ function ScalarDocumentation(app: INestApplication, document: OpenAPIObject) {
 	});
 
 	// Endpoint to serve the OpenAPI JSON
-	app.use(routeDocsJson, (req, res) => {
+	app.use(routeDocsJson, (_req: any, res: any) => {
 		res.json(document);
 	});
 }
 
-function findMissingRefs(doc: OpenAPIObject): void {
+function _findMissingRefs(doc: OpenAPIObject): void {
 	const missing = new Set<string>();
 	const components = doc.components ?? ({} as OpenAPIObject["components"]);
 
@@ -137,8 +175,8 @@ function findMissingRefs(doc: OpenAPIObject): void {
 		const match = ref.match(/^#\/components\/([^/]+)\/(.+)$/);
 		if (!match) return;
 		const [, group, name] = match;
-		const registry: Set<string> | undefined = (catalogs as any)[group];
-		if (registry && !registry.has(name)) missing.add(ref);
+		const registry: Set<string> | undefined = (catalogs as any)[group!];
+		if (registry && !registry.has(name!)) missing.add(ref);
 	}
 
 	function walk(node: any) {
