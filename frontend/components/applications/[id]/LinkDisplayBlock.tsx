@@ -29,17 +29,17 @@ const LinkDisplayBlock: React.FC<LinkDisplayBlockProps> = ({
 }) => {
     if (verticalLayout) {
         return (
-            <div className={`bg-jcoder-card border border-jcoder rounded-xl p-4 ${className}`}>
+            <div className={`bg-jcoder-card border border-jcoder rounded-xl p-3 sm:p-4 ${className}`}>
                 {/* First row: Icon and Label */}
-                <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 bg-transparent rounded-lg flex items-center justify-center flex-shrink-0">
+                <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-transparent rounded-lg flex items-center justify-center flex-shrink-0">
                         {icon || (
                             <svg className="w-5 h-5 text-jcoder-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
                             </svg>
                         )}
                     </div>
-                    <p className="text-sm font-medium text-jcoder-muted">{label}</p>
+                    <p className="text-xs sm:text-sm font-medium text-jcoder-muted">{label}</p>
                 </div>
 
                 {/* Second row: URL (if shown) and Actions */}
@@ -60,7 +60,7 @@ const LinkDisplayBlock: React.FC<LinkDisplayBlockProps> = ({
                                 href={url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex items-center px-3 py-1.5 border border-jcoder-primary text-jcoder-primary rounded-md text-sm font-medium hover:bg-jcoder-secondary hover:text-white focus:outline-none focus:ring-2 focus:ring-jcoder-primary transition-colors"
+                                className="inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 border border-jcoder-primary text-jcoder-primary rounded-md text-xs sm:text-sm font-medium hover:bg-jcoder-secondary hover:text-white focus:outline-none focus:ring-2 focus:ring-jcoder-primary transition-colors"
                             >
                                 {actionIcon || (
                                     <svg className="-ml-0.5 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -77,7 +77,7 @@ const LinkDisplayBlock: React.FC<LinkDisplayBlockProps> = ({
     }
 
     return (
-        <div className={`bg-jcoder-card border border-jcoder rounded-xl p-4 ${className}`}>
+        <div className={`bg-jcoder-card border border-jcoder rounded-xl p-3 sm:p-4 ${className}`}>
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3 flex-1 min-w-0">
                     {/* Icon container similar to the image */}
