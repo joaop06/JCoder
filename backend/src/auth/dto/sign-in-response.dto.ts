@@ -12,7 +12,7 @@ export class SignInResponseDto {
     })
     @IsNotEmpty()
     @IsString()
-    accessToken: string;
+    accessToken!: string;
 
     @ApiProperty({
         required: true,
@@ -20,5 +20,5 @@ export class SignInResponseDto {
         description: 'Logged-in user data',
     })
     @Type(() => User)
-    user: User;
+    user!: User;
 };

@@ -25,7 +25,7 @@ export class CreateApplicationDto {
   })
   @IsNotEmpty()
   @IsString()
-  name: string;
+  name!: string;
 
   @ApiProperty({
     example: 1,
@@ -36,7 +36,7 @@ export class CreateApplicationDto {
   })
   @IsNotEmpty()
   @IsNumber()
-  userId: number;
+  userId!: number;
 
   @ApiProperty({
     type: 'string',
@@ -47,7 +47,7 @@ export class CreateApplicationDto {
   })
   @IsNotEmpty()
   @IsString()
-  description: string;
+  description!: string;
 
   @ApiProperty({
     type: 'string',
@@ -59,7 +59,7 @@ export class CreateApplicationDto {
   })
   @IsNotEmpty()
   @IsEnum(ApplicationTypeEnum)
-  applicationType: ApplicationTypeEnum;
+  applicationType!: ApplicationTypeEnum;
 
   @ApiPropertyOptional({
     nullable: true,
@@ -116,4 +116,4 @@ export class CreateApplicationDto {
   @Type(() => ApplicationComponentFrontendDto)
   @ValidateNested()
   applicationComponentFrontend?: ApplicationComponentFrontendDto;
-};
+}
