@@ -4,9 +4,11 @@ import Footer from '@/components/Footer';
 import Header from '@/components/Header';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/toast/ToastContext';
+import { Pagination } from '@/components/pagination/Pagination';
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Application } from '@/types/entities/application.entity';
 import { ApplicationService } from '@/services/applications.service';
+import { PaginationDto, PaginatedResponse } from '@/types/api/pagination.type';
 
 export default function AdminPage() {
   const router = useRouter();
@@ -15,6 +17,13 @@ export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [applications, setApplications] = useState<Application[]>([]);
+  const [pagination, setPagination] = useState<PaginationDto>({
+    page: 1,
+    limit: 10,
+    sortOrder: 'DESC',
+    sortBy: 'createdAt',
+  });
+  const [paginationMeta, setPaginationMeta] = useState<any>(null);
 
   const toast = useToast();
 
@@ -34,8 +43,9 @@ export default function AdminPage() {
       setLoading(true);
       setFetchError(null);
       try {
-        const data = await ApplicationService.getAll();
-        setApplications(Array.isArray(data) ? data : []);
+        const data = await ApplicationService.getAllPaginated(pagination);
+        setApplications(Array.isArray(data.data) ? data.data : []);
+        setPaginationMeta(data.meta);
       } catch (err: any) {
         const errorMessage = 'The applications could not be loaded. Please try again.';
         toast.error(errorMessage);
@@ -46,13 +56,21 @@ export default function AdminPage() {
     };
 
     fetchApplications();
-  }, [isAuthenticated]);
+  }, [isAuthenticated, pagination]);
 
   const handleLogout = useCallback(() => {
     localStorage.removeItem('user');
     localStorage.removeItem('accessToken');
     router.push('/');
   }, [router]);
+
+  const handlePageChange = useCallback((page: number) => {
+    setPagination(prev => ({ ...prev, page }));
+  }, []);
+
+  const handleLimitChange = useCallback((limit: number) => {
+    setPagination(prev => ({ ...prev, limit, page: 1 }));
+  }, []);
 
   const handleDelete = useCallback(
     async (application: Application) => {
@@ -68,7 +86,10 @@ export default function AdminPage() {
         await ApplicationService.delete(application.id);
         toast.success(`${application.name} successfully deleted!`);
 
-        setApplications((apps) => apps.filter((a) => a.id !== application.id));
+        // Refresh the current page after deletion
+        const data = await ApplicationService.getAllPaginated(pagination);
+        setApplications(Array.isArray(data.data) ? data.data : []);
+        setPaginationMeta(data.meta);
 
       } catch (err) {
         toast.error('The application could not be deleted. Returning to the previous state.');
@@ -181,7 +202,7 @@ export default function AdminPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <div className="bg-jcoder-card border border-jcoder rounded-lg p-6 hover:border-jcoder-primary transition-colors">
               <p className="text-sm text-jcoder-muted mb-2">Total Applications</p>
-              <p className="text-3xl font-bold text-white">{applications.length}</p>
+              <p className="text-3xl font-bold text-white">{paginationMeta?.total || 0}</p>
             </div>
             <div className="bg-jcoder-card border border-jcoder rounded-lg p-6 hover:border-jcoder-primary transition-colors">
               <p className="text-sm text-jcoder-muted mb-2">Active Applications</p>
@@ -322,6 +343,15 @@ export default function AdminPage() {
                 </tbody>
               </table>
             </div>
+
+            {/* Pagination */}
+            {paginationMeta && (
+              <Pagination
+                meta={paginationMeta}
+                onPageChange={handlePageChange}
+                onLimitChange={handleLimitChange}
+              />
+            )}
           </div>
         </div>
       </main>

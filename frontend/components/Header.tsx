@@ -1,11 +1,12 @@
 "use client";
 
 import Link from 'next/link';
+import { ThemeToggle } from './theme';
 import { useRouter } from 'next/navigation';
 import { RoleEnum } from '@/types/enums/role.enum';
 import { UsersService } from '@/services/users.service';
 import { useEffect, useState, useCallback } from 'react';
-import { ThemeToggle } from './theme';
+import { HealthStatusComponent } from './health/HealthStatus';
 
 interface HeaderProps {
   isAdmin?: boolean;
@@ -78,6 +79,9 @@ export default function Header({
   // Profile section for desktop
   const DesktopProfileSection = () => (
     <div className="flex items-center gap-3">
+      {/* Health status */}
+      <HealthStatusComponent />
+
       {/* Theme toggle */}
       <ThemeToggle size="sm" />
 
@@ -121,9 +125,12 @@ export default function Header({
     </div>
   );
 
-  // Mobile action buttons (theme toggle + logout)
+  // Mobile action buttons (health status + theme toggle + logout)
   const MobileActionButtons = () => (
     <div className="flex items-center gap-2">
+      {/* Health status */}
+      <HealthStatusComponent />
+
       {/* Theme toggle */}
       <ThemeToggle size="sm" />
 

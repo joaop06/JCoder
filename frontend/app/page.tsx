@@ -23,7 +23,7 @@ export default function Home() {
       .getAll()
       .then(data => {
         if (!isMounted) return;
-        setApplications(data ?? []);
+        setApplications(Array.isArray(data) ? data : []);
         setError(null);
       })
       .catch(err => {
@@ -107,7 +107,7 @@ export default function Home() {
                   setLoading(true);
                   ApplicationService
                     .getAll()
-                    .then((data) => setApplications(data ?? []))
+                    .then((data) => setApplications(Array.isArray(data) ? data : []))
                     .catch(() => {
                       const errorMessage = 'The applications could not be loaded.';
                       setError(errorMessage);
