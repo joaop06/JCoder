@@ -50,7 +50,6 @@ const LinkDisplayBlock: React.FC<LinkDisplayBlockProps> = ({
                         {showCopyButton && (
                             <CopyToClipboardButton
                                 textToCopy={url}
-                                className="!px-3 !py-1.5 !text-sm !text-gray-300 !border-gray-400 !text-gray-300 hover:!text-white hover:!border-white"
                                 label="Copy"
                             />
                         )}
@@ -152,7 +151,6 @@ const LinkDisplayBlock: React.FC<LinkDisplayBlockProps> = ({
                         {showCopyButton && (
                             <CopyToClipboardButton
                                 textToCopy={url}
-                                className="!px-3 !py-1.5 !text-sm !text-gray-300 !border-gray-400 !text-gray-300 hover:!text-white hover:!border-white"
                                 label="Copy"
                             />
                         )}
