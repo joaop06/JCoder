@@ -17,7 +17,14 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "test:applications": "jest --config ./src/applications/jest.config.ts",
+    "test:unit:applications": "jest --config ./src/applications/jest.config.ts --testPathPattern=spec.ts",
+    "test:integration:applications": "jest --config ./src/applications/jest.config.ts --testPathPattern=integration.spec.ts",
+    "test:e2e:applications": "jest --config ./test/jest-e2e.json --testPathPattern=applications.e2e-spec.ts",
+    "test:coverage:applications": "jest --config ./src/applications/jest.config.ts --coverage",
+    "test:applications:watch": "jest --config ./src/applications/jest.config.ts --watch",
+    "test:applications:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --config ./src/applications/jest.config.ts --runInBand"
   },
   "dependencies": {
     "@nestjs/cache-manager": "^3.0.1",
