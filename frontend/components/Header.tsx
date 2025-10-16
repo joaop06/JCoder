@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { RoleEnum } from '@/types/enums/role.enum';
 import { UsersService } from '@/services/users.service';
 import { useEffect, useState, useCallback } from 'react';
+import { ThemeToggle } from './theme';
 
 interface HeaderProps {
   isAdmin?: boolean;
@@ -77,6 +78,9 @@ export default function Header({
   // Profile section for desktop
   const DesktopProfileSection = () => (
     <div className="flex items-center gap-3">
+      {/* Theme toggle */}
+      <ThemeToggle size="sm" />
+
       {/* Profile icon */}
       <div className="w-8 h-8 rounded-full bg-jcoder-secondary flex items-center justify-center text-jcoder-muted">
         <svg
@@ -117,26 +121,32 @@ export default function Header({
     </div>
   );
 
-  // Mobile logout button (simple icon only)
-  const MobileLogoutButton = () => (
-    <button
-      type="button"
-      onClick={handleLogout}
-      className="p-2 rounded-md text-jcoder-muted hover:text-white hover:bg-jcoder-secondary transition-colors"
-      aria-label="Sign out"
-      title="Sign out"
-    >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        fill="none"
-        viewBox="0 0 24 24"
-        strokeWidth={1.5}
-        stroke="currentColor"
-        className="w-6 h-6"
+  // Mobile action buttons (theme toggle + logout)
+  const MobileActionButtons = () => (
+    <div className="flex items-center gap-2">
+      {/* Theme toggle */}
+      <ThemeToggle size="sm" />
+
+      {/* Logout button */}
+      <button
+        type="button"
+        onClick={handleLogout}
+        className="p-2 rounded-md text-jcoder-muted hover:text-white hover:bg-jcoder-secondary transition-colors"
+        aria-label="Sign out"
+        title="Sign out"
       >
-        <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6A2.25 2.25 0 0 0 5.25 5.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l3 3m0 0-3 3m3-3H3" />
-      </svg>
-    </button>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth={1.5}
+          stroke="currentColor"
+          className="w-6 h-6"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6A2.25 2.25 0 0 0 5.25 5.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l3 3m0 0-3 3m3-3H3" />
+        </svg>
+      </button>
+    </div>
   );
 
   if (!isClient) {
@@ -179,9 +189,10 @@ export default function Header({
               </div>
             </div>
           ) : (
-            // Desktop: Not logged in - Only logo left
-            <div className="flex items-center">
+            // Desktop: Not logged in - Logo left, theme toggle right
+            <div className="flex items-center justify-between">
               <Logo />
+              <ThemeToggle size="sm" />
             </div>
           )}
         </div>
@@ -199,12 +210,13 @@ export default function Header({
                 </Link>
               </nav>
 
-              <MobileLogoutButton />
+              <MobileActionButtons />
             </div>
           ) : (
-            // Mobile: Not logged in - Only logo left
-            <div className="flex items-center">
+            // Mobile: Not logged in - Logo left, theme toggle right
+            <div className="flex items-center justify-between">
               <Logo />
+              <ThemeToggle size="sm" />
             </div>
           )}
         </div>

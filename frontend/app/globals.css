@@ -1,28 +1,88 @@
 @import "tailwindcss";
 
 :root {
-  /* JCoder Dark Theme - Baseado na logo */
-  --background: #0a0a0a;
+  /* JCoder Dark Theme - Baseado na logo com fundo preto e gradiente azul */
+  --background: #000000;
   --foreground: #ffffff;
-  --card: #0f0f0f;
+  --card: #0a0a0a;
   --card-foreground: #ffffff;
-  --primary: #00e5ff;
+  --primary: #00c8ff;
   --primary-foreground: #000000;
-  --secondary: #1a1a1a;
+  --secondary: #111111;
   --secondary-foreground: #ffffff;
-  --accent: #00ffff;
-  --accent-foreground: #000000;
+  --accent: #0050a0;
+  --accent-foreground: #ffffff;
   --muted: #1a1a1a;
   --muted-foreground: #a0a0a0;
   --border: #333333;
   --input: #1a1a1a;
-  --ring: #00e5ff;
+  --ring: #00c8ff;
   --success: #00ff88;
   --warning: #ffaa00;
   --error: #ff4444;
-  --info: #00e5ff;
+  --info: #00c8ff;
   --font-sans: "Inter", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* JCoder Brand Colors - Baseados na logo */
+  --jcoder-cyan: #00c8ff;
+  --jcoder-blue: #0050a0;
+  --jcoder-black: #000000;
+  --jcoder-white: #ffffff;
+  --jcoder-gray-light: #f8f9fa;
+  --jcoder-gray-medium: #6b7280;
+  --jcoder-gray-dark: #374151;
+
+  /* Additional theme variables */
+  --text-white: #ffffff;
+  --text-black: #000000;
+  --text-gray-300: #d1d5db;
+  --text-gray-500: #6b7280;
+  --text-gray-700: #374151;
+  --bg-gray-50: #f9fafb;
+  --bg-gray-100: #f3f4f6;
+  --bg-gray-200: #e5e7eb;
+  --border-gray-300: #d1d5db;
+  --shadow-color: rgba(0, 0, 0, 0.1);
+  --shadow-primary: rgba(0, 200, 255, 0.2);
+}
+
+[data-theme="light"] {
+  /* JCoder Light Theme - Inversão apropriada da logo */
+  --background: #ffffff;
+  --foreground: #000000;
+  --card: #f8f9fa;
+  --card-foreground: #000000;
+  --primary: #0050a0;
+  --primary-foreground: #ffffff;
+  --secondary: #f1f3f4;
+  --secondary-foreground: #000000;
+  --accent: #00c8ff;
+  --accent-foreground: #000000;
+  --muted: #f3f4f6;
+  --muted-foreground: #6b7280;
+  --border: #e5e7eb;
+  --input: #ffffff;
+  --ring: #0050a0;
+  --success: #059669;
+  --warning: #d97706;
+  --error: #dc2626;
+  --info: #0050a0;
+  --font-sans: "Inter", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Light theme specific variables */
+  --text-white: #000000;
+  --text-black: #ffffff;
+  --text-gray-300: #6b7280;
+  --text-gray-500: #9ca3af;
+  --text-gray-700: #000000;
+  --bg-gray-50: #f8f9fa;
+  --bg-gray-100: #f1f3f4;
+  --bg-gray-200: #e5e7eb;
+  --border-gray-300: #d1d5db;
+  --shadow-color: rgba(0, 0, 0, 0.05);
+  --shadow-primary: rgba(0, 80, 160, 0.15);
 }
 
 @theme inline {
@@ -53,19 +113,36 @@ samp {
 
 body {
   margin: 0;
-  background:
-    radial-gradient(ellipse at top left, rgba(0, 100, 150, 0.12) 0%, transparent 60%),
-    radial-gradient(ellipse at top right, rgba(0, 120, 180, 0.08) 0%, transparent 60%),
-    radial-gradient(ellipse at bottom left, rgba(0, 100, 150, 0.08) 0%, transparent 60%),
-    radial-gradient(ellipse at bottom right, rgba(0, 120, 180, 0.12) 0%, transparent 60%),
-    radial-gradient(ellipse at center, rgba(0, 80, 120, 0.04) 0%, transparent 70%),
-    linear-gradient(135deg, #0a0a0a 0%, #0d0d0d 25%, #0a0a0a 50%, #0c0c0c 75%, #0a0a0a 100%);
+  background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   line-height: 1.5;
   min-height: 100vh;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Dark theme background - Inspirado na logo com fundo preto e gradientes azuis */
+[data-theme="dark"] body {
+  background:
+    radial-gradient(ellipse at top left, rgba(0, 200, 255, 0.08) 0%, transparent 60%),
+    radial-gradient(ellipse at top right, rgba(0, 80, 160, 0.06) 0%, transparent 60%),
+    radial-gradient(ellipse at bottom left, rgba(0, 200, 255, 0.06) 0%, transparent 60%),
+    radial-gradient(ellipse at bottom right, rgba(0, 80, 160, 0.08) 0%, transparent 60%),
+    radial-gradient(ellipse at center, rgba(0, 200, 255, 0.03) 0%, transparent 70%),
+    linear-gradient(135deg, #000000 0%, #0a0a0a 25%, #000000 50%, #050505 75%, #000000 100%);
+}
+
+/* Light theme background - Versão clara com gradientes sutis */
+[data-theme="light"] body {
+  background:
+    radial-gradient(ellipse at top left, rgba(0, 80, 160, 0.03) 0%, transparent 60%),
+    radial-gradient(ellipse at top right, rgba(0, 200, 255, 0.02) 0%, transparent 60%),
+    radial-gradient(ellipse at bottom left, rgba(0, 80, 160, 0.02) 0%, transparent 60%),
+    radial-gradient(ellipse at bottom right, rgba(0, 200, 255, 0.03) 0%, transparent 60%),
+    radial-gradient(ellipse at center, rgba(0, 80, 160, 0.01) 0%, transparent 70%),
+    linear-gradient(135deg, #ffffff 0%, #f8f9fa 25%, #ffffff 50%, #f1f3f4 75%, #ffffff 100%);
 }
 
 /* Scrollbar */
@@ -87,49 +164,87 @@ body {
   background: var(--accent);
 }
 
-/* JCoder Dark Theme Utilities */
+/* JCoder Theme Utilities - Baseados na identidade visual da logo */
+
+/* Background utilities */
 .bg-jcoder-dark {
   background:
-    radial-gradient(ellipse at top left, rgba(0, 100, 150, 0.12) 0%, transparent 60%),
-    radial-gradient(ellipse at top right, rgba(0, 120, 180, 0.08) 0%, transparent 60%),
-    radial-gradient(ellipse at bottom left, rgba(0, 100, 150, 0.08) 0%, transparent 60%),
-    radial-gradient(ellipse at bottom right, rgba(0, 120, 180, 0.12) 0%, transparent 60%),
-    radial-gradient(ellipse at center, rgba(0, 80, 120, 0.04) 0%, transparent 70%),
-    linear-gradient(135deg, #0a0a0a 0%, #0d0d0d 25%, #0a0a0a 50%, #0c0c0c 75%, #0a0a0a 100%);
+    radial-gradient(ellipse at top left, rgba(0, 200, 255, 0.08) 0%, transparent 60%),
+    radial-gradient(ellipse at top right, rgba(0, 80, 160, 0.06) 0%, transparent 60%),
+    radial-gradient(ellipse at bottom left, rgba(0, 200, 255, 0.06) 0%, transparent 60%),
+    radial-gradient(ellipse at bottom right, rgba(0, 80, 160, 0.08) 0%, transparent 60%),
+    radial-gradient(ellipse at center, rgba(0, 200, 255, 0.03) 0%, transparent 70%),
+    linear-gradient(135deg, #000000 0%, #0a0a0a 25%, #000000 50%, #050505 75%, #000000 100%);
+}
+
+.bg-jcoder-light {
+  background:
+    radial-gradient(ellipse at top left, rgba(0, 80, 160, 0.03) 0%, transparent 60%),
+    radial-gradient(ellipse at top right, rgba(0, 200, 255, 0.02) 0%, transparent 60%),
+    radial-gradient(ellipse at bottom left, rgba(0, 80, 160, 0.02) 0%, transparent 60%),
+    radial-gradient(ellipse at bottom right, rgba(0, 200, 255, 0.03) 0%, transparent 60%),
+    radial-gradient(ellipse at center, rgba(0, 80, 160, 0.01) 0%, transparent 70%),
+    linear-gradient(135deg, #ffffff 0%, #f8f9fa 25%, #ffffff 50%, #f1f3f4 75%, #ffffff 100%);
 }
 
 .bg-jcoder-card {
   background-color: var(--card);
+  transition: background-color 0.3s ease;
 }
 
 .bg-jcoder-secondary {
   background-color: var(--secondary);
+  transition: background-color 0.3s ease;
 }
 
+/* Text utilities */
 .text-jcoder-primary {
   color: var(--primary);
+  transition: color 0.3s ease;
 }
 
 .text-jcoder-accent {
   color: var(--accent);
+  transition: color 0.3s ease;
 }
 
 .text-jcoder-muted {
   color: var(--muted-foreground);
+  transition: color 0.3s ease;
 }
 
+.text-white {
+  color: var(--text-white);
+  transition: color 0.3s ease;
+}
+
+.text-black {
+  color: var(--text-black);
+  transition: color 0.3s ease;
+}
+
+/* Border utilities */
 .border-jcoder {
   border-color: var(--border);
+  transition: border-color 0.3s ease;
 }
 
 .border-jcoder-primary {
   border-color: var(--primary);
+  transition: border-color 0.3s ease;
 }
 
+.border-gray-300 {
+  border-color: var(--border-gray-300);
+  transition: border-color 0.3s ease;
+}
+
+/* Ring utilities */
 .ring-jcoder-primary {
   --tw-ring-color: var(--primary);
 }
 
+/* Hover utilities */
 .hover\:bg-jcoder-secondary:hover {
   background-color: var(--secondary);
 }
@@ -142,15 +257,130 @@ body {
   border-color: var(--primary);
 }
 
+.hover\:bg-gray-50:hover {
+  background-color: var(--bg-gray-50);
+}
+
+/* Focus utilities */
 .focus\:ring-jcoder-primary:focus {
   --tw-ring-color: var(--primary);
 }
 
-/* Gradient backgrounds inspired by logo */
-.bg-jcoder-gradient {
-  background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+/* Shadow utilities */
+.shadow-jcoder-primary {
+  box-shadow: 0 4px 20px -4px var(--shadow-primary);
 }
 
-.bg-jcoder-gradient-dark {
-  background: linear-gradient(135deg, #003d7a 0%, #0066cc 50%, var(--primary) 100%);
+.hover\:shadow-jcoder-primary:hover {
+  box-shadow: 0 4px 20px -4px var(--shadow-primary);
+}
+
+/* JCoder Brand Gradients - Baseados no gradiente da logo */
+.bg-jcoder-gradient {
+  background: linear-gradient(135deg, var(--jcoder-cyan) 0%, var(--jcoder-blue) 100%);
+}
+
+.bg-jcoder-gradient-reverse {
+  background: linear-gradient(135deg, var(--jcoder-blue) 0%, var(--jcoder-cyan) 100%);
+}
+
+.bg-jcoder-gradient-radial {
+  background: radial-gradient(ellipse at center, var(--jcoder-cyan) 0%, var(--jcoder-blue) 100%);
+}
+
+/* JCoder Logo-inspired gradients */
+.bg-jcoder-logo-gradient {
+  background: linear-gradient(135deg, #00c8ff 0%, #0050a0 100%);
+}
+
+.bg-jcoder-logo-gradient-light {
+  background: linear-gradient(135deg, rgba(0, 200, 255, 0.1) 0%, rgba(0, 80, 160, 0.1) 100%);
+}
+
+/* JCoder Brand Colors */
+.bg-jcoder-cyan {
+  background-color: var(--jcoder-cyan);
+}
+
+.bg-jcoder-blue {
+  background-color: var(--jcoder-blue);
+}
+
+.bg-jcoder-black {
+  background-color: var(--jcoder-black);
+}
+
+.bg-jcoder-white {
+  background-color: var(--jcoder-white);
+}
+
+.text-jcoder-cyan {
+  color: var(--jcoder-cyan);
+}
+
+.text-jcoder-blue {
+  color: var(--jcoder-blue);
+}
+
+.text-jcoder-black {
+  color: var(--jcoder-black);
+}
+
+.text-jcoder-white {
+  color: var(--jcoder-white);
+}
+
+.border-jcoder-cyan {
+  border-color: var(--jcoder-cyan);
+}
+
+.border-jcoder-blue {
+  border-color: var(--jcoder-blue);
+}
+
+/* JCoder Interactive States */
+.hover\:bg-jcoder-gradient:hover {
+  background: linear-gradient(135deg, var(--jcoder-cyan) 0%, var(--jcoder-blue) 100%);
+}
+
+.hover\:text-jcoder-cyan:hover {
+  color: var(--jcoder-cyan);
+}
+
+.hover\:text-jcoder-blue:hover {
+  color: var(--jcoder-blue);
+}
+
+.hover\:border-jcoder-cyan:hover {
+  border-color: var(--jcoder-cyan);
+}
+
+.hover\:border-jcoder-blue:hover {
+  border-color: var(--jcoder-blue);
+}
+
+/* JCoder Focus States */
+.focus\:ring-jcoder-cyan:focus {
+  --tw-ring-color: var(--jcoder-cyan);
+}
+
+.focus\:ring-jcoder-blue:focus {
+  --tw-ring-color: var(--jcoder-blue);
+}
+
+/* JCoder Shadow Effects */
+.shadow-jcoder-cyan {
+  box-shadow: 0 4px 20px -4px rgba(0, 200, 255, 0.2);
+}
+
+.shadow-jcoder-blue {
+  box-shadow: 0 4px 20px -4px rgba(0, 80, 160, 0.2);
+}
+
+.hover\:shadow-jcoder-cyan:hover {
+  box-shadow: 0 4px 20px -4px rgba(0, 200, 255, 0.3);
+}
+
+.hover\:shadow-jcoder-blue:hover {
+  box-shadow: 0 4px 20px -4px rgba(0, 80, 160, 0.3);
 }
