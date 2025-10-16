@@ -5,6 +5,7 @@ import { Application } from './entities/application.entity';
 import { CacheService } from '../@common/services/cache.service';
 import { CreateApplicationDto } from './dto/create-application.dto';
 import { UpdateApplicationDto } from './dto/update-application.dto';
+import { ImageUploadService } from './services/image-upload.service';
 import { FindManyOptions, FindOptionsWhere, Repository } from 'typeorm';
 import { PaginationDto, PaginatedResponseDto } from '../@common/dto/pagination.dto';
 import { ApplicationNotFoundException } from './exceptions/application-not-found.exception';
@@ -15,6 +16,7 @@ export class ApplicationsService {
     @InjectRepository(Application)
     private readonly repository: Repository<Application>,
     private readonly cacheService: CacheService,
+    private readonly imageUploadService: ImageUploadService,
   ) { }
 
   async findAll(options?: FindManyOptions<Application>): Promise<Application[]> {
@@ -108,10 +110,68 @@ export class ApplicationsService {
   }
 
   async delete(id: number): Promise<void> {
+    // Get application to access images before deletion
+    const application = await this.findById(id);
+
+    // Delete all associated images
+    if (application.images && application.images.length > 0) {
+      await this.imageUploadService.deleteAllApplicationImages(id);
+    }
+
     await this.repository.delete(id);
 
     // Invalidate cache
     await this.cacheService.del(this.cacheService.applicationKey(id, 'full'));
     await this.cacheService.del(this.cacheService.generateKey('applications', 'paginated'));
+  }
+
+  async uploadImages(id: number, files: Express.Multer.File[]): Promise<Application> {
+    const application = await this.findById(id);
+
+    // Upload new images
+    const newImageFilenames = await this.imageUploadService.uploadImages(files, id);
+
+    // Merge with existing images
+    const existingImages = application.images || [];
+    const updatedImages = [...existingImages, ...newImageFilenames];
+
+    // Update application with new images
+    application.images = updatedImages;
+    const updatedApplication = await this.repository.save(application);
+
+    // Invalidate cache
+    await this.cacheService.del(this.cacheService.applicationKey(id, 'full'));
+
+    return updatedApplication;
+  }
+
+  async deleteImage(id: number, filename: string): Promise<Application> {
+    const application = await this.findById(id);
+
+    if (!application.images || !application.images.includes(filename)) {
+      throw new ApplicationNotFoundException();
+    }
+
+    // Delete the image file
+    await this.imageUploadService.deleteApplicationImages(id, [filename]);
+
+    // Remove from application images array
+    application.images = application.images.filter(img => img !== filename);
+    const updatedApplication = await this.repository.save(application);
+
+    // Invalidate cache
+    await this.cacheService.del(this.cacheService.applicationKey(id, 'full'));
+
+    return updatedApplication;
+  }
+
+  async getImagePath(id: number, filename: string): Promise<string> {
+    const application = await this.findById(id);
+
+    if (!application.images || !application.images.includes(filename)) {
+      throw new ApplicationNotFoundException();
+    }
+
+    return await this.imageUploadService.getImagePath(id, filename);
   }
 };

@@ -90,6 +90,16 @@ export class Application {
 
   @ApiPropertyOptional({
     nullable: true,
+    type: 'array',
+    items: { type: 'string' },
+    example: ['image1.jpg', 'image2.png'],
+    description: 'Array of image filenames associated with the application',
+  })
+  @Column('json', { nullable: true })
+  images?: string[];
+
+  @ApiPropertyOptional({
+    nullable: true,
     type: () => ApplicationComponentApi,
     description: 'API application component',
   })
