@@ -5,6 +5,7 @@ import { ApplicationComponentsService } from '../application-components/applicat
 import { UpdateApplicationDto } from '../dto/update-application.dto';
 import { Application } from '../entities/application.entity';
 import { ApplicationTypeEnum } from '../enums/application-type.enum';
+import { MobilePlatformEnum } from '../enums/mobile-platform.enum';
 import { ApplicationNotFoundException } from '../exceptions/application-not-found.exception';
 import { AlreadyExistsApplicationException } from '../exceptions/already-exists-application-exception';
 
@@ -85,9 +86,8 @@ describe('UpdateApplicationUseCase', () => {
                 applicationType: ApplicationTypeEnum.MOBILE,
                 githubUrl: 'https://github.com/test/updated-app',
                 applicationComponentMobile: {
-                    platform: 'ANDROID',
-                    packageName: 'com.example.updated',
-                    version: '2.0.0',
+                    platform: MobilePlatformEnum.ANDROID,
+                    downloadUrl: 'https://example.mobile.com/download/2.0.0',
                 },
             };
 
@@ -203,8 +203,8 @@ describe('UpdateApplicationUseCase', () => {
             const updateDto: UpdateApplicationDto = {
                 applicationType: ApplicationTypeEnum.FRONTEND,
                 applicationComponentFrontend: {
-                    domain: 'updated-app.example.com',
-                    url: 'https://updated-app.example.com',
+                    frontendUrl: 'https://updated-app.example.com',
+                    screenshotUrl: 'https://updated-app.example.com/screenshot',
                 },
             };
 
@@ -238,9 +238,8 @@ describe('UpdateApplicationUseCase', () => {
             const updateDto: UpdateApplicationDto = {
                 applicationType: ApplicationTypeEnum.LIBRARY,
                 applicationComponentLibrary: {
-                    packageName: '@example/updated-library',
-                    version: '2.0.0',
-                    repositoryUrl: 'https://github.com/example/updated-library',
+                    packageManagerUrl: 'https://www.npmjs.com/package/@example/updated-library',
+                    readmeContent: 'Updated library description',
                 },
             };
 
@@ -278,8 +277,8 @@ describe('UpdateApplicationUseCase', () => {
                     apiUrl: 'https://updated-api.example.com/v1',
                 },
                 applicationComponentFrontend: {
-                    domain: 'updated-app.example.com',
-                    url: 'https://updated-app.example.com',
+                    frontendUrl: 'https://updated-app.example.com',
+                    screenshotUrl: 'https://updated-app.example.com/screenshot',
                 },
             };
 

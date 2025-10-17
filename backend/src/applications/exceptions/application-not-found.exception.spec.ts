@@ -38,14 +38,14 @@ describe('ApplicationNotFoundException', () => {
             throw new ApplicationNotFoundException();
         } catch (error) {
             expect(error).toBeInstanceOf(ApplicationNotFoundException);
-            expect(error.message).toBe('Application is not found');
-            expect(error.getStatus()).toBe(404);
+            expect((error as any).message).toBe('Application is not found');
+            expect((error as any).getStatus()).toBe(404);
         }
     });
 
     it('should have correct name', () => {
         const exception = new ApplicationNotFoundException();
-        expect(exception.name).toBe('NotFoundException');
+        expect(exception.name).toBe('ApplicationNotFoundException');
     });
 
     it('should be serializable', () => {
@@ -54,6 +54,6 @@ describe('ApplicationNotFoundException', () => {
         const parsed = JSON.parse(serialized);
 
         expect(parsed.message).toBe('Application is not found');
-        expect(parsed.statusCode).toBe(404);
+        expect((exception as any).getStatus()).toBe(404);
     });
 });

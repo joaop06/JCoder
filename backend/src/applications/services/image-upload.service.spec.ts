@@ -26,7 +26,7 @@ describe('ImageUploadService', () => {
         get: jest.fn(),
     };
 
-    const mockFile: Express.Multer.File = {
+    const mockFile: any = {
         fieldname: 'images',
         originalname: 'test-image.jpg',
         encoding: '7bit',
@@ -65,11 +65,11 @@ describe('ImageUploadService', () => {
                 UPLOAD_PATH: './uploads/applications',
                 MAX_FILE_SIZE: 5 * 1024 * 1024, // 5MB
             };
-            return config[key] || defaultValue;
+            return (config as any)[key] || defaultValue;
         });
 
         // Setup sharp mock
-        mockedSharp.mockReturnValue(mockSharpInstance as any);
+        (mockedSharp as any).mockReturnValue(mockSharpInstance as any);
         mockSharpInstance.toBuffer.mockResolvedValue(Buffer.from('processed-image-data'));
 
         // Setup path mock
@@ -114,7 +114,7 @@ describe('ImageUploadService', () => {
 
         it('should return empty array when no files provided', async () => {
             // Arrange
-            const files: Express.Multer.File[] = [];
+            const files: any[] = [];
             const applicationId = 1;
 
             // Act
@@ -351,7 +351,7 @@ describe('ImageUploadService', () => {
             const filenames = ['image1.jpg'];
 
             mockedFs.unlink.mockResolvedValue(undefined);
-            mockedFs.readdir.mockResolvedValue(['other-file.txt']);
+            mockedFs.readdir.mockResolvedValue(['other-file.txt'] as any);
 
             // Act
             await service.deleteApplicationImages(applicationId, filenames);
@@ -468,7 +468,7 @@ describe('ImageUploadService', () => {
                     UPLOAD_PATH: '/custom/uploads',
                     MAX_FILE_SIZE: 10 * 1024 * 1024,
                 };
-                return config[key];
+                return (config as any)[key];
             });
 
             // Act

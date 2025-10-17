@@ -373,7 +373,7 @@ describe('ApplicationsModule Integration Tests', () => {
             // Act
             const created = await applicationsController.create(createDto);
             const found = await applicationsController.findById(created.id);
-            const all = await applicationsController.findAll();
+            const all = await applicationsController.findAll({} as any);
             const paginated = await applicationsController.findAllPaginated({ page: 1, limit: 10 });
 
             // Assert

@@ -6,6 +6,7 @@ import { ApplicationComponentsService } from '../application-components/applicat
 import { CreateApplicationDto } from '../dto/create-application.dto';
 import { Application } from '../entities/application.entity';
 import { ApplicationTypeEnum } from '../enums/application-type.enum';
+import { MobilePlatformEnum } from '../enums/mobile-platform.enum';
 import { UserNotFoundException } from '../../users/exceptions/user-not-found.exception';
 import { AlreadyExistsApplicationException } from '../exceptions/already-exists-application-exception';
 import { RequiredApiComponentToApiApplication } from '../exceptions/required-api-component.exception';
@@ -25,10 +26,10 @@ describe('CreateApplicationUseCase', () => {
         email: 'test@example.com',
         password: 'hashedPassword',
         role: 'admin' as any,
-        applications: [],
+        applications: [] as any,
         createdAt: new Date(),
         updatedAt: new Date(),
-        deletedAt: null,
+        deletedAt: null as any,
     };
 
     const mockApplication: Application = {
@@ -143,9 +144,8 @@ describe('CreateApplicationUseCase', () => {
                 description: 'Test Mobile Description',
                 applicationType: ApplicationTypeEnum.MOBILE,
                 applicationComponentMobile: {
-                    platform: 'ANDROID',
-                    packageName: 'com.example.app',
-                    version: '1.0.0',
+                    platform: MobilePlatformEnum.ANDROID,
+                    downloadUrl: 'https://example.mobile.com/download/1.0.0',
                 },
             };
 
@@ -180,9 +180,8 @@ describe('CreateApplicationUseCase', () => {
                 description: 'Test Library Description',
                 applicationType: ApplicationTypeEnum.LIBRARY,
                 applicationComponentLibrary: {
-                    packageName: '@example/library',
-                    version: '1.0.0',
-                    repositoryUrl: 'https://github.com/example/library',
+                    packageManagerUrl: 'https://www.npmjs.com/package/@example/library',
+                    readmeContent: 'Library description',
                 },
             };
 
@@ -217,8 +216,8 @@ describe('CreateApplicationUseCase', () => {
                 description: 'Test Frontend Description',
                 applicationType: ApplicationTypeEnum.FRONTEND,
                 applicationComponentFrontend: {
-                    domain: 'app.example.com',
-                    url: 'https://app.example.com',
+                    frontendUrl: 'https://app.example.com',
+                    screenshotUrl: 'https://app.example.com/screenshot',
                 },
             };
 
@@ -257,8 +256,8 @@ describe('CreateApplicationUseCase', () => {
                     apiUrl: 'https://api.example.com/v1',
                 },
                 applicationComponentFrontend: {
-                    domain: 'app.example.com',
-                    url: 'https://app.example.com',
+                    frontendUrl: 'https://app.example.com',
+                    screenshotUrl: 'https://app.example.com/screenshot',
                 },
             };
 
@@ -401,8 +400,8 @@ describe('CreateApplicationUseCase', () => {
                 description: 'Test Fullstack Description',
                 applicationType: ApplicationTypeEnum.FULLSTACK,
                 applicationComponentFrontend: {
-                    domain: 'app.example.com',
-                    url: 'https://app.example.com',
+                    frontendUrl: 'https://app.example.com',
+                    screenshotUrl: 'https://app.example.com/screenshot',
                 },
                 // Missing applicationComponentApi
             };

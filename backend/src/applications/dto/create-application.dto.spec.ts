@@ -2,6 +2,7 @@ import { validate } from 'class-validator';
 import { plainToClass } from 'class-transformer';
 import { CreateApplicationDto } from './create-application.dto';
 import { ApplicationTypeEnum } from '../enums/application-type.enum';
+import { MobilePlatformEnum } from '../enums/mobile-platform.enum';
 import { ApplicationComponentApiDto } from '../application-components/dto/application-component-api.dto';
 import { ApplicationComponentMobileDto } from '../application-components/dto/application-component-mobile.dto';
 import { ApplicationComponentLibraryDto } from '../application-components/dto/application-component-library.dto';
@@ -286,7 +287,7 @@ describe('CreateApplicationDto', () => {
 
         it('should pass validation when githubUrl is undefined', async () => {
             // Arrange
-            const validData = {
+            const validData: any = {
                 name: 'Test Application',
                 userId: 1,
                 description: 'Test Description',
@@ -422,9 +423,8 @@ describe('CreateApplicationDto', () => {
                 description: 'Test Description',
                 applicationType: ApplicationTypeEnum.MOBILE,
                 applicationComponentMobile: {
-                    platform: 'ANDROID',
-                    packageName: 'com.example.app',
-                    version: '1.0.0',
+                    platform: MobilePlatformEnum.ANDROID,
+                    downloadUrl: 'https://example.mobile.com/download/1.0.0',
                 },
             };
 
@@ -444,9 +444,8 @@ describe('CreateApplicationDto', () => {
                 description: 'Test Description',
                 applicationType: ApplicationTypeEnum.LIBRARY,
                 applicationComponentLibrary: {
-                    packageName: '@example/library',
-                    version: '1.0.0',
-                    repositoryUrl: 'https://github.com/example/library',
+                    packageManagerUrl: 'https://www.npmjs.com/package/@example/library',
+                    readmeContent: 'Library description',
                 },
             };
 
@@ -466,8 +465,8 @@ describe('CreateApplicationDto', () => {
                 description: 'Test Description',
                 applicationType: ApplicationTypeEnum.FRONTEND,
                 applicationComponentFrontend: {
-                    domain: 'app.example.com',
-                    url: 'https://app.example.com',
+                    frontendUrl: 'https://app.example.com',
+                    screenshotUrl: 'https://app.example.com/screenshot',
                 },
             };
 
@@ -503,7 +502,7 @@ describe('CreateApplicationDto', () => {
 
         it('should handle undefined optional fields', () => {
             // Arrange
-            const plainData = {
+            const plainData: any = {
                 name: 'Test Application',
                 userId: 1,
                 description: 'Test Description',

@@ -436,7 +436,7 @@ describe('ApplicationsService', () => {
         it('should handle application without images', async () => {
             // Arrange
             const applicationId = 1;
-            const applicationWithoutImages = { ...mockApplication, images: [] };
+            const applicationWithoutImages: any = { ...mockApplication, images: [] };
             mockCacheService.getOrSet.mockResolvedValue(applicationWithoutImages);
             mockRepository.delete.mockResolvedValue({ affected: 1 });
             mockCacheService.del.mockResolvedValue(undefined);
@@ -452,7 +452,7 @@ describe('ApplicationsService', () => {
         it('should handle application with null images', async () => {
             // Arrange
             const applicationId = 1;
-            const applicationWithNullImages = { ...mockApplication, images: null };
+            const applicationWithNullImages: any = { ...mockApplication, images: null };
             mockCacheService.getOrSet.mockResolvedValue(applicationWithNullImages);
             mockRepository.delete.mockResolvedValue({ affected: 1 });
             mockCacheService.del.mockResolvedValue(undefined);
@@ -473,7 +473,7 @@ describe('ApplicationsService', () => {
             const files = [
                 { originalname: 'image1.jpg', buffer: Buffer.from('test') },
                 { originalname: 'image2.png', buffer: Buffer.from('test') },
-            ] as Express.Multer.File[];
+            ] as any[];
             const newImageFilenames = ['new-image1.jpg', 'new-image2.png'];
             const updatedApplication = {
                 ...mockApplication,
@@ -496,8 +496,8 @@ describe('ApplicationsService', () => {
         it('should handle application with no existing images', async () => {
             // Arrange
             const applicationId = 1;
-            const applicationWithoutImages = { ...mockApplication, images: null };
-            const files = [{ originalname: 'image1.jpg', buffer: Buffer.from('test') }] as Express.Multer.File[];
+            const applicationWithoutImages: any = { ...mockApplication, images: null };
+            const files = [{ originalname: 'image1.jpg', buffer: Buffer.from('test') }] as any[];
             const newImageFilenames = ['new-image1.jpg'];
             mockCacheService.getOrSet.mockResolvedValue(applicationWithoutImages);
             mockImageUploadService.uploadImages.mockResolvedValue(newImageFilenames);
@@ -551,7 +551,7 @@ describe('ApplicationsService', () => {
             // Arrange
             const applicationId = 1;
             const filename = 'image1.jpg';
-            const applicationWithoutImages = { ...mockApplication, images: null };
+            const applicationWithoutImages: any = { ...mockApplication, images: null };
             mockCacheService.getOrSet.mockResolvedValue(applicationWithoutImages);
 
             // Act & Assert

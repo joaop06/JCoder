@@ -2,6 +2,7 @@ import { validate } from 'class-validator';
 import { plainToClass } from 'class-transformer';
 import { UpdateApplicationDto } from './update-application.dto';
 import { ApplicationTypeEnum } from '../enums/application-type.enum';
+import { MobilePlatformEnum } from '../enums/mobile-platform.enum';
 import { ApplicationComponentApiDto } from '../application-components/dto/application-component-api.dto';
 import { ApplicationComponentMobileDto } from '../application-components/dto/application-component-mobile.dto';
 import { ApplicationComponentLibraryDto } from '../application-components/dto/application-component-library.dto';
@@ -188,7 +189,7 @@ describe('UpdateApplicationDto', () => {
 
         it('should pass validation when githubUrl is undefined', async () => {
             // Arrange
-            const validData = {
+            const validData: any = {
                 githubUrl: undefined,
             };
 
@@ -202,7 +203,7 @@ describe('UpdateApplicationDto', () => {
 
         it('should pass validation when githubUrl is null', async () => {
             // Arrange
-            const validData = {
+            const validData: any = {
                 githubUrl: null,
             };
 
@@ -311,9 +312,8 @@ describe('UpdateApplicationDto', () => {
             // Arrange
             const validData = {
                 applicationComponentMobile: {
-                    platform: 'ANDROID',
-                    packageName: 'com.example.updated',
-                    version: '2.0.0',
+                    platform: MobilePlatformEnum.ANDROID,
+                    downloadUrl: 'https://example.mobile.com/download/2.0.0',
                 },
             };
 
@@ -329,9 +329,8 @@ describe('UpdateApplicationDto', () => {
             // Arrange
             const validData = {
                 applicationComponentLibrary: {
-                    packageName: '@example/updated-library',
-                    version: '2.0.0',
-                    repositoryUrl: 'https://github.com/example/updated-library',
+                    packageManagerUrl: 'https://www.npmjs.com/package/@example/updated-library',
+                    readmeContent: 'Updated library description',
                 },
             };
 
@@ -347,8 +346,8 @@ describe('UpdateApplicationDto', () => {
             // Arrange
             const validData = {
                 applicationComponentFrontend: {
-                    domain: 'updated-app.example.com',
-                    url: 'https://updated-app.example.com',
+                    frontendUrl: 'https://updated-app.example.com',
+                    screenshotUrl: 'https://updated-app.example.com/screenshot',
                 },
             };
 
@@ -362,7 +361,7 @@ describe('UpdateApplicationDto', () => {
 
         it('should pass validation when all components are undefined', async () => {
             // Arrange
-            const validData = {
+            const validData: any = {
                 applicationComponentApi: undefined,
                 applicationComponentMobile: undefined,
                 applicationComponentLibrary: undefined,
@@ -401,7 +400,7 @@ describe('UpdateApplicationDto', () => {
 
         it('should handle undefined fields', () => {
             // Arrange
-            const plainData = {
+            const plainData: any = {
                 name: 'Updated Name',
                 description: undefined,
                 applicationType: undefined,
@@ -420,7 +419,7 @@ describe('UpdateApplicationDto', () => {
 
         it('should handle null fields', () => {
             // Arrange
-            const plainData = {
+            const plainData: any = {
                 name: 'Updated Name',
                 description: null,
                 applicationType: null,

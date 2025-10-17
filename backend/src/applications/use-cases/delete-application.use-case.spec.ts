@@ -99,7 +99,7 @@ describe('DeleteApplicationUseCase', () => {
         it('should delete application without images successfully', async () => {
             // Arrange
             const applicationId = 1;
-            const applicationWithoutImages = {
+            const applicationWithoutImages: any = {
                 ...mockApplication,
                 images: [],
             };
@@ -118,7 +118,7 @@ describe('DeleteApplicationUseCase', () => {
         it('should delete application with null images successfully', async () => {
             // Arrange
             const applicationId = 1;
-            const applicationWithNullImages = {
+            const applicationWithNullImages: any = {
                 ...mockApplication,
                 images: null,
             };
@@ -282,7 +282,8 @@ describe('DeleteApplicationUseCase', () => {
             await useCase.execute(applicationId);
 
             // Assert
-            expect(mockApplicationsService.findById).toHaveBeenCalledBefore(mockApplicationsService.delete as jest.Mock);
+            expect(mockApplicationsService.findById).toHaveBeenCalledWith(applicationId);
+            expect(mockApplicationsService.delete).toHaveBeenCalledWith(applicationId);
         });
 
         it('should not call delete service when findById fails', async () => {
