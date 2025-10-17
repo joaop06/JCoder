@@ -91,6 +91,6 @@ export const ApplicationService = {
     },
 
     getImageUrl(id: number, filename: string): string {
-        return `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/applications/${id}/images/${filename}`;
+        return `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL || 'http://localhost:8081'}/api/v1/applications/${id}/images/${filename}`;
     },
 };

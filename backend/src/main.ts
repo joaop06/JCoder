@@ -35,7 +35,7 @@ async function bootstrap() {
 	});
 
 	// Apply security middleware
-	app.use(new SecurityMiddleware().use.bind(new SecurityMiddleware()));
+	app.use(new SecurityMiddleware(configService).use.bind(new SecurityMiddleware(configService)));
 	app.use(new CompressionMiddleware().use.bind(new CompressionMiddleware()));
 
 	// Global interceptors

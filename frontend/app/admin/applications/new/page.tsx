@@ -6,10 +6,10 @@ import { useRouter } from 'next/navigation';
 import { UsersService } from '@/services/users.service';
 import { useState, useEffect, useCallback } from 'react';
 import { useToast } from '@/components/toast/ToastContext';
+import ImageUpload from '@/components/applications/ImageUpload';
 import { ApplicationService } from '@/services/applications.service';
 import { ApplicationTypeEnum } from '@/types/enums/application-type.enum';
 import { CreateApplicationDto } from '@/types/entities/dtos/create-application.dto';
-import ImageUpload from '@/components/applications/ImageUpload';
 
 export default function NewApplicationPage() {
     const router = useRouter();

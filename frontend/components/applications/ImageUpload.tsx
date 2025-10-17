@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react';
 import { useToast } from '@/components/toast/ToastContext';
+import { ApplicationService } from '@/services/applications.service';
 
 interface ImageUploadProps {
     images: string[];
@@ -121,8 +122,8 @@ export default function ImageUpload({ images, onImagesChange, applicationId, dis
             {/* Upload Area */}
             <div
                 className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${dragOver
-                        ? 'border-jcoder-primary bg-jcoder-primary/10'
-                        : 'border-jcoder hover:border-jcoder-primary'
+                    ? 'border-jcoder-primary bg-jcoder-primary/10'
+                    : 'border-jcoder hover:border-jcoder-primary'
                     } ${disabled || uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
@@ -165,7 +166,7 @@ export default function ImageUpload({ images, onImagesChange, applicationId, dis
                         <div key={index} className="relative group">
                             <div className="aspect-square rounded-lg overflow-hidden bg-jcoder-secondary">
                                 <img
-                                    src={image.startsWith('data:') ? image : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/applications/${applicationId}/images/${image}`}
+                                    src={image.startsWith('data:') ? image : (applicationId ? ApplicationService.getImageUrl(applicationId, image) : '')}
                                     alt={`Application image ${index + 1}`}
                                     className="w-full h-full object-cover"
                                 />

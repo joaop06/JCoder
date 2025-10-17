@@ -149,22 +149,19 @@ export class ApplicationsController {
   async getImage(
     @Param('id', ParseIntPipe) id: number,
     @Param('filename') filename: string,
-    @Res({ passthrough: true }) res: Response,
-  ): Promise<StreamableFile> {
+    @Res() res: Response,
+  ): Promise<void> {
     const imagePath = await this.applicationsService.getImagePath(id, filename);
-    const file = fs.createReadStream(imagePath);
 
-    // Set appropriate content type based on file extension
-    const ext = filename.split('.').pop()?.toLowerCase();
-    const contentType = ext === 'png' ? 'image/png' :
-      ext === 'webp' ? 'image/webp' : 'image/jpeg';
-
+    // Set headers
     res.set({
-      'Content-Type': contentType,
+      'Content-Type': 'image/jpeg',
       'Cache-Control': 'public, max-age=31536000', // 1 year cache
     });
 
-    return new StreamableFile(file);
+    // Stream the file directly
+    const fileStream = fs.createReadStream(imagePath);
+    fileStream.pipe(res);
   }
 
   @Delete(':id/images/:filename')

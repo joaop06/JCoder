@@ -6,10 +6,10 @@ import Header from '@/components/Header';
 import { useRouter, useParams } from 'next/navigation';
 import { useState, useEffect, useCallback } from 'react';
 import { useToast } from '@/components/toast/ToastContext';
+import ImageUpload from '@/components/applications/ImageUpload';
 import { ApplicationService } from '@/services/applications.service';
 import { ApplicationTypeEnum } from '@/types/enums/application-type.enum';
 import { UpdateApplicationDto } from '@/types/entities/dtos/update-application.dto';
-import ImageUpload from '@/components/applications/ImageUpload';
 
 export default function EditApplicationPage() {
     const router = useRouter();
