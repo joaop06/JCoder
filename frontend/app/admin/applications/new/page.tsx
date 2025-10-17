@@ -9,6 +9,7 @@ import { useToast } from '@/components/toast/ToastContext';
 import { ApplicationService } from '@/services/applications.service';
 import { ApplicationTypeEnum } from '@/types/enums/application-type.enum';
 import { CreateApplicationDto } from '@/types/entities/dtos/create-application.dto';
+import ImageUpload from '@/components/applications/ImageUpload';
 
 export default function NewApplicationPage() {
     const router = useRouter();
@@ -22,6 +23,7 @@ export default function NewApplicationPage() {
         description: '',
         applicationType: ApplicationTypeEnum.API,
     });
+    const [images, setImages] = useState<string[]>([]);
 
     const toast = useToast();
 
@@ -101,9 +103,33 @@ export default function NewApplicationPage() {
                     break;
             }
 
-            await ApplicationService.create(payload);
-            toast.success(`${payload.name} successfully created!`);
+            const createdApplication = await ApplicationService.create(payload);
 
+            // Upload images if any
+            if (images.length > 0) {
+                try {
+                    // Convert data URLs to File objects for upload
+                    const files: File[] = [];
+                    for (let i = 0; i < images.length; i++) {
+                        const image = images[i];
+                        if (image.startsWith('data:')) {
+                            const response = await fetch(image);
+                            const blob = await response.blob();
+                            const file = new File([blob], `image-${i}.${blob.type.split('/')[1]}`, { type: blob.type });
+                            files.push(file);
+                        }
+                    }
+
+                    if (files.length > 0) {
+                        await ApplicationService.uploadImages(createdApplication.id, files);
+                    }
+                } catch (error: any) {
+                    console.error('Error uploading images:', error);
+                    toast.error('Application created but failed to upload images. You can add them later.');
+                }
+            }
+
+            toast.success(`${payload.name} successfully created!`);
             router.push('/admin');
         } catch (err: any) {
             const errorMessage = err?.response?.data?.message
@@ -423,6 +449,16 @@ export default function NewApplicationPage() {
                                     </div>
                                 </div>
                             )}
+
+                            {/* Image Upload Section */}
+                            <div className="mt-6 pt-6 border-t border-jcoder border-l-4 border-jcoder-primary pl-4">
+                                <h3 className="text-lg font-medium text-jcoder-foreground mb-4">Application Images</h3>
+                                <ImageUpload
+                                    images={images}
+                                    onImagesChange={setImages}
+                                    disabled={loading}
+                                />
+                            </div>
 
                             <div className="mt-8 flex justify-end gap-4">
                                 <button

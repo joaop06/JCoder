@@ -36,12 +36,12 @@ start.b:
 	make env
 	make up.d
 	make down.b
-	cd backend && npm run start:dev
+	cd backend && pnpm run start:dev
 
 start.f:
 	make env
 	make down.f
-	cd frontend && npm run dev
+	cd frontend && pnpm run dev
 
 .PHONY: env
 

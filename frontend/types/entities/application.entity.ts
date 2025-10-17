@@ -14,6 +14,7 @@ export interface Application {
     applicationType: ApplicationTypeEnum;
     githubUrl?: string;
     isActive: boolean;
+    images?: string[];
     applicationComponentApi?: ApplicationComponentApi | null;
     applicationComponentMobile?: ApplicationComponentMobile | null;
     applicationComponentLibrary?: ApplicationComponentLibrary | null;

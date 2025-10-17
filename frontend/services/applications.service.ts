@@ -63,4 +63,34 @@ export const ApplicationService = {
             throw error;
         }
     },
+
+    async uploadImages(id: number, files: File[]): Promise<Application> {
+        try {
+            const formData = new FormData();
+            files.forEach((file) => {
+                formData.append('images', file);
+            });
+
+            const response = await ApiService.post(`/applications/${id}/images`, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+            return response.data.data;
+        } catch (error) {
+            throw error;
+        }
+    },
+
+    async deleteImage(id: number, filename: string): Promise<void> {
+        try {
+            await ApiService.delete(`/applications/${id}/images/${filename}`);
+        } catch (error) {
+            throw error;
+        }
+    },
+
+    getImageUrl(id: number, filename: string): string {
+        return `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/applications/${id}/images/${filename}`;
+    },
 };

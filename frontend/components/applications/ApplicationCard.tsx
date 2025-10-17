@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Application } from '@/types/entities/application.entity';
+import { ApplicationService } from '@/services/applications.service';
 
 interface ApplicationCardProps {
   application: Application;
@@ -31,10 +32,20 @@ export default function ApplicationCard({ application }: ApplicationCardProps) {
   return (
     <div className="bg-jcoder-card border border-jcoder rounded-lg p-6 hover:shadow-lg hover:shadow-jcoder-primary/20 transition-all duration-300 hover:border-jcoder-primary">
       <div className="flex items-start gap-4">
-        {/* Icon */}
-        <div className="w-12 h-12 bg-jcoder-gradient rounded-lg flex items-center justify-center flex-shrink-0">
-          <span className="text-black font-bold text-lg">{getInitial(application.name)}</span>
-        </div>
+        {/* Icon or Image */}
+        {application.images && application.images.length > 0 ? (
+          <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
+            <img
+              src={ApplicationService.getImageUrl(application.id, application.images[0])}
+              alt={application.name}
+              className="w-full h-full object-cover"
+            />
+          </div>
+        ) : (
+          <div className="w-12 h-12 bg-jcoder-gradient rounded-lg flex items-center justify-center flex-shrink-0">
+            <span className="text-black font-bold text-lg">{getInitial(application.name)}</span>
+          </div>
+        )}
 
         {/* Content */}
         <div className="flex-1 min-w-0">

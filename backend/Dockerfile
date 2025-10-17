@@ -16,4 +16,4 @@ COPY backend/ ./
 # Build
 RUN pnpm run build
 
-CMD ["npm", "run", "start:prod"]
+CMD ["pnpm", "run", "start:prod"]

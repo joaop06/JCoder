@@ -1,7 +1,7 @@
 import sharp from 'sharp';
 import * as path from 'path';
+import { uuidv7 } from 'uuidv7';
 import * as fs from 'fs/promises';
-import { v4 as uuidv4 } from 'uuid';
 import { ConfigService } from '@nestjs/config';
 import { Injectable, BadRequestException } from '@nestjs/common';
 
@@ -56,7 +56,7 @@ export class ImageUploadService {
 
     private async processAndSaveImage(file: Express.Multer.File, applicationId: number): Promise<string> {
         const fileExtension = path.extname(file.originalname).toLowerCase();
-        const filename = `${uuidv4()}${fileExtension}`;
+        const filename = `${uuidv7()}${fileExtension}`;
         const filePath = path.join(this.uploadPath, applicationId.toString(), filename);
 
         try {

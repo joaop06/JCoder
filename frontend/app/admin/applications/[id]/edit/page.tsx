@@ -9,6 +9,7 @@ import { useToast } from '@/components/toast/ToastContext';
 import { ApplicationService } from '@/services/applications.service';
 import { ApplicationTypeEnum } from '@/types/enums/application-type.enum';
 import { UpdateApplicationDto } from '@/types/entities/dtos/update-application.dto';
+import ImageUpload from '@/components/applications/ImageUpload';
 
 export default function EditApplicationPage() {
     const router = useRouter();
@@ -23,6 +24,7 @@ export default function EditApplicationPage() {
         description: '',
         applicationType: ApplicationTypeEnum.API,
     });
+    const [images, setImages] = useState<string[]>([]);
 
     const toast = useToast();
 
@@ -70,6 +72,7 @@ export default function EditApplicationPage() {
                 };
 
                 setFormData(updateApplicationDto);
+                setImages(data.images || []);
             } catch (err: any) {
                 const errorMessage = err?.response?.data?.message
                     || err.message
@@ -476,6 +479,17 @@ export default function EditApplicationPage() {
                                     </div>
                                 </div>
                             )}
+
+                            {/* Image Upload Section */}
+                            <div className="mt-6 pt-6 border-t border-jcoder border-l-4 border-jcoder-primary pl-4">
+                                <h3 className="text-lg font-medium text-jcoder-foreground mb-4">Application Images</h3>
+                                <ImageUpload
+                                    images={images}
+                                    onImagesChange={setImages}
+                                    applicationId={Number(applicationId)}
+                                    disabled={loading}
+                                />
+                            </div>
 
                             <div className="mt-8 flex justify-end gap-4">
                                 <button
