@@ -105,31 +105,56 @@ export default function NewApplicationPage() {
 
             const createdApplication = await ApplicationService.create(payload);
 
-            // Upload images if any
+            // Show success message for application creation
+            toast.success(`${payload.name} successfully created!`);
+
+            // Upload images if any - only after successful creation
             if (images.length > 0) {
+                console.log('Starting image upload process...', { imagesCount: images.length, applicationId: createdApplication.id });
                 try {
                     // Convert data URLs to File objects for upload
                     const files: File[] = [];
                     for (let i = 0; i < images.length; i++) {
                         const image = images[i];
                         if (image.startsWith('data:')) {
-                            const response = await fetch(image);
-                            const blob = await response.blob();
-                            const file = new File([blob], `image-${i}.${blob.type.split('/')[1]}`, { type: blob.type });
+                            // Parse data URL
+                            const [header, data] = image.split(',');
+                            const mimeType = header.match(/data:([^;]+)/)?.[1] || 'image/jpeg';
+                            const extension = mimeType.split('/')[1] || 'jpg';
+
+                            // Convert base64 to binary
+                            const binaryString = atob(data);
+                            const bytes = new Uint8Array(binaryString.length);
+                            for (let j = 0; j < binaryString.length; j++) {
+                                bytes[j] = binaryString.charCodeAt(j);
+                            }
+
+                            // Create File object
+                            const file = new File([bytes], `image-${i}.${extension}`, { type: mimeType });
                             files.push(file);
+                            console.log(`Created file ${i}:`, { name: file.name, size: file.size, type: file.type });
                         }
                     }
 
                     if (files.length > 0) {
+                        console.log('Uploading files to server...', { filesCount: files.length });
                         await ApplicationService.uploadImages(createdApplication.id, files);
+                        console.log('Images uploaded successfully!');
+                        toast.success('Images uploaded successfully!');
+                    } else {
+                        console.log('No valid files to upload');
                     }
                 } catch (error: any) {
                     console.error('Error uploading images:', error);
-                    toast.error('Application created but failed to upload images. You can add them later.');
+                    const errorMessage = error?.response?.data?.message
+                        || error?.message
+                        || 'Failed to upload images';
+                    toast.error(`Application created but failed to upload images: ${errorMessage}. You can add them later.`);
                 }
+            } else {
+                console.log('No images to upload');
             }
 
-            toast.success(`${payload.name} successfully created!`);
             router.push('/admin');
         } catch (err: any) {
             const errorMessage = err?.response?.data?.message
@@ -141,7 +166,7 @@ export default function NewApplicationPage() {
         } finally {
             setLoading(false);
         }
-    }, [formData, router]);
+    }, [formData, images, router, toast]);
 
     if (!isAuthenticated) {
         return null;
