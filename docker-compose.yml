@@ -3,6 +3,7 @@ version: "3.8"
 services:
   database:
     image: mysql:8.0
+    restart: unless-stopped
     environment:
       MYSQL_USER: ${DATABASE_USER}
       MYSQL_DATABASE: ${DATABASE_NAME}
@@ -13,7 +14,7 @@ services:
     ports:
       - "${DATABASE_PORT}:3306"
     healthcheck:
-      test: mysqladmin ping -h 127.0.0.1 -u $$MYSQL_USER --password=$$MYSQL_PASSWORD
+      test: [ "CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u $$MYSQL_USER --password=$$MYSQL_PASSWORD || exit 1" ]
       start_period: 5s
       interval: 5s
       timeout: 5s
@@ -23,6 +24,7 @@ services:
     build:
       context: .
       dockerfile: backend/Dockerfile
+    restart: unless-stopped
     environment:
       BACKEND_DATABASE_PORT: 3306
       BACKEND_PORT: ${BACKEND_PORT}
@@ -47,6 +49,7 @@ services:
       args:
         NEXT_PUBLIC_FRONTEND_PORT: ${NEXT_PUBLIC_FRONTEND_PORT}
         NEXT_PUBLIC_BACKEND_BASE_URL: ${NEXT_PUBLIC_BACKEND_BASE_URL}
+    restart: unless-stopped
     depends_on:
       - backend
     ports:
