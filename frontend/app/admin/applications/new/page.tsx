@@ -7,6 +7,7 @@ import { UsersService } from '@/services/users.service';
 import { useState, useEffect, useCallback } from 'react';
 import { useToast } from '@/components/toast/ToastContext';
 import ImageUpload from '@/components/applications/ImageUpload';
+import ProfileImageUpload from '@/components/applications/ProfileImageUpload';
 import { ApplicationService } from '@/services/applications.service';
 import { ApplicationTypeEnum } from '@/types/enums/application-type.enum';
 import { CreateApplicationDto } from '@/types/entities/dtos/create-application.dto';
@@ -24,6 +25,7 @@ export default function NewApplicationPage() {
         applicationType: ApplicationTypeEnum.API,
     });
     const [images, setImages] = useState<string[]>([]);
+    const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
 
     const toast = useToast();
 
@@ -107,6 +109,22 @@ export default function NewApplicationPage() {
 
             // Show success message for application creation
             toast.success(`${payload.name} successfully created!`);
+
+            // Upload profile image if provided - only after successful creation
+            if (profileImageFile) {
+                console.log('Starting profile image upload process...', { applicationId: createdApplication.id });
+                try {
+                    await ApplicationService.uploadProfileImage(createdApplication.id, profileImageFile);
+                    console.log('Profile image uploaded successfully!');
+                    toast.success('Profile image uploaded successfully!');
+                } catch (error: any) {
+                    console.error('Error uploading profile image:', error);
+                    const errorMessage = error?.response?.data?.message
+                        || error?.message
+                        || 'Failed to upload profile image';
+                    toast.error(`Application created but failed to upload profile image: ${errorMessage}. You can add it later.`);
+                }
+            }
 
             // Upload images if any - only after successful creation
             if (images.length > 0) {
@@ -474,6 +492,80 @@ export default function NewApplicationPage() {
                                     </div>
                                 </div>
                             )}
+
+                            {/* Profile Image Upload Section */}
+                            <div className="mt-6 pt-6 border-t border-jcoder border-l-4 border-jcoder-primary pl-4">
+                                <h3 className="text-lg font-medium text-jcoder-foreground mb-4">Profile Image</h3>
+                                <p className="text-sm text-jcoder-muted mb-4">
+                                    Upload a logo or profile image for your application (optional)
+                                </p>
+                                <div className="space-y-4">
+                                    <div className="flex items-center space-x-4">
+                                        <div className="relative">
+                                            {profileImageFile ? (
+                                                <img
+                                                    src={URL.createObjectURL(profileImageFile)}
+                                                    alt="Profile preview"
+                                                    className="w-20 h-20 rounded-lg object-cover border border-jcoder"
+                                                />
+                                            ) : (
+                                                <div className="w-20 h-20 rounded-lg border-2 border-dashed border-jcoder flex items-center justify-center bg-jcoder-secondary">
+                                                    <svg
+                                                        className="w-8 h-8 text-jcoder-muted"
+                                                        fill="none"
+                                                        stroke="currentColor"
+                                                        viewBox="0 0 24 24"
+                                                    >
+                                                        <path
+                                                            strokeLinecap="round"
+                                                            strokeLinejoin="round"
+                                                            strokeWidth={2}
+                                                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                                        />
+                                                    </svg>
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="flex-1">
+                                            <p className="text-sm text-jcoder-muted">
+                                                {profileImageFile ? 'Profile image selected' : 'No profile image selected'}
+                                            </p>
+                                            <p className="text-xs text-jcoder-muted">
+                                                Recommended: 400x400px, max 5MB
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex flex-wrap gap-2">
+                                        <label className="px-4 py-2 bg-jcoder-gradient text-black rounded-md hover:opacity-90 transition-opacity duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm cursor-pointer">
+                                            {profileImageFile ? 'Change Image' : 'Select Image'}
+                                            <input
+                                                type="file"
+                                                accept="image/jpeg,image/jpg,image/png,image/webp"
+                                                onChange={(e) => {
+                                                    const file = e.target.files?.[0];
+                                                    if (file) {
+                                                        setProfileImageFile(file);
+                                                    }
+                                                }}
+                                                disabled={loading}
+                                                className="hidden"
+                                            />
+                                        </label>
+
+                                        {profileImageFile && (
+                                            <button
+                                                type="button"
+                                                onClick={() => setProfileImageFile(null)}
+                                                disabled={loading}
+                                                className="px-4 py-2 border border-red-400 text-red-400 rounded-md hover:bg-red-900/20 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm"
+                                            >
+                                                Remove Image
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
 
                             {/* Image Upload Section */}
                             <div className="mt-6 pt-6 border-t border-jcoder border-l-4 border-jcoder-primary pl-4">

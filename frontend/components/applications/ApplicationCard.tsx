@@ -33,7 +33,15 @@ export default function ApplicationCard({ application }: ApplicationCardProps) {
     <div className="bg-jcoder-card border border-jcoder rounded-lg p-6 hover:shadow-lg hover:shadow-jcoder-primary/20 transition-all duration-300 hover:border-jcoder-primary">
       <div className="flex items-start gap-4">
         {/* Icon or Image */}
-        {application.images && application.images.length > 0 ? (
+        {application.profileImage ? (
+          <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
+            <img
+              src={ApplicationService.getProfileImageUrl(application.id)}
+              alt={application.name}
+              className="w-full h-full object-cover"
+            />
+          </div>
+        ) : application.images && application.images.length > 0 ? (
           <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
             <img
               src={ApplicationService.getImageUrl(application.id, application.images[0])}

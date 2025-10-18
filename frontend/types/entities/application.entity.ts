@@ -15,6 +15,7 @@ export interface Application {
     githubUrl?: string;
     isActive: boolean;
     images?: string[];
+    profileImage?: string;
     applicationComponentApi?: ApplicationComponentApi | null;
     applicationComponentMobile?: ApplicationComponentMobile | null;
     applicationComponentLibrary?: ApplicationComponentLibrary | null;

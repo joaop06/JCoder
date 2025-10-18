@@ -100,6 +100,15 @@ export class Application {
 
   @ApiPropertyOptional({
     nullable: true,
+    type: 'string',
+    example: 'profile-logo.png',
+    description: 'Profile image filename for the application (logo, icon, etc.)',
+  })
+  @Column({ nullable: true })
+  profileImage?: string;
+
+  @ApiPropertyOptional({
+    nullable: true,
     type: () => ApplicationComponentApi,
     description: 'API application component',
   })

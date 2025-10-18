@@ -143,4 +143,42 @@ export class ImageUploadService {
             console.warn(`Failed to delete application images directory:`, errorMessage);
         }
     }
+
+    async uploadProfileImage(file: Express.Multer.File, applicationId: number): Promise<string> {
+        // Validate file
+        this.validateFiles([file]);
+
+        // Ensure upload directory exists
+        await this.ensureUploadDirectory(applicationId);
+
+        // Process and save profile image with specific naming
+        const filename = `profile-${uuidv4()}.jpg`;
+        const filePath = path.join(this.uploadPath, applicationId.toString(), filename);
+
+        try {
+            // Process image with Sharp for compression and optimization
+            // Profile images should be smaller and square
+            const processedImageBuffer = await sharp(file.buffer)
+                .resize(400, 400, {
+                    fit: 'cover',
+                    position: 'center'
+                })
+                .jpeg({
+                    quality: 90,
+                    progressive: true
+                })
+                .toBuffer();
+
+            await fs.writeFile(filePath, processedImageBuffer);
+            return filename;
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            throw new BadRequestException(`Failed to process profile image: ${errorMessage}`);
+        }
+    }
+
+    async getProfileImagePath(applicationId: number, filename: string): Promise<string> {
+        // Use the same method as regular images since they're stored in the same directory
+        return await this.getImagePath(applicationId, filename);
+    }
 }

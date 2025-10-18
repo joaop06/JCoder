@@ -264,7 +264,23 @@ export default function AdminPage() {
                       <tr key={app.id} className="hover:bg-jcoder-secondary transition-colors">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-jcoder-gradient rounded-lg flex items-center justify-center flex-shrink-0">
+                            {app.profileImage ? (
+                              <img
+                                src={ApplicationService.getProfileImageUrl(app.id)}
+                                alt={`${app.name} profile`}
+                                className="w-10 h-10 rounded-lg object-cover flex-shrink-0"
+                                onError={(e) => {
+                                  // Fallback to gradient if image fails to load
+                                  const target = e.target as HTMLImageElement;
+                                  target.style.display = 'none';
+                                  const fallback = target.nextElementSibling as HTMLElement;
+                                  if (fallback) fallback.style.display = 'flex';
+                                }}
+                              />
+                            ) : null}
+                            <div
+                              className={`w-10 h-10 bg-jcoder-gradient rounded-lg flex items-center justify-center flex-shrink-0 ${app.profileImage ? 'hidden' : 'flex'}`}
+                            >
                               <span className="text-black font-bold text-sm">
                                 {app.name?.charAt(0)?.toUpperCase() ?? '?'}
                               </span>

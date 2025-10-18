@@ -174,4 +174,60 @@ export class ApplicationsService {
 
     return await this.imageUploadService.getImagePath(id, filename);
   }
+
+  async uploadProfileImage(id: number, file: Express.Multer.File): Promise<Application> {
+    const application = await this.findById(id);
+
+    // Delete existing profile image if it exists
+    if (application.profileImage) {
+      await this.imageUploadService.deleteApplicationImages(id, [application.profileImage]);
+    }
+
+    // Upload new profile image
+    const profileImageFilename = await this.imageUploadService.uploadProfileImage(file, id);
+
+    // Update application with new profile image
+    application.profileImage = profileImageFilename;
+    const updatedApplication = await this.repository.save(application);
+
+    // Invalidate cache
+    await this.cacheService.del(this.cacheService.applicationKey(id, 'full'));
+
+    return updatedApplication;
+  }
+
+  async updateProfileImage(id: number, file: Express.Multer.File): Promise<Application> {
+    // This is essentially the same as uploadProfileImage since it replaces the existing one
+    return await this.uploadProfileImage(id, file);
+  }
+
+  async deleteProfileImage(id: number): Promise<Application> {
+    const application = await this.findById(id);
+
+    if (!application.profileImage) {
+      throw new ApplicationNotFoundException();
+    }
+
+    // Delete the profile image file
+    await this.imageUploadService.deleteApplicationImages(id, [application.profileImage]);
+
+    // Remove profile image from application
+    application.profileImage = null;
+    const updatedApplication = await this.repository.save(application);
+
+    // Invalidate cache
+    await this.cacheService.del(this.cacheService.applicationKey(id, 'full'));
+
+    return updatedApplication;
+  }
+
+  async getProfileImagePath(id: number): Promise<string> {
+    const application = await this.findById(id);
+
+    if (!application.profileImage) {
+      throw new ApplicationNotFoundException();
+    }
+
+    return await this.imageUploadService.getProfileImagePath(id, application.profileImage);
+  }
 };

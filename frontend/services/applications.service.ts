@@ -93,4 +93,49 @@ export const ApplicationService = {
     getImageUrl(id: number, filename: string): string {
         return `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL || 'http://localhost:8081'}/api/v1/applications/${id}/images/${filename}`;
     },
+
+    // Profile Image Methods
+    async uploadProfileImage(id: number, file: File): Promise<Application> {
+        try {
+            const formData = new FormData();
+            formData.append('profileImage', file);
+
+            const response = await ApiService.post(`/applications/${id}/profile-image`, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+            return response.data.data;
+        } catch (error) {
+            throw error;
+        }
+    },
+
+    async updateProfileImage(id: number, file: File): Promise<Application> {
+        try {
+            const formData = new FormData();
+            formData.append('profileImage', file);
+
+            const response = await ApiService.put(`/applications/${id}/profile-image`, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+            return response.data.data;
+        } catch (error) {
+            throw error;
+        }
+    },
+
+    async deleteProfileImage(id: number): Promise<void> {
+        try {
+            await ApiService.delete(`/applications/${id}/profile-image`);
+        } catch (error) {
+            throw error;
+        }
+    },
+
+    getProfileImageUrl(id: number): string {
+        return `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL || 'http://localhost:8081'}/api/v1/applications/${id}/profile-image`;
+    },
 };

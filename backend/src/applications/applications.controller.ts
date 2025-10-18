@@ -33,6 +33,10 @@ import { ParseQuery } from '../@common/decorators/query/parse-query.decorator';
 import { CreateApplicationUseCase } from './use-cases/create-application.use-case';
 import { DeleteApplicationUseCase } from './use-cases/delete-application.use-case';
 import { UpdateApplicationUseCase } from './use-cases/update-application.use-case';
+import { UploadProfileImageUseCase } from './use-cases/upload-profile-image.use-case';
+import { UpdateProfileImageUseCase } from './use-cases/update-profile-image.use-case';
+import { DeleteProfileImageUseCase } from './use-cases/delete-profile-image.use-case';
+import { GetProfileImageUseCase } from './use-cases/get-profile-image.use-case';
 import { PaginationDto, PaginatedResponseDto } from '../@common/dto/pagination.dto';
 import { UserNotFoundException } from '../users/exceptions/user-not-found.exception';
 import { ApplicationNotFoundException } from './exceptions/application-not-found.exception';
@@ -52,6 +56,10 @@ export class ApplicationsController {
     private readonly createApplicationUseCase: CreateApplicationUseCase,
     private readonly deleteApplicationUseCase: DeleteApplicationUseCase,
     private readonly updateApplicationUseCase: UpdateApplicationUseCase,
+    private readonly uploadProfileImageUseCase: UploadProfileImageUseCase,
+    private readonly updateProfileImageUseCase: UpdateProfileImageUseCase,
+    private readonly deleteProfileImageUseCase: DeleteProfileImageUseCase,
+    private readonly getProfileImageUseCase: GetProfileImageUseCase,
   ) { }
 
   @Get()
@@ -175,5 +183,93 @@ export class ApplicationsController {
     @Param('filename') filename: string,
   ): Promise<void> {
     await this.applicationsService.deleteImage(id, filename);
+  }
+
+  @Post(':id/profile-image')
+  @Roles(RoleEnum.Admin)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseInterceptors(FilesInterceptor('profileImage', 1, {
+    limits: {
+      fileSize: 5 * 1024 * 1024, // 5MB
+    },
+    fileFilter: (req, file, cb) => {
+      const allowedMimes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+      if (allowedMimes.includes(file.mimetype)) {
+        cb(null, true);
+      } else {
+        cb(new Error('Invalid file type. Only JPEG, PNG and WebP images are allowed.'), false);
+      }
+    },
+  }))
+  @ApiOkResponse({ type: () => Application })
+  @ApiExceptionResponse(() => ApplicationNotFoundException)
+  async uploadProfileImage(
+    @Param('id', ParseIntPipe) id: number,
+    @UploadedFiles() files: Express.Multer.File[],
+  ): Promise<Application> {
+    if (!files || files.length === 0) {
+      throw new Error('No file uploaded');
+    }
+    return await this.uploadProfileImageUseCase.execute(id, files[0]);
+  }
+
+  @Put(':id/profile-image')
+  @Roles(RoleEnum.Admin)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseInterceptors(FilesInterceptor('profileImage', 1, {
+    limits: {
+      fileSize: 5 * 1024 * 1024, // 5MB
+    },
+    fileFilter: (req, file, cb) => {
+      const allowedMimes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+      if (allowedMimes.includes(file.mimetype)) {
+        cb(null, true);
+      } else {
+        cb(new Error('Invalid file type. Only JPEG, PNG and WebP images are allowed.'), false);
+      }
+    },
+  }))
+  @ApiOkResponse({ type: () => Application })
+  @ApiExceptionResponse(() => ApplicationNotFoundException)
+  async updateProfileImage(
+    @Param('id', ParseIntPipe) id: number,
+    @UploadedFiles() files: Express.Multer.File[],
+  ): Promise<Application> {
+    if (!files || files.length === 0) {
+      throw new Error('No file uploaded');
+    }
+    return await this.updateProfileImageUseCase.execute(id, files[0]);
+  }
+
+  @Get(':id/profile-image')
+  @ApiOkResponse({ description: 'Profile image file' })
+  @ApiExceptionResponse(() => ApplicationNotFoundException)
+  async getProfileImage(
+    @Param('id', ParseIntPipe) id: number,
+    @Res() res: Response,
+  ): Promise<void> {
+    const imagePath = await this.getProfileImageUseCase.execute(id);
+
+    // Set headers
+    res.set({
+      'Content-Type': 'image/jpeg',
+      'Cache-Control': 'public, max-age=31536000', // 1 year cache
+    });
+
+    // Stream the file directly
+    const fileStream = fs.createReadStream(imagePath);
+    fileStream.pipe(res);
+  }
+
+  @Delete(':id/profile-image')
+  @Roles(RoleEnum.Admin)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiNoContentResponse()
+  @ApiExceptionResponse(() => ApplicationNotFoundException)
+  async deleteProfileImage(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<void> {
+    await this.deleteProfileImageUseCase.execute(id);
   }
 };

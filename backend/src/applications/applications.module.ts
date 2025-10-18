@@ -11,6 +11,10 @@ import { ImageUploadService } from './services/image-upload.service';
 import { CreateApplicationUseCase } from './use-cases/create-application.use-case';
 import { DeleteApplicationUseCase } from './use-cases/delete-application.use-case';
 import { UpdateApplicationUseCase } from './use-cases/update-application.use-case';
+import { UploadProfileImageUseCase } from './use-cases/upload-profile-image.use-case';
+import { UpdateProfileImageUseCase } from './use-cases/update-profile-image.use-case';
+import { DeleteProfileImageUseCase } from './use-cases/delete-profile-image.use-case';
+import { GetProfileImageUseCase } from './use-cases/get-profile-image.use-case';
 import { ApplicationComponentsModule } from './application-components/application-components.module';
 
 @Module({
@@ -21,6 +25,10 @@ import { ApplicationComponentsModule } from './application-components/applicatio
     CreateApplicationUseCase,
     DeleteApplicationUseCase,
     UpdateApplicationUseCase,
+    UploadProfileImageUseCase,
+    UpdateProfileImageUseCase,
+    DeleteProfileImageUseCase,
+    GetProfileImageUseCase,
   ],
   controllers: [ApplicationsController],
   imports: [
