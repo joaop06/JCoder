@@ -7,13 +7,24 @@ const nextConfig: NextConfig = {
       {
         protocol: 'http',
         hostname: 'localhost',
-        port: '3001',
-        pathname: '/applications/**',
+        port: '8081',
+        pathname: '/api/v1/applications/**',
+      },
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '8081',
+        pathname: '/api/v1/images/**',
       },
       {
         protocol: 'https',
         hostname: '**',
-        pathname: '/applications/**',
+        pathname: '/api/v1/applications/**',
+      },
+      {
+        protocol: 'https',
+        hostname: '**',
+        pathname: '/api/v1/images/**',
       },
     ],
   },

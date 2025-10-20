@@ -71,7 +71,7 @@ export const ApplicationService = {
                 formData.append('images', file);
             });
 
-            const response = await ApiService.post(`/applications/${id}/images`, formData, {
+            const response = await ApiService.post(`/images/applications/${id}/images`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
@@ -84,14 +84,14 @@ export const ApplicationService = {
 
     async deleteImage(id: number, filename: string): Promise<void> {
         try {
-            await ApiService.delete(`/applications/${id}/images/${filename}`);
+            await ApiService.delete(`/images/applications/${id}/images/${filename}`);
         } catch (error) {
             throw error;
         }
     },
 
     getImageUrl(id: number, filename: string): string {
-        return `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL || 'http://localhost:8081'}/api/v1/applications/${id}/images/${filename}`;
+        return `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL || 'http://localhost:8081'}/api/v1/images/applications/${id}/images/${filename}`;
     },
 
     // Profile Image Methods
@@ -100,7 +100,7 @@ export const ApplicationService = {
             const formData = new FormData();
             formData.append('profileImage', file);
 
-            const response = await ApiService.post(`/applications/${id}/profile-image`, formData, {
+            const response = await ApiService.post(`/images/applications/${id}/profile-image`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
@@ -116,7 +116,7 @@ export const ApplicationService = {
             const formData = new FormData();
             formData.append('profileImage', file);
 
-            const response = await ApiService.put(`/applications/${id}/profile-image`, formData, {
+            const response = await ApiService.put(`/images/applications/${id}/profile-image`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
@@ -129,13 +129,13 @@ export const ApplicationService = {
 
     async deleteProfileImage(id: number): Promise<void> {
         try {
-            await ApiService.delete(`/applications/${id}/profile-image`);
+            await ApiService.delete(`/images/applications/${id}/profile-image`);
         } catch (error) {
             throw error;
         }
     },
 
     getProfileImageUrl(id: number): string {
-        return `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL || 'http://localhost:8081'}/api/v1/applications/${id}/profile-image`;
+        return `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL || 'http://localhost:8081'}/api/v1/images/applications/${id}/profile-image`;
     },
 };
