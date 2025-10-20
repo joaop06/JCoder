@@ -1,7 +1,7 @@
+import { validate } from 'class-validator';
+import { plainToInstance } from 'class-transformer';
 import { CreateApplicationDto } from './create-application.dto';
 import { ApplicationTypeEnum } from '../enums/application-type.enum';
-import { plainToInstance } from 'class-transformer';
-import { validate } from 'class-validator';
 
 describe('CreateApplicationDto', () => {
   it('should be defined', () => {
@@ -202,7 +202,7 @@ describe('CreateApplicationDto', () => {
         userId: 1,
         description: 'Test description',
         applicationType: ApplicationTypeEnum.API,
-        githubUrl: undefined,
+        githubUrl: undefined as unknown as string,
       };
 
       const dto = plainToInstance(CreateApplicationDto, validData);

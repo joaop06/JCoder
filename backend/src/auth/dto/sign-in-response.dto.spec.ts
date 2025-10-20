@@ -1,8 +1,9 @@
-import { SignInResponseDto } from './sign-in-response.dto';
+import { validate } from 'class-validator';
+import { plainToInstance } from 'class-transformer';
 import { User } from '../../users/entities/user.entity';
 import { RoleEnum } from '../../@common/enums/role.enum';
-import { plainToInstance } from 'class-transformer';
-import { validate } from 'class-validator';
+import { SignInResponseDto } from './sign-in-response.dto';
+import { Application } from '../../applications/entities/application.entity';
 
 describe('SignInResponseDto', () => {
     it('should be defined', () => {
@@ -96,7 +97,7 @@ describe('SignInResponseDto', () => {
 
         it('should fail validation when accessToken is null', async () => {
             const invalidData = {
-                accessToken: null,
+                accessToken: null as unknown as string,
                 user: createMockUser(),
             };
 
@@ -249,8 +250,8 @@ describe('SignInResponseDto', () => {
                     role: RoleEnum.User,
                     createdAt: '2023-01-01T00:00:00.000Z',
                     updatedAt: '2023-01-01T00:00:00.000Z',
-                    deletedAt: null,
-                    applications: [],
+                    deletedAt: null as unknown as Date,
+                    applications: [] as Application[],
                 },
             };
 

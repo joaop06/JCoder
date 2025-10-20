@@ -1,7 +1,7 @@
-import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
-import { ApplicationComponentMobileDto } from './application-component-mobile.dto';
+import { plainToInstance } from 'class-transformer';
 import { MobilePlatformEnum } from '../../enums/mobile-platform.enum';
+import { ApplicationComponentMobileDto } from './application-component-mobile.dto';
 
 describe('ApplicationComponentMobileDto', () => {
     let dto: ApplicationComponentMobileDto;
@@ -65,7 +65,7 @@ describe('ApplicationComponentMobileDto', () => {
 
         it('should reject null platform', async () => {
             const plain = {
-                platform: null,
+                platform: null as unknown as MobilePlatformEnum,
             };
 
             const dto = plainToInstance(ApplicationComponentMobileDto, plain);
@@ -169,7 +169,7 @@ describe('ApplicationComponentMobileDto', () => {
         it('should accept null downloadUrl', async () => {
             const plain = {
                 platform: MobilePlatformEnum.ANDROID,
-                downloadUrl: null,
+                downloadUrl: null as unknown as string,
             };
 
             const dto = plainToInstance(ApplicationComponentMobileDto, plain);

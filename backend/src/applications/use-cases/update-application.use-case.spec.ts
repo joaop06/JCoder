@@ -1,6 +1,11 @@
+import { MobilePlatformEnum } from '../enums/mobile-platform.enum';
 import { ApplicationTypeEnum } from '../enums/application-type.enum';
 import { UpdateApplicationDto } from '../dto/update-application.dto';
 import { AlreadyExistsApplicationException } from '../exceptions/already-exists-application-exception';
+import { ApplicationComponentApiDto } from '../application-components/dto/application-component-api.dto';
+import { ApplicationComponentMobileDto } from '../application-components/dto/application-component-mobile.dto';
+import { ApplicationComponentLibraryDto } from '../application-components/dto/application-component-library.dto';
+import { ApplicationComponentFrontendDto } from '../application-components/dto/application-component-frontend.dto';
 
 // Mock Application entity to avoid circular dependency
 interface Application {
@@ -91,27 +96,26 @@ describe('UpdateApplicationUseCase', () => {
         description: 'Updated Description',
     };
 
-    const mockApiComponent = {
-        framework: 'Express',
-        language: 'TypeScript',
-        port: 3000,
+    const mockApiComponent: ApplicationComponentApiDto = {
+        domain: 'example.com',
+        apiUrl: 'https://example.com/api',
+        healthCheckEndpoint: 'https://example.com/health',
+        documentationUrl: 'https://example.com/documentation',
     };
 
-    const mockMobileComponent = {
-        platform: 'ANDROID',
-        framework: 'React Native',
-        language: 'TypeScript',
+    const mockMobileComponent: ApplicationComponentMobileDto = {
+        platform: MobilePlatformEnum.ANDROID,
+        downloadUrl: 'https://example.com/download/app.apk',
     };
 
-    const mockFrontendComponent = {
-        framework: 'React',
-        language: 'TypeScript',
-        port: 3001,
+    const mockFrontendComponent: ApplicationComponentFrontendDto = {
+        frontendUrl: 'https://example.com/frontend',
+        screenshotUrl: 'https://example.com/screenshot.png',
     };
 
-    const mockLibraryComponent = {
-        language: 'TypeScript',
-        packageManager: 'npm',
+    const mockLibraryComponent: ApplicationComponentLibraryDto = {
+        readmeContent: 'This is a test readme content',
+        packageManagerUrl: 'https://example.com/package-manager',
     };
 
     beforeEach(() => {

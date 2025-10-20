@@ -1,10 +1,15 @@
+import { MobilePlatformEnum } from '../enums/mobile-platform.enum';
 import { ApplicationTypeEnum } from '../enums/application-type.enum';
 import { CreateApplicationDto } from '../dto/create-application.dto';
-import { AlreadyExistsApplicationException } from '../exceptions/already-exists-application-exception';
 import { RequiredApiComponentToApiApplication } from '../exceptions/required-api-component.exception';
+import { AlreadyExistsApplicationException } from '../exceptions/already-exists-application-exception';
+import { ApplicationComponentApiDto } from '../application-components/dto/application-component-api.dto';
+import { ApplicationComponentMobileDto } from '../application-components/dto/application-component-mobile.dto';
 import { RequiredMobileComponentToMobileApplication } from '../exceptions/required-mobile-component.exception';
 import { RequiredFrontendComponentToApiApplication } from '../exceptions/required-frontend-component.exception';
+import { ApplicationComponentLibraryDto } from '../application-components/dto/application-component-library.dto';
 import { RequiredLibraryComponentToLibraryApplication } from '../exceptions/required-library-component.exception';
+import { ApplicationComponentFrontendDto } from '../application-components/dto/application-component-frontend.dto';
 import { RequiredApiAndFrontendComponentsToFullstackApplication } from '../exceptions/required-api-and-frontend-components.exception';
 
 // Mock Application entity to avoid circular dependency
@@ -127,27 +132,26 @@ describe('CreateApplicationUseCase', () => {
         updatedAt: new Date(),
     };
 
-    const mockApiComponent = {
-        framework: 'Express',
-        language: 'TypeScript',
-        port: 3000,
+    const mockApiComponent: ApplicationComponentApiDto = {
+        domain: 'example.com',
+        apiUrl: 'https://example.com/api',
+        healthCheckEndpoint: 'https://example.com/health',
+        documentationUrl: 'https://example.com/documentation',
     };
 
-    const mockMobileComponent = {
-        platform: 'ANDROID',
-        framework: 'React Native',
-        language: 'TypeScript',
+    const mockMobileComponent: ApplicationComponentMobileDto = {
+        platform: MobilePlatformEnum.ANDROID,
+        downloadUrl: 'https://example.com/download/app.apk',
     };
 
-    const mockFrontendComponent = {
-        framework: 'React',
-        language: 'TypeScript',
-        port: 3001,
+    const mockFrontendComponent: ApplicationComponentFrontendDto = {
+        frontendUrl: 'https://example.com/frontend',
+        screenshotUrl: 'https://example.com/screenshot.png',
     };
 
-    const mockLibraryComponent = {
-        language: 'TypeScript',
-        packageManager: 'npm',
+    const mockLibraryComponent: ApplicationComponentLibraryDto = {
+        readmeContent: 'This is a test readme content',
+        packageManagerUrl: 'https://example.com/package-manager',
     };
 
     beforeEach(() => {

@@ -1,5 +1,5 @@
-import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
+import { plainToInstance } from 'class-transformer';
 import { ApplicationComponentApiDto } from './application-component-api.dto';
 
 describe('ApplicationComponentApiDto', () => {

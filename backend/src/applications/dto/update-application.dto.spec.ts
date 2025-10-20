@@ -1,7 +1,7 @@
+import { validate } from 'class-validator';
+import { plainToInstance } from 'class-transformer';
 import { UpdateApplicationDto } from './update-application.dto';
 import { ApplicationTypeEnum } from '../enums/application-type.enum';
-import { plainToInstance } from 'class-transformer';
-import { validate } from 'class-validator';
 
 describe('UpdateApplicationDto', () => {
     it('should be defined', () => {
@@ -163,7 +163,7 @@ describe('UpdateApplicationDto', () => {
 
         it('should pass validation when githubUrl is null (optional)', async () => {
             const validData = {
-                githubUrl: null,
+                githubUrl: null as unknown as string,
             };
 
             const dto = plainToInstance(UpdateApplicationDto, validData);
@@ -175,7 +175,7 @@ describe('UpdateApplicationDto', () => {
 
         it('should pass validation when githubUrl is undefined (optional)', async () => {
             const validData = {
-                githubUrl: undefined,
+                githubUrl: undefined as unknown as string,
             };
 
             const dto = plainToInstance(UpdateApplicationDto, validData);

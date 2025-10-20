@@ -1,5 +1,5 @@
-import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
+import { plainToInstance } from 'class-transformer';
 import { ApplicationComponentLibraryDto } from './application-component-library.dto';
 
 describe('ApplicationComponentLibraryDto', () => {
@@ -40,7 +40,7 @@ describe('ApplicationComponentLibraryDto', () => {
 
         it('should reject null packageManagerUrl', async () => {
             const plain = {
-                packageManagerUrl: null,
+                packageManagerUrl: null as unknown as string,
             };
 
             const dto = plainToInstance(ApplicationComponentLibraryDto, plain);
@@ -137,7 +137,7 @@ describe('ApplicationComponentLibraryDto', () => {
         it('should accept null readmeContent', async () => {
             const plain = {
                 packageManagerUrl: 'https://www.npmjs.com/package/your-package',
-                readmeContent: null,
+                readmeContent: null as unknown as string,
             };
 
             const dto = plainToInstance(ApplicationComponentLibraryDto, plain);

@@ -1,5 +1,5 @@
-import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
+import { plainToInstance } from 'class-transformer';
 import { ApplicationComponentFrontendDto } from './application-component-frontend.dto';
 
 describe('ApplicationComponentFrontendDto', () => {
@@ -40,7 +40,7 @@ describe('ApplicationComponentFrontendDto', () => {
 
         it('should reject null frontendUrl', async () => {
             const plain = {
-                frontendUrl: null,
+                frontendUrl: null as unknown as string,
             };
 
             const dto = plainToInstance(ApplicationComponentFrontendDto, plain);
@@ -148,7 +148,7 @@ describe('ApplicationComponentFrontendDto', () => {
         it('should accept null screenshotUrl', async () => {
             const plain = {
                 frontendUrl: 'https://example.frontend.com',
-                screenshotUrl: null,
+                screenshotUrl: null as unknown as string,
             };
 
             const dto = plainToInstance(ApplicationComponentFrontendDto, plain);

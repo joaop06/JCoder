@@ -1,6 +1,6 @@
 import { SignInDto } from './sign-in.dto';
-import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
+import { plainToInstance } from 'class-transformer';
 
 describe('SignInDto', () => {
     it('should be defined', () => {
@@ -132,7 +132,7 @@ describe('SignInDto', () => {
 
         it('should fail validation when email is null', async () => {
             const invalidData = {
-                email: null,
+                email: null as unknown as string,
                 password: 'ValidPassword123!',
             };
 
@@ -147,7 +147,7 @@ describe('SignInDto', () => {
         it('should fail validation when password is null', async () => {
             const invalidData = {
                 email: 'test@example.com',
-                password: null,
+                password: null as unknown as string,
             };
 
             const dto = plainToInstance(SignInDto, invalidData);
