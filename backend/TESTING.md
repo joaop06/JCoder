@@ -235,10 +235,32 @@ pnpm test --onlyChanged
 
 ## Working Examples
 
-### DTO Test
+### DTO Tests
 
+#### Pagination DTO
 See `src/@common/dto/pagination.dto.spec.ts` for an example of a DTO test that validates transformations and validations.
+
+#### Application DTOs
+See `src/applications/dto/` for comprehensive DTO tests:
+- `create-application.dto.spec.ts` - 22 tests for CreateApplicationDto
+- `update-application.dto.spec.ts` - 22 tests for UpdateApplicationDto
+
+These tests cover:
+- Field validation (required/optional)
+- Type transformations
+- Enum value validation
+- URL validation
+- Error scenarios
+- Partial updates (for UpdateApplicationDto)
 
 ### Controller Test
 
 See `src/health/health.controller.spec.ts` for an example of a controller test without complex dependencies.
+
+## Test Statistics
+
+Current test coverage:
+- **Total Test Suites**: 4 passed
+- **Total Tests**: 49 passed
+- **DTO Tests**: 48 tests (PaginationDto: 4, CreateApplicationDto: 22, UpdateApplicationDto: 22)
+- **Controller Tests**: 1 test (HealthController)
