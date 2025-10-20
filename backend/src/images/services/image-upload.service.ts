@@ -114,9 +114,7 @@ export class ImageUploadService {
             try {
                 await fs.unlink(filePath);
             } catch (error) {
-                // Log error but don't throw - file might already be deleted
-                const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-                console.warn(`Failed to delete image ${filename}:`, errorMessage);
+                // File might already be deleted, ignore error
             }
         }
 
@@ -127,9 +125,7 @@ export class ImageUploadService {
                 await fs.rmdir(applicationDir);
             }
         } catch (error) {
-            // Directory might not exist or might not be empty
-            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-            console.warn(`Failed to remove application directory:`, errorMessage);
+            // Directory might not exist or might not be empty, ignore error
         }
     }
 
@@ -139,8 +135,7 @@ export class ImageUploadService {
         try {
             await fs.rm(applicationDir, { recursive: true, force: true });
         } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-            console.warn(`Failed to delete application images directory:`, errorMessage);
+            // Directory might not exist, ignore error
         }
     }
 

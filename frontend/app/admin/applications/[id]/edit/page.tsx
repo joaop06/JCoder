@@ -118,10 +118,6 @@ export default function EditApplicationPage() {
         setLoading(true);
         setFormError(null);
 
-        console.log('=== FORM SUBMIT START ===');
-        console.log('Pending profile image action:', pendingProfileImageAction);
-        console.log('Pending profile image file:', pendingProfileImageFile);
-        console.log('Current profile image:', profileImage);
 
         try {
             const payload: UpdateApplicationDto = { ...formData };
@@ -160,29 +156,23 @@ export default function EditApplicationPage() {
             toast.success(`${payload.name} successfully updated!`);
 
             // Apply profile image changes only after successful application update
-            console.log('Profile image action:', pendingProfileImageAction);
-            console.log('Profile image file:', pendingProfileImageFile);
 
             if (pendingProfileImageAction !== 'none') {
-                console.log('Applying profile image changes...');
                 try {
                     switch (pendingProfileImageAction) {
                         case 'upload':
                             if (pendingProfileImageFile) {
-                                console.log('Uploading profile image...');
                                 await ApplicationService.uploadProfileImage(Number(applicationId), pendingProfileImageFile);
                                 toast.success('Profile image uploaded successfully!');
                             }
                             break;
                         case 'update':
                             if (pendingProfileImageFile) {
-                                console.log('Updating profile image...');
                                 await ApplicationService.updateProfileImage(Number(applicationId), pendingProfileImageFile);
                                 toast.success('Profile image updated successfully!');
                             }
                             break;
                         case 'delete':
-                            console.log('Deleting profile image...');
                             await ApplicationService.deleteProfileImage(Number(applicationId));
                             toast.success('Profile image deleted successfully!');
                             break;
@@ -198,8 +188,6 @@ export default function EditApplicationPage() {
                         || 'Failed to update profile image';
                     toast.error(`Application updated but failed to update profile image: ${errorMessage}. You can update it later.`);
                 }
-            } else {
-                console.log('No profile image changes to apply');
             }
 
             router.push('/admin');
@@ -592,10 +580,6 @@ export default function EditApplicationPage() {
                                                     Changes will be applied when you save the application
                                                 </p>
                                             )}
-                                            {/* Debug info - remove in production */}
-                                            <p className="text-xs text-gray-500 mt-1">
-                                                Debug: Action={pendingProfileImageAction}, File={pendingProfileImageFile?.name || 'none'}
-                                            </p>
                                         </div>
                                     </div>
 
@@ -622,11 +606,9 @@ export default function EditApplicationPage() {
                                                             return;
                                                         }
 
-                                                        console.log('File selected:', file.name);
                                                         setPendingProfileImageFile(file);
                                                         const action = profileImage ? 'update' : 'upload';
                                                         setPendingProfileImageAction(action);
-                                                        console.log('Action set to:', action);
                                                     }
                                                 }}
                                                 disabled={loading}
@@ -638,10 +620,8 @@ export default function EditApplicationPage() {
                                             <button
                                                 type="button"
                                                 onClick={() => {
-                                                    console.log('Delete button clicked');
                                                     setPendingProfileImageFile(null);
                                                     setPendingProfileImageAction('delete');
-                                                    console.log('Delete action set');
                                                 }}
                                                 disabled={loading}
                                                 className="px-4 py-2 border border-red-400 text-red-400 rounded-md hover:bg-red-900/20 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm"

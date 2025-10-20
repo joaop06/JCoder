@@ -21,7 +21,7 @@ export class CacheService {
     async reset(): Promise<void> {
         // Note: reset method may not be available in all cache implementations
         // This is a placeholder for cache clearing functionality
-        console.warn('Cache reset not implemented for this cache manager');
+        // Cache reset not implemented for this cache manager
     }
 
     // Helper methods for common cache patterns

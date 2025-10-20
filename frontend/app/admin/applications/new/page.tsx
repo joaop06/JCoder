@@ -72,11 +72,6 @@ export default function NewApplicationPage() {
         setLoading(true);
         setFormError(null);
 
-        console.log('Form submit started:', {
-            hasProfileImageFile: !!profileImageFile,
-            profileImageFileName: profileImageFile?.name,
-            imagesCount: images.length
-        });
 
         try {
             const payload: CreateApplicationDto = { ...formData };
@@ -117,22 +112,10 @@ export default function NewApplicationPage() {
             toast.success(`${payload.name} successfully created!`);
 
             // Upload profile image if provided - only after successful creation
-            console.log('Profile image file check:', {
-                hasProfileImageFile: !!profileImageFile,
-                profileImageFileName: profileImageFile?.name,
-                applicationId: createdApplication.id
-            });
 
             if (profileImageFile) {
-                console.log('Starting profile image upload process...', {
-                    applicationId: createdApplication.id,
-                    fileName: profileImageFile.name,
-                    fileSize: profileImageFile.size,
-                    fileType: profileImageFile.type
-                });
                 try {
                     await ApplicationService.uploadProfileImage(createdApplication.id, profileImageFile);
-                    console.log('Profile image uploaded successfully!');
                     toast.success('Profile image uploaded successfully!');
                 } catch (error: any) {
                     console.error('Error uploading profile image:', error);
@@ -141,13 +124,10 @@ export default function NewApplicationPage() {
                         || 'Failed to upload profile image';
                     toast.error(`Application created but failed to upload profile image: ${errorMessage}. You can add it later.`);
                 }
-            } else {
-                console.log('No profile image file to upload');
             }
 
             // Upload images if any - only after successful creation
             if (images.length > 0) {
-                console.log('Starting image upload process...', { imagesCount: images.length, applicationId: createdApplication.id });
                 try {
                     // Convert data URLs to File objects for upload
                     const files: File[] = [];
@@ -169,17 +149,12 @@ export default function NewApplicationPage() {
                             // Create File object
                             const file = new File([bytes], `image-${i}.${extension}`, { type: mimeType });
                             files.push(file);
-                            console.log(`Created file ${i}:`, { name: file.name, size: file.size, type: file.type });
                         }
                     }
 
                     if (files.length > 0) {
-                        console.log('Uploading files to server...', { filesCount: files.length });
                         await ApplicationService.uploadImages(createdApplication.id, files);
-                        console.log('Images uploaded successfully!');
                         toast.success('Images uploaded successfully!');
-                    } else {
-                        console.log('No valid files to upload');
                     }
                 } catch (error: any) {
                     console.error('Error uploading images:', error);
@@ -188,8 +163,6 @@ export default function NewApplicationPage() {
                         || 'Failed to upload images';
                     toast.error(`Application created but failed to upload images: ${errorMessage}. You can add them later.`);
                 }
-            } else {
-                console.log('No images to upload');
             }
 
             router.push('/admin');
@@ -563,15 +536,8 @@ export default function NewApplicationPage() {
                                                 accept="image/jpeg,image/jpg,image/png,image/webp"
                                                 onChange={(e) => {
                                                     const file = e.target.files?.[0];
-                                                    console.log('File input changed:', {
-                                                        hasFile: !!file,
-                                                        fileName: file?.name,
-                                                        fileSize: file?.size,
-                                                        fileType: file?.type
-                                                    });
                                                     if (file) {
                                                         setProfileImageFile(file);
-                                                        console.log('Profile image file set:', file.name);
                                                     }
                                                 }}
                                                 disabled={loading}

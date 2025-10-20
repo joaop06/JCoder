@@ -189,10 +189,10 @@ function _findMissingRefs(doc: OpenAPIObject): void {
 	walk(doc as any);
 	const missingRefs = Array.from(missing);
 
-	if (missingRefs.length) {
-		// eslint-disable-next-line no-console
-		console.warn("[OpenAPI] Invalid/missing refs detected:", missingRefs);
-	}
+	// Note: Missing refs detection is commented out to avoid console warnings
+	// if (missingRefs.length) {
+	//     console.warn("[OpenAPI] Invalid/missing refs detected:", missingRefs);
+	// }
 }
 
 bootstrap();
