@@ -6,6 +6,7 @@ import Header from '@/components/Header';
 import { useRouter, useParams } from 'next/navigation';
 import { useState, useEffect, useCallback } from 'react';
 import { useToast } from '@/components/toast/ToastContext';
+import ImageUpload from '@/components/applications/ImageUpload';
 import { ApplicationService } from '@/services/applications.service';
 import { ApplicationTypeEnum } from '@/types/enums/application-type.enum';
 import { UpdateApplicationDto } from '@/types/entities/dtos/update-application.dto';
@@ -23,6 +24,11 @@ export default function EditApplicationPage() {
         description: '',
         applicationType: ApplicationTypeEnum.API,
     });
+    const [images, setImages] = useState<string[]>([]);
+    const [profileImage, setProfileImage] = useState<string | null>(null);
+    const [originalProfileImage, setOriginalProfileImage] = useState<string | null>(null);
+    const [pendingProfileImageFile, setPendingProfileImageFile] = useState<File | null>(null);
+    const [pendingProfileImageAction, setPendingProfileImageAction] = useState<'none' | 'upload' | 'update' | 'delete'>('none');
 
     const toast = useToast();
 
@@ -70,6 +76,9 @@ export default function EditApplicationPage() {
                 };
 
                 setFormData(updateApplicationDto);
+                setImages(data.images || []);
+                setProfileImage(data.profileImage || null);
+                setOriginalProfileImage(data.profileImage || null);
             } catch (err: any) {
                 const errorMessage = err?.response?.data?.message
                     || err.message
@@ -109,6 +118,7 @@ export default function EditApplicationPage() {
         setLoading(true);
         setFormError(null);
 
+
         try {
             const payload: UpdateApplicationDto = { ...formData };
 
@@ -145,6 +155,41 @@ export default function EditApplicationPage() {
             await ApplicationService.update(Number(applicationId), payload);
             toast.success(`${payload.name} successfully updated!`);
 
+            // Apply profile image changes only after successful application update
+
+            if (pendingProfileImageAction !== 'none') {
+                try {
+                    switch (pendingProfileImageAction) {
+                        case 'upload':
+                            if (pendingProfileImageFile) {
+                                await ApplicationService.uploadProfileImage(Number(applicationId), pendingProfileImageFile);
+                                toast.success('Profile image uploaded successfully!');
+                            }
+                            break;
+                        case 'update':
+                            if (pendingProfileImageFile) {
+                                await ApplicationService.updateProfileImage(Number(applicationId), pendingProfileImageFile);
+                                toast.success('Profile image updated successfully!');
+                            }
+                            break;
+                        case 'delete':
+                            await ApplicationService.deleteProfileImage(Number(applicationId));
+                            toast.success('Profile image deleted successfully!');
+                            break;
+                    }
+
+                    // Reset pending states after successful application
+                    setPendingProfileImageFile(null);
+                    setPendingProfileImageAction('none');
+                } catch (error: any) {
+                    console.error('Error updating profile image:', error);
+                    const errorMessage = error?.response?.data?.message
+                        || error?.message
+                        || 'Failed to update profile image';
+                    toast.error(`Application updated but failed to update profile image: ${errorMessage}. You can update it later.`);
+                }
+            }
+
             router.push('/admin');
         } catch (err: any) {
             console.error('Error updating application:', err);
@@ -157,7 +202,7 @@ export default function EditApplicationPage() {
         } finally {
             setLoading(false);
         }
-    }, [formData, router, applicationId]);
+    }, [formData, router, applicationId, pendingProfileImageAction, pendingProfileImageFile, profileImage, toast]);
 
     if (!isAuthenticated || loading) {
         return (
@@ -476,6 +521,142 @@ export default function EditApplicationPage() {
                                     </div>
                                 </div>
                             )}
+
+                            {/* Profile Image Management Section */}
+                            <div className="mt-6 pt-6 border-t border-jcoder border-l-4 border-jcoder-primary pl-4">
+                                <h3 className="text-lg font-medium text-jcoder-foreground mb-4">Profile Image</h3>
+                                <p className="text-sm text-jcoder-muted mb-4">
+                                    Manage the logo or profile image for your application
+                                </p>
+                                <div className="space-y-4">
+                                    <div className="flex items-center space-x-4">
+                                        <div className="relative">
+                                            {pendingProfileImageFile ? (
+                                                <img
+                                                    src={URL.createObjectURL(pendingProfileImageFile)}
+                                                    alt="Profile preview"
+                                                    className="w-20 h-20 rounded-lg object-cover border border-jcoder"
+                                                />
+                                            ) : profileImage ? (
+                                                <img
+                                                    src={ApplicationService.getProfileImageUrl(Number(applicationId))}
+                                                    alt="Current profile"
+                                                    className="w-20 h-20 rounded-lg object-cover border border-jcoder"
+                                                />
+                                            ) : (
+                                                <div className="w-20 h-20 rounded-lg border-2 border-dashed border-jcoder flex items-center justify-center bg-jcoder-secondary">
+                                                    <svg
+                                                        className="w-8 h-8 text-jcoder-muted"
+                                                        fill="none"
+                                                        stroke="currentColor"
+                                                        viewBox="0 0 24 24"
+                                                    >
+                                                        <path
+                                                            strokeLinecap="round"
+                                                            strokeLinejoin="round"
+                                                            strokeWidth={2}
+                                                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                                        />
+                                                    </svg>
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="flex-1">
+                                            <p className="text-sm text-jcoder-muted">
+                                                {pendingProfileImageAction === 'delete'
+                                                    ? 'Profile image will be deleted'
+                                                    : pendingProfileImageFile
+                                                        ? 'New profile image selected'
+                                                        : profileImage
+                                                            ? 'Current profile image'
+                                                            : 'No profile image set'
+                                                }
+                                            </p>
+                                            <p className="text-xs text-jcoder-muted">
+                                                Recommended: 400x400px, max 5MB
+                                            </p>
+                                            {pendingProfileImageAction !== 'none' && (
+                                                <p className="text-xs text-yellow-400 mt-1">
+                                                    Changes will be applied when you save the application
+                                                </p>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div className="flex flex-wrap gap-2">
+                                        <label className="px-4 py-2 bg-jcoder-gradient text-black rounded-md hover:opacity-90 transition-opacity duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm cursor-pointer">
+                                            {profileImage ? 'Change Image' : 'Upload Image'}
+                                            <input
+                                                type="file"
+                                                accept="image/jpeg,image/jpg,image/png,image/webp"
+                                                onChange={(e) => {
+                                                    const file = e.target.files?.[0];
+                                                    if (file) {
+                                                        // Validate file type
+                                                        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+                                                        if (!allowedTypes.includes(file.type)) {
+                                                            toast.error('Invalid file type. Only JPEG, PNG and WebP images are allowed.');
+                                                            return;
+                                                        }
+
+                                                        // Validate file size (5MB)
+                                                        const maxSize = 5 * 1024 * 1024; // 5MB
+                                                        if (file.size > maxSize) {
+                                                            toast.error('File too large. Maximum size is 5MB.');
+                                                            return;
+                                                        }
+
+                                                        setPendingProfileImageFile(file);
+                                                        const action = profileImage ? 'update' : 'upload';
+                                                        setPendingProfileImageAction(action);
+                                                    }
+                                                }}
+                                                disabled={loading}
+                                                className="hidden"
+                                            />
+                                        </label>
+
+                                        {profileImage && (
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setPendingProfileImageFile(null);
+                                                    setPendingProfileImageAction('delete');
+                                                }}
+                                                disabled={loading}
+                                                className="px-4 py-2 border border-red-400 text-red-400 rounded-md hover:bg-red-900/20 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm"
+                                            >
+                                                Delete Image
+                                            </button>
+                                        )}
+
+                                        {pendingProfileImageAction !== 'none' && (
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setPendingProfileImageFile(null);
+                                                    setPendingProfileImageAction('none');
+                                                }}
+                                                disabled={loading}
+                                                className="px-4 py-2 border border-jcoder text-jcoder-muted rounded-md hover:bg-jcoder-secondary transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm"
+                                            >
+                                                Cancel Changes
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Image Upload Section */}
+                            <div className="mt-6 pt-6 border-t border-jcoder border-l-4 border-jcoder-primary pl-4">
+                                <h3 className="text-lg font-medium text-jcoder-foreground mb-4">Application Images</h3>
+                                <ImageUpload
+                                    images={images}
+                                    onImagesChange={setImages}
+                                    applicationId={Number(applicationId)}
+                                    disabled={loading}
+                                />
+                            </div>
 
                             <div className="mt-8 flex justify-end gap-4">
                                 <button

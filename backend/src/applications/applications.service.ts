@@ -5,6 +5,7 @@ import { Application } from './entities/application.entity';
 import { CacheService } from '../@common/services/cache.service';
 import { CreateApplicationDto } from './dto/create-application.dto';
 import { UpdateApplicationDto } from './dto/update-application.dto';
+import { ImageUploadService } from '../images/services/image-upload.service';
 import { FindManyOptions, FindOptionsWhere, Repository } from 'typeorm';
 import { PaginationDto, PaginatedResponseDto } from '../@common/dto/pagination.dto';
 import { ApplicationNotFoundException } from './exceptions/application-not-found.exception';
@@ -15,6 +16,7 @@ export class ApplicationsService {
     @InjectRepository(Application)
     private readonly repository: Repository<Application>,
     private readonly cacheService: CacheService,
+    private readonly imageUploadService: ImageUploadService,
   ) { }
 
   async findAll(options?: FindManyOptions<Application>): Promise<Application[]> {
@@ -108,10 +110,19 @@ export class ApplicationsService {
   }
 
   async delete(id: number): Promise<void> {
+    // Get application to access images before deletion
+    const application = await this.findById(id);
+
+    // Delete all associated images
+    if (application.images && application.images.length > 0) {
+      await this.imageUploadService.deleteAllApplicationImages(id);
+    }
+
     await this.repository.delete(id);
 
     // Invalidate cache
     await this.cacheService.del(this.cacheService.applicationKey(id, 'full'));
     await this.cacheService.del(this.cacheService.generateKey('applications', 'paginated'));
   }
+
 };

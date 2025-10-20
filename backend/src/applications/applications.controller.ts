@@ -1,16 +1,16 @@
 import {
-  Put,
   Get,
+  Put,
   Post,
   Body,
   Param,
+  Query,
   Delete,
   HttpCode,
   UseGuards,
   Controller,
   HttpStatus,
   ParseIntPipe,
-  Query,
 } from '@nestjs/common';
 import { FindManyOptions } from 'typeorm';
 import { RoleEnum } from '../@common/enums/role.enum';
@@ -110,4 +110,5 @@ export class ApplicationsController {
   async delete(@Param('id') id: string) {
     return await this.deleteApplicationUseCase.execute(+id);
   }
+
 };

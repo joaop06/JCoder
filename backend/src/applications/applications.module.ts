@@ -1,7 +1,9 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CacheModule } from '@nestjs/cache-manager';
 import { UsersModule } from '../users/users.module';
+import { ImagesModule } from '../images/images.module';
 import { Application } from './entities/application.entity';
 import { ApplicationsService } from './applications.service';
 import { CacheService } from '../@common/services/cache.service';
@@ -22,6 +24,8 @@ import { ApplicationComponentsModule } from './application-components/applicatio
   controllers: [ApplicationsController],
   imports: [
     UsersModule,
+    ConfigModule,
+    ImagesModule,
     ApplicationComponentsModule,
     TypeOrmModule.forFeature([Application]),
     CacheModule.register({

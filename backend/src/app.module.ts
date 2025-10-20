@@ -7,6 +7,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { HealthModule } from './health/health.module';
 import { loggerConfig } from './@common/config/logger.config';
 import { ApplicationsModule } from './applications/applications.module';
+import { ImagesModule } from './images/images.module';
 import { TypeormMysqlModule } from './@common/database/typeorm-mysql-module';
 
 @Module({
@@ -27,6 +28,7 @@ import { TypeormMysqlModule } from './@common/database/typeorm-mysql-module';
     AuthModule,
     UsersModule,
     HealthModule,
+    ImagesModule,
     ApplicationsModule,
     TypeormMysqlModule,
   ],
