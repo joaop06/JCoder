@@ -19,6 +19,7 @@ export class SignInResponseDto {
         type: () => User,
         description: 'Logged-in user data',
     })
+    @IsNotEmpty()
     @Type(() => User)
     user!: User;
 };

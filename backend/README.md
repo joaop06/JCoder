@@ -47,16 +47,26 @@ $ npm run start:prod
 
 ## Run tests
 
+A aplicação possui configuração completa de testes unitários usando Jest com SWC para compilação rápida.
+
 ```bash
-# unit tests
-$ npm run test
+# Executar todos os testes
+pnpm test
 
-# e2e tests
-$ npm run test:e2e
+# Executar testes em modo watch
+pnpm test:watch
 
-# test coverage
-$ npm run test:cov
+# Executar testes com cobertura
+pnpm test:cov
+
+# Executar testes em modo debug
+pnpm test:debug
+
+# Executar testes e2e
+pnpm test:e2e
 ```
+
+📚 **Para mais informações sobre testes, consulte [TESTING.md](./TESTING.md)**
 
 ## Deployment
 
