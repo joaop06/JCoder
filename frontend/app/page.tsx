@@ -9,6 +9,7 @@ import { Application } from '@/types/entities/application.entity';
 import { ApplicationService } from '@/services/applications.service';
 import ApplicationCard from '@/components/applications/ApplicationCard';
 import { useSmoothScroll } from '@/hooks/useSmoothScroll';
+import { GitHubIcon } from '@/components/theme';
 
 export default function Home() {
   const [loading, setLoading] = useState(true);
@@ -329,40 +330,38 @@ export default function Home() {
               {/* Social Links */}
               <div className="flex flex-wrap justify-center gap-6 mb-12">
                 <a
-                  href="https://github.com/jcoder"
+                  href="https://github.com/joaop06"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="group flex items-center gap-3 px-6 py-3 bg-jcoder-card rounded-lg hover:bg-jcoder-gradient transition-all duration-300"
                 >
-                  <span className="text-2xl">🐙</span>
+                  <GitHubIcon className="w-6 h-6" />
                   <span className="font-semibold">GitHub</span>
                 </a>
 
                 <a
-                  href="https://linkedin.com/in/jcoder"
+                  href="https://www.linkedin.com/in/jo%C3%A3o-pedro-borges-ara%C3%BAjo-9a134116b "
                   target="_blank"
                   rel="noopener noreferrer"
                   className="group flex items-center gap-3 px-6 py-3 bg-jcoder-card rounded-lg hover:bg-jcoder-gradient transition-all duration-300"
                 >
-                  <span className="text-2xl">💼</span>
+                  <img
+                    src="/icons/linkedin.png"
+                    alt="LinkedIn"
+                    className="w-6 h-6 dark"
+                  />
                   <span className="font-semibold">LinkedIn</span>
                 </a>
 
                 <a
-                  href="https://twitter.com/jcoder"
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  href="mailto:joaopedroborges@gmail.com"
                   className="group flex items-center gap-3 px-6 py-3 bg-jcoder-card rounded-lg hover:bg-jcoder-gradient transition-all duration-300"
                 >
-                  <span className="text-2xl">🐦</span>
-                  <span className="font-semibold">Twitter</span>
-                </a>
-
-                <a
-                  href="mailto:contato@jcoder.dev"
-                  className="group flex items-center gap-3 px-6 py-3 bg-jcoder-card rounded-lg hover:bg-jcoder-gradient transition-all duration-300"
-                >
-                  <span className="text-2xl">📧</span>
+                  <img
+                    src="/icons/gmail.png"
+                    alt="Gmail"
+                    className="w-6 h-6"
+                  />
                   <span className="font-semibold">Email</span>
                 </a>
               </div>

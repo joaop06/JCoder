@@ -1,6 +1,7 @@
 'use client';
 
 import { useSmoothScroll } from '@/hooks/useSmoothScroll';
+import { GitHubIcon } from '@/components/theme';
 
 export default function Footer() {
   const { scrollToElement } = useSmoothScroll();
@@ -59,13 +60,16 @@ export default function Footer() {
             <div className="text-center md:text-right">
               <h3 className="font-semibold text-jcoder-foreground mb-4">Contato</h3>
               <div className="space-y-2">
-                <a href="mailto:contato@jcoder.dev" className="block text-sm text-jcoder-muted hover:text-jcoder-primary transition-colors">
-                  contato@jcoder.dev
+                <a href="mailto:joaopedroborges@gmail.com" className="flex items-center gap-2 text-sm text-jcoder-muted hover:text-jcoder-primary transition-colors">
+                  <img src="/icons/gmail.png" alt="Gmail" className="w-4 h-4" />
+                  joaopedroborges@gmail.com
                 </a>
-                <a href="https://github.com/jcoder" target="_blank" rel="noopener noreferrer" className="block text-sm text-jcoder-muted hover:text-jcoder-primary transition-colors">
+                <a href="https://github.com/joaop06" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-jcoder-muted hover:text-jcoder-primary transition-colors">
+                  <GitHubIcon className="w-4 h-4" />
                   GitHub
                 </a>
-                <a href="https://linkedin.com/in/jcoder" target="_blank" rel="noopener noreferrer" className="block text-sm text-jcoder-muted hover:text-jcoder-primary transition-colors">
+                <a href="https://www.linkedin.com/in/jo%C3%A3o-pedro-borges-ara%C3%BAjo-9a134116b " target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-jcoder-muted hover:text-jcoder-primary transition-colors">
+                  <img src="/icons/linkedin.png" alt="LinkedIn" className="w-4 h-4 dark" />
                   LinkedIn
                 </a>
               </div>
