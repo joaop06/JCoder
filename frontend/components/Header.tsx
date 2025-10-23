@@ -7,6 +7,7 @@ import { RoleEnum } from '@/types/enums/role.enum';
 import { UsersService } from '@/services/users.service';
 import { useEffect, useState, useCallback } from 'react';
 import { HealthStatusComponent } from './health/HealthStatus';
+import { useSmoothScroll } from '@/hooks/useSmoothScroll';
 
 interface HeaderProps {
   isAdmin?: boolean;
@@ -18,6 +19,7 @@ export default function Header({
   onLogout
 }: HeaderProps) {
   const router = useRouter();
+  const { scrollToElement } = useSmoothScroll();
   const [isClient, setIsClient] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isAdmin, setIsAdmin] = useState(isAdminProp);
@@ -183,11 +185,32 @@ export default function Header({
               </div>
 
               <nav className="flex items-center justify-center gap-8">
-                <Link href="/" className="text-jcoder-muted hover:text-jcoder-primary transition-colors">
-                  Applications
-                </Link>
+                <button
+                  onClick={() => scrollToElement('about', 80)}
+                  className="text-jcoder-muted hover:text-jcoder-primary transition-colors cursor-pointer"
+                >
+                  Sobre
+                </button>
+                <button
+                  onClick={() => scrollToElement('tech-stack', 80)}
+                  className="text-jcoder-muted hover:text-jcoder-primary transition-colors cursor-pointer"
+                >
+                  Tecnologias
+                </button>
+                <button
+                  onClick={() => scrollToElement('projects', 80)}
+                  className="text-jcoder-muted hover:text-jcoder-primary transition-colors cursor-pointer"
+                >
+                  Projetos
+                </button>
+                <button
+                  onClick={() => scrollToElement('contact', 80)}
+                  className="text-jcoder-muted hover:text-jcoder-primary transition-colors cursor-pointer"
+                >
+                  Contato
+                </button>
                 <Link href="/admin" className="text-jcoder-muted hover:text-jcoder-primary transition-colors">
-                  Administration
+                  Admin
                 </Link>
               </nav>
 
@@ -211,9 +234,15 @@ export default function Header({
             <div className="flex items-center justify-between">
               <Logo />
 
-              <nav className="flex items-center">
-                <Link href="/admin" className="text-jcoder-muted hover:text-jcoder-primary transition-colors">
-                  Administration
+              <nav className="flex items-center gap-4">
+                <button
+                  onClick={() => scrollToElement('projects', 80)}
+                  className="text-jcoder-muted hover:text-jcoder-primary transition-colors text-sm cursor-pointer"
+                >
+                  Projetos
+                </button>
+                <Link href="/admin" className="text-jcoder-muted hover:text-jcoder-primary transition-colors text-sm">
+                  Admin
                 </Link>
               </nav>
 
