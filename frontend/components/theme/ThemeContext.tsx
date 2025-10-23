@@ -41,11 +41,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         setTheme(prevTheme => prevTheme === 'dark' ? 'light' : 'dark');
     };
 
-    // Evitar hidratação incorreta
-    if (!mounted) {
-        return <div style={{ visibility: 'hidden' }}>{children}</div>;
-    }
-
+    // Sempre renderizar o provider, mas com tema padrão durante SSR
     return (
         <ThemeContext.Provider value={{ theme, toggleTheme }}>
             {children}
