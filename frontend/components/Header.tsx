@@ -469,18 +469,27 @@ export default function Header({
               </div>
 
               <nav className="flex items-center justify-center gap-8">
-                {currentPath === '/admin' ? (
-                  // Admin page navigation
+                {currentPath === '/admin' || currentPath === '/profile' ? (
+                  // Admin or Profile page navigation
                   <>
                     <Link
-                      href="/"
-                      className="text-jcoder-muted hover:text-jcoder-primary transition-colors"
+                      href="/admin"
+                      className={`px-4 py-2 rounded-lg font-medium transition-colors ${currentPath === '/admin'
+                        ? 'bg-jcoder-gradient text-black'
+                        : 'text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary'
+                        }`}
                     >
-                      Home
-                    </Link>
-                    <span className="px-4 py-2 rounded-lg bg-jcoder-gradient text-black font-medium">
                       Administration
-                    </span>
+                    </Link>
+                    <Link
+                      href="/profile"
+                      className={`px-4 py-2 rounded-lg font-medium transition-colors ${currentPath === '/profile'
+                        ? 'bg-jcoder-gradient text-black'
+                        : 'text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary'
+                        }`}
+                    >
+                      Profile
+                    </Link>
                   </>
                 ) : (
                   // Home page navigation
@@ -596,18 +605,27 @@ export default function Header({
               <Logo />
 
               <nav className="flex items-center gap-4">
-                {currentPath === '/admin' ? (
-                  // Admin page navigation
+                {currentPath === '/admin' || currentPath === '/profile' ? (
+                  // Admin or Profile page navigation
                   <>
                     <Link
-                      href="/"
-                      className="text-jcoder-muted hover:text-jcoder-primary transition-colors text-sm"
+                      href="/admin"
+                      className={`px-3 py-1 rounded-lg font-medium text-sm transition-colors ${currentPath === '/admin'
+                        ? 'bg-jcoder-gradient text-black'
+                        : 'text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary'
+                        }`}
                     >
-                      Home
-                    </Link>
-                    <span className="px-3 py-1 rounded-lg bg-jcoder-gradient text-black font-medium text-sm">
                       Admin
-                    </span>
+                    </Link>
+                    <Link
+                      href="/profile"
+                      className={`px-3 py-1 rounded-lg font-medium text-sm transition-colors ${currentPath === '/profile'
+                        ? 'bg-jcoder-gradient text-black'
+                        : 'text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary'
+                        }`}
+                    >
+                      Profile
+                    </Link>
                   </>
                 ) : (
                   // Home page navigation
