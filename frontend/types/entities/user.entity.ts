@@ -3,6 +3,7 @@ import { Application } from "./application.entity";
 
 export interface User {
     id: number;
+    name?: string;
     email: string;
     role: RoleEnum;
     applications?: Application[];

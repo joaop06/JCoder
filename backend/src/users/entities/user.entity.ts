@@ -1,7 +1,6 @@
 import {
   Column,
   Entity,
-  OneToMany,
   CreateDateColumn,
   DeleteDateColumn,
   UpdateDateColumn,
@@ -10,7 +9,6 @@ import {
 import { Exclude } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 import { RoleEnum } from '../../@common/enums/role.enum';
-import { ApplicationType } from '../../@common/types/entities.type';
 
 @Entity('users')
 export class User {
@@ -47,14 +45,6 @@ export class User {
   })
   role: RoleEnum;
 
-  @ApiProperty({
-    enum: RoleEnum,
-    nullable: true,
-    required: false,
-    example: RoleEnum.Admin,
-  })
-  @OneToMany('Application', (application: any) => application.user)
-  applications: ApplicationType[];
 
   @ApiProperty({
     nullable: false,

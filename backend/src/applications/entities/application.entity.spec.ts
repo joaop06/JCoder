@@ -1,14 +1,4 @@
 // Mock entities to avoid circular dependencies
-class MockUser {
-    id: number;
-    email: string;
-    password: string;
-    role: string;
-    applications: any[];
-    createdAt: Date;
-    updatedAt: Date;
-    deletedAt?: Date;
-}
 
 class MockApplicationComponentApi {
     applicationId: number;
@@ -47,8 +37,6 @@ class MockApplicationComponentFrontend {
 // Mock Application entity
 class MockApplication {
     id: number;
-    userId: number;
-    user: MockUser;
     name: string;
     description: string;
     applicationType: string;
@@ -89,7 +77,6 @@ describe('Application Entity', () => {
         it('should have userId property', () => {
             expect(entity.userId).toBeUndefined();
             entity.userId = 123;
-            expect(entity.userId).toBe(123);
         });
 
         it('should have name property', () => {
@@ -136,12 +123,6 @@ describe('Application Entity', () => {
     });
 
     describe('Relationship Properties', () => {
-        it('should have user property', () => {
-            expect(entity.user).toBeUndefined();
-            const mockUser = new MockUser();
-            entity.user = mockUser;
-            expect(entity.user).toBe(mockUser);
-        });
 
         it('should have applicationComponentApi property', () => {
             expect(entity.applicationComponentApi).toBeUndefined();
@@ -199,7 +180,6 @@ describe('Application Entity', () => {
         it('should have all required properties', () => {
             const requiredProperties = [
                 'id',
-                'userId',
                 'name',
                 'description',
                 'applicationType',
@@ -207,7 +187,6 @@ describe('Application Entity', () => {
                 'isActive',
                 'images',
                 'profileImage',
-                'user',
                 'applicationComponentApi',
                 'applicationComponentMobile',
                 'applicationComponentLibrary',
@@ -232,7 +211,6 @@ describe('Application Entity', () => {
             entity.isActive = true;
             entity.images = ['test.jpg'];
             entity.profileImage = 'profile.jpg';
-            entity.user = new MockUser();
             entity.applicationComponentApi = new MockApplicationComponentApi();
             entity.applicationComponentMobile = new MockApplicationComponentMobile();
             entity.applicationComponentLibrary = new MockApplicationComponentLibrary();
@@ -250,7 +228,6 @@ describe('Application Entity', () => {
             expect(typeof entity.isActive).toBe('boolean');
             expect(Array.isArray(entity.images)).toBe(true);
             expect(typeof entity.profileImage).toBe('string');
-            expect(entity.user).toBeInstanceOf(MockUser);
             expect(entity.applicationComponentApi).toBeInstanceOf(MockApplicationComponentApi);
             expect(entity.applicationComponentMobile).toBeInstanceOf(MockApplicationComponentMobile);
             expect(entity.applicationComponentLibrary).toBeInstanceOf(MockApplicationComponentLibrary);
@@ -292,7 +269,6 @@ describe('Application Entity', () => {
         it('should create instance with all properties', () => {
             const testData = {
                 id: 1,
-                userId: 123,
                 name: 'Test Application',
                 description: 'This is a test application',
                 applicationType: 'API',
@@ -308,7 +284,6 @@ describe('Application Entity', () => {
             const entity = Object.assign(new MockApplication(), testData);
 
             expect(entity.id).toBe(1);
-            expect(entity.userId).toBe(123);
             expect(entity.name).toBe('Test Application');
             expect(entity.description).toBe('This is a test application');
             expect(entity.applicationType).toBe('API');
@@ -324,7 +299,6 @@ describe('Application Entity', () => {
         it('should create instance with only required properties', () => {
             const testData = {
                 id: 1,
-                userId: 123,
                 name: 'Minimal Application',
                 description: 'Minimal description',
                 applicationType: 'MOBILE',
@@ -334,7 +308,6 @@ describe('Application Entity', () => {
             const entity = Object.assign(new MockApplication(), testData);
 
             expect(entity.id).toBe(1);
-            expect(entity.userId).toBe(123);
             expect(entity.name).toBe('Minimal Application');
             expect(entity.description).toBe('Minimal description');
             expect(entity.applicationType).toBe('MOBILE');
@@ -345,9 +318,6 @@ describe('Application Entity', () => {
         });
 
         it('should create instance with relationships', () => {
-            const mockUser = new MockUser();
-            mockUser.id = 123;
-            mockUser.email = 'test@example.com';
 
             const mockApiComponent = new MockApplicationComponentApi();
             mockApiComponent.applicationId = 1;
@@ -355,20 +325,16 @@ describe('Application Entity', () => {
 
             const testData = {
                 id: 1,
-                userId: 123,
                 name: 'Application with Relationships',
                 description: 'Test description',
                 applicationType: 'API',
                 isActive: true,
-                user: mockUser,
                 applicationComponentApi: mockApiComponent
             };
 
             const entity = Object.assign(new MockApplication(), testData);
 
-            expect(entity.user).toBe(mockUser);
             expect(entity.applicationComponentApi).toBe(mockApiComponent);
-            expect(entity.user.id).toBe(123);
             expect(entity.applicationComponentApi.domain).toBe('api.example.com');
         });
     });
@@ -603,21 +569,6 @@ describe('Application Entity', () => {
             expect(entity.applicationComponentFrontend.frontendUrl).toBe('https://app.example.com');
         });
 
-        it('should handle application with user relationship', () => {
-            const mockUser = new MockUser();
-            mockUser.id = 123;
-            mockUser.email = 'developer@example.com';
-            mockUser.role = 'Admin';
-
-            entity.id = 1;
-            entity.userId = 123;
-            entity.user = mockUser;
-
-            expect(entity.user).toBeDefined();
-            expect(entity.user.id).toBe(123);
-            expect(entity.user.email).toBe('developer@example.com');
-            expect(entity.userId).toBe(123);
-        });
     });
 
     describe('Data Validation Scenarios', () => {

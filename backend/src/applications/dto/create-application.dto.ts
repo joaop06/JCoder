@@ -27,16 +27,6 @@ export class CreateApplicationDto {
   @IsString()
   name!: string;
 
-  @ApiProperty({
-    example: 1,
-    type: 'number',
-    required: true,
-    nullable: false,
-    description: 'User who created the application',
-  })
-  @IsNotEmpty()
-  @IsNumber()
-  userId!: number;
 
   @ApiProperty({
     type: 'string',

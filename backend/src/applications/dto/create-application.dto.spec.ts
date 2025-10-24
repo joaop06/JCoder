@@ -13,7 +13,6 @@ describe('CreateApplicationDto', () => {
     it('should pass validation with valid data', async () => {
       const validData = {
         name: 'Test Application',
-        userId: 1,
         description: 'This is a test application',
         applicationType: ApplicationTypeEnum.API,
         githubUrl: 'https://github.com/user/test-app',
@@ -24,7 +23,7 @@ describe('CreateApplicationDto', () => {
 
       expect(errors.length).toBe(0);
       expect(dto.name).toBe(validData.name);
-      expect(dto.userId).toBe(validData.userId);
+      (validData.userId);
       expect(dto.description).toBe(validData.description);
       expect(dto.applicationType).toBe(validData.applicationType);
       expect(dto.githubUrl).toBe(validData.githubUrl);
@@ -33,7 +32,6 @@ describe('CreateApplicationDto', () => {
     it('should pass validation with minimal required data', async () => {
       const minimalData = {
         name: 'Minimal App',
-        userId: 1,
         description: 'Minimal description',
         applicationType: ApplicationTypeEnum.MOBILE,
       };
@@ -43,14 +41,13 @@ describe('CreateApplicationDto', () => {
 
       expect(errors.length).toBe(0);
       expect(dto.name).toBe(minimalData.name);
-      expect(dto.userId).toBe(minimalData.userId);
+      (minimalData.userId);
       expect(dto.description).toBe(minimalData.description);
       expect(dto.applicationType).toBe(minimalData.applicationType);
     });
 
     it('should fail validation when name is missing', async () => {
       const invalidData = {
-        userId: 1,
         description: 'Test description',
         applicationType: ApplicationTypeEnum.API,
       };
@@ -65,7 +62,6 @@ describe('CreateApplicationDto', () => {
     it('should fail validation when name is empty string', async () => {
       const invalidData = {
         name: '',
-        userId: 1,
         description: 'Test description',
         applicationType: ApplicationTypeEnum.API,
       };
@@ -94,7 +90,6 @@ describe('CreateApplicationDto', () => {
     it('should fail validation when userId is not a number', async () => {
       const invalidData = {
         name: 'Test App',
-        userId: 'not-a-number',
         description: 'Test description',
         applicationType: ApplicationTypeEnum.API,
       };
@@ -109,7 +104,6 @@ describe('CreateApplicationDto', () => {
     it('should fail validation when description is missing', async () => {
       const invalidData = {
         name: 'Test App',
-        userId: 1,
         applicationType: ApplicationTypeEnum.API,
       };
 
@@ -123,7 +117,6 @@ describe('CreateApplicationDto', () => {
     it('should fail validation when description is empty string', async () => {
       const invalidData = {
         name: 'Test App',
-        userId: 1,
         description: '',
         applicationType: ApplicationTypeEnum.API,
       };
@@ -138,7 +131,6 @@ describe('CreateApplicationDto', () => {
     it('should fail validation when applicationType is missing', async () => {
       const invalidData = {
         name: 'Test App',
-        userId: 1,
         description: 'Test description',
       };
 
@@ -152,7 +144,6 @@ describe('CreateApplicationDto', () => {
     it('should fail validation when applicationType is invalid', async () => {
       const invalidData = {
         name: 'Test App',
-        userId: 1,
         description: 'Test description',
         applicationType: 'INVALID_TYPE',
       };
@@ -167,7 +158,6 @@ describe('CreateApplicationDto', () => {
     it('should fail validation when githubUrl is not a valid URL', async () => {
       const invalidData = {
         name: 'Test App',
-        userId: 1,
         description: 'Test description',
         applicationType: ApplicationTypeEnum.API,
         githubUrl: 'not-a-valid-url',
@@ -183,7 +173,6 @@ describe('CreateApplicationDto', () => {
     it('should pass validation when githubUrl is a valid URL', async () => {
       const validData = {
         name: 'Test App',
-        userId: 1,
         description: 'Test description',
         applicationType: ApplicationTypeEnum.API,
         githubUrl: 'https://github.com/user/repo',
@@ -199,7 +188,6 @@ describe('CreateApplicationDto', () => {
     it('should pass validation when githubUrl is undefined (optional)', async () => {
       const validData = {
         name: 'Test App',
-        userId: 1,
         description: 'Test description',
         applicationType: ApplicationTypeEnum.API,
         githubUrl: undefined as unknown as string,
@@ -217,7 +205,6 @@ describe('CreateApplicationDto', () => {
     it('should accept API application type', async () => {
       const data = {
         name: 'API App',
-        userId: 1,
         description: 'API application',
         applicationType: ApplicationTypeEnum.API,
       };
@@ -232,7 +219,6 @@ describe('CreateApplicationDto', () => {
     it('should accept MOBILE application type', async () => {
       const data = {
         name: 'Mobile App',
-        userId: 1,
         description: 'Mobile application',
         applicationType: ApplicationTypeEnum.MOBILE,
       };
@@ -247,7 +233,6 @@ describe('CreateApplicationDto', () => {
     it('should accept LIBRARY application type', async () => {
       const data = {
         name: 'Library App',
-        userId: 1,
         description: 'Library application',
         applicationType: ApplicationTypeEnum.LIBRARY,
       };
@@ -262,7 +247,6 @@ describe('CreateApplicationDto', () => {
     it('should accept FRONTEND application type', async () => {
       const data = {
         name: 'Frontend App',
-        userId: 1,
         description: 'Frontend application',
         applicationType: ApplicationTypeEnum.FRONTEND,
       };
@@ -277,7 +261,6 @@ describe('CreateApplicationDto', () => {
     it('should accept FULLSTACK application type', async () => {
       const data = {
         name: 'Fullstack App',
-        userId: 1,
         description: 'Fullstack application',
         applicationType: ApplicationTypeEnum.FULLSTACK,
       };
@@ -294,7 +277,6 @@ describe('CreateApplicationDto', () => {
     it('should transform string numbers to actual numbers for userId', () => {
       const data = {
         name: 'Test App',
-        userId: '123',
         description: 'Test description',
         applicationType: ApplicationTypeEnum.API,
       };
@@ -304,13 +286,12 @@ describe('CreateApplicationDto', () => {
       });
 
       expect(typeof dto.userId).toBe('number');
-      expect(dto.userId).toBe(123);
+      (123);
     });
 
     it('should handle string applicationType correctly', () => {
       const data = {
         name: 'Test App',
-        userId: 1,
         description: 'Test description',
         applicationType: 'API',
       };

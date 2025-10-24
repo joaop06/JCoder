@@ -180,7 +180,7 @@ export default function AdminPage() {
     <div className="min-h-screen flex flex-col bg-background">
       <Header isAdmin={true} onLogout={handleLogout} />
 
-      <main className="flex-1 container mx-auto px-4 py-12">
+      <main className="flex-1 container mx-auto px-4 pt-20 pb-12">
         <div className="max-w-7xl mx-auto">
           {/* Page Header */}
           <div className="mb-8">

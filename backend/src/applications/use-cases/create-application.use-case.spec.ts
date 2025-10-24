@@ -15,7 +15,6 @@ import { RequiredApiAndFrontendComponentsToFullstackApplication } from '../excep
 // Mock Application entity to avoid circular dependency
 interface Application {
     id: number;
-    userId: number;
     name: string;
     description: string;
     applicationType: ApplicationTypeEnum;
@@ -26,10 +25,6 @@ interface Application {
 }
 
 // Mock services to avoid circular dependencies
-const mockUsersService = {
-    findById: jest.fn(),
-};
-
 const mockApplicationsService = {
     findOneBy: jest.fn(),
     create: jest.fn(),
@@ -43,15 +38,11 @@ const mockApplicationComponentsService = {
 // Create a mock use case class that implements the same logic
 class MockCreateApplicationUseCase {
     constructor(
-        private readonly usersService: typeof mockUsersService,
         private readonly applicationsService: typeof mockApplicationsService,
         private readonly applicationComponentsService: typeof mockApplicationComponentsService,
     ) { }
 
     async execute(createApplicationDto: CreateApplicationDto): Promise<Application> {
-        // Check if the user exists
-        await this.usersService.findById(createApplicationDto.userId);
-
         // Validate whether components are present based on type
         this.validateDetailsForType(createApplicationDto);
 
@@ -115,14 +106,11 @@ class MockCreateApplicationUseCase {
 
 describe('CreateApplicationUseCase', () => {
     let useCase: MockCreateApplicationUseCase;
-    let usersService: typeof mockUsersService;
     let applicationsService: typeof mockApplicationsService;
     let applicationComponentsService: typeof mockApplicationComponentsService;
 
-    const mockUser = { id: 1, name: 'Test User' };
     const mockApplication: Application = {
         id: 1,
-        userId: 1,
         name: 'Test Application',
         description: 'Test Description',
         applicationType: ApplicationTypeEnum.API,
@@ -160,12 +148,10 @@ describe('CreateApplicationUseCase', () => {
 
         // Create use case instance manually with mocked dependencies
         useCase = new MockCreateApplicationUseCase(
-            mockUsersService,
             mockApplicationsService,
             mockApplicationComponentsService
         );
 
-        usersService = mockUsersService;
         applicationsService = mockApplicationsService;
         applicationComponentsService = mockApplicationComponentsService;
     });
@@ -179,14 +165,12 @@ describe('CreateApplicationUseCase', () => {
             // Arrange
             const createDto: CreateApplicationDto = {
                 name: 'Test API',
-                userId: 1,
                 description: 'Test API Description',
                 applicationType: ApplicationTypeEnum.API,
                 githubUrl: 'https://github.com/test/api',
                 applicationComponentApi: mockApiComponent,
             };
 
-            usersService.findById.mockResolvedValue(mockUser);
             applicationsService.findOneBy.mockResolvedValue(null);
             applicationsService.create.mockResolvedValue(mockApplication);
             applicationsService.findById.mockResolvedValue(mockApplication);
@@ -196,7 +180,6 @@ describe('CreateApplicationUseCase', () => {
             const result = await useCase.execute(createDto);
 
             // Assert
-            expect(usersService.findById).toHaveBeenCalledWith(1);
             expect(applicationsService.findOneBy).toHaveBeenCalledWith({ name: 'Test API' });
             expect(applicationsService.create).toHaveBeenCalledWith(createDto);
             expect(applicationComponentsService.saveComponentsForType).toHaveBeenCalledWith({
@@ -217,13 +200,11 @@ describe('CreateApplicationUseCase', () => {
             // Arrange
             const createDto: CreateApplicationDto = {
                 name: 'Test Mobile',
-                userId: 1,
                 description: 'Test Mobile Description',
                 applicationType: ApplicationTypeEnum.MOBILE,
                 applicationComponentMobile: mockMobileComponent,
             };
 
-            usersService.findById.mockResolvedValue(mockUser);
             applicationsService.findOneBy.mockResolvedValue(null);
             applicationsService.create.mockResolvedValue(mockApplication);
             applicationsService.findById.mockResolvedValue(mockApplication);
@@ -250,13 +231,11 @@ describe('CreateApplicationUseCase', () => {
             // Arrange
             const createDto: CreateApplicationDto = {
                 name: 'Test Frontend',
-                userId: 1,
                 description: 'Test Frontend Description',
                 applicationType: ApplicationTypeEnum.FRONTEND,
                 applicationComponentFrontend: mockFrontendComponent,
             };
 
-            usersService.findById.mockResolvedValue(mockUser);
             applicationsService.findOneBy.mockResolvedValue(null);
             applicationsService.create.mockResolvedValue(mockApplication);
             applicationsService.findById.mockResolvedValue(mockApplication);
@@ -283,13 +262,11 @@ describe('CreateApplicationUseCase', () => {
             // Arrange
             const createDto: CreateApplicationDto = {
                 name: 'Test Library',
-                userId: 1,
                 description: 'Test Library Description',
                 applicationType: ApplicationTypeEnum.LIBRARY,
                 applicationComponentLibrary: mockLibraryComponent,
             };
 
-            usersService.findById.mockResolvedValue(mockUser);
             applicationsService.findOneBy.mockResolvedValue(null);
             applicationsService.create.mockResolvedValue(mockApplication);
             applicationsService.findById.mockResolvedValue(mockApplication);
@@ -316,14 +293,12 @@ describe('CreateApplicationUseCase', () => {
             // Arrange
             const createDto: CreateApplicationDto = {
                 name: 'Test Fullstack',
-                userId: 1,
                 description: 'Test Fullstack Description',
                 applicationType: ApplicationTypeEnum.FULLSTACK,
                 applicationComponentApi: mockApiComponent,
                 applicationComponentFrontend: mockFrontendComponent,
             };
 
-            usersService.findById.mockResolvedValue(mockUser);
             applicationsService.findOneBy.mockResolvedValue(null);
             applicationsService.create.mockResolvedValue(mockApplication);
             applicationsService.findById.mockResolvedValue(mockApplication);
@@ -350,13 +325,11 @@ describe('CreateApplicationUseCase', () => {
             // Arrange
             const createDto: CreateApplicationDto = {
                 name: 'Existing App',
-                userId: 1,
                 description: 'Test Description',
                 applicationType: ApplicationTypeEnum.API,
                 applicationComponentApi: mockApiComponent,
             };
 
-            usersService.findById.mockResolvedValue(mockUser);
             applicationsService.findOneBy.mockResolvedValue(mockApplication);
 
             // Act & Assert
@@ -369,13 +342,11 @@ describe('CreateApplicationUseCase', () => {
             // Arrange
             const createDto: CreateApplicationDto = {
                 name: 'Test API',
-                userId: 1,
                 description: 'Test Description',
                 applicationType: ApplicationTypeEnum.API,
                 // Missing applicationComponentApi
             };
 
-            usersService.findById.mockResolvedValue(mockUser);
             applicationsService.findOneBy.mockResolvedValue(null);
 
             // Act & Assert
@@ -387,13 +358,11 @@ describe('CreateApplicationUseCase', () => {
             // Arrange
             const createDto: CreateApplicationDto = {
                 name: 'Test Mobile',
-                userId: 1,
                 description: 'Test Description',
                 applicationType: ApplicationTypeEnum.MOBILE,
                 // Missing applicationComponentMobile
             };
 
-            usersService.findById.mockResolvedValue(mockUser);
             applicationsService.findOneBy.mockResolvedValue(null);
 
             // Act & Assert
@@ -405,13 +374,11 @@ describe('CreateApplicationUseCase', () => {
             // Arrange
             const createDto: CreateApplicationDto = {
                 name: 'Test Frontend',
-                userId: 1,
                 description: 'Test Description',
                 applicationType: ApplicationTypeEnum.FRONTEND,
                 // Missing applicationComponentFrontend
             };
 
-            usersService.findById.mockResolvedValue(mockUser);
             applicationsService.findOneBy.mockResolvedValue(null);
 
             // Act & Assert
@@ -423,13 +390,11 @@ describe('CreateApplicationUseCase', () => {
             // Arrange
             const createDto: CreateApplicationDto = {
                 name: 'Test Library',
-                userId: 1,
                 description: 'Test Description',
                 applicationType: ApplicationTypeEnum.LIBRARY,
                 // Missing applicationComponentLibrary
             };
 
-            usersService.findById.mockResolvedValue(mockUser);
             applicationsService.findOneBy.mockResolvedValue(null);
 
             // Act & Assert
@@ -441,14 +406,12 @@ describe('CreateApplicationUseCase', () => {
             // Arrange
             const createDto: CreateApplicationDto = {
                 name: 'Test Fullstack',
-                userId: 1,
                 description: 'Test Description',
                 applicationType: ApplicationTypeEnum.FULLSTACK,
                 applicationComponentFrontend: mockFrontendComponent,
                 // Missing applicationComponentApi
             };
 
-            usersService.findById.mockResolvedValue(mockUser);
             applicationsService.findOneBy.mockResolvedValue(null);
 
             // Act & Assert
@@ -460,14 +423,12 @@ describe('CreateApplicationUseCase', () => {
             // Arrange
             const createDto: CreateApplicationDto = {
                 name: 'Test Fullstack',
-                userId: 1,
                 description: 'Test Description',
                 applicationType: ApplicationTypeEnum.FULLSTACK,
                 applicationComponentApi: mockApiComponent,
                 // Missing applicationComponentFrontend
             };
 
-            usersService.findById.mockResolvedValue(mockUser);
             applicationsService.findOneBy.mockResolvedValue(null);
 
             // Act & Assert
@@ -475,36 +436,16 @@ describe('CreateApplicationUseCase', () => {
             expect(applicationsService.create).not.toHaveBeenCalled();
         });
 
-        it('should propagate user service errors', async () => {
-            // Arrange
-            const createDto: CreateApplicationDto = {
-                name: 'Test API',
-                userId: 999,
-                description: 'Test Description',
-                applicationType: ApplicationTypeEnum.API,
-                applicationComponentApi: mockApiComponent,
-            };
-
-            const userError = new Error('User not found');
-            usersService.findById.mockRejectedValue(userError);
-
-            // Act & Assert
-            await expect(useCase.execute(createDto)).rejects.toThrow('User not found');
-            expect(applicationsService.findOneBy).not.toHaveBeenCalled();
-            expect(applicationsService.create).not.toHaveBeenCalled();
-        });
 
         it('should propagate application service errors during creation', async () => {
             // Arrange
             const createDto: CreateApplicationDto = {
                 name: 'Test API',
-                userId: 1,
                 description: 'Test Description',
                 applicationType: ApplicationTypeEnum.API,
                 applicationComponentApi: mockApiComponent,
             };
 
-            usersService.findById.mockResolvedValue(mockUser);
             applicationsService.findOneBy.mockResolvedValue(null);
             const createError = new Error('Database error');
             applicationsService.create.mockRejectedValue(createError);
@@ -518,13 +459,11 @@ describe('CreateApplicationUseCase', () => {
             // Arrange
             const createDto: CreateApplicationDto = {
                 name: 'Test API',
-                userId: 1,
                 description: 'Test Description',
                 applicationType: ApplicationTypeEnum.API,
                 applicationComponentApi: mockApiComponent,
             };
 
-            usersService.findById.mockResolvedValue(mockUser);
             applicationsService.findOneBy.mockResolvedValue(null);
             applicationsService.create.mockResolvedValue(mockApplication);
             const componentsError = new Error('Component creation failed');
