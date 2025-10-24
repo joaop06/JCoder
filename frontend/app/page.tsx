@@ -279,7 +279,7 @@ export default function Home() {
               <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8">
                 {/* Backend - Especialidade */}
                 <div className="text-center group">
-                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
+                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card dark:bg-jcoder-card light:bg-green-50 rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
                     <img
                       src="/icons/technologies_and_stacks/nodejs.png"
                       alt="Node.js"
@@ -290,7 +290,7 @@ export default function Home() {
                 </div>
 
                 <div className="text-center group">
-                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
+                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card dark:bg-jcoder-card light:bg-blue-50 rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
                     <img
                       src="/icons/technologies_and_stacks/typescript.png"
                       alt="TypeScript"
@@ -301,7 +301,7 @@ export default function Home() {
                 </div>
 
                 <div className="text-center group">
-                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
+                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card dark:bg-jcoder-card light:bg-red-50 rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
                     <img
                       src="/icons/technologies_and_stacks/nestjs.png"
                       alt="NestJS"
@@ -312,7 +312,7 @@ export default function Home() {
                 </div>
 
                 <div className="text-center group">
-                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
+                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card dark:bg-jcoder-card light:bg-gray-50 rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
                     <img
                       src="/icons/technologies_and_stacks/express.png"
                       alt="Express"
@@ -324,7 +324,7 @@ export default function Home() {
 
                 {/* Bancos de Dados */}
                 <div className="text-center group">
-                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
+                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card dark:bg-jcoder-card light:bg-orange-50 rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
                     <img
                       src="/icons/technologies_and_stacks/mysql.png"
                       alt="MySQL"
@@ -335,7 +335,7 @@ export default function Home() {
                 </div>
 
                 <div className="text-center group">
-                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
+                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card dark:bg-jcoder-card light:bg-indigo-50 rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
                     <img
                       src="/icons/technologies_and_stacks/postgres.png"
                       alt="PostgreSQL"
@@ -346,7 +346,7 @@ export default function Home() {
                 </div>
 
                 <div className="text-center group">
-                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
+                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card dark:bg-jcoder-card light:bg-yellow-50 rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
                     <img
                       src="/icons/technologies_and_stacks/firebird.png"
                       alt="Firebird"
@@ -358,7 +358,7 @@ export default function Home() {
 
                 {/* ORMs */}
                 <div className="text-center group">
-                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
+                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card dark:bg-jcoder-card light:bg-purple-50 rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
                     <img
                       src="/icons/technologies_and_stacks/sequelize.png"
                       alt="Sequelize"
@@ -369,7 +369,7 @@ export default function Home() {
                 </div>
 
                 <div className="text-center group">
-                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
+                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card dark:bg-jcoder-card light:bg-pink-50 rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
                     <img
                       src="/icons/technologies_and_stacks/typeorm.png"
                       alt="TypeORM"
@@ -381,7 +381,7 @@ export default function Home() {
 
                 {/* Infraestrutura */}
                 <div className="text-center group">
-                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
+                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card dark:bg-jcoder-card light:bg-cyan-50 rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
                     <img
                       src="/icons/technologies_and_stacks/docker.png"
                       alt="Docker"
@@ -392,7 +392,7 @@ export default function Home() {
                 </div>
 
                 <div className="text-center group">
-                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
+                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card dark:bg-jcoder-card light:bg-emerald-50 rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
                     <img
                       src="/icons/technologies_and_stacks/rabbitmq.png"
                       alt="RabbitMQ"
@@ -403,7 +403,7 @@ export default function Home() {
                 </div>
 
                 <div className="text-center group">
-                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
+                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card dark:bg-jcoder-card light:bg-orange-50 rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
                     <img
                       src="/icons/technologies_and_stacks/ubuntu.png"
                       alt="Ubuntu"
@@ -414,7 +414,7 @@ export default function Home() {
                 </div>
 
                 <div className="text-center group">
-                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
+                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card dark:bg-jcoder-card light:bg-slate-50 rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
                     <img
                       src="/icons/technologies_and_stacks/pm2.png"
                       alt="PM2"
@@ -426,7 +426,7 @@ export default function Home() {
 
                 {/* Frontend - Conhecimento Leve */}
                 <div className="text-center group">
-                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
+                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card dark:bg-jcoder-card light:bg-sky-50 rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
                     <img
                       src="/icons/technologies_and_stacks/react.png"
                       alt="React"
@@ -437,7 +437,7 @@ export default function Home() {
                 </div>
 
                 <div className="text-center group">
-                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
+                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card dark:bg-jcoder-card light:bg-green-50 rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
                     <img
                       src="/icons/technologies_and_stacks/vuejs.png"
                       alt="Vue.js"
@@ -449,7 +449,7 @@ export default function Home() {
 
                 {/* Mobile */}
                 <div className="text-center group">
-                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
+                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card dark:bg-jcoder-card light:bg-teal-50 rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
                     <img
                       src="/icons/technologies_and_stacks/react-native.png"
                       alt="React Native"
@@ -460,7 +460,7 @@ export default function Home() {
                 </div>
 
                 <div className="text-center group">
-                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
+                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card dark:bg-jcoder-card light:bg-blue-50 rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
                     <img
                       src="/icons/technologies_and_stacks/flutter.png"
                       alt="Flutter"
@@ -472,7 +472,7 @@ export default function Home() {
 
                 {/* Versionamento */}
                 <div className="text-center group">
-                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
+                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card dark:bg-jcoder-card light:bg-gray-50 rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
                     <img
                       src="/icons/technologies_and_stacks/git.png"
                       alt="Git"

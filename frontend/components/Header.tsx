@@ -25,6 +25,9 @@ export default function Header({
   const [isAdmin, setIsAdmin] = useState(isAdminProp);
   const [activeSection, setActiveSection] = useState('about');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+  const [showSignOutConfirmation, setShowSignOutConfirmation] = useState(false);
+  const [currentPath, setCurrentPath] = useState('');
 
   useEffect(() => {
     setIsClient(true);
@@ -39,6 +42,13 @@ export default function Header({
       setIsAdmin(isAdminProp);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Detect current path
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setCurrentPath(window.location.pathname);
+    }
   }, []);
 
   // Scroll detection for active section
@@ -99,6 +109,20 @@ export default function Header({
     }
   }, [onLogout, router]);
 
+  const handleSignOutClick = useCallback(() => {
+    setShowSignOutConfirmation(true);
+    setIsProfileDropdownOpen(false);
+  }, []);
+
+  const handleConfirmSignOut = useCallback(() => {
+    setShowSignOutConfirmation(false);
+    handleLogout();
+  }, [handleLogout]);
+
+  const handleCancelSignOut = useCallback(() => {
+    setShowSignOutConfirmation(false);
+  }, []);
+
   const handleNavigationClick = useCallback((sectionId: string) => {
     setActiveSection(sectionId);
     scrollToElement(sectionId, 100);
@@ -126,6 +150,23 @@ export default function Header({
     };
   }, [isMobileMenuOpen]);
 
+  // Close profile dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (isProfileDropdownOpen && !(event.target as Element).closest('.profile-dropdown-container')) {
+        setIsProfileDropdownOpen(false);
+      }
+    };
+
+    if (isProfileDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isProfileDropdownOpen]);
+
 
   // Logo component
   const Logo = () => (
@@ -145,80 +186,136 @@ export default function Header({
   // Profile section for desktop
   const DesktopProfileSection = () => (
     <div className="flex items-center gap-3">
-      {/* Health status */}
-      <HealthStatusComponent />
-
       {/* Theme toggle */}
       <ThemeToggle size="sm" />
 
-      {/* Profile icon */}
-      <div className="w-8 h-8 rounded-full bg-jcoder-secondary flex items-center justify-center text-jcoder-muted">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          fill="currentColor"
-          className="w-5 h-5"
+      {/* Profile dropdown */}
+      <div className="relative profile-dropdown-container">
+        <button
+          type="button"
+          onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
+          className="w-8 h-8 rounded-full overflow-hidden border-2 border-jcoder hover:border-jcoder-primary transition-colors"
+          aria-label="Profile menu"
+          title="Profile menu"
         >
-          <path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-4.418 0-8 2.239-8 5v1h16v-1c0-2.761-3.582-5-8-5Z" />
-        </svg>
+          <img
+            src="/images/profile_picture.jpeg"
+            alt="Profile"
+            className="w-full h-full object-cover"
+          />
+        </button>
+
+        {/* Profile dropdown menu */}
+        {isProfileDropdownOpen && (
+          <div className="absolute right-0 top-full mt-2 w-48 bg-jcoder-card border border-jcoder rounded-lg shadow-lg z-50">
+            <div className="p-2">
+              <button
+                onClick={() => {
+                  setIsProfileDropdownOpen(false);
+                  router.push('/profile');
+                }}
+                className="w-full text-left px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors flex items-center gap-2"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={1.5}
+                  className="w-4 h-4"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+                </svg>
+                Profile
+              </button>
+              <button
+                onClick={handleSignOutClick}
+                className="w-full text-left px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors flex items-center gap-2"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  className="w-4 h-4"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6A2.25 2.25 0 0 0 5.25 5.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l3 3m0 0-3 3m3-3H3" />
+                </svg>
+                Sign out
+              </button>
+            </div>
+          </div>
+        )}
       </div>
-
-      {/* Badge Admin */}
-      <span className="px-3 py-1 rounded-full bg-jcoder-gradient text-black text-xs font-medium">
-        Admin
-      </span>
-
-      {/* Sign out button */}
-      <button
-        type="button"
-        onClick={handleLogout}
-        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border border-jcoder text-sm text-jcoder-muted hover:bg-jcoder-secondary hover:text-jcoder-foreground transition-colors"
-        aria-label="Sign out"
-        title="Sign out"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          strokeWidth={1.5}
-          stroke="currentColor"
-          className="w-4 h-4"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6A2.25 2.25 0 0 0 5.25 5.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l3 3m0 0-3 3m3-3H3" />
-        </svg>
-        Sign out
-      </button>
     </div>
   );
 
-  // Mobile action buttons (health status + theme toggle + logout)
+  // Mobile action buttons (theme toggle + profile dropdown)
   const MobileActionButtons = () => (
     <div className="flex items-center gap-2">
-      {/* Health status */}
-      <HealthStatusComponent />
-
       {/* Theme toggle */}
       <ThemeToggle size="sm" />
 
-      {/* Logout button */}
-      <button
-        type="button"
-        onClick={handleLogout}
-        className="p-2 rounded-md text-jcoder-muted hover:text-jcoder-foreground hover:bg-jcoder-secondary transition-colors"
-        aria-label="Sign out"
-        title="Sign out"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          strokeWidth={1.5}
-          stroke="currentColor"
-          className="w-6 h-6"
+      {/* Profile dropdown */}
+      <div className="relative profile-dropdown-container">
+        <button
+          type="button"
+          onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
+          className="w-8 h-8 rounded-full overflow-hidden border-2 border-jcoder hover:border-jcoder-primary transition-colors"
+          aria-label="Profile menu"
+          title="Profile menu"
         >
-          <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6A2.25 2.25 0 0 0 5.25 5.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l3 3m0 0-3 3m3-3H3" />
-        </svg>
-      </button>
+          <img
+            src="/images/profile_picture.jpeg"
+            alt="Profile"
+            className="w-full h-full object-cover"
+          />
+        </button>
+
+        {/* Profile dropdown menu */}
+        {isProfileDropdownOpen && (
+          <div className="absolute right-0 top-full mt-2 w-48 bg-jcoder-card border border-jcoder rounded-lg shadow-lg z-50">
+            <div className="p-2">
+              <button
+                onClick={() => {
+                  setIsProfileDropdownOpen(false);
+                  router.push('/profile');
+                }}
+                className="w-full text-left px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors flex items-center gap-2"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={1.5}
+                  className="w-4 h-4"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+                </svg>
+                Profile
+              </button>
+              <button
+                onClick={handleSignOutClick}
+                className="w-full text-left px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors flex items-center gap-2"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  className="w-4 h-4"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6A2.25 2.25 0 0 0 5.25 5.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l3 3m0 0-3 3m3-3H3" />
+                </svg>
+                Sign out
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 
@@ -317,6 +414,48 @@ export default function Header({
 
   const isAdminView = isLoggedIn && isAdmin;
 
+  // Sign out confirmation modal
+  const SignOutConfirmationModal = () => (
+    showSignOutConfirmation && (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-jcoder-card border border-jcoder rounded-lg p-6 max-w-md w-full mx-4">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2}
+                className="w-5 h-5 text-red-600 dark:text-red-400"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+              </svg>
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-jcoder-foreground">Sign Out</h3>
+              <p className="text-sm text-jcoder-muted">Are you sure you want to sign out?</p>
+            </div>
+          </div>
+          <div className="flex gap-3 justify-end">
+            <button
+              onClick={handleCancelSignOut}
+              className="px-4 py-2 rounded-md border border-jcoder text-jcoder-muted hover:bg-jcoder-secondary hover:text-jcoder-foreground transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleConfirmSignOut}
+              className="px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700 transition-colors"
+            >
+              Sign Out
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  );
+
   return (
     <header className="fixed top-0 left-0 right-0 z-50 border-b border-jcoder bg-jcoder-card">
       <div className="container mx-auto px-4 py-4">
@@ -330,12 +469,66 @@ export default function Header({
               </div>
 
               <nav className="flex items-center justify-center gap-8">
-                <Link href="/" className="text-jcoder-muted hover:text-jcoder-primary transition-colors">
-                  Home
-                </Link>
-                <Link href="/admin" className="text-jcoder-muted hover:text-jcoder-primary transition-colors">
-                  Admin
-                </Link>
+                {currentPath === '/admin' ? (
+                  // Admin page navigation
+                  <>
+                    <Link
+                      href="/"
+                      className="text-jcoder-muted hover:text-jcoder-primary transition-colors"
+                    >
+                      Home
+                    </Link>
+                    <span className="px-4 py-2 rounded-lg bg-jcoder-gradient text-black font-medium">
+                      Administration
+                    </span>
+                  </>
+                ) : (
+                  // Home page navigation
+                  <>
+                    <button
+                      onClick={() => handleNavigationClick('about')}
+                      className={`transition-colors cursor-pointer ${activeSection === 'about'
+                        ? 'text-blue-600 dark:text-jcoder-primary font-medium'
+                        : 'text-gray-600 dark:text-jcoder-muted hover:text-blue-500 dark:hover:text-jcoder-primary'
+                        }`}
+                    >
+                      About
+                    </button>
+                    <button
+                      onClick={() => handleNavigationClick('projects')}
+                      className={`transition-colors cursor-pointer ${activeSection === 'projects'
+                        ? 'text-blue-600 dark:text-jcoder-primary font-medium'
+                        : 'text-gray-600 dark:text-jcoder-muted hover:text-blue-500 dark:hover:text-jcoder-primary'
+                        }`}
+                    >
+                      Projects
+                    </button>
+                    <button
+                      onClick={() => handleNavigationClick('tech-stack')}
+                      className={`transition-colors cursor-pointer ${activeSection === 'tech-stack'
+                        ? 'text-blue-600 dark:text-jcoder-primary font-medium'
+                        : 'text-gray-600 dark:text-jcoder-muted hover:text-blue-500 dark:hover:text-jcoder-primary'
+                        }`}
+                    >
+                      Technologies
+                    </button>
+                    <button
+                      onClick={() => handleNavigationClick('contact')}
+                      className={`transition-colors cursor-pointer ${activeSection === 'contact'
+                        ? 'text-blue-600 dark:text-jcoder-primary font-medium'
+                        : 'text-gray-600 dark:text-jcoder-muted hover:text-blue-500 dark:hover:text-jcoder-primary'
+                        }`}
+                    >
+                      Contact
+                    </button>
+                    <Link
+                      href="/admin"
+                      className="px-4 py-2 rounded-lg bg-jcoder-gradient text-black font-medium hover:opacity-90 transition-opacity"
+                    >
+                      Administration
+                    </Link>
+                  </>
+                )}
               </nav>
 
               <div className="justify-self-end">
@@ -403,12 +596,66 @@ export default function Header({
               <Logo />
 
               <nav className="flex items-center gap-4">
-                <Link href="/" className="text-jcoder-muted hover:text-jcoder-primary transition-colors text-sm">
-                  Home
-                </Link>
-                <Link href="/admin" className="text-jcoder-muted hover:text-jcoder-primary transition-colors text-sm">
-                  Admin
-                </Link>
+                {currentPath === '/admin' ? (
+                  // Admin page navigation
+                  <>
+                    <Link
+                      href="/"
+                      className="text-jcoder-muted hover:text-jcoder-primary transition-colors text-sm"
+                    >
+                      Home
+                    </Link>
+                    <span className="px-3 py-1 rounded-lg bg-jcoder-gradient text-black font-medium text-sm">
+                      Admin
+                    </span>
+                  </>
+                ) : (
+                  // Home page navigation
+                  <>
+                    <button
+                      onClick={() => handleNavigationClick('about')}
+                      className={`text-sm transition-colors cursor-pointer ${activeSection === 'about'
+                        ? 'text-blue-600 dark:text-jcoder-primary font-medium'
+                        : 'text-gray-600 dark:text-jcoder-muted hover:text-blue-500 dark:hover:text-jcoder-primary'
+                        }`}
+                    >
+                      About
+                    </button>
+                    <button
+                      onClick={() => handleNavigationClick('projects')}
+                      className={`text-sm transition-colors cursor-pointer ${activeSection === 'projects'
+                        ? 'text-blue-600 dark:text-jcoder-primary font-medium'
+                        : 'text-gray-600 dark:text-jcoder-muted hover:text-blue-500 dark:hover:text-jcoder-primary'
+                        }`}
+                    >
+                      Projects
+                    </button>
+                    <button
+                      onClick={() => handleNavigationClick('tech-stack')}
+                      className={`text-sm transition-colors cursor-pointer ${activeSection === 'tech-stack'
+                        ? 'text-blue-600 dark:text-jcoder-primary font-medium'
+                        : 'text-gray-600 dark:text-jcoder-muted hover:text-blue-500 dark:hover:text-jcoder-primary'
+                        }`}
+                    >
+                      Tech
+                    </button>
+                    <button
+                      onClick={() => handleNavigationClick('contact')}
+                      className={`text-sm transition-colors cursor-pointer ${activeSection === 'contact'
+                        ? 'text-blue-600 dark:text-jcoder-primary font-medium'
+                        : 'text-gray-600 dark:text-jcoder-muted hover:text-blue-500 dark:hover:text-jcoder-primary'
+                        }`}
+                    >
+                      Contact
+                    </button>
+                    <Link
+                      href="/admin"
+                      className="px-3 py-1 rounded-lg bg-jcoder-gradient text-black font-medium hover:opacity-90 transition-opacity text-sm"
+                    >
+                      Admin
+                    </Link>
+                  </>
+                )}
               </nav>
 
               <MobileActionButtons />
@@ -422,6 +669,9 @@ export default function Header({
           )}
         </div>
       </div>
+
+      {/* Sign out confirmation modal */}
+      <SignOutConfirmationModal />
     </header>
   );
 }
