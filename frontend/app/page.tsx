@@ -130,36 +130,86 @@ export default function Home() {
         {/* About Section */}
         <section id="about" className="py-20 bg-jcoder-card/50">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="max-w-4xl mx-auto text-center">
-              <h2 className="text-4xl font-bold text-jcoder-foreground mb-8">
+            <div className="max-w-6xl mx-auto">
+              <h2 className="text-4xl font-bold text-jcoder-foreground text-center mb-12">
                 About Me
               </h2>
-              <div className="grid md:grid-cols-2 gap-12 items-center">
-                <div className="text-left">
-                  <p className="text-lg text-jcoder-muted mb-6 leading-relaxed">
-                    I'm 22 years old and have been working as a programmer for over 2 years (approximately 2 years and 5 months).
-                    My specialty is in the backend area with JavaScript (Node.js), developing robust and scalable solutions.
-                  </p>
-                  <p className="text-lg text-jcoder-muted mb-6 leading-relaxed">
-                    I graduated in Multiplatform Software Development from Fatec Franca Dr. Thomas Novelino,
-                    with 2640 hours of course including internship and extension activities. Always seeking new challenges
-                    and professional growth opportunities.
-                  </p>
-                  <div className="flex flex-wrap gap-4">
-                    <div className="px-4 py-2 bg-jcoder-secondary rounded-full text-jcoder-foreground">
-                      🎯 Backend Specialist
+
+              <div className="grid lg:grid-cols-2 gap-12 items-center">
+                {/* Profile Image */}
+                <div className="order-2 lg:order-1">
+                  <div className="relative">
+                    <div className="w-80 h-80 mx-auto lg:mx-0 rounded-2xl overflow-hidden bg-jcoder-gradient p-1">
+                      <div className="w-full h-full rounded-2xl overflow-hidden bg-jcoder-card">
+                        <img
+                          src="/images/profile_picture.jpeg"
+                          alt="João Pedro - Backend Developer"
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
                     </div>
-                    <div className="px-4 py-2 bg-jcoder-secondary rounded-full text-jcoder-foreground">
-                      🎓 Fatec Graduate
-                    </div>
-                    <div className="px-4 py-2 bg-jcoder-secondary rounded-full text-jcoder-foreground">
-                      🚀 2+ Years Experience
-                    </div>
+                    {/* Decorative elements */}
+                    <div className="absolute -top-4 -right-4 w-8 h-8 bg-jcoder-cyan rounded-full opacity-60"></div>
+                    <div className="absolute -bottom-4 -left-4 w-6 h-6 bg-jcoder-blue rounded-full opacity-40"></div>
                   </div>
                 </div>
-                <div className="relative">
-                  <div className="w-full h-80 bg-jcoder-gradient rounded-2xl flex items-center justify-center">
-                    <div className="text-6xl">💻</div>
+
+                {/* Content */}
+                <div className="order-1 lg:order-2 text-center lg:text-left">
+                  <div className="mb-8">
+                    <h3 className="text-2xl font-bold text-jcoder-foreground mb-4">
+                      João Pedro Borges
+                    </h3>
+                    <p className="text-lg text-jcoder-primary font-semibold mb-6">
+                      Backend Developer & Software Engineer
+                    </p>
+                  </div>
+
+                  <div className="space-y-6 mb-8">
+                    <p className="text-lg text-jcoder-muted leading-relaxed">
+                      I'm 22 years old and have been working as a programmer for over 2 years (approximately 2 years and 5 months).
+                      My specialty is in the backend area with JavaScript (Node.js), developing robust and scalable solutions.
+                    </p>
+                    <p className="text-lg text-jcoder-muted leading-relaxed">
+                      I graduated in Multiplatform Software Development from Fatec Franca Dr. Thomas Novelino,
+                      with 2640 hours of course including internship and extension activities. Always seeking new challenges
+                      and professional growth opportunities.
+                    </p>
+                  </div>
+
+                  {/* Skills & Achievements */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+                    <div className="bg-jcoder-card rounded-xl p-4 border border-jcoder">
+                      <div className="text-2xl mb-2">🎯</div>
+                      <h4 className="font-semibold text-jcoder-foreground mb-1">Backend Specialist</h4>
+                      <p className="text-sm text-jcoder-muted">Node.js & JavaScript</p>
+                    </div>
+                    <div className="bg-jcoder-card rounded-xl p-4 border border-jcoder">
+                      <div className="text-2xl mb-2">🎓</div>
+                      <h4 className="font-semibold text-jcoder-foreground mb-1">Fatec Graduate</h4>
+                      <p className="text-sm text-jcoder-muted">Software Development</p>
+                    </div>
+                    <div className="bg-jcoder-card rounded-xl p-4 border border-jcoder">
+                      <div className="text-2xl mb-2">🚀</div>
+                      <h4 className="font-semibold text-jcoder-foreground mb-1">2+ Years Experience</h4>
+                      <p className="text-sm text-jcoder-muted">Professional Development</p>
+                    </div>
+                  </div>
+
+                  {/* Call to Action */}
+                  <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                    <button
+                      onClick={() => scrollToSection('projects')}
+                      className="px-6 py-3 bg-jcoder-gradient text-black font-semibold rounded-lg hover:shadow-jcoder-primary transition-all duration-300 transform hover:scale-105"
+                    >
+                      View My Work
+                    </button>
+                    <button
+                      onClick={() => scrollToSection('contact')}
+                      className="px-6 py-3 border-2 border-jcoder-primary text-jcoder-primary font-semibold rounded-lg hover:bg-jcoder-primary hover:text-black transition-all duration-300"
+                    >
+                      Get in Touch
+                    </button>
                   </div>
                 </div>
               </div>
@@ -230,28 +280,44 @@ export default function Home() {
                 {/* Backend - Especialidade */}
                 <div className="text-center group">
                   <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
-                    <span className="text-3xl">🟢</span>
+                    <img
+                      src="/icons/technologies_and_stacks/nodejs.png"
+                      alt="Node.js"
+                      className="w-12 h-12 object-contain"
+                    />
                   </div>
                   <h3 className="font-semibold text-jcoder-foreground">Node.js</h3>
                 </div>
 
                 <div className="text-center group">
                   <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
-                    <span className="text-3xl">🔷</span>
+                    <img
+                      src="/icons/technologies_and_stacks/typescript.png"
+                      alt="TypeScript"
+                      className="w-12 h-12 object-contain"
+                    />
                   </div>
                   <h3 className="font-semibold text-jcoder-foreground">TypeScript</h3>
                 </div>
 
                 <div className="text-center group">
                   <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
-                    <span className="text-3xl">🏗️</span>
+                    <img
+                      src="/icons/technologies_and_stacks/nestjs.png"
+                      alt="NestJS"
+                      className="w-12 h-12 object-contain"
+                    />
                   </div>
                   <h3 className="font-semibold text-jcoder-foreground">NestJS</h3>
                 </div>
 
                 <div className="text-center group">
                   <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
-                    <span className="text-3xl">⚡</span>
+                    <img
+                      src="/icons/technologies_and_stacks/express.png"
+                      alt="Express"
+                      className="w-12 h-12 object-contain"
+                    />
                   </div>
                   <h3 className="font-semibold text-jcoder-foreground">Express</h3>
                 </div>
@@ -259,21 +325,33 @@ export default function Home() {
                 {/* Bancos de Dados */}
                 <div className="text-center group">
                   <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
-                    <span className="text-3xl">🐬</span>
+                    <img
+                      src="/icons/technologies_and_stacks/mysql.png"
+                      alt="MySQL"
+                      className="w-12 h-12 object-contain"
+                    />
                   </div>
                   <h3 className="font-semibold text-jcoder-foreground">MySQL</h3>
                 </div>
 
                 <div className="text-center group">
                   <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
-                    <span className="text-3xl">🐘</span>
+                    <img
+                      src="/icons/technologies_and_stacks/postgres.png"
+                      alt="PostgreSQL"
+                      className="w-12 h-12 object-contain"
+                    />
                   </div>
                   <h3 className="font-semibold text-jcoder-foreground">PostgreSQL</h3>
                 </div>
 
                 <div className="text-center group">
                   <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
-                    <span className="text-3xl">🔥</span>
+                    <img
+                      src="/icons/technologies_and_stacks/firebird.png"
+                      alt="Firebird"
+                      className="w-12 h-12 object-contain"
+                    />
                   </div>
                   <h3 className="font-semibold text-jcoder-foreground">Firebird</h3>
                 </div>
@@ -281,14 +359,22 @@ export default function Home() {
                 {/* ORMs */}
                 <div className="text-center group">
                   <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
-                    <span className="text-3xl">🔗</span>
+                    <img
+                      src="/icons/technologies_and_stacks/sequelize.png"
+                      alt="Sequelize"
+                      className="w-12 h-12 object-contain"
+                    />
                   </div>
                   <h3 className="font-semibold text-jcoder-foreground">Sequelize</h3>
                 </div>
 
                 <div className="text-center group">
                   <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
-                    <span className="text-3xl">🔗</span>
+                    <img
+                      src="/icons/technologies_and_stacks/typeorm.png"
+                      alt="TypeORM"
+                      className="w-12 h-12 object-contain"
+                    />
                   </div>
                   <h3 className="font-semibold text-jcoder-foreground">TypeORM</h3>
                 </div>
@@ -296,28 +382,44 @@ export default function Home() {
                 {/* Infraestrutura */}
                 <div className="text-center group">
                   <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
-                    <span className="text-3xl">🐳</span>
+                    <img
+                      src="/icons/technologies_and_stacks/docker.png"
+                      alt="Docker"
+                      className="w-12 h-12 object-contain"
+                    />
                   </div>
                   <h3 className="font-semibold text-jcoder-foreground">Docker</h3>
                 </div>
 
                 <div className="text-center group">
                   <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
-                    <span className="text-3xl">🐰</span>
+                    <img
+                      src="/icons/technologies_and_stacks/rabbitmq.png"
+                      alt="RabbitMQ"
+                      className="w-12 h-12 object-contain"
+                    />
                   </div>
                   <h3 className="font-semibold text-jcoder-foreground">RabbitMQ</h3>
                 </div>
 
                 <div className="text-center group">
                   <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
-                    <span className="text-3xl">🐧</span>
+                    <img
+                      src="/icons/technologies_and_stacks/ubuntu.png"
+                      alt="Ubuntu"
+                      className="w-12 h-12 object-contain"
+                    />
                   </div>
                   <h3 className="font-semibold text-jcoder-foreground">Ubuntu</h3>
                 </div>
 
                 <div className="text-center group">
                   <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
-                    <span className="text-3xl">⚙️</span>
+                    <img
+                      src="/icons/technologies_and_stacks/pm2.png"
+                      alt="PM2"
+                      className="w-12 h-12 object-contain"
+                    />
                   </div>
                   <h3 className="font-semibold text-jcoder-foreground">PM2</h3>
                 </div>
@@ -325,14 +427,22 @@ export default function Home() {
                 {/* Frontend - Conhecimento Leve */}
                 <div className="text-center group">
                   <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
-                    <span className="text-3xl">⚛️</span>
+                    <img
+                      src="/icons/technologies_and_stacks/react.png"
+                      alt="React"
+                      className="w-12 h-12 object-contain"
+                    />
                   </div>
                   <h3 className="font-semibold text-jcoder-foreground">React</h3>
                 </div>
 
                 <div className="text-center group">
                   <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
-                    <span className="text-3xl">💚</span>
+                    <img
+                      src="/icons/technologies_and_stacks/vuejs.png"
+                      alt="Vue.js"
+                      className="w-12 h-12 object-contain"
+                    />
                   </div>
                   <h3 className="font-semibold text-jcoder-foreground">Vue.js</h3>
                 </div>
@@ -340,14 +450,22 @@ export default function Home() {
                 {/* Mobile */}
                 <div className="text-center group">
                   <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
-                    <span className="text-3xl">📱</span>
+                    <img
+                      src="/icons/technologies_and_stacks/react-native.png"
+                      alt="React Native"
+                      className="w-12 h-12 object-contain"
+                    />
                   </div>
                   <h3 className="font-semibold text-jcoder-foreground">React Native</h3>
                 </div>
 
                 <div className="text-center group">
                   <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
-                    <span className="text-3xl">🦋</span>
+                    <img
+                      src="/icons/technologies_and_stacks/flutter.png"
+                      alt="Flutter"
+                      className="w-12 h-12 object-contain"
+                    />
                   </div>
                   <h3 className="font-semibold text-jcoder-foreground">Flutter</h3>
                 </div>
@@ -355,7 +473,11 @@ export default function Home() {
                 {/* Versionamento */}
                 <div className="text-center group">
                   <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
-                    <span className="text-3xl">🔧</span>
+                    <img
+                      src="/icons/technologies_and_stacks/git.png"
+                      alt="Git"
+                      className="w-12 h-12 object-contain"
+                    />
                   </div>
                   <h3 className="font-semibold text-jcoder-foreground">Git</h3>
                 </div>
