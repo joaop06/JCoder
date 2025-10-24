@@ -27,7 +27,6 @@ import { CreateApplicationUseCase } from './use-cases/create-application.use-cas
 import { DeleteApplicationUseCase } from './use-cases/delete-application.use-case';
 import { UpdateApplicationUseCase } from './use-cases/update-application.use-case';
 import { PaginationDto, PaginatedResponseDto } from '../@common/dto/pagination.dto';
-import { UserNotFoundException } from '../users/exceptions/user-not-found.exception';
 import { ApplicationNotFoundException } from './exceptions/application-not-found.exception';
 import { RequiredApiComponentToApiApplication } from './exceptions/required-api-component.exception';
 import { AlreadyExistsApplicationException } from './exceptions/already-exists-application-exception';
@@ -71,7 +70,6 @@ export class ApplicationsController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiOkResponse({ type: () => Application })
   @ApiExceptionResponse(() => [
-    UserNotFoundException,
     ApplicationNotFoundException,
     AlreadyExistsApplicationException,
     RequiredApiComponentToApiApplication,

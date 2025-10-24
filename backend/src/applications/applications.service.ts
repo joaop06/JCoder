@@ -20,10 +20,7 @@ export class ApplicationsService {
   ) { }
 
   async findAll(options?: FindManyOptions<Application>): Promise<Application[]> {
-    return await this.repository.find({
-      ...options,
-      relations: { user: true },
-    });
+    return await this.repository.find(options);
   }
 
   async findAllPaginated(paginationDto: PaginationDto): Promise<PaginatedResponseDto<Application>> {
@@ -36,7 +33,6 @@ export class ApplicationsService {
       cacheKey,
       async () => {
         const [data, total] = await this.repository.findAndCount({
-          relations: { user: true },
           skip,
           take: limit,
           order: { [sortBy]: sortOrder },
@@ -69,7 +65,6 @@ export class ApplicationsService {
         const application = await this.repository.findOne({
           where: { id },
           relations: {
-            user: true,
             applicationComponentApi: true,
             applicationComponentMobile: true,
             applicationComponentLibrary: true,

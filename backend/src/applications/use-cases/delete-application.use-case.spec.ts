@@ -4,7 +4,6 @@ import { AlreadyDeletedApplicationException } from '../exceptions/already-delete
 // Mock Application entity to avoid circular dependency
 interface Application {
     id: number;
-    userId: number;
     name: string;
     description: string;
     applicationType: ApplicationTypeEnum;
@@ -43,7 +42,6 @@ describe('DeleteApplicationUseCase', () => {
 
     const mockApplication: Application = {
         id: 1,
-        userId: 1,
         name: 'Test Application',
         description: 'Test Description',
         applicationType: ApplicationTypeEnum.API,

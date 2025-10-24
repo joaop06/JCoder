@@ -1,9 +1,9 @@
+import { Repository } from 'typeorm';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Application } from '../applications/entities/application.entity';
 import { CacheService } from '../@common/services/cache.service';
 import { ImageUploadService } from './services/image-upload.service';
-import { FindOptionsWhere, Repository } from 'typeorm';
+import { Application } from '../applications/entities/application.entity';
 import { ApplicationNotFoundException } from '../applications/exceptions/application-not-found.exception';
 
 @Injectable()
@@ -24,7 +24,6 @@ export class ImagesService {
                 const application = await this.repository.findOne({
                     where: { id },
                     relations: {
-                        user: true,
                         applicationComponentApi: true,
                         applicationComponentMobile: true,
                         applicationComponentLibrary: true,
