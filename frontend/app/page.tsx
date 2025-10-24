@@ -79,19 +79,19 @@ export default function Home() {
             {/* Main Title */}
             <h1 className="text-5xl md:text-7xl font-bold mb-6">
               <span className="text-jcoder-cyan">
-                JCoder
+                João Pedro
               </span>
             </h1>
 
             {/* Subtitle */}
             <h2 className="text-2xl md:text-3xl font-semibold text-jcoder-foreground mb-4">
-              Full Stack Developer
+              Backend Developer
             </h2>
 
             {/* Description */}
             <p className="text-lg md:text-xl text-jcoder-muted mb-8 max-w-2xl mx-auto leading-relaxed">
-              Desenvolvedor apaixonado por criar soluções inovadoras e eficientes.
-              Especializado em tecnologias modernas e sempre em busca de novos desafios.
+              Backend developer specialized in JavaScript/Node.js with over 2 years of experience.
+              Graduated in Multiplatform Software Development from Fatec Franca.
             </p>
 
             {/* CTA Buttons */}
@@ -100,27 +100,30 @@ export default function Home() {
                 onClick={() => scrollToSection('projects')}
                 className="px-8 py-4 bg-jcoder-gradient text-black font-semibold rounded-lg hover:shadow-jcoder-primary transition-all duration-300 transform hover:scale-105"
               >
-                Ver Projetos
+                View Projects
               </button>
               <button
                 onClick={() => scrollToSection('contact')}
-                className="px-8 py-4 border-2 border-jcoder-primary text-jcoder-primary font-semibold rounded-lg hover:bg-jcoder-primary hover:text-black transition-all duration-300"
+                className="px-8 py-4 border-2 border-jcoder-primary text-jcoder-primary font-semibold rounded-lg hover:bg-jcoder-primary hover:text-black transition-all duration-300 flex items-center gap-2"
               >
-                Entrar em Contato
+                Get in Touch
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M17 8l4 4m0 0l-4 4m4-4H3"
+                  />
+                </svg>
               </button>
             </div>
 
-            {/* Scroll Indicator */}
-            <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
-              <svg
-                className="w-6 h-6 text-jcoder-muted"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-              </svg>
-            </div>
           </div>
         </section>
 
@@ -129,29 +132,28 @@ export default function Home() {
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-4xl mx-auto text-center">
               <h2 className="text-4xl font-bold text-jcoder-foreground mb-8">
-                Sobre Mim
+                About Me
               </h2>
               <div className="grid md:grid-cols-2 gap-12 items-center">
                 <div className="text-left">
                   <p className="text-lg text-jcoder-muted mb-6 leading-relaxed">
-                    Sou um desenvolvedor full stack com mais de 5 anos de experiência
-                    criando aplicações web modernas e escaláveis. Minha paixão é transformar
-                    ideias em código funcional e elegante.
+                    I'm 22 years old and have been working as a programmer for over 2 years (approximately 2 years and 5 months).
+                    My specialty is in the backend area with JavaScript (Node.js), developing robust and scalable solutions.
                   </p>
                   <p className="text-lg text-jcoder-muted mb-6 leading-relaxed">
-                    Especializado em JavaScript, TypeScript, React, Node.js e outras
-                    tecnologias do ecossistema moderno. Sempre em busca de aprender
-                    novas tecnologias e melhorar minhas habilidades.
+                    I graduated in Multiplatform Software Development from Fatec Franca Dr. Thomas Novelino,
+                    with 2640 hours of course including internship and extension activities. Always seeking new challenges
+                    and professional growth opportunities.
                   </p>
                   <div className="flex flex-wrap gap-4">
                     <div className="px-4 py-2 bg-jcoder-secondary rounded-full text-jcoder-foreground">
-                      🚀 Inovação
+                      🎯 Backend Specialist
                     </div>
                     <div className="px-4 py-2 bg-jcoder-secondary rounded-full text-jcoder-foreground">
-                      💡 Criatividade
+                      🎓 Fatec Graduate
                     </div>
                     <div className="px-4 py-2 bg-jcoder-secondary rounded-full text-jcoder-foreground">
-                      🎯 Foco em Resultados
+                      🚀 2+ Years Experience
                     </div>
                   </div>
                 </div>
@@ -165,117 +167,18 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Tech Stack Section */}
-        <section id="tech-stack" className="py-20">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="max-w-6xl mx-auto">
-              <h2 className="text-4xl font-bold text-jcoder-foreground text-center mb-12">
-                Tecnologias & Stacks
-              </h2>
-
-              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8">
-                {/* Frontend */}
-                <div className="text-center group">
-                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
-                    <span className="text-3xl">⚛️</span>
-                  </div>
-                  <h3 className="font-semibold text-jcoder-foreground">React</h3>
-                </div>
-
-                <div className="text-center group">
-                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
-                    <span className="text-3xl">🔷</span>
-                  </div>
-                  <h3 className="font-semibold text-jcoder-foreground">TypeScript</h3>
-                </div>
-
-                <div className="text-center group">
-                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
-                    <span className="text-3xl">🎨</span>
-                  </div>
-                  <h3 className="font-semibold text-jcoder-foreground">Tailwind</h3>
-                </div>
-
-                <div className="text-center group">
-                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
-                    <span className="text-3xl">⚡</span>
-                  </div>
-                  <h3 className="font-semibold text-jcoder-foreground">Next.js</h3>
-                </div>
-
-                {/* Backend */}
-                <div className="text-center group">
-                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
-                    <span className="text-3xl">🟢</span>
-                  </div>
-                  <h3 className="font-semibold text-jcoder-foreground">Node.js</h3>
-                </div>
-
-                <div className="text-center group">
-                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
-                    <span className="text-3xl">🏗️</span>
-                  </div>
-                  <h3 className="font-semibold text-jcoder-foreground">NestJS</h3>
-                </div>
-
-                <div className="text-center group">
-                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
-                    <span className="text-3xl">🐘</span>
-                  </div>
-                  <h3 className="font-semibold text-jcoder-foreground">PostgreSQL</h3>
-                </div>
-
-                <div className="text-center group">
-                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
-                    <span className="text-3xl">🐳</span>
-                  </div>
-                  <h3 className="font-semibold text-jcoder-foreground">Docker</h3>
-                </div>
-
-                <div className="text-center group">
-                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
-                    <span className="text-3xl">☁️</span>
-                  </div>
-                  <h3 className="font-semibold text-jcoder-foreground">AWS</h3>
-                </div>
-
-                <div className="text-center group">
-                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
-                    <span className="text-3xl">🔧</span>
-                  </div>
-                  <h3 className="font-semibold text-jcoder-foreground">Git</h3>
-                </div>
-
-                <div className="text-center group">
-                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
-                    <span className="text-3xl">🧪</span>
-                  </div>
-                  <h3 className="font-semibold text-jcoder-foreground">Jest</h3>
-                </div>
-
-                <div className="text-center group">
-                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
-                    <span className="text-3xl">📱</span>
-                  </div>
-                  <h3 className="font-semibold text-jcoder-foreground">React Native</h3>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
         {/* Projects Section */}
         <section id="projects" className="py-20 bg-jcoder-card/50">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-6xl mx-auto">
               <h2 className="text-4xl font-bold text-jcoder-foreground text-center mb-12">
-                Projetos & Aplicações
+                Projects & Applications
               </h2>
 
               {loading ? (
                 <div className="text-center py-12">
                   <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-jcoder-primary"></div>
-                  <p className="mt-4 text-jcoder-muted">Carregando projetos...</p>
+                  <p className="mt-4 text-jcoder-muted">Loading projects...</p>
                 </div>
               ) : error ? (
                 <div className="text-center py-12">
@@ -296,7 +199,7 @@ export default function Home() {
                     }}
                     className="px-6 py-3 bg-jcoder-primary text-black font-semibold rounded-lg hover:bg-jcoder-accent transition-colors"
                   >
-                    Tentar Novamente
+                    Try Again
                   </button>
                 </div>
               ) : applications.length > 0 ? (
@@ -308,9 +211,155 @@ export default function Home() {
               ) : (
                 <div className="text-center py-12">
                   <div className="text-6xl mb-4">🚀</div>
-                  <p className="text-jcoder-muted text-lg">Nenhum projeto encontrado.</p>
+                  <p className="text-jcoder-muted text-lg">No projects found.</p>
                 </div>
               )}
+            </div>
+          </div>
+        </section>
+
+        {/* Tech Stack Section */}
+        <section id="tech-stack" className="py-20">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="max-w-6xl mx-auto">
+              <h2 className="text-4xl font-bold text-jcoder-foreground text-center mb-12">
+                Technologies & Stacks
+              </h2>
+
+              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8">
+                {/* Backend - Especialidade */}
+                <div className="text-center group">
+                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
+                    <span className="text-3xl">🟢</span>
+                  </div>
+                  <h3 className="font-semibold text-jcoder-foreground">Node.js</h3>
+                </div>
+
+                <div className="text-center group">
+                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
+                    <span className="text-3xl">🔷</span>
+                  </div>
+                  <h3 className="font-semibold text-jcoder-foreground">TypeScript</h3>
+                </div>
+
+                <div className="text-center group">
+                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
+                    <span className="text-3xl">🏗️</span>
+                  </div>
+                  <h3 className="font-semibold text-jcoder-foreground">NestJS</h3>
+                </div>
+
+                <div className="text-center group">
+                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
+                    <span className="text-3xl">⚡</span>
+                  </div>
+                  <h3 className="font-semibold text-jcoder-foreground">Express</h3>
+                </div>
+
+                {/* Bancos de Dados */}
+                <div className="text-center group">
+                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
+                    <span className="text-3xl">🐬</span>
+                  </div>
+                  <h3 className="font-semibold text-jcoder-foreground">MySQL</h3>
+                </div>
+
+                <div className="text-center group">
+                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
+                    <span className="text-3xl">🐘</span>
+                  </div>
+                  <h3 className="font-semibold text-jcoder-foreground">PostgreSQL</h3>
+                </div>
+
+                <div className="text-center group">
+                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
+                    <span className="text-3xl">🔥</span>
+                  </div>
+                  <h3 className="font-semibold text-jcoder-foreground">Firebird</h3>
+                </div>
+
+                {/* ORMs */}
+                <div className="text-center group">
+                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
+                    <span className="text-3xl">🔗</span>
+                  </div>
+                  <h3 className="font-semibold text-jcoder-foreground">Sequelize</h3>
+                </div>
+
+                <div className="text-center group">
+                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
+                    <span className="text-3xl">🔗</span>
+                  </div>
+                  <h3 className="font-semibold text-jcoder-foreground">TypeORM</h3>
+                </div>
+
+                {/* Infraestrutura */}
+                <div className="text-center group">
+                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
+                    <span className="text-3xl">🐳</span>
+                  </div>
+                  <h3 className="font-semibold text-jcoder-foreground">Docker</h3>
+                </div>
+
+                <div className="text-center group">
+                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
+                    <span className="text-3xl">🐰</span>
+                  </div>
+                  <h3 className="font-semibold text-jcoder-foreground">RabbitMQ</h3>
+                </div>
+
+                <div className="text-center group">
+                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
+                    <span className="text-3xl">🐧</span>
+                  </div>
+                  <h3 className="font-semibold text-jcoder-foreground">Ubuntu</h3>
+                </div>
+
+                <div className="text-center group">
+                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
+                    <span className="text-3xl">⚙️</span>
+                  </div>
+                  <h3 className="font-semibold text-jcoder-foreground">PM2</h3>
+                </div>
+
+                {/* Frontend - Conhecimento Leve */}
+                <div className="text-center group">
+                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
+                    <span className="text-3xl">⚛️</span>
+                  </div>
+                  <h3 className="font-semibold text-jcoder-foreground">React</h3>
+                </div>
+
+                <div className="text-center group">
+                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
+                    <span className="text-3xl">💚</span>
+                  </div>
+                  <h3 className="font-semibold text-jcoder-foreground">Vue.js</h3>
+                </div>
+
+                {/* Mobile */}
+                <div className="text-center group">
+                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
+                    <span className="text-3xl">📱</span>
+                  </div>
+                  <h3 className="font-semibold text-jcoder-foreground">React Native</h3>
+                </div>
+
+                <div className="text-center group">
+                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
+                    <span className="text-3xl">🦋</span>
+                  </div>
+                  <h3 className="font-semibold text-jcoder-foreground">Flutter</h3>
+                </div>
+
+                {/* Versionamento */}
+                <div className="text-center group">
+                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
+                    <span className="text-3xl">🔧</span>
+                  </div>
+                  <h3 className="font-semibold text-jcoder-foreground">Git</h3>
+                </div>
+              </div>
             </div>
           </div>
         </section>
@@ -320,11 +369,11 @@ export default function Home() {
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-4xl mx-auto text-center">
               <h2 className="text-4xl font-bold text-jcoder-foreground mb-8">
-                Vamos Conectar
+                Let's Connect
               </h2>
               <p className="text-lg text-jcoder-muted mb-12 max-w-2xl mx-auto">
-                Estou sempre aberto a novas oportunidades e colaborações.
-                Entre em contato comigo através das redes sociais ou por email.
+                I'm always open to new opportunities and collaborations.
+                Get in touch with me through social media or email.
               </p>
 
               {/* Social Links */}
@@ -370,23 +419,23 @@ export default function Home() {
               <div className="max-w-2xl mx-auto">
                 <div className="bg-jcoder-card rounded-2xl p-8">
                   <h3 className="text-2xl font-bold text-jcoder-foreground mb-6">
-                    Envie uma Mensagem
+                    Send a Message
                   </h3>
                   <form className="space-y-6">
                     <div className="grid md:grid-cols-2 gap-6">
                       <input
                         type="text"
-                        placeholder="Seu Nome"
+                        placeholder="Your Name"
                         className="w-full px-4 py-3 bg-jcoder-secondary border border-jcoder rounded-lg focus:outline-none focus:ring-2 focus:ring-jcoder-primary text-jcoder-foreground placeholder-jcoder-muted"
                       />
                       <input
                         type="email"
-                        placeholder="Seu Email"
+                        placeholder="Your Email"
                         className="w-full px-4 py-3 bg-jcoder-secondary border border-jcoder rounded-lg focus:outline-none focus:ring-2 focus:ring-jcoder-primary text-jcoder-foreground placeholder-jcoder-muted"
                       />
                     </div>
                     <textarea
-                      placeholder="Sua Mensagem"
+                      placeholder="Your Message"
                       rows={4}
                       className="w-full px-4 py-3 bg-jcoder-secondary border border-jcoder rounded-lg focus:outline-none focus:ring-2 focus:ring-jcoder-primary text-jcoder-foreground placeholder-jcoder-muted resize-none"
                     ></textarea>
@@ -394,7 +443,7 @@ export default function Home() {
                       type="submit"
                       className="w-full px-8 py-4 bg-jcoder-gradient text-black font-semibold rounded-lg hover:shadow-jcoder-primary transition-all duration-300 transform hover:scale-105"
                     >
-                      Enviar Mensagem
+                      Send Message
                     </button>
                   </form>
                 </div>
