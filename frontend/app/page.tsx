@@ -19,27 +19,33 @@ export default function Home() {
   const toast = useToast();
   const { scrollToElement } = useSmoothScroll();
 
+  const loadApplications = async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const data = await ApplicationService.getAll();
+      setApplications(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error('Failure to load applications', err);
+      const errorMessage = 'The applications could not be loaded. Please try again.';
+      setError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     let isMounted = true;
-    setLoading(true);
-    ApplicationService
-      .getAll()
-      .then(data => {
-        if (!isMounted) return;
-        setApplications(Array.isArray(data) ? data : []);
-        setError(null);
-      })
-      .catch(err => {
-        if (!isMounted) return;
-        console.error('Failure to load applications', err);
-        const errorMessage = 'The applications could not be loaded. Please try again.';
-        setError(errorMessage);
-        toast.error(errorMessage);
-      })
-      .finally(() => {
-        if (!isMounted) return;
-        setLoading(false);
-      });
+
+    const loadData = async () => {
+      if (!isMounted) return;
+      await loadApplications();
+    };
+
+    loadData();
+
     return () => {
       isMounted = false;
     };
@@ -234,19 +240,7 @@ export default function Home() {
                 <div className="text-center py-12">
                   <p className="text-red-400 mb-4">{error}</p>
                   <button
-                    onClick={() => {
-                      setError(null);
-                      setLoading(true);
-                      ApplicationService
-                        .getAll()
-                        .then((data) => setApplications(Array.isArray(data) ? data : []))
-                        .catch(() => {
-                          const errorMessage = 'The applications could not be loaded.';
-                          setError(errorMessage);
-                          toast.error(errorMessage);
-                        })
-                        .finally(() => setLoading(false));
-                    }}
+                    onClick={loadApplications}
                     className="px-6 py-3 bg-jcoder-primary text-black font-semibold rounded-lg hover:bg-jcoder-accent transition-colors"
                   >
                     Try Again

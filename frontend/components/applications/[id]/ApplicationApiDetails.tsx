@@ -3,6 +3,34 @@ import CopyToClipboardButton from '@/components/clipboard/CopyToClipboardButton'
 import LinkDisplayBlock from './LinkDisplayBlock';
 import { ApplicationComponentApi } from '@/types/entities/application-component-api.entity';
 
+// Retry function for external API health checks
+const retryFetch = async (url: string, maxRetries: number = 3): Promise<Response> => {
+  let lastError: Error;
+
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        signal: AbortSignal.timeout(5000) // 5 second timeout
+      });
+      return response;
+    } catch (error) {
+      lastError = error as Error;
+
+      // Don't retry on the last attempt
+      if (attempt === maxRetries) {
+        break;
+      }
+
+      // Calculate delay with exponential backoff
+      const delay = 1000 * Math.pow(2, attempt);
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+
+  throw lastError!;
+};
+
 interface ApplicationApiDetailsProps {
   apiDetails: ApplicationComponentApi;
 }
@@ -17,7 +45,7 @@ const ApplicationApiDetails: React.FC<ApplicationApiDetailsProps> = ({ apiDetail
       if (!apiDetails.healthCheckEndpoint) return;
 
       try {
-        const response = await fetch(apiDetails.healthCheckEndpoint);
+        const response = await retryFetch(apiDetails.healthCheckEndpoint);
         if (response.ok) {
           setHealthStatus('ok');
         } else {

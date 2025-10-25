@@ -1,4 +1,4 @@
-import ApiService from "./api.service";
+import ApiService, { ApiServiceWithRetry } from "./api.service";
 
 export interface HealthStatus {
     status: string;
@@ -10,7 +10,7 @@ export interface HealthStatus {
 export const HealthService = {
     async checkHealth(): Promise<HealthStatus> {
         try {
-            const response = await ApiService.get('/health');
+            const response = await ApiServiceWithRetry.get('/health');
             return response.data.data;
         } catch (error) {
             throw error;
@@ -19,7 +19,7 @@ export const HealthService = {
 
     async checkReadiness(): Promise<HealthStatus> {
         try {
-            const response = await ApiService.get('/health/ready');
+            const response = await ApiServiceWithRetry.get('/health/ready');
             return response.data.data;
         } catch (error) {
             throw error;
@@ -28,7 +28,7 @@ export const HealthService = {
 
     async checkLiveness(): Promise<HealthStatus> {
         try {
-            const response = await ApiService.get('/health/live');
+            const response = await ApiServiceWithRetry.get('/health/live');
             return response.data.data;
         } catch (error) {
             throw error;

@@ -1,4 +1,4 @@
-import ApiService from "./api.service";
+import ApiService, { ApiServiceWithRetry } from "./api.service";
 import { Application } from "@/types/entities/application.entity";
 import { CreateApplicationDto } from "@/types/entities/dtos/create-application.dto";
 import { UpdateApplicationDto } from "@/types/entities/dtos/update-application.dto";
@@ -7,7 +7,7 @@ import { PaginationDto, PaginatedResponse, ApiResponse } from "@/types/api/pagin
 export const ApplicationService = {
     async getAll(): Promise<Application[]> {
         try {
-            const response = await ApiService.get('/applications');
+            const response = await ApiServiceWithRetry.get('/applications');
             return response.data.data;
         } catch (error) {
             throw error;
@@ -22,7 +22,7 @@ export const ApplicationService = {
             if (pagination.sortBy) params.append('sortBy', pagination.sortBy);
             if (pagination.sortOrder) params.append('sortOrder', pagination.sortOrder);
 
-            const response = await ApiService.get(`/applications/paginated?${params.toString()}`);
+            const response = await ApiServiceWithRetry.get(`/applications/paginated?${params.toString()}`);
             return response.data.data;
         } catch (error) {
             throw error;
@@ -31,7 +31,7 @@ export const ApplicationService = {
 
     async getById(id: number): Promise<Application> {
         try {
-            const response = await ApiService.get(`/applications/${id}`);
+            const response = await ApiServiceWithRetry.get(`/applications/${id}`);
             return response.data.data;
         } catch (error) {
             throw error;
@@ -40,7 +40,7 @@ export const ApplicationService = {
 
     async create(payload: CreateApplicationDto): Promise<Application> {
         try {
-            const response = await ApiService.post(`/applications`, payload);
+            const response = await ApiServiceWithRetry.post(`/applications`, payload);
             return response.data.data;
         } catch (error) {
             throw error;
@@ -49,7 +49,7 @@ export const ApplicationService = {
 
     async update(id: number, payload: UpdateApplicationDto): Promise<Application> {
         try {
-            const response = await ApiService.put(`/applications/${id}`, payload);
+            const response = await ApiServiceWithRetry.put(`/applications/${id}`, payload);
             return response.data.data;
         } catch (error) {
             throw error;
@@ -58,7 +58,7 @@ export const ApplicationService = {
 
     async delete(id: number): Promise<void> {
         try {
-            await ApiService.delete(`/applications/${id}`);
+            await ApiServiceWithRetry.delete(`/applications/${id}`);
         } catch (error) {
             throw error;
         }
@@ -71,7 +71,7 @@ export const ApplicationService = {
                 formData.append('images', file);
             });
 
-            const response = await ApiService.post(`/images/applications/${id}/images`, formData, {
+            const response = await ApiServiceWithRetry.post(`/images/applications/${id}/images`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
@@ -84,7 +84,7 @@ export const ApplicationService = {
 
     async deleteImage(id: number, filename: string): Promise<void> {
         try {
-            await ApiService.delete(`/images/applications/${id}/images/${filename}`);
+            await ApiServiceWithRetry.delete(`/images/applications/${id}/images/${filename}`);
         } catch (error) {
             throw error;
         }
@@ -100,7 +100,7 @@ export const ApplicationService = {
             const formData = new FormData();
             formData.append('profileImage', file);
 
-            const response = await ApiService.post(`/images/applications/${id}/profile-image`, formData, {
+            const response = await ApiServiceWithRetry.post(`/images/applications/${id}/profile-image`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
@@ -116,7 +116,7 @@ export const ApplicationService = {
             const formData = new FormData();
             formData.append('profileImage', file);
 
-            const response = await ApiService.put(`/images/applications/${id}/profile-image`, formData, {
+            const response = await ApiServiceWithRetry.put(`/images/applications/${id}/profile-image`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
@@ -129,7 +129,7 @@ export const ApplicationService = {
 
     async deleteProfileImage(id: number): Promise<void> {
         try {
-            await ApiService.delete(`/images/applications/${id}/profile-image`);
+            await ApiServiceWithRetry.delete(`/images/applications/${id}/profile-image`);
         } catch (error) {
             throw error;
         }
