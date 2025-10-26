@@ -232,9 +232,9 @@ export default function Home() {
               </h2>
 
               {loading ? (
-                <div className="text-center py-12">
-                  <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-jcoder-primary"></div>
-                  <p className="mt-4 text-jcoder-muted">Loading projects...</p>
+                <div className="bg-jcoder-card border border-jcoder rounded-lg p-12 text-center">
+                  <div className="inline-block animate-spin rounded-full h-16 w-16 border-b-2 border-jcoder-primary mb-4"></div>
+                  <p className="text-jcoder-muted text-lg">Loading projects...</p>
                 </div>
               ) : error ? (
                 <div className="text-center py-12">

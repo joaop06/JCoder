@@ -6,7 +6,6 @@ import { ApplicationComponentFrontendDto } from "./application-component-fronten
 
 export interface CreateApplicationDto {
     name: string;
-    userId: number;
     description: string;
     applicationType: ApplicationTypeEnum;
     githubUrl?: string;

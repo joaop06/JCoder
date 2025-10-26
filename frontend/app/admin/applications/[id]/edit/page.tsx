@@ -225,6 +225,17 @@ export default function EditApplicationPage() {
 
             <main className="flex-1 container mx-auto px-4 py-12 pt-24">
                 <div className="max-w-4xl mx-auto">
+                    {/* Back Button */}
+                    <button
+                        onClick={() => router.back()}
+                        className="inline-flex items-center gap-2 text-jcoder-muted hover:text-jcoder-primary transition-colors mb-8"
+                    >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                        </svg>
+                        Back
+                    </button>
+
                     <div className="mb-8">
                         <h1 className="text-3xl font-bold text-jcoder-foreground mb-2">Edit Application</h1>
                         <p className="text-jcoder-muted">Edit the details of your application</p>

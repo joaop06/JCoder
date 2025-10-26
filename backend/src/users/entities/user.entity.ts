@@ -28,6 +28,14 @@ export class User {
   @Column({ unique: true })
   email: string;
 
+  @ApiProperty({
+    type: 'string',
+    nullable: true,
+    example: 'John Doe',
+  })
+  @Column({ nullable: true })
+  name?: string;
+
   @Exclude()
   @Column({ nullable: false })
   password: string;
@@ -44,7 +52,6 @@ export class User {
     default: RoleEnum.User,
   })
   role: RoleEnum;
-
 
   @ApiProperty({
     nullable: false,

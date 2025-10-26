@@ -24,4 +24,13 @@ export class UsersService {
 
         return user;
     }
+
+    async emailExists(email: string): Promise<boolean> {
+        const user = await this.repository.findOneBy({ email });
+        return !!user;
+    }
+
+    async update(user: User): Promise<User> {
+        return await this.repository.save(user);
+    }
 };

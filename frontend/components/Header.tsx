@@ -56,6 +56,11 @@ export default function Header({
     return currentPath.startsWith('/applications/') && currentPath !== '/applications';
   }, [currentPath]);
 
+  // Check if we're on admin pages
+  const isAdminPage = useMemo(() => {
+    return currentPath.startsWith('/admin');
+  }, [currentPath]);
+
   // Scroll detection for active section
   useEffect(() => {
     if (!isClient || isLoggedIn) return;
@@ -214,10 +219,50 @@ export default function Header({
         {isProfileDropdownOpen && (
           <div className="absolute right-0 top-full mt-2 w-48 bg-jcoder-card border border-jcoder rounded-lg shadow-lg z-50">
             <div className="p-2">
+              {isAdmin && (
+                <button
+                  onClick={() => {
+                    setIsProfileDropdownOpen(false);
+                    router.push('/admin');
+                  }}
+                  className="w-full text-left px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors flex items-center gap-2"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={1.5}
+                    className="w-4 h-4"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 1-3 0M3.75 6H7.5m0 12v-3a3 3 0 0 1 3-3h3m-6 3a3 3 0 0 0 3 3h3a3 3 0 0 0 3-3v-3m-6 0V9a3 3 0 0 1 3-3h3a3 3 0 0 1 3 3v3" />
+                  </svg>
+                  Administration
+                </button>
+              )}
               <button
                 onClick={() => {
                   setIsProfileDropdownOpen(false);
-                  router.push('/profile');
+                  router.push('/admin/applications');
+                }}
+                className="w-full text-left px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors flex items-center gap-2"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={1.5}
+                  className="w-4 h-4"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z" />
+                </svg>
+                Applications
+              </button>
+              <button
+                onClick={() => {
+                  setIsProfileDropdownOpen(false);
+                  router.push('/admin/profile');
                 }}
                 className="w-full text-left px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors flex items-center gap-2"
               >
@@ -232,6 +277,25 @@ export default function Header({
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
                 </svg>
                 Profile
+              </button>
+              <button
+                onClick={() => {
+                  setIsProfileDropdownOpen(false);
+                  router.push('/admin/technologies');
+                }}
+                className="w-full text-left px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors flex items-center gap-2"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={1.5}
+                  className="w-4 h-4"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 0 1-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 0 1 4.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0 1 12 16a9.065 9.065 0 0 1-6.23-.693L5 14.5m14.8.8 1.402 1.402c1.232 1.232.65 3.318-1.067 3.611A48.309 48.309 0 0 1 12 21c-2.773 0-5.491-.235-8.135-.687-1.718-.293-2.3-2.379-1.067-3.61L5 14.5" />
+                </svg>
+                Technologies
               </button>
               <button
                 onClick={handleSignOutClick}
@@ -285,7 +349,26 @@ export default function Header({
               <button
                 onClick={() => {
                   setIsProfileDropdownOpen(false);
-                  router.push('/profile');
+                  router.push('/admin/applications');
+                }}
+                className="w-full text-left px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors flex items-center gap-2"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={1.5}
+                  className="w-4 h-4"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z" />
+                </svg>
+                Applications
+              </button>
+              <button
+                onClick={() => {
+                  setIsProfileDropdownOpen(false);
+                  router.push('/admin/profile');
                 }}
                 className="w-full text-left px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors flex items-center gap-2"
               >
@@ -300,6 +383,25 @@ export default function Header({
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
                 </svg>
                 Profile
+              </button>
+              <button
+                onClick={() => {
+                  setIsProfileDropdownOpen(false);
+                  router.push('/admin/technologies');
+                }}
+                className="w-full text-left px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors flex items-center gap-2"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={1.5}
+                  className="w-4 h-4"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 0 1-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 0 1 4.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0 1 12 16a9.065 9.065 0 0 1-6.23-.693L5 14.5m14.8.8 1.402 1.402c1.232 1.232.65 3.318-1.067 3.611A48.309 48.309 0 0 1 12 21c-2.773 0-5.491-.235-8.135-.687-1.718-.293-2.3-2.379-1.067-3.61L5 14.5" />
+                </svg>
+                Technologies
               </button>
               <button
                 onClick={handleSignOutClick}
@@ -362,7 +464,48 @@ export default function Header({
 
             {/* Navigation options */}
             <nav className="space-y-2">
-              {!isApplicationDetailPage && (
+              {isAdminPage ? (
+                // Admin navigation
+                <>
+                  <button
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      router.push('/admin/applications');
+                    }}
+                    className={`w-full text-left px-3 py-2 rounded-md transition-colors ${currentPath.startsWith('/admin/applications')
+                      ? 'text-blue-600 dark:text-jcoder-primary font-medium bg-blue-50 dark:bg-jcoder-secondary'
+                      : 'text-gray-600 dark:text-jcoder-muted hover:text-blue-500 dark:hover:text-jcoder-primary hover:bg-gray-50 dark:hover:bg-jcoder-secondary'
+                      }`}
+                  >
+                    Applications
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      router.push('/admin/profile');
+                    }}
+                    className={`w-full text-left px-3 py-2 rounded-md transition-colors ${currentPath === '/admin/profile'
+                      ? 'text-blue-600 dark:text-jcoder-primary font-medium bg-blue-50 dark:bg-jcoder-secondary'
+                      : 'text-gray-600 dark:text-jcoder-muted hover:text-blue-500 dark:hover:text-jcoder-primary hover:bg-gray-50 dark:hover:bg-jcoder-secondary'
+                      }`}
+                  >
+                    Profile
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      router.push('/admin/technologies');
+                    }}
+                    className={`w-full text-left px-3 py-2 rounded-md transition-colors ${currentPath === '/admin/technologies'
+                      ? 'text-blue-600 dark:text-jcoder-primary font-medium bg-blue-50 dark:bg-jcoder-secondary'
+                      : 'text-gray-600 dark:text-jcoder-muted hover:text-blue-500 dark:hover:text-jcoder-primary hover:bg-gray-50 dark:hover:bg-jcoder-secondary'
+                      }`}
+                  >
+                    Technologies
+                  </button>
+                </>
+              ) : !isApplicationDetailPage ? (
+                // Home page navigation
                 <>
                   <button
                     onClick={() => handleNavigationClick('about')}
@@ -401,7 +544,7 @@ export default function Header({
                     Contact
                   </button>
                 </>
-              )}
+              ) : null}
             </nav>
           </div>
         </div>
@@ -412,146 +555,93 @@ export default function Header({
   // Mobile hamburger menu for logged-in users (includes Admin option and profile)
   const MobileLoggedInMenu = () => (
     <div className="flex items-center gap-2">
-      {/* Hamburger menu button */}
-      <div className="relative mobile-menu-container">
-        <button
-          type="button"
-          onClick={toggleMobileMenu}
-          className="p-2 rounded-md text-jcoder-muted hover:text-jcoder-foreground hover:bg-jcoder-secondary transition-colors"
-          aria-label="Toggle menu"
-          title="Toggle menu"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={1.5}
-            stroke="currentColor"
-            className="w-6 h-6"
+      {/* Hamburger menu button - Only show when NOT in admin pages */}
+      {!isAdminPage && (
+        <div className="relative mobile-menu-container">
+          <button
+            type="button"
+            onClick={toggleMobileMenu}
+            className="p-2 rounded-md text-jcoder-muted hover:text-jcoder-foreground hover:bg-jcoder-secondary transition-colors"
+            aria-label="Toggle menu"
+            title="Toggle menu"
           >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-          </svg>
-        </button>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.5}
+              stroke="currentColor"
+              className="w-6 h-6"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+            </svg>
+          </button>
 
-        {/* Dropdown menu */}
-        {isMobileMenuOpen && (
-          <div className="absolute right-0 top-full mt-2 w-64 bg-jcoder-card border border-jcoder rounded-lg shadow-lg z-50">
-            <div className="p-4 space-y-4">
-              {/* Theme toggle at the top */}
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-jcoder-muted">Theme</span>
-                <ThemeToggle size="sm" />
+          {/* Dropdown menu */}
+          {isMobileMenuOpen && (
+            <div className="absolute right-0 top-full mt-2 w-64 bg-jcoder-card border border-jcoder rounded-lg shadow-lg z-50">
+              <div className="p-4 space-y-4">
+                {/* Theme toggle at the top */}
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-jcoder-muted">Theme</span>
+                  <ThemeToggle size="sm" />
+                </div>
+
+                {/* Divider */}
+                <div className="border-t border-jcoder"></div>
+
+                {/* Navigation options */}
+                <nav className="space-y-2">
+                  {isApplicationDetailPage ? (
+                    // Application detail page navigation - Empty for now
+                    <></>
+                  ) : (
+                    // Home page navigation
+                    <>
+                      <button
+                        onClick={() => handleNavigationClick('about')}
+                        className={`w-full text-left px-3 py-2 rounded-md transition-colors ${activeSection === 'about'
+                          ? 'text-blue-600 dark:text-jcoder-primary font-medium bg-blue-50 dark:bg-jcoder-secondary'
+                          : 'text-gray-600 dark:text-jcoder-muted hover:text-blue-500 dark:hover:text-jcoder-primary hover:bg-gray-50 dark:hover:bg-jcoder-secondary'
+                          }`}
+                      >
+                        About
+                      </button>
+                      <button
+                        onClick={() => handleNavigationClick('projects')}
+                        className={`w-full text-left px-3 py-2 rounded-md transition-colors ${activeSection === 'projects'
+                          ? 'text-blue-600 dark:text-jcoder-primary font-medium bg-blue-50 dark:bg-jcoder-secondary'
+                          : 'text-gray-600 dark:text-jcoder-muted hover:text-blue-500 dark:hover:text-jcoder-primary hover:bg-gray-50 dark:hover:bg-jcoder-secondary'
+                          }`}
+                      >
+                        Projects
+                      </button>
+                      <button
+                        onClick={() => handleNavigationClick('tech-stack')}
+                        className={`w-full text-left px-3 py-2 rounded-md transition-colors ${activeSection === 'tech-stack'
+                          ? 'text-blue-600 dark:text-jcoder-primary font-medium bg-blue-50 dark:bg-jcoder-secondary'
+                          : 'text-gray-600 dark:text-jcoder-muted hover:text-blue-500 dark:hover:text-jcoder-primary hover:bg-gray-50 dark:hover:bg-jcoder-secondary'
+                          }`}
+                      >
+                        Technologies
+                      </button>
+                      <button
+                        onClick={() => handleNavigationClick('contact')}
+                        className={`w-full text-left px-3 py-2 rounded-md transition-colors ${activeSection === 'contact'
+                          ? 'text-blue-600 dark:text-jcoder-primary font-medium bg-blue-50 dark:bg-jcoder-secondary'
+                          : 'text-gray-600 dark:text-jcoder-muted hover:text-blue-500 dark:hover:text-jcoder-primary hover:bg-gray-50 dark:hover:bg-jcoder-secondary'
+                          }`}
+                      >
+                        Contact
+                      </button>
+                    </>
+                  )}
+                </nav>
               </div>
-
-              {/* Divider */}
-              <div className="border-t border-jcoder"></div>
-
-              {/* Navigation options */}
-              <nav className="space-y-2">
-                {currentPath === '/admin' || currentPath === '/profile' || isApplicationDetailPage ? (
-                  // Admin, Profile, or Application Detail page navigation
-                  <>
-                    <Link
-                      href="/admin"
-                      className={`w-full text-left px-3 py-2 rounded-md transition-colors flex items-center gap-2 ${currentPath === '/admin'
-                        ? 'text-blue-600 dark:text-jcoder-primary font-medium bg-blue-50 dark:bg-jcoder-secondary'
-                        : 'text-gray-600 dark:text-jcoder-muted hover:text-blue-500 dark:hover:text-jcoder-primary hover:bg-gray-50 dark:hover:bg-jcoder-secondary'
-                        }`}
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth={1.5}
-                        className="w-4 h-4"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 1-3 0M3.75 6H7.5m0 12v-3a3 3 0 0 1 3-3h3m-6 3a3 3 0 0 0 3 3h3a3 3 0 0 0 3-3v-3m-6 0V9a3 3 0 0 1 3-3h3a3 3 0 0 1 3 3v3" />
-                      </svg>
-                      Administration
-                    </Link>
-                    <Link
-                      href="/profile"
-                      className={`w-full text-left px-3 py-2 rounded-md transition-colors flex items-center gap-2 ${currentPath === '/profile'
-                        ? 'text-blue-600 dark:text-jcoder-primary font-medium bg-blue-50 dark:bg-jcoder-secondary'
-                        : 'text-gray-600 dark:text-jcoder-muted hover:text-blue-500 dark:hover:text-jcoder-primary hover:bg-gray-50 dark:hover:bg-jcoder-secondary'
-                        }`}
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth={1.5}
-                        className="w-4 h-4"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
-                      </svg>
-                      Profile
-                    </Link>
-                  </>
-                ) : (
-                  // Home page navigation
-                  <>
-                    <button
-                      onClick={() => handleNavigationClick('about')}
-                      className={`w-full text-left px-3 py-2 rounded-md transition-colors ${activeSection === 'about'
-                        ? 'text-blue-600 dark:text-jcoder-primary font-medium bg-blue-50 dark:bg-jcoder-secondary'
-                        : 'text-gray-600 dark:text-jcoder-muted hover:text-blue-500 dark:hover:text-jcoder-primary hover:bg-gray-50 dark:hover:bg-jcoder-secondary'
-                        }`}
-                    >
-                      About
-                    </button>
-                    <button
-                      onClick={() => handleNavigationClick('projects')}
-                      className={`w-full text-left px-3 py-2 rounded-md transition-colors ${activeSection === 'projects'
-                        ? 'text-blue-600 dark:text-jcoder-primary font-medium bg-blue-50 dark:bg-jcoder-secondary'
-                        : 'text-gray-600 dark:text-jcoder-muted hover:text-blue-500 dark:hover:text-jcoder-primary hover:bg-gray-50 dark:hover:bg-jcoder-secondary'
-                        }`}
-                    >
-                      Projects
-                    </button>
-                    <button
-                      onClick={() => handleNavigationClick('tech-stack')}
-                      className={`w-full text-left px-3 py-2 rounded-md transition-colors ${activeSection === 'tech-stack'
-                        ? 'text-blue-600 dark:text-jcoder-primary font-medium bg-blue-50 dark:bg-jcoder-secondary'
-                        : 'text-gray-600 dark:text-jcoder-muted hover:text-blue-500 dark:hover:text-jcoder-primary hover:bg-gray-50 dark:hover:bg-jcoder-secondary'
-                        }`}
-                    >
-                      Technologies
-                    </button>
-                    <button
-                      onClick={() => handleNavigationClick('contact')}
-                      className={`w-full text-left px-3 py-2 rounded-md transition-colors ${activeSection === 'contact'
-                        ? 'text-blue-600 dark:text-jcoder-primary font-medium bg-blue-50 dark:bg-jcoder-secondary'
-                        : 'text-gray-600 dark:text-jcoder-muted hover:text-blue-500 dark:hover:text-jcoder-primary hover:bg-gray-50 dark:hover:bg-jcoder-secondary'
-                        }`}
-                    >
-                      Contact
-                    </button>
-                    <Link
-                      href="/admin"
-                      className="w-full text-left px-3 py-2 rounded-md transition-colors text-gray-600 dark:text-jcoder-muted hover:text-blue-500 dark:hover:text-jcoder-primary hover:bg-gray-50 dark:hover:bg-jcoder-secondary flex items-center gap-2"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth={1.5}
-                        className="w-4 h-4"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 1-3 0M3.75 6H7.5m0 12v-3a3 3 0 0 1 3-3h3m-6 3a3 3 0 0 0 3 3h3a3 3 0 0 0 3-3v-3m-6 0V9a3 3 0 0 1 3-3h3a3 3 0 0 1 3 3v3" />
-                      </svg>
-                      Administration
-                    </Link>
-                  </>
-                )}
-              </nav>
             </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      )}
 
       {/* Profile dropdown */}
       <div className="relative profile-dropdown-container">
@@ -573,10 +663,60 @@ export default function Header({
         {isProfileDropdownOpen && (
           <div className="absolute right-0 top-full mt-2 w-48 bg-jcoder-card border border-jcoder rounded-lg shadow-lg z-50">
             <div className="p-2">
+              {/* Theme toggle - Only show in admin pages on mobile */}
+              {isAdminPage && (
+                <>
+                  <div className="flex items-center justify-between px-3 py-2">
+                    <span className="text-sm text-jcoder-muted">Theme</span>
+                    <ThemeToggle size="sm" />
+                  </div>
+                  <div className="border-t border-jcoder my-2"></div>
+                </>
+              )}
+              {isAdmin && (
+                <button
+                  onClick={() => {
+                    setIsProfileDropdownOpen(false);
+                    router.push('/admin');
+                  }}
+                  className="w-full text-left px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors flex items-center gap-2"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={1.5}
+                    className="w-4 h-4"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 1-3 0M3.75 6H7.5m0 12v-3a3 3 0 0 1 3-3h3m-6 3a3 3 0 0 0 3 3h3a3 3 0 0 0 3-3v-3m-6 0V9a3 3 0 0 1 3-3h3a3 3 0 0 1 3 3v3" />
+                  </svg>
+                  Administration
+                </button>
+              )}
               <button
                 onClick={() => {
                   setIsProfileDropdownOpen(false);
-                  router.push('/profile');
+                  router.push('/admin/applications');
+                }}
+                className="w-full text-left px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors flex items-center gap-2"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={1.5}
+                  className="w-4 h-4"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z" />
+                </svg>
+                Applications
+              </button>
+              <button
+                onClick={() => {
+                  setIsProfileDropdownOpen(false);
+                  router.push('/admin/profile');
                 }}
                 className="w-full text-left px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors flex items-center gap-2"
               >
@@ -591,6 +731,25 @@ export default function Header({
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
                 </svg>
                 Profile
+              </button>
+              <button
+                onClick={() => {
+                  setIsProfileDropdownOpen(false);
+                  router.push('/admin/technologies');
+                }}
+                className="w-full text-left px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors flex items-center gap-2"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={1.5}
+                  className="w-4 h-4"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 0 1-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 0 1 4.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0 1 12 16a9.065 9.065 0 0 1-6.23-.693L5 14.5m14.8.8 1.402 1.402c1.232 1.232.65 3.318-1.067 3.611A48.309 48.309 0 0 1 12 21c-2.773 0-5.491-.235-8.135-.687-1.718-.293-2.3-2.379-1.067-3.61L5 14.5" />
+                </svg>
+                Technologies
               </button>
               <button
                 onClick={handleSignOutClick}
@@ -684,28 +843,40 @@ export default function Header({
               </div>
 
               <nav className="flex items-center justify-center gap-8">
-                {currentPath === '/admin' || currentPath === '/profile' || isApplicationDetailPage ? (
-                  // Admin, Profile, or Application Detail page navigation
+                {isAdminPage ? (
+                  // Admin navigation
                   <>
-                    <Link
-                      href="/admin"
-                      className={`px-4 py-2 rounded-lg font-medium transition-colors ${currentPath === '/admin'
-                        ? 'bg-jcoder-gradient text-black'
-                        : 'text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary'
+                    <button
+                      onClick={() => router.push('/admin/applications')}
+                      className={`transition-colors cursor-pointer ${currentPath.startsWith('/admin/applications')
+                        ? 'text-blue-600 dark:text-jcoder-primary font-medium'
+                        : 'text-gray-600 dark:text-jcoder-muted hover:text-blue-500 dark:hover:text-jcoder-primary'
                         }`}
                     >
-                      Administration
-                    </Link>
-                    <Link
-                      href="/profile"
-                      className={`px-4 py-2 rounded-lg font-medium transition-colors ${currentPath === '/profile'
-                        ? 'bg-jcoder-gradient text-black'
-                        : 'text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary'
+                      Applications
+                    </button>
+                    <button
+                      onClick={() => router.push('/admin/profile')}
+                      className={`transition-colors cursor-pointer ${currentPath === '/admin/profile'
+                        ? 'text-blue-600 dark:text-jcoder-primary font-medium'
+                        : 'text-gray-600 dark:text-jcoder-muted hover:text-blue-500 dark:hover:text-jcoder-primary'
                         }`}
                     >
                       Profile
-                    </Link>
+                    </button>
+                    <button
+                      onClick={() => router.push('/admin/technologies')}
+                      className={`transition-colors cursor-pointer ${currentPath === '/admin/technologies'
+                        ? 'text-blue-600 dark:text-jcoder-primary font-medium'
+                        : 'text-gray-600 dark:text-jcoder-muted hover:text-blue-500 dark:hover:text-jcoder-primary'
+                        }`}
+                    >
+                      Technologies
+                    </button>
                   </>
+                ) : isApplicationDetailPage ? (
+                  // Application detail page navigation - Empty for now
+                  <></>
                 ) : (
                   // Home page navigation
                   <>
@@ -745,12 +916,6 @@ export default function Header({
                     >
                       Contact
                     </button>
-                    <Link
-                      href="/admin"
-                      className="px-4 py-2 rounded-lg bg-jcoder-gradient text-black font-medium hover:opacity-90 transition-opacity"
-                    >
-                      Administration
-                    </Link>
                   </>
                 )}
               </nav>

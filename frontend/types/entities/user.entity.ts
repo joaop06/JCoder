@@ -6,7 +6,6 @@ export interface User {
     name?: string;
     email: string;
     role: RoleEnum;
-    applications?: Application[];
     createdAt: Date;
     updatedAt: Date;
     deletedAt?: Date;
