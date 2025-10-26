@@ -6,15 +6,20 @@ import ScrollToTop from '@/components/ScrollToTop';
 import { useEffect, useState } from 'react';
 import { useToast } from '@/components/toast/ToastContext';
 import { Application } from '@/types/entities/application.entity';
+import { Technology } from '@/types/entities/technology.entity';
 import { ApplicationService } from '@/services/applications.service';
+import { TechnologiesService } from '@/services/technologies.service';
 import ApplicationCard from '@/components/applications/ApplicationCard';
 import { useSmoothScroll } from '@/hooks/useSmoothScroll';
 import { GitHubIcon } from '@/components/theme';
+import { TechnologyCategoryEnum } from '@/types/enums/technology-category.enum';
 
 export default function Home() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [applications, setApplications] = useState<Application[]>([]);
+  const [technologies, setTechnologies] = useState<Technology[]>([]);
+  const [loadingTechs, setLoadingTechs] = useState(true);
 
   const toast = useToast();
   const { scrollToElement } = useSmoothScroll();
@@ -36,12 +41,32 @@ export default function Home() {
     }
   };
 
+  const loadTechnologies = async () => {
+    setLoadingTechs(true);
+    try {
+      const data = await TechnologiesService.query({
+        isActive: true,
+        sortBy: 'displayOrder',
+        sortOrder: 'ASC',
+        limit: 100,
+      });
+      setTechnologies(data.data || []);
+    } catch (err) {
+      console.error('Failure to load technologies', err);
+      // Use fallback to static icons if API fails
+      setTechnologies([]);
+    } finally {
+      setLoadingTechs(false);
+    }
+  };
+
   useEffect(() => {
     let isMounted = true;
 
     const loadData = async () => {
       if (!isMounted) return;
       await loadApplications();
+      await loadTechnologies();
     };
 
     loadData();
@@ -270,212 +295,226 @@ export default function Home() {
                 Technologies & Stacks
               </h2>
 
-              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8">
-                {/* Backend - Especialidade */}
-                <div className="text-center group">
-                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card dark:bg-jcoder-card light:bg-green-50 rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
-                    <img
-                      src="/icons/technologies_and_stacks/nodejs.png"
-                      alt="Node.js"
-                      className="w-12 h-12 object-contain"
-                    />
-                  </div>
-                  <h3 className="font-semibold text-jcoder-foreground">Node.js</h3>
+              {loadingTechs ? (
+                <div className="text-center py-12">
+                  <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-jcoder-primary mb-4"></div>
+                  <p className="text-jcoder-muted">Loading technologies...</p>
                 </div>
+              ) : technologies.length > 0 ? (
+                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8">
+                  {technologies.map((tech) => (
+                    <TechnologyCard key={tech.id} technology={tech} />
+                  ))}
+                </div>
+              ) : (
+                // Fallback to static icons if no technologies from API
+                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8">
+                  {/* Backend - Especialidade */}
+                  <div className="text-center group">
+                    <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card dark:bg-jcoder-card light:bg-green-50 rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
+                      <img
+                        src="/icons/technologies_and_stacks/nodejs.png"
+                        alt="Node.js"
+                        className="w-12 h-12 object-contain"
+                      />
+                    </div>
+                    <h3 className="font-semibold text-jcoder-foreground">Node.js</h3>
+                  </div>
 
-                <div className="text-center group">
-                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card dark:bg-jcoder-card light:bg-blue-50 rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
-                    <img
-                      src="/icons/technologies_and_stacks/typescript.png"
-                      alt="TypeScript"
-                      className="w-12 h-12 object-contain"
-                    />
+                  <div className="text-center group">
+                    <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card dark:bg-jcoder-card light:bg-blue-50 rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
+                      <img
+                        src="/icons/technologies_and_stacks/typescript.png"
+                        alt="TypeScript"
+                        className="w-12 h-12 object-contain"
+                      />
+                    </div>
+                    <h3 className="font-semibold text-jcoder-foreground">TypeScript</h3>
                   </div>
-                  <h3 className="font-semibold text-jcoder-foreground">TypeScript</h3>
-                </div>
 
-                <div className="text-center group">
-                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card dark:bg-jcoder-card light:bg-red-50 rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
-                    <img
-                      src="/icons/technologies_and_stacks/nestjs.png"
-                      alt="NestJS"
-                      className="w-12 h-12 object-contain"
-                    />
+                  <div className="text-center group">
+                    <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card dark:bg-jcoder-card light:bg-red-50 rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
+                      <img
+                        src="/icons/technologies_and_stacks/nestjs.png"
+                        alt="NestJS"
+                        className="w-12 h-12 object-contain"
+                      />
+                    </div>
+                    <h3 className="font-semibold text-jcoder-foreground">NestJS</h3>
                   </div>
-                  <h3 className="font-semibold text-jcoder-foreground">NestJS</h3>
-                </div>
 
-                <div className="text-center group">
-                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card dark:bg-jcoder-card light:bg-gray-50 rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
-                    <img
-                      src="/icons/technologies_and_stacks/express.png"
-                      alt="Express"
-                      className="w-12 h-12 object-contain"
-                    />
+                  <div className="text-center group">
+                    <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card dark:bg-jcoder-card light:bg-gray-50 rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
+                      <img
+                        src="/icons/technologies_and_stacks/express.png"
+                        alt="Express"
+                        className="w-12 h-12 object-contain"
+                      />
+                    </div>
+                    <h3 className="font-semibold text-jcoder-foreground">Express</h3>
                   </div>
-                  <h3 className="font-semibold text-jcoder-foreground">Express</h3>
-                </div>
 
-                {/* Bancos de Dados */}
-                <div className="text-center group">
-                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card dark:bg-jcoder-card light:bg-orange-50 rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
-                    <img
-                      src="/icons/technologies_and_stacks/mysql.png"
-                      alt="MySQL"
-                      className="w-12 h-12 object-contain"
-                    />
+                  {/* Bancos de Dados */}
+                  <div className="text-center group">
+                    <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card dark:bg-jcoder-card light:bg-orange-50 rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
+                      <img
+                        src="/icons/technologies_and_stacks/mysql.png"
+                        alt="MySQL"
+                        className="w-12 h-12 object-contain"
+                      />
+                    </div>
+                    <h3 className="font-semibold text-jcoder-foreground">MySQL</h3>
                   </div>
-                  <h3 className="font-semibold text-jcoder-foreground">MySQL</h3>
-                </div>
 
-                <div className="text-center group">
-                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card dark:bg-jcoder-card light:bg-indigo-50 rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
-                    <img
-                      src="/icons/technologies_and_stacks/postgres.png"
-                      alt="PostgreSQL"
-                      className="w-12 h-12 object-contain"
-                    />
+                  <div className="text-center group">
+                    <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card dark:bg-jcoder-card light:bg-indigo-50 rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
+                      <img
+                        src="/icons/technologies_and_stacks/postgres.png"
+                        alt="PostgreSQL"
+                        className="w-12 h-12 object-contain"
+                      />
+                    </div>
+                    <h3 className="font-semibold text-jcoder-foreground">PostgreSQL</h3>
                   </div>
-                  <h3 className="font-semibold text-jcoder-foreground">PostgreSQL</h3>
-                </div>
 
-                <div className="text-center group">
-                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card dark:bg-jcoder-card light:bg-yellow-50 rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
-                    <img
-                      src="/icons/technologies_and_stacks/firebird.png"
-                      alt="Firebird"
-                      className="w-12 h-12 object-contain"
-                    />
+                  <div className="text-center group">
+                    <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card dark:bg-jcoder-card light:bg-yellow-50 rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
+                      <img
+                        src="/icons/technologies_and_stacks/firebird.png"
+                        alt="Firebird"
+                        className="w-12 h-12 object-contain"
+                      />
+                    </div>
+                    <h3 className="font-semibold text-jcoder-foreground">Firebird</h3>
                   </div>
-                  <h3 className="font-semibold text-jcoder-foreground">Firebird</h3>
-                </div>
 
-                {/* ORMs */}
-                <div className="text-center group">
-                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card dark:bg-jcoder-card light:bg-purple-50 rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
-                    <img
-                      src="/icons/technologies_and_stacks/sequelize.png"
-                      alt="Sequelize"
-                      className="w-12 h-12 object-contain"
-                    />
+                  {/* ORMs */}
+                  <div className="text-center group">
+                    <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card dark:bg-jcoder-card light:bg-purple-50 rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
+                      <img
+                        src="/icons/technologies_and_stacks/sequelize.png"
+                        alt="Sequelize"
+                        className="w-12 h-12 object-contain"
+                      />
+                    </div>
+                    <h3 className="font-semibold text-jcoder-foreground">Sequelize</h3>
                   </div>
-                  <h3 className="font-semibold text-jcoder-foreground">Sequelize</h3>
-                </div>
 
-                <div className="text-center group">
-                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card dark:bg-jcoder-card light:bg-pink-50 rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
-                    <img
-                      src="/icons/technologies_and_stacks/typeorm.png"
-                      alt="TypeORM"
-                      className="w-12 h-12 object-contain"
-                    />
+                  <div className="text-center group">
+                    <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card dark:bg-jcoder-card light:bg-pink-50 rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
+                      <img
+                        src="/icons/technologies_and_stacks/typeorm.png"
+                        alt="TypeORM"
+                        className="w-12 h-12 object-contain"
+                      />
+                    </div>
+                    <h3 className="font-semibold text-jcoder-foreground">TypeORM</h3>
                   </div>
-                  <h3 className="font-semibold text-jcoder-foreground">TypeORM</h3>
-                </div>
 
-                {/* Infraestrutura */}
-                <div className="text-center group">
-                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card dark:bg-jcoder-card light:bg-cyan-50 rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
-                    <img
-                      src="/icons/technologies_and_stacks/docker.png"
-                      alt="Docker"
-                      className="w-12 h-12 object-contain"
-                    />
+                  {/* Infraestrutura */}
+                  <div className="text-center group">
+                    <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card dark:bg-jcoder-card light:bg-cyan-50 rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
+                      <img
+                        src="/icons/technologies_and_stacks/docker.png"
+                        alt="Docker"
+                        className="w-12 h-12 object-contain"
+                      />
+                    </div>
+                    <h3 className="font-semibold text-jcoder-foreground">Docker</h3>
                   </div>
-                  <h3 className="font-semibold text-jcoder-foreground">Docker</h3>
-                </div>
 
-                <div className="text-center group">
-                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card dark:bg-jcoder-card light:bg-emerald-50 rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
-                    <img
-                      src="/icons/technologies_and_stacks/rabbitmq.png"
-                      alt="RabbitMQ"
-                      className="w-12 h-12 object-contain"
-                    />
+                  <div className="text-center group">
+                    <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card dark:bg-jcoder-card light:bg-emerald-50 rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
+                      <img
+                        src="/icons/technologies_and_stacks/rabbitmq.png"
+                        alt="RabbitMQ"
+                        className="w-12 h-12 object-contain"
+                      />
+                    </div>
+                    <h3 className="font-semibold text-jcoder-foreground">RabbitMQ</h3>
                   </div>
-                  <h3 className="font-semibold text-jcoder-foreground">RabbitMQ</h3>
-                </div>
 
-                <div className="text-center group">
-                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card dark:bg-jcoder-card light:bg-orange-50 rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
-                    <img
-                      src="/icons/technologies_and_stacks/ubuntu.png"
-                      alt="Ubuntu"
-                      className="w-12 h-12 object-contain"
-                    />
+                  <div className="text-center group">
+                    <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card dark:bg-jcoder-card light:bg-orange-50 rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
+                      <img
+                        src="/icons/technologies_and_stacks/ubuntu.png"
+                        alt="Ubuntu"
+                        className="w-12 h-12 object-contain"
+                      />
+                    </div>
+                    <h3 className="font-semibold text-jcoder-foreground">Ubuntu</h3>
                   </div>
-                  <h3 className="font-semibold text-jcoder-foreground">Ubuntu</h3>
-                </div>
 
-                <div className="text-center group">
-                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card dark:bg-jcoder-card light:bg-slate-50 rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
-                    <img
-                      src="/icons/technologies_and_stacks/pm2.png"
-                      alt="PM2"
-                      className="w-12 h-12 object-contain"
-                    />
+                  <div className="text-center group">
+                    <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card dark:bg-jcoder-card light:bg-slate-50 rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
+                      <img
+                        src="/icons/technologies_and_stacks/pm2.png"
+                        alt="PM2"
+                        className="w-12 h-12 object-contain"
+                      />
+                    </div>
+                    <h3 className="font-semibold text-jcoder-foreground">PM2</h3>
                   </div>
-                  <h3 className="font-semibold text-jcoder-foreground">PM2</h3>
-                </div>
 
-                {/* Frontend - Conhecimento Leve */}
-                <div className="text-center group">
-                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card dark:bg-jcoder-card light:bg-sky-50 rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
-                    <img
-                      src="/icons/technologies_and_stacks/react.png"
-                      alt="React"
-                      className="w-12 h-12 object-contain"
-                    />
+                  {/* Frontend - Conhecimento Leve */}
+                  <div className="text-center group">
+                    <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card dark:bg-jcoder-card light:bg-sky-50 rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
+                      <img
+                        src="/icons/technologies_and_stacks/react.png"
+                        alt="React"
+                        className="w-12 h-12 object-contain"
+                      />
+                    </div>
+                    <h3 className="font-semibold text-jcoder-foreground">React</h3>
                   </div>
-                  <h3 className="font-semibold text-jcoder-foreground">React</h3>
-                </div>
 
-                <div className="text-center group">
-                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card dark:bg-jcoder-card light:bg-green-50 rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
-                    <img
-                      src="/icons/technologies_and_stacks/vuejs.png"
-                      alt="Vue.js"
-                      className="w-12 h-12 object-contain"
-                    />
+                  <div className="text-center group">
+                    <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card dark:bg-jcoder-card light:bg-green-50 rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
+                      <img
+                        src="/icons/technologies_and_stacks/vuejs.png"
+                        alt="Vue.js"
+                        className="w-12 h-12 object-contain"
+                      />
+                    </div>
+                    <h3 className="font-semibold text-jcoder-foreground">Vue.js</h3>
                   </div>
-                  <h3 className="font-semibold text-jcoder-foreground">Vue.js</h3>
-                </div>
 
-                {/* Mobile */}
-                <div className="text-center group">
-                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card dark:bg-jcoder-card light:bg-teal-50 rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
-                    <img
-                      src="/icons/technologies_and_stacks/react-native.png"
-                      alt="React Native"
-                      className="w-12 h-12 object-contain"
-                    />
+                  {/* Mobile */}
+                  <div className="text-center group">
+                    <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card dark:bg-jcoder-card light:bg-teal-50 rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
+                      <img
+                        src="/icons/technologies_and_stacks/react-native.png"
+                        alt="React Native"
+                        className="w-12 h-12 object-contain"
+                      />
+                    </div>
+                    <h3 className="font-semibold text-jcoder-foreground">React Native</h3>
                   </div>
-                  <h3 className="font-semibold text-jcoder-foreground">React Native</h3>
-                </div>
 
-                <div className="text-center group">
-                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card dark:bg-jcoder-card light:bg-blue-50 rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
-                    <img
-                      src="/icons/technologies_and_stacks/flutter.png"
-                      alt="Flutter"
-                      className="w-12 h-12 object-contain"
-                    />
+                  <div className="text-center group">
+                    <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card dark:bg-jcoder-card light:bg-blue-50 rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
+                      <img
+                        src="/icons/technologies_and_stacks/flutter.png"
+                        alt="Flutter"
+                        className="w-12 h-12 object-contain"
+                      />
+                    </div>
+                    <h3 className="font-semibold text-jcoder-foreground">Flutter</h3>
                   </div>
-                  <h3 className="font-semibold text-jcoder-foreground">Flutter</h3>
-                </div>
 
-                {/* Versionamento */}
-                <div className="text-center group">
-                  <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card dark:bg-jcoder-card light:bg-gray-50 rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
-                    <img
-                      src="/icons/technologies_and_stacks/git.png"
-                      alt="Git"
-                      className="w-12 h-12 object-contain"
-                    />
+                  {/* Versionamento */}
+                  <div className="text-center group">
+                    <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card dark:bg-jcoder-card light:bg-gray-50 rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
+                      <img
+                        src="/icons/technologies_and_stacks/git.png"
+                        alt="Git"
+                        className="w-12 h-12 object-contain"
+                      />
+                    </div>
+                    <h3 className="font-semibold text-jcoder-foreground">Git</h3>
                   </div>
-                  <h3 className="font-semibold text-jcoder-foreground">Git</h3>
                 </div>
-              </div>
+              )}
             </div>
           </div>
         </section>
@@ -573,4 +612,37 @@ export default function Home() {
       <ScrollToTop />
     </div>
   );
-};
+}
+
+// Technology Card Component
+interface TechnologyCardProps {
+  technology: Technology;
+}
+
+function TechnologyCard({ technology }: TechnologyCardProps) {
+  const [imageError, setImageError] = useState(false);
+  const imageUrl = TechnologiesService.getProfileImageUrl(technology.id);
+  const fallbackImage = `/icons/technologies_and_stacks/${technology.name.toLowerCase().replace(/\./g, '').replace(/\s+/g, '-')}.png`;
+
+  return (
+    <a
+      href={technology.officialUrl || '#'}
+      target={technology.officialUrl ? '_blank' : '_self'}
+      rel={technology.officialUrl ? 'noopener noreferrer' : ''}
+      className="text-center group"
+      title={technology.description || technology.name}
+    >
+      <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300 p-3">
+        <img
+          src={imageError ? fallbackImage : imageUrl}
+          alt={technology.name}
+          className="w-full h-full object-contain"
+          onError={() => setImageError(true)}
+        />
+      </div>
+      <h3 className="font-semibold text-jcoder-foreground group-hover:text-jcoder-primary transition-colors">
+        {technology.name}
+      </h3>
+    </a>
+  );
+}

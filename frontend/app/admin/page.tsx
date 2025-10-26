@@ -57,7 +57,7 @@ export default function AdminDashboardPage() {
     },
     {
       title: 'Technologies',
-      description: 'Manage technologies and tech stack (Coming Soon)',
+      description: 'Manage technologies and tech stack for your portfolio',
       icon: (
         <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
@@ -65,7 +65,7 @@ export default function AdminDashboardPage() {
       ),
       href: '/admin/technologies',
       color: 'from-green-500 to-emerald-500',
-      available: false,
+      available: true,
     },
   ];
 

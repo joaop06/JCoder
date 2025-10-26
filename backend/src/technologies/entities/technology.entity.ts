@@ -62,10 +62,10 @@ export class Technology {
     profileImage?: string;
 
     @ApiProperty({
-        type: 'number',
-        nullable: false,
         example: 1,
         default: 999,
+        type: 'number',
+        nullable: false,
         description: 'Display order for sorting technologies (lower numbers appear first)',
     })
     @Column({ default: 999 })
