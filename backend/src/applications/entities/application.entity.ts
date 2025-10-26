@@ -24,7 +24,6 @@ export class Application {
   @PrimaryGeneratedColumn()
   id: number;
 
-
   @ApiProperty({
     type: 'string',
     nullable: false,
