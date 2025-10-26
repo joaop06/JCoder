@@ -1,5 +1,6 @@
 import React from 'react';
 import LinkDisplayBlock from './LinkDisplayBlock';
+import ApplicationImagesGallery from './ApplicationImagesGallery';
 import { Application } from '@/types/entities/application.entity';
 import { ApplicationService } from '@/services/applications.service';
 
@@ -82,6 +83,14 @@ const ApplicationDetailsLayout: React.FC<ApplicationDetailsLayoutProps> = ({
         <h2 className="text-base sm:text-lg font-semibold text-jcoder-foreground mb-2 sm:mb-3">Description</h2>
         <p className="text-sm sm:text-base text-jcoder-muted">{application.description}</p>
       </div>
+
+      {/* Images Gallery */}
+      {application.images && application.images.length > 0 && (
+        <ApplicationImagesGallery
+          applicationId={application.id}
+          images={application.images}
+        />
+      )}
 
       {/* Component-specific details will be rendered here */}
       {children}
