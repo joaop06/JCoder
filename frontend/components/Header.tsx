@@ -5,7 +5,7 @@ import { ThemeToggle } from './theme';
 import { useRouter } from 'next/navigation';
 import { RoleEnum } from '@/types/enums/role.enum';
 import { UsersService } from '@/services/users.service';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { HealthStatusComponent } from './health/HealthStatus';
 import { useSmoothScroll } from '@/hooks/useSmoothScroll';
 
@@ -50,6 +50,11 @@ export default function Header({
       setCurrentPath(window.location.pathname);
     }
   }, []);
+
+  // Check if we're on application detail page
+  const isApplicationDetailPage = useMemo(() => {
+    return currentPath.startsWith('/applications/') && currentPath !== '/applications';
+  }, [currentPath]);
 
   // Scroll detection for active section
   useEffect(() => {
@@ -357,42 +362,46 @@ export default function Header({
 
             {/* Navigation options */}
             <nav className="space-y-2">
-              <button
-                onClick={() => handleNavigationClick('about')}
-                className={`w-full text-left px-3 py-2 rounded-md transition-colors ${activeSection === 'about'
-                  ? 'text-blue-600 dark:text-jcoder-primary font-medium bg-blue-50 dark:bg-jcoder-secondary'
-                  : 'text-gray-600 dark:text-jcoder-muted hover:text-blue-500 dark:hover:text-jcoder-primary hover:bg-gray-50 dark:hover:bg-jcoder-secondary'
-                  }`}
-              >
-                About
-              </button>
-              <button
-                onClick={() => handleNavigationClick('projects')}
-                className={`w-full text-left px-3 py-2 rounded-md transition-colors ${activeSection === 'projects'
-                  ? 'text-blue-600 dark:text-jcoder-primary font-medium bg-blue-50 dark:bg-jcoder-secondary'
-                  : 'text-gray-600 dark:text-jcoder-muted hover:text-blue-500 dark:hover:text-jcoder-primary hover:bg-gray-50 dark:hover:bg-jcoder-secondary'
-                  }`}
-              >
-                Projects
-              </button>
-              <button
-                onClick={() => handleNavigationClick('tech-stack')}
-                className={`w-full text-left px-3 py-2 rounded-md transition-colors ${activeSection === 'tech-stack'
-                  ? 'text-blue-600 dark:text-jcoder-primary font-medium bg-blue-50 dark:bg-jcoder-secondary'
-                  : 'text-gray-600 dark:text-jcoder-muted hover:text-blue-500 dark:hover:text-jcoder-primary hover:bg-gray-50 dark:hover:bg-jcoder-secondary'
-                  }`}
-              >
-                Technologies
-              </button>
-              <button
-                onClick={() => handleNavigationClick('contact')}
-                className={`w-full text-left px-3 py-2 rounded-md transition-colors ${activeSection === 'contact'
-                  ? 'text-blue-600 dark:text-jcoder-primary font-medium bg-blue-50 dark:bg-jcoder-secondary'
-                  : 'text-gray-600 dark:text-jcoder-muted hover:text-blue-500 dark:hover:text-jcoder-primary hover:bg-gray-50 dark:hover:bg-jcoder-secondary'
-                  }`}
-              >
-                Contact
-              </button>
+              {!isApplicationDetailPage && (
+                <>
+                  <button
+                    onClick={() => handleNavigationClick('about')}
+                    className={`w-full text-left px-3 py-2 rounded-md transition-colors ${activeSection === 'about'
+                      ? 'text-blue-600 dark:text-jcoder-primary font-medium bg-blue-50 dark:bg-jcoder-secondary'
+                      : 'text-gray-600 dark:text-jcoder-muted hover:text-blue-500 dark:hover:text-jcoder-primary hover:bg-gray-50 dark:hover:bg-jcoder-secondary'
+                      }`}
+                  >
+                    About
+                  </button>
+                  <button
+                    onClick={() => handleNavigationClick('projects')}
+                    className={`w-full text-left px-3 py-2 rounded-md transition-colors ${activeSection === 'projects'
+                      ? 'text-blue-600 dark:text-jcoder-primary font-medium bg-blue-50 dark:bg-jcoder-secondary'
+                      : 'text-gray-600 dark:text-jcoder-muted hover:text-blue-500 dark:hover:text-jcoder-primary hover:bg-gray-50 dark:hover:bg-jcoder-secondary'
+                      }`}
+                  >
+                    Projects
+                  </button>
+                  <button
+                    onClick={() => handleNavigationClick('tech-stack')}
+                    className={`w-full text-left px-3 py-2 rounded-md transition-colors ${activeSection === 'tech-stack'
+                      ? 'text-blue-600 dark:text-jcoder-primary font-medium bg-blue-50 dark:bg-jcoder-secondary'
+                      : 'text-gray-600 dark:text-jcoder-muted hover:text-blue-500 dark:hover:text-jcoder-primary hover:bg-gray-50 dark:hover:bg-jcoder-secondary'
+                      }`}
+                  >
+                    Technologies
+                  </button>
+                  <button
+                    onClick={() => handleNavigationClick('contact')}
+                    className={`w-full text-left px-3 py-2 rounded-md transition-colors ${activeSection === 'contact'
+                      ? 'text-blue-600 dark:text-jcoder-primary font-medium bg-blue-50 dark:bg-jcoder-secondary'
+                      : 'text-gray-600 dark:text-jcoder-muted hover:text-blue-500 dark:hover:text-jcoder-primary hover:bg-gray-50 dark:hover:bg-jcoder-secondary'
+                      }`}
+                  >
+                    Contact
+                  </button>
+                </>
+              )}
             </nav>
           </div>
         </div>
@@ -439,8 +448,8 @@ export default function Header({
 
               {/* Navigation options */}
               <nav className="space-y-2">
-                {currentPath === '/admin' || currentPath === '/profile' ? (
-                  // Admin or Profile page navigation
+                {currentPath === '/admin' || currentPath === '/profile' || isApplicationDetailPage ? (
+                  // Admin, Profile, or Application Detail page navigation
                   <>
                     <Link
                       href="/admin"
@@ -675,8 +684,8 @@ export default function Header({
               </div>
 
               <nav className="flex items-center justify-center gap-8">
-                {currentPath === '/admin' || currentPath === '/profile' ? (
-                  // Admin or Profile page navigation
+                {currentPath === '/admin' || currentPath === '/profile' || isApplicationDetailPage ? (
+                  // Admin, Profile, or Application Detail page navigation
                   <>
                     <Link
                       href="/admin"
@@ -758,42 +767,46 @@ export default function Header({
               </div>
 
               <nav className="flex items-center justify-center gap-8">
-                <button
-                  onClick={() => handleNavigationClick('about')}
-                  className={`transition-colors cursor-pointer ${activeSection === 'about'
-                    ? 'text-blue-600 dark:text-jcoder-primary font-medium'
-                    : 'text-gray-600 dark:text-jcoder-muted hover:text-blue-500 dark:hover:text-jcoder-primary'
-                    }`}
-                >
-                  About
-                </button>
-                <button
-                  onClick={() => handleNavigationClick('projects')}
-                  className={`transition-colors cursor-pointer ${activeSection === 'projects'
-                    ? 'text-blue-600 dark:text-jcoder-primary font-medium'
-                    : 'text-gray-600 dark:text-jcoder-muted hover:text-blue-500 dark:hover:text-jcoder-primary'
-                    }`}
-                >
-                  Projects
-                </button>
-                <button
-                  onClick={() => handleNavigationClick('tech-stack')}
-                  className={`transition-colors cursor-pointer ${activeSection === 'tech-stack'
-                    ? 'text-blue-600 dark:text-jcoder-primary font-medium'
-                    : 'text-gray-600 dark:text-jcoder-muted hover:text-blue-500 dark:hover:text-jcoder-primary'
-                    }`}
-                >
-                  Technologies
-                </button>
-                <button
-                  onClick={() => handleNavigationClick('contact')}
-                  className={`transition-colors cursor-pointer ${activeSection === 'contact'
-                    ? 'text-blue-600 dark:text-jcoder-primary font-medium'
-                    : 'text-gray-600 dark:text-jcoder-muted hover:text-blue-500 dark:hover:text-jcoder-primary'
-                    }`}
-                >
-                  Contact
-                </button>
+                {!isApplicationDetailPage && (
+                  <>
+                    <button
+                      onClick={() => handleNavigationClick('about')}
+                      className={`transition-colors cursor-pointer ${activeSection === 'about'
+                        ? 'text-blue-600 dark:text-jcoder-primary font-medium'
+                        : 'text-gray-600 dark:text-jcoder-muted hover:text-blue-500 dark:hover:text-jcoder-primary'
+                        }`}
+                    >
+                      About
+                    </button>
+                    <button
+                      onClick={() => handleNavigationClick('projects')}
+                      className={`transition-colors cursor-pointer ${activeSection === 'projects'
+                        ? 'text-blue-600 dark:text-jcoder-primary font-medium'
+                        : 'text-gray-600 dark:text-jcoder-muted hover:text-blue-500 dark:hover:text-jcoder-primary'
+                        }`}
+                    >
+                      Projects
+                    </button>
+                    <button
+                      onClick={() => handleNavigationClick('tech-stack')}
+                      className={`transition-colors cursor-pointer ${activeSection === 'tech-stack'
+                        ? 'text-blue-600 dark:text-jcoder-primary font-medium'
+                        : 'text-gray-600 dark:text-jcoder-muted hover:text-blue-500 dark:hover:text-jcoder-primary'
+                        }`}
+                    >
+                      Technologies
+                    </button>
+                    <button
+                      onClick={() => handleNavigationClick('contact')}
+                      className={`transition-colors cursor-pointer ${activeSection === 'contact'
+                        ? 'text-blue-600 dark:text-jcoder-primary font-medium'
+                        : 'text-gray-600 dark:text-jcoder-muted hover:text-blue-500 dark:hover:text-jcoder-primary'
+                        }`}
+                    >
+                      Contact
+                    </button>
+                  </>
+                )}
               </nav>
 
               <div className="justify-self-end">
