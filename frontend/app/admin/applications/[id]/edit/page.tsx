@@ -208,7 +208,7 @@ export default function EditApplicationPage() {
         return (
             <div className="min-h-screen flex flex-col bg-background">
                 <Header isAdmin={true} onLogout={() => router.push('/')} />
-                <main className="flex-1 container mx-auto px-4 py-12">
+                <main className="flex-1 container mx-auto px-4 py-12 pt-24">
                     <div className="max-w-4xl mx-auto">
                         <h1 className="text-3xl font-bold text-jcoder-foreground mb-2">Loading Application...</h1>
                         <p className="text-jcoder-muted">Please wait while we load the application details.</p>
@@ -223,7 +223,7 @@ export default function EditApplicationPage() {
         <div className="min-h-screen flex flex-col bg-background">
             <Header isAdmin={true} onLogout={() => router.push('/')} />
 
-            <main className="flex-1 container mx-auto px-4 py-12">
+            <main className="flex-1 container mx-auto px-4 py-12 pt-24">
                 <div className="max-w-4xl mx-auto">
                     <div className="mb-8">
                         <h1 className="text-3xl font-bold text-jcoder-foreground mb-2">Edit Application</h1>

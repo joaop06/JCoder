@@ -7,7 +7,6 @@ import { UsersService } from '@/services/users.service';
 import { useState, useEffect, useCallback } from 'react';
 import { useToast } from '@/components/toast/ToastContext';
 import ImageUpload from '@/components/applications/ImageUpload';
-import ProfileImageUpload from '@/components/applications/ProfileImageUpload';
 import { ApplicationService } from '@/services/applications.service';
 import { ApplicationTypeEnum } from '@/types/enums/application-type.enum';
 import { CreateApplicationDto } from '@/types/entities/dtos/create-application.dto';
@@ -186,7 +185,7 @@ export default function NewApplicationPage() {
         <div className="min-h-screen flex flex-col bg-background">
             <Header isAdmin={true} onLogout={() => router.push('/')} />
 
-            <main className="flex-1 container mx-auto px-4 py-12">
+            <main className="flex-1 container mx-auto px-4 py-12 pt-24">
                 <div className="max-w-4xl mx-auto">
                     <div className="mb-8">
                         <h1 className="text-3xl font-bold text-jcoder-foreground mb-2">New Application</h1>
