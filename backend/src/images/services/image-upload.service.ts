@@ -176,4 +176,84 @@ export class ImageUploadService {
         // Use the same method as regular images since they're stored in the same directory
         return await this.getImagePath(applicationId, filename);
     }
+
+    /**
+     * Generic method to upload a file to a specific entity folder
+     * @param file The file to upload
+     * @param entityFolder The entity folder name (e.g., 'applications', 'technologies')
+     * @param prefix Optional prefix for the filename (default: 'file')
+     */
+    async uploadFile(
+        file: Express.Multer.File,
+        entityFolder: string,
+        prefix: string = 'file'
+    ): Promise<string> {
+        // Validate file
+        this.validateFiles([file]);
+
+        // Build upload path
+        const uploadPath = path.join('./uploads', entityFolder);
+
+        // Ensure upload directory exists
+        try {
+            await fs.access(uploadPath);
+        } catch {
+            await fs.mkdir(uploadPath, { recursive: true });
+        }
+
+        // Generate filename
+        const filename = `${prefix}-${uuidv4()}.jpg`;
+        const filePath = path.join(uploadPath, filename);
+
+        try {
+            // Process image with Sharp for compression and optimization
+            const processedImageBuffer = await sharp(file.buffer)
+                .resize(400, 400, {
+                    fit: 'inside',
+                    withoutEnlargement: true
+                })
+                .jpeg({
+                    quality: 90,
+                    progressive: true
+                })
+                .toBuffer();
+
+            await fs.writeFile(filePath, processedImageBuffer);
+            return filename;
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            throw new BadRequestException(`Failed to process file: ${errorMessage}`);
+        }
+    }
+
+    /**
+     * Generic method to delete a file from a specific entity folder
+     * @param entityFolder The entity folder name (e.g., 'applications', 'technologies')
+     * @param filename The filename to delete
+     */
+    async deleteFile(entityFolder: string, filename: string): Promise<void> {
+        const filePath = path.join('./uploads', entityFolder, filename);
+
+        try {
+            await fs.unlink(filePath);
+        } catch (error) {
+            // File might already be deleted, ignore error
+        }
+    }
+
+    /**
+     * Generic method to get file path from a specific entity folder
+     * @param entityFolder The entity folder name (e.g., 'applications', 'technologies')
+     * @param filename The filename to get path for
+     */
+    async getFilePath(entityFolder: string, filename: string): Promise<string> {
+        const filePath = path.join('./uploads', entityFolder, filename);
+
+        try {
+            await fs.access(filePath);
+            return filePath;
+        } catch {
+            throw new BadRequestException(`File not found: ${filename}`);
+        }
+    }
 }

@@ -3,6 +3,7 @@ import { ConfigService } from "@nestjs/config";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { User } from "../../users/entities/user.entity";
 import { Application } from "../../applications/entities/application.entity";
+import { Technology } from "../../technologies/entities/technology.entity";
 import { ApplicationComponentApi } from "../../applications/application-components/entities/application-component-api.entity";
 import { ApplicationComponentMobile } from "../../applications/application-components/entities/application-component-mobile.entity";
 import { ApplicationComponentLibrary } from "../../applications/application-components/entities/application-component-library.entity";
@@ -16,6 +17,7 @@ export const TypeormMysqlModule = TypeOrmModule.forRoot({
   entities: [
     User,
     Application,
+    Technology,
     ApplicationComponentApi,
     ApplicationComponentMobile,
     ApplicationComponentLibrary,

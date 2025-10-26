@@ -1,0 +1,11 @@
+export enum TechnologyCategoryEnum {
+    BACKEND = 'BACKEND',
+    FRONTEND = 'FRONTEND',
+    DATABASE = 'DATABASE',
+    ORM = 'ORM',
+    INFRASTRUCTURE = 'INFRASTRUCTURE',
+    MOBILE = 'MOBILE',
+    VERSION_CONTROL = 'VERSION_CONTROL',
+    OTHER = 'OTHER',
+}
+
