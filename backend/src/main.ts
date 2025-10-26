@@ -26,7 +26,7 @@ async function bootstrap() {
 	app.useLogger(logger);
 
 	// Configure CORS with specific origins
-	const allowedOrigins = configService.get("ALLOWED_ORIGINS")?.split(',') || ['http://localhost:3000'];
+	const allowedOrigins = configService.get("ALLOWED_ORIGINS")?.split(',') || '*'; // Allow all origins
 	app.enableCors({
 		origin: allowedOrigins,
 		methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
