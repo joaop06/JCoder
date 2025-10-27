@@ -21,6 +21,7 @@ import { JwtAuthGuard } from '../@common/guards/jwt-auth.guard';
 import { CreateApplicationDto } from './dto/create-application.dto';
 import { Roles } from '../@common/decorators/roles/roles.decorator';
 import { UpdateApplicationDto } from './dto/update-application.dto';
+import { QueryApplicationDto } from './dto/query-application.dto';
 import { ApiNoContentResponse, ApiOkResponse } from '@nestjs/swagger';
 import { ParseQuery } from '../@common/decorators/query/parse-query.decorator';
 import { CreateApplicationUseCase } from './use-cases/create-application.use-case';
@@ -56,6 +57,14 @@ export class ApplicationsController {
   @ApiOkResponse({ type: () => PaginatedResponseDto<Application> })
   async findAllPaginated(@Query() paginationDto: PaginationDto): Promise<PaginatedResponseDto<Application>> {
     return await this.applicationsService.findAllPaginated(paginationDto);
+  }
+
+  @Get('query')
+  @ApiOkResponse({ type: () => PaginatedResponseDto<Application> })
+  async findAllByQuery(
+    @Query() queryDto: QueryApplicationDto,
+  ): Promise<PaginatedResponseDto<Application>> {
+    return await this.applicationsService.findAllByQuery(queryDto);
   }
 
   @Get(':id')

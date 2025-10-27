@@ -5,6 +5,7 @@ import { Application } from './entities/application.entity';
 import { CacheService } from '../@common/services/cache.service';
 import { CreateApplicationDto } from './dto/create-application.dto';
 import { UpdateApplicationDto } from './dto/update-application.dto';
+import { QueryApplicationDto } from './dto/query-application.dto';
 import { ImageUploadService } from '../images/services/image-upload.service';
 import { FindManyOptions, FindOptionsWhere, Repository } from 'typeorm';
 import { PaginationDto, PaginatedResponseDto } from '../@common/dto/pagination.dto';
@@ -33,6 +34,57 @@ export class ApplicationsService {
       cacheKey,
       async () => {
         const [data, total] = await this.repository.findAndCount({
+          skip,
+          take: limit,
+          order: { [sortBy]: sortOrder },
+        });
+
+        const totalPages = Math.ceil(total / limit);
+
+        return {
+          data,
+          meta: {
+            page,
+            limit,
+            total,
+            totalPages,
+            hasNextPage: page < totalPages,
+            hasPreviousPage: page > 1,
+          },
+        };
+      },
+      300, // 5 minutes cache
+    );
+  }
+
+  async findAllByQuery(queryDto: QueryApplicationDto): Promise<PaginatedResponseDto<Application>> {
+    const {
+      page = 1,
+      isActive,
+      limit = 10,
+      sortOrder = 'DESC',
+      sortBy = 'createdAt',
+    } = queryDto;
+    const skip = (page - 1) * limit;
+
+    const cacheKey = this.cacheService.generateKey(
+      'applications',
+      'query',
+      page,
+      limit,
+      sortBy,
+      sortOrder,
+      isActive !== undefined ? String(isActive) : undefined,
+    );
+
+    return await this.cacheService.getOrSet(
+      cacheKey,
+      async () => {
+        const where: FindOptionsWhere<Application> = {};
+        if (isActive !== undefined) where.isActive = isActive;
+
+        const [data, total] = await this.repository.findAndCount({
+          where,
           skip,
           take: limit,
           order: { [sortBy]: sortOrder },
@@ -88,6 +140,7 @@ export class ApplicationsService {
 
     // Invalidate cache
     await this.cacheService.del(this.cacheService.generateKey('applications', 'paginated'));
+    await this.cacheService.del(this.cacheService.generateKey('applications', 'query'));
 
     return savedApplication;
   }
@@ -100,6 +153,7 @@ export class ApplicationsService {
     // Invalidate cache
     await this.cacheService.del(this.cacheService.applicationKey(id, 'full'));
     await this.cacheService.del(this.cacheService.generateKey('applications', 'paginated'));
+    await this.cacheService.del(this.cacheService.generateKey('applications', 'query'));
 
     return updatedApplication;
   }
@@ -118,6 +172,7 @@ export class ApplicationsService {
     // Invalidate cache
     await this.cacheService.del(this.cacheService.applicationKey(id, 'full'));
     await this.cacheService.del(this.cacheService.generateKey('applications', 'paginated'));
+    await this.cacheService.del(this.cacheService.generateKey('applications', 'query'));
   }
 
 };

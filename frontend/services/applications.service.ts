@@ -4,10 +4,30 @@ import { CreateApplicationDto } from "@/types/entities/dtos/create-application.d
 import { UpdateApplicationDto } from "@/types/entities/dtos/update-application.dto";
 import { PaginationDto, PaginatedResponse, ApiResponse } from "@/types/api/pagination.type";
 
+export interface ApplicationQueryParams extends PaginationDto {
+    isActive?: boolean;
+}
+
 export const ApplicationService = {
     async getAll(): Promise<Application[]> {
         try {
             const response = await ApiServiceWithRetry.get('/applications');
+            return response.data.data;
+        } catch (error) {
+            throw error;
+        }
+    },
+
+    async query(params: ApplicationQueryParams = {}): Promise<PaginatedResponse<Application>> {
+        try {
+            const queryParams = new URLSearchParams();
+            if (params.page) queryParams.append('page', params.page.toString());
+            if (params.limit) queryParams.append('limit', params.limit.toString());
+            if (params.sortBy) queryParams.append('sortBy', params.sortBy);
+            if (params.sortOrder) queryParams.append('sortOrder', params.sortOrder);
+            if (params.isActive !== undefined) queryParams.append('isActive', params.isActive.toString());
+
+            const response = await ApiServiceWithRetry.get(`/applications/query?${queryParams.toString()}`);
             return response.data.data;
         } catch (error) {
             throw error;

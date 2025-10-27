@@ -29,8 +29,11 @@ export default function Home() {
     setError(null);
 
     try {
-      const data = await ApplicationService.getAll();
-      setApplications(Array.isArray(data) ? data : []);
+      const data = await ApplicationService.query({
+        isActive: true,
+        limit: 100,
+      });
+      setApplications(data.data || []);
     } catch (err) {
       console.error('Failure to load applications', err);
       const errorMessage = 'The applications could not be loaded. Please try again.';
