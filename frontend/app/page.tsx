@@ -301,16 +301,16 @@ export default function Home() {
                   <p className="text-jcoder-muted">Loading technologies...</p>
                 </div>
               ) : technologies.length > 0 ? (
-                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8">
+                <div className="flex flex-wrap justify-center gap-8">
                   {technologies.map((tech) => (
                     <TechnologyCard key={tech.id} technology={tech} />
                   ))}
                 </div>
               ) : (
                 // Fallback to static icons if no technologies from API
-                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8">
+                <div className="flex flex-wrap justify-center gap-8">
                   {/* Backend - Especialidade */}
-                  <div className="text-center group">
+                  <div className="text-center group w-32">
                     <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card dark:bg-jcoder-card light:bg-green-50 rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
                       <img
                         src="/icons/technologies_and_stacks/nodejs.png"
@@ -321,7 +321,7 @@ export default function Home() {
                     <h3 className="font-semibold text-jcoder-foreground">Node.js</h3>
                   </div>
 
-                  <div className="text-center group">
+                  <div className="text-center group w-32">
                     <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card dark:bg-jcoder-card light:bg-blue-50 rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
                       <img
                         src="/icons/technologies_and_stacks/typescript.png"
@@ -332,7 +332,7 @@ export default function Home() {
                     <h3 className="font-semibold text-jcoder-foreground">TypeScript</h3>
                   </div>
 
-                  <div className="text-center group">
+                  <div className="text-center group w-32">
                     <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card dark:bg-jcoder-card light:bg-red-50 rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
                       <img
                         src="/icons/technologies_and_stacks/nestjs.png"
@@ -343,7 +343,7 @@ export default function Home() {
                     <h3 className="font-semibold text-jcoder-foreground">NestJS</h3>
                   </div>
 
-                  <div className="text-center group">
+                  <div className="text-center group w-32">
                     <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card dark:bg-jcoder-card light:bg-gray-50 rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
                       <img
                         src="/icons/technologies_and_stacks/express.png"
@@ -355,7 +355,7 @@ export default function Home() {
                   </div>
 
                   {/* Bancos de Dados */}
-                  <div className="text-center group">
+                  <div className="text-center group w-32">
                     <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card dark:bg-jcoder-card light:bg-orange-50 rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
                       <img
                         src="/icons/technologies_and_stacks/mysql.png"
@@ -366,7 +366,7 @@ export default function Home() {
                     <h3 className="font-semibold text-jcoder-foreground">MySQL</h3>
                   </div>
 
-                  <div className="text-center group">
+                  <div className="text-center group w-32">
                     <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card dark:bg-jcoder-card light:bg-indigo-50 rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
                       <img
                         src="/icons/technologies_and_stacks/postgres.png"
@@ -377,7 +377,7 @@ export default function Home() {
                     <h3 className="font-semibold text-jcoder-foreground">PostgreSQL</h3>
                   </div>
 
-                  <div className="text-center group">
+                  <div className="text-center group w-32">
                     <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card dark:bg-jcoder-card light:bg-yellow-50 rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
                       <img
                         src="/icons/technologies_and_stacks/firebird.png"
@@ -389,7 +389,7 @@ export default function Home() {
                   </div>
 
                   {/* ORMs */}
-                  <div className="text-center group">
+                  <div className="text-center group w-32">
                     <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card dark:bg-jcoder-card light:bg-purple-50 rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
                       <img
                         src="/icons/technologies_and_stacks/sequelize.png"
@@ -400,7 +400,7 @@ export default function Home() {
                     <h3 className="font-semibold text-jcoder-foreground">Sequelize</h3>
                   </div>
 
-                  <div className="text-center group">
+                  <div className="text-center group w-32">
                     <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card dark:bg-jcoder-card light:bg-pink-50 rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
                       <img
                         src="/icons/technologies_and_stacks/typeorm.png"
@@ -412,7 +412,7 @@ export default function Home() {
                   </div>
 
                   {/* Infraestrutura */}
-                  <div className="text-center group">
+                  <div className="text-center group w-32">
                     <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card dark:bg-jcoder-card light:bg-cyan-50 rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
                       <img
                         src="/icons/technologies_and_stacks/docker.png"
@@ -423,7 +423,7 @@ export default function Home() {
                     <h3 className="font-semibold text-jcoder-foreground">Docker</h3>
                   </div>
 
-                  <div className="text-center group">
+                  <div className="text-center group w-32">
                     <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card dark:bg-jcoder-card light:bg-emerald-50 rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
                       <img
                         src="/icons/technologies_and_stacks/rabbitmq.png"
@@ -434,7 +434,7 @@ export default function Home() {
                     <h3 className="font-semibold text-jcoder-foreground">RabbitMQ</h3>
                   </div>
 
-                  <div className="text-center group">
+                  <div className="text-center group w-32">
                     <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card dark:bg-jcoder-card light:bg-orange-50 rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
                       <img
                         src="/icons/technologies_and_stacks/ubuntu.png"
@@ -445,7 +445,7 @@ export default function Home() {
                     <h3 className="font-semibold text-jcoder-foreground">Ubuntu</h3>
                   </div>
 
-                  <div className="text-center group">
+                  <div className="text-center group w-32">
                     <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card dark:bg-jcoder-card light:bg-slate-50 rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
                       <img
                         src="/icons/technologies_and_stacks/pm2.png"
@@ -457,7 +457,7 @@ export default function Home() {
                   </div>
 
                   {/* Frontend - Conhecimento Leve */}
-                  <div className="text-center group">
+                  <div className="text-center group w-32">
                     <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card dark:bg-jcoder-card light:bg-sky-50 rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
                       <img
                         src="/icons/technologies_and_stacks/react.png"
@@ -468,7 +468,7 @@ export default function Home() {
                     <h3 className="font-semibold text-jcoder-foreground">React</h3>
                   </div>
 
-                  <div className="text-center group">
+                  <div className="text-center group w-32">
                     <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card dark:bg-jcoder-card light:bg-green-50 rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
                       <img
                         src="/icons/technologies_and_stacks/vuejs.png"
@@ -480,7 +480,7 @@ export default function Home() {
                   </div>
 
                   {/* Mobile */}
-                  <div className="text-center group">
+                  <div className="text-center group w-32">
                     <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card dark:bg-jcoder-card light:bg-teal-50 rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
                       <img
                         src="/icons/technologies_and_stacks/react-native.png"
@@ -491,7 +491,7 @@ export default function Home() {
                     <h3 className="font-semibold text-jcoder-foreground">React Native</h3>
                   </div>
 
-                  <div className="text-center group">
+                  <div className="text-center group w-32">
                     <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card dark:bg-jcoder-card light:bg-blue-50 rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
                       <img
                         src="/icons/technologies_and_stacks/flutter.png"
@@ -503,7 +503,7 @@ export default function Home() {
                   </div>
 
                   {/* Versionamento */}
-                  <div className="text-center group">
+                  <div className="text-center group w-32">
                     <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card dark:bg-jcoder-card light:bg-gray-50 rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300">
                       <img
                         src="/icons/technologies_and_stacks/git.png"
@@ -614,17 +614,6 @@ export default function Home() {
   );
 }
 
-// Helper to get expertise level emoji
-const getExpertiseLevelEmoji = (level: ExpertiseLevel): string => {
-  const emojis: Record<ExpertiseLevel, string> = {
-    [ExpertiseLevel.BASIC]: '⭐',
-    [ExpertiseLevel.INTERMEDIATE]: '⭐⭐',
-    [ExpertiseLevel.ADVANCED]: '⭐⭐⭐',
-    [ExpertiseLevel.EXPERT]: '⭐⭐⭐⭐',
-  };
-  return emojis[level];
-};
-
 // Helper to get expertise level label
 const getExpertiseLevelLabel = (level: ExpertiseLevel): string => {
   const labels: Record<ExpertiseLevel, string> = {
@@ -634,6 +623,17 @@ const getExpertiseLevelLabel = (level: ExpertiseLevel): string => {
     [ExpertiseLevel.EXPERT]: 'Expert',
   };
   return labels[level];
+};
+
+// Helper to get expertise level color
+const getExpertiseLevelColor = (level: ExpertiseLevel): string => {
+  const colors: Record<ExpertiseLevel, string> = {
+    [ExpertiseLevel.BASIC]: 'bg-gray-500/20 text-gray-400',
+    [ExpertiseLevel.INTERMEDIATE]: 'bg-blue-500/20 text-blue-400',
+    [ExpertiseLevel.ADVANCED]: 'bg-purple-500/20 text-purple-400',
+    [ExpertiseLevel.EXPERT]: 'bg-yellow-500/20 text-yellow-400',
+  };
+  return colors[level];
 };
 
 // Technology Card Component
@@ -648,7 +648,7 @@ function TechnologyCard({ technology }: TechnologyCardProps) {
 
   return (
     <div
-      className="text-center group relative"
+      className="text-center group relative w-32"
       title={`${technology.name} - ${getExpertiseLevelLabel(technology.expertiseLevel)}`}
     >
       <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300 p-3 relative">
@@ -658,17 +658,13 @@ function TechnologyCard({ technology }: TechnologyCardProps) {
           className="w-full h-full object-contain"
           onError={() => setImageError(true)}
         />
-        {/* Expertise Level Badge */}
-        <div className="absolute -top-1 -right-1 text-xs" title={getExpertiseLevelLabel(technology.expertiseLevel)}>
-          {getExpertiseLevelEmoji(technology.expertiseLevel)}
-        </div>
       </div>
       <h3 className="font-semibold text-jcoder-foreground group-hover:text-jcoder-primary transition-colors">
         {technology.name}
       </h3>
-      <p className="text-xs text-jcoder-muted mt-1">
+      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium mt-1 ${getExpertiseLevelColor(technology.expertiseLevel)}`}>
         {getExpertiseLevelLabel(technology.expertiseLevel)}
-      </p>
+      </span>
     </div>
   );
 }
