@@ -15,8 +15,14 @@ export class DeleteTechnologyUseCase {
             throw new TechnologyAlreadyDeletedException();
         }
 
+        // Store the displayOrder before deleting
+        const deletedDisplayOrder = technology.displayOrder;
+
         // Soft delete the technology
         await this.technologiesService.softDelete(id);
+
+        // Reorder remaining technologies (decrement displayOrder of technologies after the deleted one)
+        await this.technologiesService.decrementDisplayOrderAfter(deletedDisplayOrder);
     }
 }
 
