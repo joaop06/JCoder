@@ -275,5 +275,19 @@ export class TechnologiesService {
                 .execute();
         }
     }
+
+    /**
+     * Decrements displayOrder of all technologies that have displayOrder > deletedPosition
+     * Used when deleting a technology to adjust the order of remaining technologies
+     * @param deletedPosition - The displayOrder of the deleted technology
+     */
+    async decrementDisplayOrderAfter(deletedPosition: number): Promise<void> {
+        await this.repository
+            .createQueryBuilder()
+            .update(Technology)
+            .set({ displayOrder: () => 'displayOrder - 1' })
+            .where('displayOrder > :deletedPosition', { deletedPosition })
+            .execute();
+    }
 }
 

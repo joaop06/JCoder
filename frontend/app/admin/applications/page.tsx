@@ -251,39 +251,28 @@ export default function ApplicationsManagementPage() {
                             </div>
                         </div>
 
-                        <div className="overflow-x-auto">
+                        {/* Desktop Table View */}
+                        <div className="hidden md:block overflow-x-auto">
                             <table className="w-full">
                                 <thead className="bg-jcoder-secondary border-b border-jcoder">
                                     <tr>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-jcoder-muted uppercase tracking-wider">
-                                            Actions
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-jcoder-muted uppercase tracking-wider">
-                                            Name
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-jcoder-muted uppercase tracking-wider">
-                                            Type
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-jcoder-muted uppercase tracking-wider">
-                                            URL (GitHub)
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-jcoder-muted uppercase tracking-wider">
-                                            Description
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-jcoder-muted uppercase tracking-wider">
-                                            Status
-                                        </th>
+                                        <th className="px-6 py-4 text-center text-sm font-semibold text-jcoder-foreground">Actions</th>
+                                        <th className="px-6 py-4 text-left text-sm font-semibold text-jcoder-foreground">Name</th>
+                                        <th className="px-6 py-4 text-center text-sm font-semibold text-jcoder-foreground">Type</th>
+                                        <th className="px-6 py-4 text-center text-sm font-semibold text-jcoder-foreground">URL (GitHub)</th>
+                                        <th className="px-6 py-4 text-left text-sm font-semibold text-jcoder-foreground">Description</th>
+                                        <th className="px-6 py-4 text-center text-sm font-semibold text-jcoder-foreground">Status</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-jcoder">
                                     {!loading && applications.map((app) => {
                                         return (
-                                            <tr key={app.id} className="hover:bg-jcoder-secondary transition-colors">
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <div className="flex items-center gap-2">
+                                            <tr key={app.id} className="hover:bg-jcoder-secondary/50 transition-colors">
+                                                <td className="px-6 py-4">
+                                                    <div className="flex items-center justify-center gap-2">
                                                         <button
                                                             onClick={() => router.push(`/admin/applications/${app.id}/edit`)}
-                                                            className="p-2 text-jcoder-muted hover:text-jcoder-primary transition-colors"
+                                                            className="p-2 text-blue-500 hover:bg-blue-500/10 rounded-lg transition-colors"
                                                             title="Edit"
                                                         >
                                                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -292,45 +281,40 @@ export default function ApplicationsManagementPage() {
                                                         </button>
                                                         <button
                                                             onClick={() => handleDelete(app)}
-                                                            className="p-2 text-red-400 hover:text-red-300 transition-colors"
+                                                            className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
                                                             title="Delete"
                                                         >
                                                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a 1 0 00-1 1v3M4 7h16" />
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                                             </svg>
                                                         </button>
                                                     </div>
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                <td className="px-6 py-4">
                                                     <div className="flex items-center gap-3">
                                                         {app.profileImage ? (
                                                             <img
                                                                 src={ApplicationService.getProfileImageUrl(app.id)}
                                                                 alt={`${app.name} profile`}
-                                                                className="w-10 h-10 rounded-lg object-cover flex-shrink-0"
+                                                                className="w-10 h-10 rounded-lg object-cover bg-jcoder-secondary p-1"
                                                                 onError={(e) => {
-                                                                    // Fallback to gradient if image fails to load
-                                                                    const target = e.target as HTMLImageElement;
-                                                                    target.style.display = 'none';
-                                                                    const fallback = target.nextElementSibling as HTMLElement;
-                                                                    if (fallback) fallback.style.display = 'flex';
+                                                                    e.currentTarget.src = '/icons/default.png';
                                                                 }}
                                                             />
-                                                        ) : null}
-                                                        <div
-                                                            className={`w-10 h-10 bg-jcoder-gradient rounded-lg flex items-center justify-center flex-shrink-0 ${app.profileImage ? 'hidden' : 'flex'}`}
-                                                        >
-                                                            <span className="text-black font-bold text-sm">
+                                                        ) : (
+                                                            <div className="w-10 h-10 rounded-lg bg-jcoder-gradient flex items-center justify-center text-black font-bold">
                                                                 {app.name?.charAt(0)?.toUpperCase() ?? '?'}
-                                                            </span>
+                                                            </div>
+                                                        )}
+                                                        <div>
+                                                            <p className="font-medium text-jcoder-foreground">{app.name}</p>
                                                         </div>
-                                                        <span className="font-medium text-jcoder-foreground">{app.name}</span>
                                                     </div>
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className="text-sm text-jcoder-muted">{app.applicationType}</span>
+                                                <td className="px-6 py-4 text-center">
+                                                    <span className="text-jcoder-foreground">{app.applicationType}</span>
                                                 </td>
-                                                <td className="px-6 py-4">
+                                                <td className="px-6 py-4 text-center">
                                                     {app.githubUrl ? (
                                                         <a
                                                             href={app.githubUrl}
@@ -342,7 +326,7 @@ export default function ApplicationsManagementPage() {
                                                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                                                             </svg>
-                                                            Open GitHub
+                                                            GitHub
                                                         </a>
                                                     ) : (
                                                         <span className="text-jcoder-muted">—</span>
@@ -351,8 +335,12 @@ export default function ApplicationsManagementPage() {
                                                 <td className="px-6 py-4">
                                                     <p className="text-sm text-jcoder-muted truncate max-w-md">{app.description}</p>
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${app.isActive ? 'status-active' : 'status-inactive'}`}>
+                                                <td className="px-6 py-4 text-center">
+                                                    <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${app.isActive
+                                                        ? 'bg-green-500/20 text-green-500'
+                                                        : 'bg-red-500/20 text-red-500'
+                                                        }`}>
+                                                        <div className={`w-2 h-2 rounded-full ${app.isActive ? 'bg-green-500' : 'bg-red-500'}`} />
                                                         {app.isActive ? 'Active' : 'Inactive'}
                                                     </span>
                                                 </td>
@@ -362,19 +350,122 @@ export default function ApplicationsManagementPage() {
                                     {loading && (
                                         <tr>
                                             <td colSpan={6} className="px-6 py-8 text-center text-jcoder-muted">
-                                                Loading...
+                                                <div className="flex items-center justify-center">
+                                                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-jcoder-primary"></div>
+                                                </div>
                                             </td>
                                         </tr>
                                     )}
                                     {!loading && !applications.length && !fetchError && (
                                         <tr>
-                                            <td colSpan={6} className="px-6 py-8 text-center text-jcoder-muted">
-                                                No applications found.
+                                            <td colSpan={6} className="px-6 py-8 text-center">
+                                                <div className="text-6xl mb-4">📱</div>
+                                                <p className="text-jcoder-muted text-lg">No applications found.</p>
                                             </td>
                                         </tr>
                                     )}
                                 </tbody>
                             </table>
+                        </div>
+
+                        {/* Mobile Card View */}
+                        <div className="md:hidden divide-y divide-jcoder">
+                            {loading ? (
+                                <div className="flex items-center justify-center p-12">
+                                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-jcoder-primary"></div>
+                                </div>
+                            ) : !applications.length && !fetchError ? (
+                                <div className="text-center p-12">
+                                    <div className="text-6xl mb-4">📱</div>
+                                    <p className="text-jcoder-muted text-lg">No applications found.</p>
+                                </div>
+                            ) : (
+                                applications.map((app) => (
+                                    <div key={app.id} className="p-4">
+                                        {/* Header with Image, Name and Actions */}
+                                        <div className="flex items-start gap-3 mb-3">
+                                            {/* Image/Avatar */}
+                                            {app.profileImage ? (
+                                                <img
+                                                    src={ApplicationService.getProfileImageUrl(app.id)}
+                                                    alt={`${app.name} profile`}
+                                                    className="w-12 h-12 rounded-lg object-cover bg-jcoder-secondary p-1 flex-shrink-0"
+                                                    onError={(e) => {
+                                                        e.currentTarget.src = '/icons/default.png';
+                                                    }}
+                                                />
+                                            ) : (
+                                                <div className="w-12 h-12 rounded-lg bg-jcoder-gradient flex items-center justify-center text-black font-bold flex-shrink-0">
+                                                    {app.name?.charAt(0)?.toUpperCase() ?? '?'}
+                                                </div>
+                                            )}
+
+                                            {/* Name and Type */}
+                                            <div className="flex-1 min-w-0">
+                                                <p className="font-medium text-jcoder-foreground truncate">{app.name}</p>
+                                                <p className="text-sm text-jcoder-muted mt-0.5">{app.applicationType}</p>
+                                            </div>
+
+                                            {/* Action Buttons */}
+                                            <div className="flex gap-1">
+                                                <button
+                                                    onClick={() => router.push(`/admin/applications/${app.id}/edit`)}
+                                                    className="p-2 text-blue-500 hover:bg-blue-500/10 rounded-lg transition-colors"
+                                                    title="Edit"
+                                                >
+                                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                    </svg>
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDelete(app)}
+                                                    className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
+                                                    title="Delete"
+                                                >
+                                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        {/* Description */}
+                                        {app.description && (
+                                            <p className="text-sm text-jcoder-muted mb-3 line-clamp-2">{app.description}</p>
+                                        )}
+
+                                        {/* Footer with GitHub Link and Status */}
+                                        <div className="flex items-center justify-between gap-3">
+                                            {/* GitHub Link */}
+                                            {app.githubUrl ? (
+                                                <a
+                                                    href={app.githubUrl}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-jcoder-primary hover:text-jcoder-accent transition-colors inline-flex items-center gap-1 text-sm"
+                                                    title={app.githubUrl}
+                                                >
+                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                                    </svg>
+                                                    GitHub
+                                                </a>
+                                            ) : (
+                                                <span className="text-jcoder-muted text-sm">No GitHub URL</span>
+                                            )}
+
+                                            {/* Status */}
+                                            <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium ${app.isActive
+                                                ? 'bg-green-500/20 text-green-500'
+                                                : 'bg-red-500/20 text-red-500'
+                                                }`}>
+                                                <div className={`w-2 h-2 rounded-full ${app.isActive ? 'bg-green-500' : 'bg-red-500'}`} />
+                                                {app.isActive ? 'Active' : 'Inactive'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                ))
+                            )}
                         </div>
 
                         {/* Pagination */}

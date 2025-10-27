@@ -235,7 +235,7 @@ export default function TechnologiesManagementPage() {
         setDragOverIndex(null);
     };
 
-    const handleDragOver = (e: React.DragEvent<HTMLTableRowElement>, index: number) => {
+    const handleDragOver = (e: React.DragEvent<HTMLTableRowElement | HTMLDivElement>, index: number) => {
         e.preventDefault();
         e.dataTransfer.dropEffect = 'move';
 
@@ -244,7 +244,7 @@ export default function TechnologiesManagementPage() {
         }
     };
 
-    const handleDragLeave = (e: React.DragEvent<HTMLTableRowElement>) => {
+    const handleDragLeave = (e: React.DragEvent<HTMLTableRowElement | HTMLDivElement>) => {
         // Only clear if we're actually leaving the row
         const rect = e.currentTarget.getBoundingClientRect();
         if (
@@ -257,7 +257,7 @@ export default function TechnologiesManagementPage() {
         }
     };
 
-    const handleDrop = async (e: React.DragEvent<HTMLTableRowElement>, dropIndex: number) => {
+    const handleDrop = async (e: React.DragEvent<HTMLTableRowElement | HTMLDivElement>, dropIndex: number) => {
         e.preventDefault();
         e.stopPropagation();
 
@@ -452,16 +452,16 @@ export default function TechnologiesManagementPage() {
                             </div>
                         ) : (
                             <>
-                                <div className="overflow-x-auto">
+                                {/* Desktop Table View */}
+                                <div className="hidden md:block overflow-x-auto">
                                     <table className="w-full">
                                         <thead className="bg-jcoder-secondary border-b border-jcoder">
                                             <tr>
                                                 <th className="px-4 py-4 text-center text-sm font-semibold text-jcoder-foreground w-16"></th>
+                                                <th className="px-6 py-4 text-center text-sm font-semibold text-jcoder-foreground">Actions</th>
                                                 <th className="px-6 py-4 text-left text-sm font-semibold text-jcoder-foreground">Technology</th>
-                                                <th className="px-6 py-4 text-center text-sm font-semibold text-jcoder-foreground">Order</th>
                                                 <th className="px-6 py-4 text-center text-sm font-semibold text-jcoder-foreground">Expertise</th>
                                                 <th className="px-6 py-4 text-center text-sm font-semibold text-jcoder-foreground">Status</th>
-                                                <th className="px-6 py-4 text-right text-sm font-semibold text-jcoder-foreground">Actions</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-jcoder">
@@ -492,48 +492,7 @@ export default function TechnologiesManagementPage() {
                                                         </div>
                                                     </td>
                                                     <td className="px-6 py-4">
-                                                        <div className="flex items-center gap-3">
-                                                            {tech.profileImage ? (
-                                                                <img
-                                                                    src={TechnologiesService.getProfileImageUrl(tech.id)}
-                                                                    alt={tech.name}
-                                                                    className="w-10 h-10 rounded-lg object-contain bg-jcoder-secondary p-1"
-                                                                    onError={(e) => {
-                                                                        e.currentTarget.src = '/icons/technologies_and_stacks/default.png';
-                                                                    }}
-                                                                />
-                                                            ) : (
-                                                                <div className="w-10 h-10 rounded-lg bg-jcoder-gradient flex items-center justify-center text-black font-bold">
-                                                                    {tech.name.charAt(0)}
-                                                                </div>
-                                                            )}
-                                                            <div>
-                                                                <p className="font-medium text-jcoder-foreground">{tech.name}</p>
-                                                            </div>
-                                                        </div>
-                                                    </td>
-                                                    <td className="px-6 py-4 text-center">
-                                                        <span className="text-jcoder-foreground font-medium">{tech.displayOrder}</span>
-                                                    </td>
-                                                    <td className="px-6 py-4 text-center">
-                                                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getExpertiseLevelColor(tech.expertiseLevel)}`}>
-                                                            {getExpertiseLevelLabel(tech.expertiseLevel)}
-                                                        </span>
-                                                    </td>
-                                                    <td className="px-6 py-4 text-center">
-                                                        <button
-                                                            onClick={() => handleToggleActive(tech)}
-                                                            className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium transition-colors ${tech.isActive
-                                                                ? 'bg-green-500/20 text-green-500 hover:bg-green-500/30'
-                                                                : 'bg-red-500/20 text-red-500 hover:bg-red-500/30'
-                                                                }`}
-                                                        >
-                                                            <div className={`w-2 h-2 rounded-full ${tech.isActive ? 'bg-green-500' : 'bg-red-500'}`} />
-                                                            {tech.isActive ? 'Active' : 'Inactive'}
-                                                        </button>
-                                                    </td>
-                                                    <td className="px-6 py-4">
-                                                        <div className="flex items-center justify-end gap-2">
+                                                        <div className="flex items-center justify-center gap-2">
                                                             <button
                                                                 onClick={() => {
                                                                     setSelectedTechnology(tech);
@@ -557,10 +516,145 @@ export default function TechnologiesManagementPage() {
                                                             </button>
                                                         </div>
                                                     </td>
+                                                    <td className="px-6 py-4">
+                                                        <div className="flex items-center gap-3">
+                                                            {tech.profileImage ? (
+                                                                <img
+                                                                    src={TechnologiesService.getProfileImageUrl(tech.id)}
+                                                                    alt={tech.name}
+                                                                    className="w-10 h-10 rounded-lg object-contain bg-jcoder-secondary p-1"
+                                                                    onError={(e) => {
+                                                                        e.currentTarget.src = '/icons/technologies_and_stacks/default.png';
+                                                                    }}
+                                                                />
+                                                            ) : (
+                                                                <div className="w-10 h-10 rounded-lg bg-jcoder-gradient flex items-center justify-center text-black font-bold">
+                                                                    {tech.name.charAt(0)}
+                                                                </div>
+                                                            )}
+                                                            <div>
+                                                                <p className="font-medium text-jcoder-foreground">{tech.name}</p>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-4 text-center">
+                                                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getExpertiseLevelColor(tech.expertiseLevel)}`}>
+                                                            {getExpertiseLevelLabel(tech.expertiseLevel)}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-6 py-4 text-center">
+                                                        <button
+                                                            onClick={() => handleToggleActive(tech)}
+                                                            className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium transition-colors ${tech.isActive
+                                                                ? 'bg-green-500/20 text-green-500 hover:bg-green-500/30'
+                                                                : 'bg-red-500/20 text-red-500 hover:bg-red-500/30'
+                                                                }`}
+                                                        >
+                                                            <div className={`w-2 h-2 rounded-full ${tech.isActive ? 'bg-green-500' : 'bg-red-500'}`} />
+                                                            {tech.isActive ? 'Active' : 'Inactive'}
+                                                        </button>
+                                                    </td>
                                                 </tr>
                                             ))}
                                         </tbody>
                                     </table>
+                                </div>
+
+                                {/* Mobile Card View */}
+                                <div className="md:hidden divide-y divide-jcoder">
+                                    {technologies.map((tech, index) => (
+                                        <div
+                                            key={tech.id}
+                                            onDragOver={(e) => handleDragOver(e, index)}
+                                            onDragLeave={handleDragLeave}
+                                            onDrop={(e) => handleDrop(e, index)}
+                                            className={`p-4 transition-colors ${dragOverIndex === index && draggedIndex !== index
+                                                ? 'border-t-2 border-jcoder-primary bg-jcoder-primary/10'
+                                                : ''
+                                                }`}
+                                        >
+                                            {/* Header with Drag Handle and Actions */}
+                                            <div className="flex items-start gap-3 mb-3">
+                                                {/* Drag Handle */}
+                                                <div
+                                                    draggable
+                                                    onDragStart={(e) => handleDragStart(e, index)}
+                                                    onDragEnd={handleDragEnd}
+                                                    className="p-2 text-jcoder-muted hover:text-jcoder-primary transition-colors cursor-grab active:cursor-grabbing select-none"
+                                                    title="Drag to reorder"
+                                                >
+                                                    <svg className="w-5 h-5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                                                    </svg>
+                                                </div>
+
+                                                {/* Technology Info */}
+                                                <div className="flex items-center gap-3 flex-1">
+                                                    {tech.profileImage ? (
+                                                        <img
+                                                            src={TechnologiesService.getProfileImageUrl(tech.id)}
+                                                            alt={tech.name}
+                                                            className="w-12 h-12 rounded-lg object-contain bg-jcoder-secondary p-1 flex-shrink-0"
+                                                            onError={(e) => {
+                                                                e.currentTarget.src = '/icons/technologies_and_stacks/default.png';
+                                                            }}
+                                                        />
+                                                    ) : (
+                                                        <div className="w-12 h-12 rounded-lg bg-jcoder-gradient flex items-center justify-center text-black font-bold flex-shrink-0">
+                                                            {tech.name.charAt(0)}
+                                                        </div>
+                                                    )}
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="font-medium text-jcoder-foreground truncate">{tech.name}</p>
+                                                        <div className="flex items-center gap-2 mt-1">
+                                                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getExpertiseLevelColor(tech.expertiseLevel)}`}>
+                                                                {getExpertiseLevelLabel(tech.expertiseLevel)}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {/* Action Buttons */}
+                                                <div className="flex gap-1">
+                                                    <button
+                                                        onClick={() => {
+                                                            setSelectedTechnology(tech);
+                                                            setShowEditModal(true);
+                                                        }}
+                                                        className="p-2 text-blue-500 hover:bg-blue-500/10 rounded-lg transition-colors"
+                                                        title="Edit"
+                                                    >
+                                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                        </svg>
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDelete(tech)}
+                                                        className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
+                                                        title="Delete"
+                                                    >
+                                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            {/* Status Toggle */}
+                                            <div className="ml-10">
+                                                <button
+                                                    onClick={() => handleToggleActive(tech)}
+                                                    className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${tech.isActive
+                                                        ? 'bg-green-500/20 text-green-500 hover:bg-green-500/30'
+                                                        : 'bg-red-500/20 text-red-500 hover:bg-red-500/30'
+                                                        }`}
+                                                >
+                                                    <div className={`w-2 h-2 rounded-full ${tech.isActive ? 'bg-green-500' : 'bg-red-500'}`} />
+                                                    {tech.isActive ? 'Active' : 'Inactive'}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
 
                                 {/* Pagination */}
