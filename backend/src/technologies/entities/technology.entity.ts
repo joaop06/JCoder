@@ -7,7 +7,7 @@ import {
     PrimaryGeneratedColumn,
 } from 'typeorm';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { TechnologyCategoryEnum } from '../enums/technology-category.enum';
+import { ExpertiseLevel } from '../enums/expertise-level.enum';
 
 @Entity('technologies')
 export class Technology {
@@ -30,29 +30,6 @@ export class Technology {
     name: string;
 
     @ApiPropertyOptional({
-        type: 'string',
-        nullable: true,
-        example: 'JavaScript runtime built on Chrome\'s V8 JavaScript engine',
-        description: 'Detailed description of the technology',
-    })
-    @Column('text', { nullable: true })
-    description?: string;
-
-    @ApiProperty({
-        type: 'string',
-        nullable: false,
-        enum: TechnologyCategoryEnum,
-        example: TechnologyCategoryEnum.BACKEND,
-        description: 'Technology category for organization and filtering',
-    })
-    @Column({
-        type: 'enum',
-        nullable: false,
-        enum: TechnologyCategoryEnum,
-    })
-    category: TechnologyCategoryEnum;
-
-    @ApiPropertyOptional({
         nullable: true,
         type: 'string',
         example: 'nodejs-logo.png',
@@ -63,13 +40,25 @@ export class Technology {
 
     @ApiProperty({
         example: 1,
-        default: 999,
         type: 'number',
         nullable: false,
         description: 'Display order for sorting technologies (lower numbers appear first)',
     })
-    @Column({ default: 999 })
+    @Column({ nullable: false, default: 1 })
     displayOrder: number;
+
+    @ApiProperty({
+        enum: ExpertiseLevel,
+        example: ExpertiseLevel.INTERMEDIATE,
+        nullable: false,
+        description: 'Expertise level in the technology',
+    })
+    @Column({
+        type: 'enum',
+        enum: ExpertiseLevel,
+        default: ExpertiseLevel.INTERMEDIATE,
+    })
+    expertiseLevel: ExpertiseLevel;
 
     @ApiProperty({
         default: true,
@@ -80,15 +69,6 @@ export class Technology {
     })
     @Column({ default: true })
     isActive: boolean;
-
-    @ApiPropertyOptional({
-        nullable: true,
-        type: 'string',
-        example: 'https://nodejs.org',
-        description: 'Official website URL of the technology',
-    })
-    @Column({ nullable: true })
-    officialUrl?: string;
 
     @ApiProperty({
         nullable: false,
@@ -117,5 +97,4 @@ export class Technology {
     })
     @DeleteDateColumn()
     deletedAt?: Date;
-}
-
+};

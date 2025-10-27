@@ -12,7 +12,7 @@ import { TechnologiesService } from '@/services/technologies.service';
 import ApplicationCard from '@/components/applications/ApplicationCard';
 import { useSmoothScroll } from '@/hooks/useSmoothScroll';
 import { GitHubIcon } from '@/components/theme';
-import { TechnologyCategoryEnum } from '@/types/enums/technology-category.enum';
+import { ExpertiseLevel } from '@/types/enums/expertise-level.enum';
 
 export default function Home() {
   const [loading, setLoading] = useState(true);
@@ -614,6 +614,28 @@ export default function Home() {
   );
 }
 
+// Helper to get expertise level emoji
+const getExpertiseLevelEmoji = (level: ExpertiseLevel): string => {
+  const emojis: Record<ExpertiseLevel, string> = {
+    [ExpertiseLevel.BASIC]: '⭐',
+    [ExpertiseLevel.INTERMEDIATE]: '⭐⭐',
+    [ExpertiseLevel.ADVANCED]: '⭐⭐⭐',
+    [ExpertiseLevel.EXPERT]: '⭐⭐⭐⭐',
+  };
+  return emojis[level];
+};
+
+// Helper to get expertise level label
+const getExpertiseLevelLabel = (level: ExpertiseLevel): string => {
+  const labels: Record<ExpertiseLevel, string> = {
+    [ExpertiseLevel.BASIC]: 'Basic',
+    [ExpertiseLevel.INTERMEDIATE]: 'Intermediate',
+    [ExpertiseLevel.ADVANCED]: 'Advanced',
+    [ExpertiseLevel.EXPERT]: 'Expert',
+  };
+  return labels[level];
+};
+
 // Technology Card Component
 interface TechnologyCardProps {
   technology: Technology;
@@ -625,24 +647,28 @@ function TechnologyCard({ technology }: TechnologyCardProps) {
   const fallbackImage = `/icons/technologies_and_stacks/${technology.name.toLowerCase().replace(/\./g, '').replace(/\s+/g, '-')}.png`;
 
   return (
-    <a
-      href={technology.officialUrl || '#'}
-      target={technology.officialUrl ? '_blank' : '_self'}
-      rel={technology.officialUrl ? 'noopener noreferrer' : ''}
-      className="text-center group"
-      title={technology.description || technology.name}
+    <div
+      className="text-center group relative"
+      title={`${technology.name} - ${getExpertiseLevelLabel(technology.expertiseLevel)}`}
     >
-      <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300 p-3">
+      <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300 p-3 relative">
         <img
           src={imageError ? fallbackImage : imageUrl}
           alt={technology.name}
           className="w-full h-full object-contain"
           onError={() => setImageError(true)}
         />
+        {/* Expertise Level Badge */}
+        <div className="absolute -top-1 -right-1 text-xs" title={getExpertiseLevelLabel(technology.expertiseLevel)}>
+          {getExpertiseLevelEmoji(technology.expertiseLevel)}
+        </div>
       </div>
       <h3 className="font-semibold text-jcoder-foreground group-hover:text-jcoder-primary transition-colors">
         {technology.name}
       </h3>
-    </a>
+      <p className="text-xs text-jcoder-muted mt-1">
+        {getExpertiseLevelLabel(technology.expertiseLevel)}
+      </p>
+    </div>
   );
 }

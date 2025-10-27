@@ -52,7 +52,7 @@ const ApplicationImagesGallery: React.FC<ApplicationImagesGalleryProps> = ({
     };
 
     const getImageUrl = (filename: string) => {
-        const baseUrl = process.env.NEXT_PUBLIC_BACKEND_BASE_URL || 'http://localhost:8081';
+        const baseUrl = process.env.NEXT_PUBLIC_BACKEND_BASE_URL;
         const url = `${baseUrl}/api/v1/images/applications/${applicationId}/images/${filename}`;
         return url;
     };

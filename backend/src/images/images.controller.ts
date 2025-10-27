@@ -32,6 +32,11 @@ import { DeleteProfileImageUseCase } from './use-cases/delete-profile-image.use-
 import { GetProfileImageUseCase } from './use-cases/get-profile-image.use-case';
 import { ApplicationNotFoundException } from '../applications/exceptions/application-not-found.exception';
 import { ApiExceptionResponse } from '../@common/decorators/documentation/api-exception-response.decorator';
+import { Technology } from '../technologies/entities/technology.entity';
+import { TechnologyNotFoundException } from '../technologies/exceptions/technology-not-found.exception';
+import { UploadTechnologyProfileImageUseCase } from '../technologies/use-cases/upload-technology-profile-image.use-case';
+import { DeleteTechnologyProfileImageUseCase } from '../technologies/use-cases/delete-technology-profile-image.use-case';
+import { GetTechnologyProfileImageUseCase } from '../technologies/use-cases/get-technology-profile-image.use-case';
 
 @Controller('images')
 export class ImagesController {
@@ -44,6 +49,9 @@ export class ImagesController {
         private readonly updateProfileImageUseCase: UpdateProfileImageUseCase,
         private readonly deleteProfileImageUseCase: DeleteProfileImageUseCase,
         private readonly getProfileImageUseCase: GetProfileImageUseCase,
+        private readonly uploadTechnologyProfileImageUseCase: UploadTechnologyProfileImageUseCase,
+        private readonly deleteTechnologyProfileImageUseCase: DeleteTechnologyProfileImageUseCase,
+        private readonly getTechnologyProfileImageUseCase: GetTechnologyProfileImageUseCase,
     ) { }
 
     @Post('applications/:id/images')
@@ -191,5 +199,83 @@ export class ImagesController {
         @Param('id', ParseIntPipe) id: number,
     ): Promise<void> {
         await this.deleteProfileImageUseCase.execute(id);
+    }
+
+    // ==================== TECHNOLOGIES ENDPOINTS ====================
+
+    @Post('technologies/:id/profile-image')
+    @Roles(RoleEnum.Admin)
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @UseInterceptors(
+        FilesInterceptor('profileImage', 1, {
+            limits: {
+                fileSize: 5 * 1024 * 1024, // 5MB
+            },
+            fileFilter: (req, file, cb) => {
+                const allowedMimes = [
+                    'image/jpeg',
+                    'image/jpg',
+                    'image/png',
+                    'image/webp',
+                    'image/svg+xml',
+                ];
+                if (allowedMimes.includes(file.mimetype)) {
+                    cb(null, true);
+                } else {
+                    cb(
+                        new Error(
+                            'Invalid file type. Only JPEG, PNG, WebP and SVG images are allowed.',
+                        ),
+                        false,
+                    );
+                }
+            },
+        }),
+    )
+    @ApiOkResponse({ type: () => Technology })
+    @ApiExceptionResponse(() => TechnologyNotFoundException)
+    async uploadTechnologyProfileImage(
+        @Param('id', ParseIntPipe) id: number,
+        @UploadedFiles() files: Express.Multer.File[],
+    ): Promise<Technology> {
+        if (!files || files.length === 0) {
+            throw new Error('No file uploaded');
+        }
+        return await this.uploadTechnologyProfileImageUseCase.execute(
+            id,
+            files[0],
+        );
+    }
+
+    @Get('technologies/:id/profile-image')
+    @ApiOkResponse({ description: 'Technology profile image file' })
+    @ApiExceptionResponse(() => TechnologyNotFoundException)
+    async getTechnologyProfileImage(
+        @Param('id', ParseIntPipe) id: number,
+        @Res() res: Response,
+    ): Promise<void> {
+        const imagePath = await this.getTechnologyProfileImageUseCase.execute(id);
+
+        // Set headers
+        res.set({
+            'Content-Type': 'image/png',
+            'Cache-Control': 'public, max-age=31536000', // 1 year cache
+        });
+
+        // Stream the file directly
+        const fileStream = fs.createReadStream(imagePath);
+        fileStream.pipe(res);
+    }
+
+    @Delete('technologies/:id/profile-image')
+    @Roles(RoleEnum.Admin)
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @HttpCode(HttpStatus.NO_CONTENT)
+    @ApiNoContentResponse()
+    @ApiExceptionResponse(() => TechnologyNotFoundException)
+    async deleteTechnologyProfileImage(
+        @Param('id', ParseIntPipe) id: number,
+    ): Promise<void> {
+        await this.deleteTechnologyProfileImageUseCase.execute(id);
     }
 };

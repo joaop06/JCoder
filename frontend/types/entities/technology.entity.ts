@@ -1,14 +1,12 @@
-import { TechnologyCategoryEnum } from '../enums/technology-category.enum';
+import { ExpertiseLevel } from '../enums/expertise-level.enum';
 
 export interface Technology {
     id: number;
     name: string;
-    description?: string;
-    category: TechnologyCategoryEnum;
     profileImage?: string;
     displayOrder: number;
+    expertiseLevel: ExpertiseLevel;
     isActive: boolean;
-    officialUrl?: string;
     createdAt: Date;
     updatedAt: Date;
     deletedAt?: Date;

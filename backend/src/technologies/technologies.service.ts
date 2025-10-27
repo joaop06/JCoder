@@ -80,11 +80,10 @@ export class TechnologiesService {
     ): Promise<PaginatedResponseDto<Technology>> {
         const {
             page = 1,
-            limit = 10,
-            sortBy = 'displayOrder',
-            sortOrder = 'ASC',
-            category,
             isActive,
+            limit = 10,
+            sortOrder = 'ASC',
+            sortBy = 'displayOrder',
         } = queryDto;
         const skip = (page - 1) * limit;
 
@@ -95,7 +94,6 @@ export class TechnologiesService {
             limit,
             sortBy,
             sortOrder,
-            category,
             isActive !== undefined ? String(isActive) : undefined,
         );
 
@@ -103,7 +101,6 @@ export class TechnologiesService {
             cacheKey,
             async () => {
                 const where: FindOptionsWhere<Technology> = {};
-                if (category) where.category = category;
                 if (isActive !== undefined) where.isActive = isActive;
 
                 const [data, total] = await this.repository.findAndCount({
@@ -172,7 +169,7 @@ export class TechnologiesService {
 
     async update(
         id: number,
-        updateTechnologyDto: UpdateTechnologyDto,
+        updateTechnologyDto: UpdateTechnologyDto & { displayOrder?: number },
     ): Promise<Technology> {
         const technology = await this.findById(id);
         this.repository.merge(technology, updateTechnologyDto);
@@ -226,6 +223,57 @@ export class TechnologiesService {
         );
 
         return await this.findById(id);
+    }
+
+    /**
+     * Increments displayOrder of all technologies that have displayOrder >= startPosition
+     * Used when inserting a new technology at a specific position
+     */
+    async incrementDisplayOrderFrom(startPosition: number): Promise<void> {
+        await this.repository
+            .createQueryBuilder()
+            .update(Technology)
+            .set({ displayOrder: () => 'displayOrder + 1' })
+            .where('displayOrder >= :startPosition', { startPosition })
+            .execute();
+    }
+
+    /**
+     * Reorders technologies when a technology's displayOrder is updated
+     * @param id - ID of the technology being updated
+     * @param oldPosition - Current displayOrder position
+     * @param newPosition - New displayOrder position
+     */
+    async reorderOnUpdate(
+        id: number,
+        oldPosition: number,
+        newPosition: number,
+    ): Promise<void> {
+        if (oldPosition === newPosition) {
+            return; // No reordering needed
+        }
+
+        if (newPosition < oldPosition) {
+            // Moving up: increment displayOrder of technologies between new and old position
+            await this.repository
+                .createQueryBuilder()
+                .update(Technology)
+                .set({ displayOrder: () => 'displayOrder + 1' })
+                .where('displayOrder >= :newPosition', { newPosition })
+                .andWhere('displayOrder < :oldPosition', { oldPosition })
+                .andWhere('id != :id', { id })
+                .execute();
+        } else {
+            // Moving down: decrement displayOrder of technologies between old and new position
+            await this.repository
+                .createQueryBuilder()
+                .update(Technology)
+                .set({ displayOrder: () => 'displayOrder - 1' })
+                .where('displayOrder > :oldPosition', { oldPosition })
+                .andWhere('displayOrder <= :newPosition', { newPosition })
+                .andWhere('id != :id', { id })
+                .execute();
+        }
     }
 }
 

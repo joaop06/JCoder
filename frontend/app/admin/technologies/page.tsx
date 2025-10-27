@@ -9,9 +9,31 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Technology } from '@/types/entities/technology.entity';
 import { TechnologiesService } from '@/services/technologies.service';
 import { PaginationDto, PaginatedResponse } from '@/types/api/pagination.type';
-import { TechnologyCategoryEnum, TechnologyCategoryLabels } from '@/types/enums/technology-category.enum';
 import { CreateTechnologyDto } from '@/types/entities/dtos/create-technology.dto';
 import { UpdateTechnologyDto } from '@/types/entities/dtos/update-technology.dto';
+import { ExpertiseLevel } from '@/types/enums/expertise-level.enum';
+
+// Helper to get expertise level label
+const getExpertiseLevelLabel = (level: ExpertiseLevel): string => {
+    const labels: Record<ExpertiseLevel, string> = {
+        [ExpertiseLevel.BASIC]: 'Basic',
+        [ExpertiseLevel.INTERMEDIATE]: 'Intermediate',
+        [ExpertiseLevel.ADVANCED]: 'Advanced',
+        [ExpertiseLevel.EXPERT]: 'Expert',
+    };
+    return labels[level];
+};
+
+// Helper to get expertise level color
+const getExpertiseLevelColor = (level: ExpertiseLevel): string => {
+    const colors: Record<ExpertiseLevel, string> = {
+        [ExpertiseLevel.BASIC]: 'bg-gray-500/20 text-gray-400',
+        [ExpertiseLevel.INTERMEDIATE]: 'bg-blue-500/20 text-blue-400',
+        [ExpertiseLevel.ADVANCED]: 'bg-purple-500/20 text-purple-400',
+        [ExpertiseLevel.EXPERT]: 'bg-yellow-500/20 text-yellow-400',
+    };
+    return colors[level];
+};
 
 export default function TechnologiesManagementPage() {
     const router = useRouter();
@@ -31,13 +53,15 @@ export default function TechnologiesManagementPage() {
     // Modal states
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
-    const [showImageModal, setShowImageModal] = useState(false);
     const [selectedTechnology, setSelectedTechnology] = useState<Technology | null>(null);
     const [submitting, setSubmitting] = useState(false);
 
     // Filter states
-    const [filterCategory, setFilterCategory] = useState<TechnologyCategoryEnum | 'ALL'>('ALL');
     const [filterActive, setFilterActive] = useState<boolean | 'ALL'>('ALL');
+
+    // Drag and drop states
+    const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+    const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
     const toast = useToast();
 
@@ -53,14 +77,13 @@ export default function TechnologiesManagementPage() {
     useEffect(() => {
         if (!isAuthenticated) return;
         fetchTechnologies();
-    }, [isAuthenticated, pagination, filterCategory, filterActive]);
+    }, [isAuthenticated, pagination, filterActive]);
 
     const fetchTechnologies = async () => {
         setLoading(true);
         setFetchError(null);
         try {
             const queryParams: any = { ...pagination };
-            if (filterCategory !== 'ALL') queryParams.category = filterCategory;
             if (filterActive !== 'ALL') queryParams.isActive = filterActive;
 
             const data = await TechnologiesService.query(queryParams);
@@ -89,10 +112,23 @@ export default function TechnologiesManagementPage() {
         setPagination(prev => ({ ...prev, limit, page: 1 }));
     }, []);
 
-    const handleCreate = async (formData: CreateTechnologyDto) => {
+    const handleCreate = async (formData: CreateTechnologyDto | UpdateTechnologyDto, imageFile?: File | null) => {
         setSubmitting(true);
         try {
-            await TechnologiesService.create(formData);
+            const createdTech = await TechnologiesService.create(formData as CreateTechnologyDto);
+
+            // Upload image if provided
+            if (imageFile && createdTech.id) {
+                try {
+                    await TechnologiesService.uploadProfileImage(createdTech.id, imageFile);
+                } catch (imgErr: any) {
+                    toast.error('Technology created but image upload failed: ' + (imgErr?.response?.data?.message || 'Unknown error'));
+                    fetchTechnologies();
+                    setShowCreateModal(false);
+                    return;
+                }
+            }
+
             toast.success('Technology created successfully!');
             setShowCreateModal(false);
             fetchTechnologies();
@@ -103,10 +139,38 @@ export default function TechnologiesManagementPage() {
         }
     };
 
-    const handleUpdate = async (id: number, formData: UpdateTechnologyDto) => {
+    const handleUpdate = async (id: number, formData: CreateTechnologyDto | UpdateTechnologyDto, imageFile?: File | null, deleteImage?: boolean) => {
         setSubmitting(true);
         try {
-            await TechnologiesService.update(id, formData);
+            // Update technology data
+            await TechnologiesService.update(id, formData as UpdateTechnologyDto);
+
+            // Handle image deletion
+            if (deleteImage) {
+                try {
+                    await TechnologiesService.deleteProfileImage(id);
+                } catch (delErr: any) {
+                    toast.error('Technology updated but image deletion failed: ' + (delErr?.response?.data?.message || 'Unknown error'));
+                    fetchTechnologies();
+                    setShowEditModal(false);
+                    setSelectedTechnology(null);
+                    return;
+                }
+            }
+
+            // Handle image upload/replacement
+            if (imageFile) {
+                try {
+                    await TechnologiesService.uploadProfileImage(id, imageFile);
+                } catch (imgErr: any) {
+                    toast.error('Technology updated but image upload failed: ' + (imgErr?.response?.data?.message || 'Unknown error'));
+                    fetchTechnologies();
+                    setShowEditModal(false);
+                    setSelectedTechnology(null);
+                    return;
+                }
+            }
+
             toast.success('Technology updated successfully!');
             setShowEditModal(false);
             setSelectedTechnology(null);
@@ -149,34 +213,72 @@ export default function TechnologiesManagementPage() {
         }
     };
 
-    const handleUploadImage = async (id: number, file: File) => {
-        setSubmitting(true);
-        try {
-            await TechnologiesService.uploadProfileImage(id, file);
-            toast.success('Profile image uploaded successfully!');
-            setShowImageModal(false);
-            setSelectedTechnology(null);
-            fetchTechnologies();
-        } catch (err: any) {
-            toast.error(err?.response?.data?.message || 'Failed to upload image');
-        } finally {
-            setSubmitting(false);
+    const handleDragStart = (e: React.DragEvent<HTMLDivElement>, index: number) => {
+        setDraggedIndex(index);
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', index.toString());
+
+        // Find the parent row and add opacity
+        const row = e.currentTarget.closest('tr');
+        if (row) {
+            row.style.opacity = '0.5';
         }
     };
 
-    const handleDeleteImage = async (id: number) => {
-        const confirmed = await toast.confirm('Are you sure you want to delete the profile image?', {
-            confirmText: 'Delete',
-            cancelText: 'Cancel',
-        });
-        if (!confirmed) return;
+    const handleDragEnd = (e: React.DragEvent<HTMLDivElement>) => {
+        // Find the parent row and restore opacity
+        const row = e.currentTarget.closest('tr');
+        if (row) {
+            row.style.opacity = '1';
+        }
+        setDraggedIndex(null);
+        setDragOverIndex(null);
+    };
+
+    const handleDragOver = (e: React.DragEvent<HTMLTableRowElement>, index: number) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+
+        if (draggedIndex !== null && draggedIndex !== index) {
+            setDragOverIndex(index);
+        }
+    };
+
+    const handleDragLeave = (e: React.DragEvent<HTMLTableRowElement>) => {
+        // Only clear if we're actually leaving the row
+        const rect = e.currentTarget.getBoundingClientRect();
+        if (
+            e.clientY < rect.top ||
+            e.clientY >= rect.bottom ||
+            e.clientX < rect.left ||
+            e.clientX >= rect.right
+        ) {
+            setDragOverIndex(null);
+        }
+    };
+
+    const handleDrop = async (e: React.DragEvent<HTMLTableRowElement>, dropIndex: number) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (draggedIndex === null || draggedIndex === dropIndex) {
+            setDraggedIndex(null);
+            setDragOverIndex(null);
+            return;
+        }
+
+        const draggedTechnology = technologies[draggedIndex];
+        const targetTechnology = technologies[dropIndex];
 
         try {
-            await TechnologiesService.deleteProfileImage(id);
-            toast.success('Profile image deleted successfully!');
+            await TechnologiesService.reorder(draggedTechnology.id, targetTechnology.displayOrder);
+            toast.success('Technology reordered successfully!');
             fetchTechnologies();
-        } catch (err) {
-            toast.error('Failed to delete profile image.');
+        } catch (err: any) {
+            toast.error(err?.response?.data?.message || 'Failed to reorder technology');
+        } finally {
+            setDraggedIndex(null);
+            setDragOverIndex(null);
         }
     };
 
@@ -248,7 +350,7 @@ export default function TechnologiesManagementPage() {
                     </div>
 
                     {/* Stats Cards */}
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                         <div className="bg-jcoder-card border border-jcoder rounded-lg p-6">
                             <div className="flex items-center justify-between">
                                 <div>
@@ -290,43 +392,11 @@ export default function TechnologiesManagementPage() {
                                 </div>
                             </div>
                         </div>
-
-                        <div className="bg-jcoder-card border border-jcoder rounded-lg p-6">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-jcoder-muted text-sm mb-1">Categories</p>
-                                    <p className="text-3xl font-bold text-jcoder-primary">
-                                        {Object.keys(TechnologyCategoryEnum).length}
-                                    </p>
-                                </div>
-                                <div className="w-12 h-12 bg-jcoder-primary/20 rounded-lg flex items-center justify-center">
-                                    <svg className="w-6 h-6 text-jcoder-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                                    </svg>
-                                </div>
-                            </div>
-                        </div>
                     </div>
 
                     {/* Filters */}
                     <div className="bg-jcoder-card border border-jcoder rounded-lg p-6 mb-6">
                         <div className="flex flex-col sm:flex-row gap-4">
-                            <div className="flex-1">
-                                <label className="block text-sm font-medium text-jcoder-foreground mb-2">Category</label>
-                                <select
-                                    value={filterCategory}
-                                    onChange={(e) => setFilterCategory(e.target.value as any)}
-                                    className="w-full px-4 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:outline-none focus:border-jcoder-primary"
-                                >
-                                    <option value="ALL">All Categories</option>
-                                    {Object.entries(TechnologyCategoryEnum).map(([key, value]) => (
-                                        <option key={key} value={value}>
-                                            {TechnologyCategoryLabels[value]}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-
                             <div className="flex-1">
                                 <label className="block text-sm font-medium text-jcoder-foreground mb-2">Status</label>
                                 <select
@@ -343,7 +413,6 @@ export default function TechnologiesManagementPage() {
                             <div className="flex items-end">
                                 <button
                                     onClick={() => {
-                                        setFilterCategory('ALL');
                                         setFilterActive('ALL');
                                     }}
                                     className="px-4 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground hover:border-jcoder-primary transition-colors"
@@ -387,16 +456,41 @@ export default function TechnologiesManagementPage() {
                                     <table className="w-full">
                                         <thead className="bg-jcoder-secondary border-b border-jcoder">
                                             <tr>
+                                                <th className="px-4 py-4 text-center text-sm font-semibold text-jcoder-foreground w-16"></th>
                                                 <th className="px-6 py-4 text-left text-sm font-semibold text-jcoder-foreground">Technology</th>
-                                                <th className="px-6 py-4 text-left text-sm font-semibold text-jcoder-foreground">Category</th>
                                                 <th className="px-6 py-4 text-center text-sm font-semibold text-jcoder-foreground">Order</th>
+                                                <th className="px-6 py-4 text-center text-sm font-semibold text-jcoder-foreground">Expertise</th>
                                                 <th className="px-6 py-4 text-center text-sm font-semibold text-jcoder-foreground">Status</th>
                                                 <th className="px-6 py-4 text-right text-sm font-semibold text-jcoder-foreground">Actions</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-jcoder">
-                                            {technologies.map((tech) => (
-                                                <tr key={tech.id} className="hover:bg-jcoder-secondary/50 transition-colors">
+                                            {technologies.map((tech, index) => (
+                                                <tr
+                                                    key={tech.id}
+                                                    onDragOver={(e) => handleDragOver(e, index)}
+                                                    onDragLeave={handleDragLeave}
+                                                    onDrop={(e) => handleDrop(e, index)}
+                                                    className={`transition-colors ${dragOverIndex === index && draggedIndex !== index
+                                                        ? 'border-t-2 border-jcoder-primary bg-jcoder-primary/10'
+                                                        : 'hover:bg-jcoder-secondary/50'
+                                                        }`}
+                                                >
+                                                    <td className="px-4 py-4">
+                                                        <div className="flex items-center justify-center">
+                                                            <div
+                                                                draggable
+                                                                onDragStart={(e) => handleDragStart(e, index)}
+                                                                onDragEnd={handleDragEnd}
+                                                                className="p-2 text-jcoder-muted hover:text-jcoder-primary transition-colors cursor-grab active:cursor-grabbing select-none"
+                                                                title="Drag to reorder"
+                                                            >
+                                                                <svg className="w-5 h-5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                                                                </svg>
+                                                            </div>
+                                                        </div>
+                                                    </td>
                                                     <td className="px-6 py-4">
                                                         <div className="flex items-center gap-3">
                                                             {tech.profileImage ? (
@@ -415,28 +509,23 @@ export default function TechnologiesManagementPage() {
                                                             )}
                                                             <div>
                                                                 <p className="font-medium text-jcoder-foreground">{tech.name}</p>
-                                                                {tech.description && (
-                                                                    <p className="text-sm text-jcoder-muted truncate max-w-xs">
-                                                                        {tech.description}
-                                                                    </p>
-                                                                )}
                                                             </div>
                                                         </div>
-                                                    </td>
-                                                    <td className="px-6 py-4">
-                                                        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-jcoder-primary/20 text-jcoder-primary">
-                                                            {TechnologyCategoryLabels[tech.category]}
-                                                        </span>
                                                     </td>
                                                     <td className="px-6 py-4 text-center">
                                                         <span className="text-jcoder-foreground font-medium">{tech.displayOrder}</span>
                                                     </td>
                                                     <td className="px-6 py-4 text-center">
+                                                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getExpertiseLevelColor(tech.expertiseLevel)}`}>
+                                                            {getExpertiseLevelLabel(tech.expertiseLevel)}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-6 py-4 text-center">
                                                         <button
                                                             onClick={() => handleToggleActive(tech)}
                                                             className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium transition-colors ${tech.isActive
-                                                                    ? 'bg-green-500/20 text-green-500 hover:bg-green-500/30'
-                                                                    : 'bg-red-500/20 text-red-500 hover:bg-red-500/30'
+                                                                ? 'bg-green-500/20 text-green-500 hover:bg-green-500/30'
+                                                                : 'bg-red-500/20 text-red-500 hover:bg-red-500/30'
                                                                 }`}
                                                         >
                                                             <div className={`w-2 h-2 rounded-full ${tech.isActive ? 'bg-green-500' : 'bg-red-500'}`} />
@@ -445,18 +534,6 @@ export default function TechnologiesManagementPage() {
                                                     </td>
                                                     <td className="px-6 py-4">
                                                         <div className="flex items-center justify-end gap-2">
-                                                            <button
-                                                                onClick={() => {
-                                                                    setSelectedTechnology(tech);
-                                                                    setShowImageModal(true);
-                                                                }}
-                                                                className="p-2 text-jcoder-primary hover:bg-jcoder-primary/10 rounded-lg transition-colors"
-                                                                title="Manage Image"
-                                                            >
-                                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                                                </svg>
-                                                            </button>
                                                             <button
                                                                 onClick={() => {
                                                                     setSelectedTechnology(tech);
@@ -490,11 +567,9 @@ export default function TechnologiesManagementPage() {
                                 {paginationMeta && (
                                     <div className="border-t border-jcoder p-4">
                                         <Pagination
-                                            currentPage={paginationMeta.page}
-                                            totalPages={paginationMeta.totalPages}
+                                            meta={paginationMeta}
                                             onPageChange={handlePageChange}
-                                            itemsPerPage={pagination.limit || 10}
-                                            onItemsPerPageChange={handleLimitChange}
+                                            onLimitChange={handleLimitChange}
                                         />
                                     </div>
                                 )}
@@ -523,21 +598,7 @@ export default function TechnologiesManagementPage() {
                         setShowEditModal(false);
                         setSelectedTechnology(null);
                     }}
-                    onSubmit={(data) => handleUpdate(selectedTechnology.id, data)}
-                    submitting={submitting}
-                />
-            )}
-
-            {/* Image Modal */}
-            {showImageModal && selectedTechnology && (
-                <ImageUploadModal
-                    technology={selectedTechnology}
-                    onClose={() => {
-                        setShowImageModal(false);
-                        setSelectedTechnology(null);
-                    }}
-                    onUpload={(file) => handleUploadImage(selectedTechnology.id, file)}
-                    onDelete={() => handleDeleteImage(selectedTechnology.id)}
+                    onSubmit={(data, imageFile, deleteImage) => handleUpdate(selectedTechnology.id, data, imageFile, deleteImage)}
                     submitting={submitting}
                 />
             )}
@@ -552,22 +613,71 @@ interface TechnologyFormModalProps {
     title: string;
     technology?: Technology;
     onClose: () => void;
-    onSubmit: (data: CreateTechnologyDto | UpdateTechnologyDto) => void;
+    onSubmit: (data: CreateTechnologyDto | UpdateTechnologyDto, imageFile?: File | null, deleteImage?: boolean) => void | Promise<void>;
     submitting: boolean;
 }
 
 function TechnologyFormModal({ title, technology, onClose, onSubmit, submitting }: TechnologyFormModalProps) {
+    const isEditMode = !!technology;
+    const toast = useToast();
+
     const [formData, setFormData] = useState({
         name: technology?.name || '',
-        description: technology?.description || '',
-        category: technology?.category || TechnologyCategoryEnum.BACKEND,
-        displayOrder: technology?.displayOrder || 999,
-        officialUrl: technology?.officialUrl || '',
+        expertiseLevel: technology?.expertiseLevel || ExpertiseLevel.INTERMEDIATE,
+        displayOrder: technology?.displayOrder || 1,
     });
+
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [preview, setPreview] = useState<string | null>(null);
+    const [deleteImage, setDeleteImage] = useState(false);
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            // Validate file type
+            const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/svg+xml'];
+            if (!validTypes.includes(file.type)) {
+                toast.error('Invalid file type. Please upload PNG, JPEG, WebP, or SVG.');
+                return;
+            }
+
+            // Validate file size (5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                toast.error('File size exceeds 5MB. Please choose a smaller file.');
+                return;
+            }
+
+            setSelectedFile(file);
+            setDeleteImage(false);
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setPreview(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const handleRemoveSelectedFile = () => {
+        setSelectedFile(null);
+        setPreview(null);
+    };
+
+    const handleDeleteCurrentImage = () => {
+        setDeleteImage(true);
+        setSelectedFile(null);
+        setPreview(null);
+    };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        onSubmit(formData);
+
+        // Remove displayOrder from payload (backend manages it automatically)
+        // When creating: backend assigns displayOrder = 1
+        // When updating: displayOrder is managed by separate reorder endpoint
+        const payload = { ...formData };
+        delete (payload as any).displayOrder;
+
+        onSubmit(payload, selectedFile, deleteImage);
     };
 
     return (
@@ -603,56 +713,91 @@ function TechnologyFormModal({ title, technology, onClose, onSubmit, submitting 
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-jcoder-foreground mb-2">Description</label>
-                        <textarea
-                            value={formData.description}
-                            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                            rows={3}
-                            className="w-full px-4 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:outline-none focus:border-jcoder-primary resize-none"
-                            placeholder="Brief description of the technology"
-                        />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium text-jcoder-foreground mb-2">
-                                Category <span className="text-red-500">*</span>
-                            </label>
-                            <select
-                                required
-                                value={formData.category}
-                                onChange={(e) => setFormData({ ...formData, category: e.target.value as TechnologyCategoryEnum })}
-                                className="w-full px-4 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:outline-none focus:border-jcoder-primary"
-                            >
-                                {Object.entries(TechnologyCategoryEnum).map(([key, value]) => (
-                                    <option key={key} value={value}>
-                                        {TechnologyCategoryLabels[value]}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-jcoder-foreground mb-2">Display Order</label>
-                            <input
-                                type="number"
-                                min="0"
-                                value={formData.displayOrder}
-                                onChange={(e) => setFormData({ ...formData, displayOrder: parseInt(e.target.value) || 0 })}
-                                className="w-full px-4 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:outline-none focus:border-jcoder-primary"
-                            />
-                        </div>
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium text-jcoder-foreground mb-2">Official Website URL</label>
-                        <input
-                            type="url"
-                            value={formData.officialUrl}
-                            onChange={(e) => setFormData({ ...formData, officialUrl: e.target.value })}
+                        <label className="block text-sm font-medium text-jcoder-foreground mb-2">
+                            Expertise Level <span className="text-red-500">*</span>
+                        </label>
+                        <select
+                            required
+                            value={formData.expertiseLevel}
+                            onChange={(e) => setFormData({ ...formData, expertiseLevel: e.target.value as ExpertiseLevel })}
                             className="w-full px-4 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:outline-none focus:border-jcoder-primary"
-                            placeholder="https://example.com"
-                        />
+                        >
+                            <option value={ExpertiseLevel.BASIC}>Basic</option>
+                            <option value={ExpertiseLevel.INTERMEDIATE}>Intermediate</option>
+                            <option value={ExpertiseLevel.ADVANCED}>Advanced</option>
+                            <option value={ExpertiseLevel.EXPERT}>Expert</option>
+                        </select>
+                        <p className="text-sm text-jcoder-muted mt-2">
+                            Select your proficiency level with this technology
+                        </p>
+                    </div>
+
+                    {/* Profile Image Section */}
+                    <div className="space-y-4">
+                        <label className="block text-sm font-medium text-jcoder-foreground">Profile Image</label>
+
+                        {/* Current Image (Edit Mode) */}
+                        {isEditMode && technology?.profileImage && !preview && !deleteImage && (
+                            <div className="flex items-center gap-4 p-4 bg-jcoder-secondary rounded-lg border border-jcoder">
+                                <img
+                                    src={TechnologiesService.getProfileImageUrl(technology.id)}
+                                    alt={technology.name}
+                                    className="w-20 h-20 rounded-lg object-contain bg-jcoder-card p-2"
+                                />
+                                <div className="flex-1">
+                                    <p className="text-sm text-jcoder-foreground">Current image</p>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={handleDeleteCurrentImage}
+                                    className="px-4 py-2 bg-red-500/20 text-red-500 rounded-lg hover:bg-red-500/30 transition-colors text-sm"
+                                >
+                                    Delete
+                                </button>
+                            </div>
+                        )}
+
+                        {/* Image marked for deletion */}
+                        {deleteImage && (
+                            <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
+                                <p className="text-sm text-red-400">The current image will be deleted when you save.</p>
+                            </div>
+                        )}
+
+                        {/* Preview New Image */}
+                        {preview && (
+                            <div className="flex items-center gap-4 p-4 bg-jcoder-secondary rounded-lg border border-jcoder-primary">
+                                <img
+                                    src={preview}
+                                    alt="Preview"
+                                    className="w-20 h-20 rounded-lg object-contain bg-jcoder-card p-2"
+                                />
+                                <div className="flex-1">
+                                    <p className="text-sm text-jcoder-foreground">New image preview</p>
+                                    <p className="text-xs text-jcoder-muted">{selectedFile?.name}</p>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={handleRemoveSelectedFile}
+                                    className="px-4 py-2 bg-jcoder-secondary border border-jcoder rounded-lg hover:border-jcoder-primary transition-colors text-sm text-jcoder-foreground"
+                                >
+                                    Remove
+                                </button>
+                            </div>
+                        )}
+
+                        {/* Upload Input */}
+                        <div>
+                            <input
+                                type="file"
+                                accept="image/png,image/jpeg,image/jpg,image/webp,image/svg+xml"
+                                onChange={handleFileChange}
+                                className="w-full px-4 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:outline-none focus:border-jcoder-primary file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-jcoder-gradient file:text-black file:font-medium hover:file:opacity-90"
+                            />
+                            <p className="text-sm text-jcoder-muted mt-2">
+                                Accepted formats: PNG, JPEG, WebP, SVG (max 5MB)
+                            </p>
+                        </div>
                     </div>
 
                     <div className="flex gap-4 pt-4">
@@ -673,131 +818,6 @@ function TechnologyFormModal({ title, technology, onClose, onSubmit, submitting 
                         </button>
                     </div>
                 </form>
-            </div>
-        </div>
-    );
-}
-
-// Image Upload Modal Component
-interface ImageUploadModalProps {
-    technology: Technology;
-    onClose: () => void;
-    onUpload: (file: File) => void;
-    onDelete: () => void;
-    submitting: boolean;
-}
-
-function ImageUploadModal({ technology, onClose, onUpload, onDelete, submitting }: ImageUploadModalProps) {
-    const [selectedFile, setSelectedFile] = useState<File | null>(null);
-    const [preview, setPreview] = useState<string | null>(null);
-
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            setSelectedFile(file);
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setPreview(reader.result as string);
-            };
-            reader.readAsDataURL(file);
-        }
-    };
-
-    const handleUpload = () => {
-        if (selectedFile) {
-            onUpload(selectedFile);
-        }
-    };
-
-    return (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-jcoder-card border border-jcoder rounded-lg max-w-lg w-full">
-                <div className="p-6 border-b border-jcoder">
-                    <div className="flex items-center justify-between">
-                        <h2 className="text-2xl font-bold text-jcoder-foreground">Manage Profile Image</h2>
-                        <button
-                            onClick={onClose}
-                            className="p-2 hover:bg-jcoder-secondary rounded-lg transition-colors"
-                        >
-                            <svg className="w-6 h-6 text-jcoder-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                        </button>
-                    </div>
-                    <p className="text-jcoder-muted mt-2">{technology.name}</p>
-                </div>
-
-                <div className="p-6 space-y-6">
-                    {/* Current Image */}
-                    {technology.profileImage && !preview && (
-                        <div>
-                            <label className="block text-sm font-medium text-jcoder-foreground mb-2">Current Image</label>
-                            <div className="flex items-center gap-4">
-                                <img
-                                    src={TechnologiesService.getProfileImageUrl(technology.id)}
-                                    alt={technology.name}
-                                    className="w-24 h-24 rounded-lg object-contain bg-jcoder-secondary p-2"
-                                />
-                                <button
-                                    onClick={onDelete}
-                                    disabled={submitting}
-                                    className="px-4 py-2 bg-red-500/20 text-red-500 rounded-lg hover:bg-red-500/30 transition-colors disabled:opacity-50"
-                                >
-                                    Delete Image
-                                </button>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* File Upload */}
-                    <div>
-                        <label className="block text-sm font-medium text-jcoder-foreground mb-2">
-                            {technology.profileImage ? 'Replace Image' : 'Upload Image'}
-                        </label>
-                        <input
-                            type="file"
-                            accept="image/png,image/jpeg,image/jpg,image/webp,image/svg+xml"
-                            onChange={handleFileChange}
-                            className="w-full px-4 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:outline-none focus:border-jcoder-primary file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-jcoder-gradient file:text-black file:font-medium hover:file:opacity-90"
-                        />
-                        <p className="text-sm text-jcoder-muted mt-2">
-                            Accepted formats: PNG, JPEG, WebP, SVG (max 5MB)
-                        </p>
-                    </div>
-
-                    {/* Preview */}
-                    {preview && (
-                        <div>
-                            <label className="block text-sm font-medium text-jcoder-foreground mb-2">Preview</label>
-                            <img
-                                src={preview}
-                                alt="Preview"
-                                className="w-full h-48 rounded-lg object-contain bg-jcoder-secondary p-4"
-                            />
-                        </div>
-                    )}
-
-                    {/* Actions */}
-                    <div className="flex gap-4">
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            disabled={submitting}
-                            className="flex-1 px-6 py-3 border border-jcoder text-jcoder-foreground rounded-lg hover:border-jcoder-primary transition-colors disabled:opacity-50"
-                        >
-                            Cancel
-                        </button>
-                        {selectedFile && (
-                            <button
-                                onClick={handleUpload}
-                                disabled={submitting}
-                                className="flex-1 px-6 py-3 bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 font-medium"
-                            >
-                                {submitting ? 'Uploading...' : 'Upload'}
-                            </button>
-                        )}
-                    </div>
-                </div>
             </div>
         </div>
     );

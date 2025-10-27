@@ -1,14 +1,11 @@
 import {
-    IsUrl,
-    IsEnum,
-    IsNumber,
     IsString,
     IsNotEmpty,
+    IsEnum,
     IsOptional,
-    Min,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { TechnologyCategoryEnum } from '../enums/technology-category.enum';
+import { ExpertiseLevel } from '../enums/expertise-level.enum';
 
 export class CreateTechnologyDto {
     @ApiProperty({
@@ -23,51 +20,13 @@ export class CreateTechnologyDto {
     name!: string;
 
     @ApiPropertyOptional({
-        type: 'string',
-        required: false,
-        nullable: true,
-        example: 'JavaScript runtime built on Chrome\'s V8 JavaScript engine',
-        description: 'Detailed description of the technology',
-    })
-    @IsOptional()
-    @IsString()
-    description?: string;
-
-    @ApiProperty({
-        type: 'string',
-        required: true,
-        nullable: false,
-        enum: TechnologyCategoryEnum,
-        example: TechnologyCategoryEnum.BACKEND,
-        description: 'Technology category for organization',
-    })
-    @IsNotEmpty()
-    @IsEnum(TechnologyCategoryEnum)
-    category!: TechnologyCategoryEnum;
-
-    @ApiPropertyOptional({
-        type: 'number',
+        enum: ExpertiseLevel,
         required: false,
         nullable: false,
-        example: 1,
-        default: 999,
-        description: 'Display order for sorting (lower numbers appear first)',
+        example: ExpertiseLevel.INTERMEDIATE,
+        description: 'Expertise level in the technology',
     })
     @IsOptional()
-    @IsNumber()
-    @Min(0)
-    displayOrder?: number;
-
-    @ApiPropertyOptional({
-        nullable: true,
-        type: 'string',
-        required: false,
-        example: 'https://nodejs.org',
-        description: 'Official website URL of the technology',
-    })
-    @IsOptional()
-    @IsString()
-    @IsUrl()
-    officialUrl?: string;
-}
-
+    @IsEnum(ExpertiseLevel)
+    expertiseLevel?: ExpertiseLevel;
+};

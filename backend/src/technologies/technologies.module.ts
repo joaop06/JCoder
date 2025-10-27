@@ -10,8 +10,7 @@ import { TechnologiesController } from './technologies.controller';
 import { CreateTechnologyUseCase } from './use-cases/create-technology.use-case';
 import { UpdateTechnologyUseCase } from './use-cases/update-technology.use-case';
 import { DeleteTechnologyUseCase } from './use-cases/delete-technology.use-case';
-import { UploadTechnologyProfileImageUseCase } from './use-cases/upload-technology-profile-image.use-case';
-import { DeleteTechnologyProfileImageUseCase } from './use-cases/delete-technology-profile-image.use-case';
+import { ReorderTechnologyUseCase } from './use-cases/reorder-technology.use-case';
 
 @Module({
     providers: [
@@ -20,8 +19,7 @@ import { DeleteTechnologyProfileImageUseCase } from './use-cases/delete-technolo
         CreateTechnologyUseCase,
         UpdateTechnologyUseCase,
         DeleteTechnologyUseCase,
-        UploadTechnologyProfileImageUseCase,
-        DeleteTechnologyProfileImageUseCase,
+        ReorderTechnologyUseCase,
     ],
     controllers: [TechnologiesController],
     imports: [

@@ -13,7 +13,7 @@ export class UpdateTechnologyUseCase {
         updateTechnologyDto: UpdateTechnologyDto,
     ): Promise<Technology> {
         // Ensure technology exists
-        await this.technologiesService.findById(id);
+        const existingTechnology = await this.technologiesService.findById(id);
 
         // If updating name, verify uniqueness
         if (updateTechnologyDto.name) {

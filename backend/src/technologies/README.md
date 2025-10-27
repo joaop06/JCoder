@@ -7,10 +7,9 @@ The Technologies module manages technology records displayed on the portfolio we
 ## Features
 
 - ✅ Full CRUD operations for technologies
-- ✅ Technology categorization (Backend, Frontend, Database, ORM, Infrastructure, Mobile, Version Control, Other)
 - ✅ Profile image upload and management for each technology
 - ✅ Pagination and filtering support
-- ✅ Query by category and active status
+- ✅ Query by active status
 - ✅ Display order management for sorting
 - ✅ Soft delete functionality
 - ✅ Cache integration for improved performance
@@ -24,30 +23,12 @@ The Technologies module manages technology records displayed on the portfolio we
 {
   id: number;                          // Auto-generated primary key
   name: string;                        // Unique technology name (e.g., "Node.js")
-  description?: string;                // Optional detailed description
-  category: TechnologyCategoryEnum;    // Technology category
   profileImage?: string;               // Profile image filename
-  displayOrder: number;                // Sort order (default: 999)
+  displayOrder: number;                // Sort order (default: 1)
   isActive: boolean;                   // Visibility status (default: true)
-  officialUrl?: string;                // Official website URL
   createdAt: Date;                     // Creation timestamp
   updatedAt: Date;                     // Last update timestamp
   deletedAt?: Date;                    // Soft delete timestamp
-}
-```
-
-### Technology Categories
-
-```typescript
-enum TechnologyCategoryEnum {
-  BACKEND = 'BACKEND',
-  FRONTEND = 'FRONTEND',
-  DATABASE = 'DATABASE',
-  ORM = 'ORM',
-  INFRASTRUCTURE = 'INFRASTRUCTURE',
-  MOBILE = 'MOBILE',
-  VERSION_CONTROL = 'VERSION_CONTROL',
-  OTHER = 'OTHER',
 }
 ```
 
@@ -70,12 +51,9 @@ Returns all active technologies without pagination.
   {
     "id": 1,
     "name": "Node.js",
-    "description": "JavaScript runtime built on Chrome's V8",
-    "category": "BACKEND",
     "profileImage": "nodejs-logo.png",
     "displayOrder": 1,
     "isActive": true,
-    "officialUrl": "https://nodejs.org",
     "createdAt": "2025-01-01T00:00:00.000Z",
     "updatedAt": "2025-01-01T00:00:00.000Z"
   }
@@ -110,12 +88,11 @@ GET /api/v1/technologies/paginated?page=1&limit=10&sortBy=displayOrder&sortOrder
 
 #### Query Technologies with Filters
 ```http
-GET /api/v1/technologies/query?category=BACKEND&isActive=true&page=1&limit=10
+GET /api/v1/technologies/query?isActive=true&page=1&limit=10
 ```
 
 **Query Parameters:**
 - All pagination parameters
-- `category` (TechnologyCategoryEnum) - Filter by category
 - `isActive` (boolean) - Filter by active status
 
 #### Get Technology by ID
@@ -152,11 +129,7 @@ Authorization: Bearer <jwt_token>
 Content-Type: application/json
 
 {
-  "name": "TypeScript",
-  "description": "JavaScript with syntax for types",
-  "category": "BACKEND",
-  "displayOrder": 2,
-  "officialUrl": "https://www.typescriptlang.org"
+  "name": "TypeScript"
 }
 ```
 
@@ -230,7 +203,7 @@ The `TechnologiesService` provides:
 - Cache integration for improved performance
 - Automatic cache invalidation on mutations
 - Pagination support
-- Query filtering by category and active status
+- Query filtering by active status
 - Soft delete and restore capabilities
 
 ### Cache Keys
@@ -268,12 +241,9 @@ The `technologies` table is created automatically via TypeORM synchronization:
 CREATE TABLE `technologies` (
   `id` int NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL UNIQUE,
-  `description` text NULL,
-  `category` enum('BACKEND','FRONTEND','DATABASE','ORM','INFRASTRUCTURE','MOBILE','VERSION_CONTROL','OTHER') NOT NULL,
   `profileImage` varchar(255) NULL,
-  `displayOrder` int NOT NULL DEFAULT 999,
+  `displayOrder` int NOT NULL DEFAULT 1,
   `isActive` tinyint NOT NULL DEFAULT 1,
-  `officialUrl` varchar(255) NULL,
   `createdAt` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
   `updatedAt` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
   `deletedAt` datetime(6) NULL,
@@ -286,8 +256,8 @@ CREATE TABLE `technologies` (
 ### Frontend Usage
 
 ```typescript
-// Get all technologies by category
-const backendTechs = await fetch('/api/v1/technologies/query?category=BACKEND&isActive=true');
+// Get all active technologies
+const activeTechs = await fetch('/api/v1/technologies/query?isActive=true');
 
 // Display with profile image
 const tech = await fetch('/api/v1/technologies/1').then(r => r.json());
@@ -305,9 +275,7 @@ const response = await fetch('/api/v1/technologies', {
     'Content-Type': 'application/json'
   },
   body: JSON.stringify({
-    name: 'NestJS',
-    category: 'BACKEND',
-    displayOrder: 3
+    name: 'NestJS'
   })
 });
 
@@ -348,13 +316,13 @@ If you have existing technology icons in `frontend/public/icons/technologies_and
 Example script:
 ```typescript
 const technologies = [
-  { name: 'Node.js', category: 'BACKEND', displayOrder: 1, icon: 'nodejs.png' },
-  { name: 'TypeScript', category: 'BACKEND', displayOrder: 2, icon: 'typescript.png' },
+  { name: 'Node.js', icon: 'nodejs.png' },
+  { name: 'TypeScript', icon: 'typescript.png' },
   // ... more
 ];
 
 for (const tech of technologies) {
-  const created = await createTechnology(tech);
+  const created = await createTechnology({ name: tech.name });
   await uploadProfileImage(created.id, `icons/technologies_and_stacks/${tech.icon}`);
 }
 ```
@@ -364,7 +332,7 @@ for (const tech of technologies) {
 - All write operations require Admin role
 - Profile images are automatically deleted on technology soft delete
 - Cache is automatically invalidated on create/update/delete operations
-- Display order defaults to 999 if not specified (appears last)
+- Display order defaults to 1 if not specified
 - Technologies can be restored after soft delete using the service's `restore()` method
 
 ## Dependencies

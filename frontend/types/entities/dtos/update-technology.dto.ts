@@ -1,11 +1,7 @@
-import { TechnologyCategoryEnum } from '../../enums/technology-category.enum';
+import { ExpertiseLevel } from '../../enums/expertise-level.enum';
 
 export interface UpdateTechnologyDto {
     name?: string;
-    description?: string;
-    category?: TechnologyCategoryEnum;
-    displayOrder?: number;
+    expertiseLevel?: ExpertiseLevel;
     isActive?: boolean;
-    officialUrl?: string;
-}
-
+};

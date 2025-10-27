@@ -11,7 +11,7 @@ export class SecurityMiddleware implements NestMiddleware {
     use(req: Request, res: Response, next: NextFunction) {
         // Get backend URL from environment variables
         const backendUrl = this.configService.get('BACKEND_URL') ||
-            `http://localhost:${this.configService.get('BACKEND_PORT') || 8081}`;
+            `http://localhost:${this.configService.get('BACKEND_PORT')}`;
 
         // Configure helmet for security headers
         helmet({

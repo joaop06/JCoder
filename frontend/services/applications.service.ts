@@ -91,7 +91,7 @@ export const ApplicationService = {
     },
 
     getImageUrl(id: number, filename: string): string {
-        return `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL || 'http://localhost:8081'}/api/v1/images/applications/${id}/images/${filename}`;
+        return `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/api/v1/images/applications/${id}/images/${filename}`;
     },
 
     // Profile Image Methods
@@ -136,6 +136,6 @@ export const ApplicationService = {
     },
 
     getProfileImageUrl(id: number): string {
-        return `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL || 'http://localhost:8081'}/api/v1/images/applications/${id}/profile-image`;
+        return `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/api/v1/images/applications/${id}/profile-image`;
     },
 };

@@ -2,11 +2,10 @@ import ApiService, { ApiServiceWithRetry } from './api.service';
 import { Technology } from '@/types/entities/technology.entity';
 import { CreateTechnologyDto } from '@/types/entities/dtos/create-technology.dto';
 import { UpdateTechnologyDto } from '@/types/entities/dtos/update-technology.dto';
+import { ReorderTechnologyDto } from '@/types/entities/dtos/reorder-technology.dto';
 import { PaginationDto, PaginatedResponse } from '@/types/api/pagination.type';
-import { TechnologyCategoryEnum } from '@/types/enums/technology-category.enum';
 
 export interface QueryTechnologiesDto extends PaginationDto {
-    category?: TechnologyCategoryEnum;
     isActive?: boolean;
 }
 
@@ -59,7 +58,6 @@ export const TechnologiesService = {
             if (queryDto.limit) params.append('limit', queryDto.limit.toString());
             if (queryDto.sortBy) params.append('sortBy', queryDto.sortBy);
             if (queryDto.sortOrder) params.append('sortOrder', queryDto.sortOrder);
-            if (queryDto.category) params.append('category', queryDto.category);
             if (queryDto.isActive !== undefined)
                 params.append('isActive', queryDto.isActive.toString());
 
@@ -137,7 +135,7 @@ export const TechnologiesService = {
             formData.append('profileImage', file);
 
             const response = await ApiServiceWithRetry.post(
-                `/technologies/${id}/profile-image`,
+                `/images/technologies/${id}/profile-image`,
                 formData,
                 {
                     headers: {
@@ -156,7 +154,23 @@ export const TechnologiesService = {
      */
     async deleteProfileImage(id: number): Promise<void> {
         try {
-            await ApiServiceWithRetry.delete(`/technologies/${id}/profile-image`);
+            await ApiServiceWithRetry.delete(`/images/technologies/${id}/profile-image`);
+        } catch (error) {
+            throw error;
+        }
+    },
+
+    /**
+     * Reorder technology (Admin only)
+     */
+    async reorder(id: number, displayOrder: number): Promise<Technology> {
+        try {
+            const payload: ReorderTechnologyDto = { displayOrder };
+            const response = await ApiServiceWithRetry.put(
+                `/technologies/${id}/reorder`,
+                payload,
+            );
+            return response.data.data;
         } catch (error) {
             throw error;
         }
@@ -166,7 +180,7 @@ export const TechnologiesService = {
      * Get profile image URL
      */
     getProfileImageUrl(id: number): string {
-        return `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL || 'http://localhost:8081'}/api/v1/technologies/${id}/profile-image`;
+        return `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/api/v1/images/technologies/${id}/profile-image`;
     },
 };
 
