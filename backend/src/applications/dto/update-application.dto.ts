@@ -1,7 +1,7 @@
 import { Type } from "class-transformer";
 import { ApiPropertyOptional } from "@nestjs/swagger";
 import { ApplicationTypeEnum } from "../enums/application-type.enum";
-import { IsEnum, IsNumber, IsOptional, IsString, IsUrl, ValidateNested } from "class-validator";
+import { IsBoolean, IsEnum, IsNumber, IsOptional, IsString, IsUrl, ValidateNested } from "class-validator";
 import { ApplicationComponentApiDto } from "../application-components/dto/application-component-api.dto";
 import { ApplicationComponentMobileDto } from "../application-components/dto/application-component-mobile.dto";
 import { ApplicationComponentLibraryDto } from "../application-components/dto/application-component-library.dto";
@@ -53,6 +53,17 @@ export class UpdateApplicationDto {
     @IsString()
     @IsUrl()
     githubUrl?: string;
+
+    @ApiPropertyOptional({
+        type: 'boolean',
+        required: false,
+        nullable: false,
+        example: true,
+        description: 'Indicates whether the application is active',
+    })
+    @IsOptional()
+    @IsBoolean()
+    isActive?: boolean;
 
     @ApiPropertyOptional({
         nullable: true,

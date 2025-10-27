@@ -23,6 +23,7 @@ export default function EditApplicationPage() {
         name: '',
         description: '',
         applicationType: ApplicationTypeEnum.API,
+        isActive: true,
     });
     const [images, setImages] = useState<string[]>([]);
     const [profileImage, setProfileImage] = useState<string | null>(null);
@@ -55,6 +56,7 @@ export default function EditApplicationPage() {
                     githubUrl: data.githubUrl,
                     description: data.description,
                     applicationType: data.applicationType,
+                    isActive: data.isActive ?? true,
                     applicationComponentMobile: {
                         platform: data.applicationComponentMobile!?.platform,
                         downloadUrl: data.applicationComponentMobile!?.downloadUrl,
@@ -299,6 +301,31 @@ export default function EditApplicationPage() {
                                         value={formData.githubUrl || ''}
                                         className="mt-1 block w-full border border-jcoder rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted"
                                     />
+                                </div>
+                            </div>
+
+                            {/* Status Toggle */}
+                            <div className="mt-6 pt-6 border-t border-jcoder">
+                                <div className="flex items-center justify-between p-4 bg-jcoder-secondary border border-jcoder rounded-lg">
+                                    <div>
+                                        <label className="block text-sm font-medium text-jcoder-foreground mb-1">
+                                            Application Status
+                                        </label>
+                                        <p className="text-sm text-jcoder-muted">
+                                            {formData.isActive ? 'Application is visible on the public site' : 'Application is hidden from the public site'}
+                                        </p>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => setFormData({ ...formData, isActive: !formData.isActive })}
+                                        className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:ring-offset-2 focus:ring-offset-jcoder-card ${formData.isActive ? 'bg-green-500' : 'bg-gray-600'
+                                            }`}
+                                    >
+                                        <span
+                                            className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${formData.isActive ? 'translate-x-7' : 'translate-x-1'
+                                                }`}
+                                        />
+                                    </button>
                                 </div>
                             </div>
 

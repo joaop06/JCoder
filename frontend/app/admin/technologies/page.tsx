@@ -394,35 +394,6 @@ export default function TechnologiesManagementPage() {
                         </div>
                     </div>
 
-                    {/* Filters */}
-                    <div className="bg-jcoder-card border border-jcoder rounded-lg p-6 mb-6">
-                        <div className="flex flex-col sm:flex-row gap-4">
-                            <div className="flex-1">
-                                <label className="block text-sm font-medium text-jcoder-foreground mb-2">Status</label>
-                                <select
-                                    value={filterActive === 'ALL' ? 'ALL' : filterActive.toString()}
-                                    onChange={(e) => setFilterActive(e.target.value === 'ALL' ? 'ALL' : e.target.value === 'true')}
-                                    className="w-full px-4 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:outline-none focus:border-jcoder-primary"
-                                >
-                                    <option value="ALL">All Status</option>
-                                    <option value="true">Active</option>
-                                    <option value="false">Inactive</option>
-                                </select>
-                            </div>
-
-                            <div className="flex items-end">
-                                <button
-                                    onClick={() => {
-                                        setFilterActive('ALL');
-                                    }}
-                                    className="px-4 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground hover:border-jcoder-primary transition-colors"
-                                >
-                                    Clear Filters
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
                     {/* Technologies Table */}
                     <div className="bg-jcoder-card border border-jcoder rounded-lg overflow-hidden">
                         {loading ? (
@@ -719,6 +690,7 @@ function TechnologyFormModal({ title, technology, onClose, onSubmit, submitting 
         name: technology?.name || '',
         expertiseLevel: technology?.expertiseLevel || ExpertiseLevel.INTERMEDIATE,
         displayOrder: technology?.displayOrder || 1,
+        isActive: technology?.isActive ?? true,
     });
 
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -825,6 +797,31 @@ function TechnologyFormModal({ title, technology, onClose, onSubmit, submitting 
                             Select your proficiency level with this technology
                         </p>
                     </div>
+
+                    {/* Status Toggle (Edit Mode Only) */}
+                    {isEditMode && (
+                        <div className="flex items-center justify-between p-4 bg-jcoder-secondary border border-jcoder rounded-lg">
+                            <div>
+                                <label className="block text-sm font-medium text-jcoder-foreground mb-1">
+                                    Status
+                                </label>
+                                <p className="text-sm text-jcoder-muted">
+                                    {formData.isActive ? 'Technology is visible on the public site' : 'Technology is hidden from the public site'}
+                                </p>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setFormData({ ...formData, isActive: !formData.isActive })}
+                                className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:ring-offset-2 focus:ring-offset-jcoder-card ${formData.isActive ? 'bg-green-500' : 'bg-gray-600'
+                                    }`}
+                            >
+                                <span
+                                    className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${formData.isActive ? 'translate-x-7' : 'translate-x-1'
+                                        }`}
+                                />
+                            </button>
+                        </div>
+                    )}
 
                     {/* Profile Image Section */}
                     <div className="space-y-4">

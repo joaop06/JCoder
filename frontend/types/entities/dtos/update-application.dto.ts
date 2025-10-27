@@ -9,6 +9,7 @@ export interface UpdateApplicationDto {
     githubUrl?: string;
     description?: string;
     applicationType?: ApplicationTypeEnum;
+    isActive?: boolean;
     applicationComponentApi?: ApplicationComponentApiDto;
     applicationComponentMobile?: ApplicationComponentMobileDto;
     applicationComponentLibrary?: ApplicationComponentLibraryDto;
