@@ -115,7 +115,10 @@ export default function TechnologiesManagementPage() {
     const handleCreate = async (formData: CreateTechnologyDto | UpdateTechnologyDto, imageFile?: File | null) => {
         setSubmitting(true);
         try {
-            const createdTech = await TechnologiesService.create(formData as CreateTechnologyDto);
+            const createdTech = await TechnologiesService.create({
+                name: formData.name,
+                expertiseLevel: formData.expertiseLevel,
+            } as CreateTechnologyDto);
 
             // Upload image if provided
             if (imageFile && createdTech.id) {
@@ -495,7 +498,10 @@ export default function TechnologiesManagementPage() {
                                                                     alt={tech.name}
                                                                     className="w-10 h-10 rounded-lg object-contain bg-jcoder-secondary p-1"
                                                                     onError={(e) => {
-                                                                        e.currentTarget.src = '/icons/technologies_and_stacks/default.png';
+                                                                        const fallbackDiv = document.createElement('div');
+                                                                        fallbackDiv.className = 'w-10 h-10 rounded-lg bg-jcoder-gradient flex items-center justify-center text-black font-bold';
+                                                                        fallbackDiv.textContent = tech.name.charAt(0);
+                                                                        e.currentTarget.replaceWith(fallbackDiv);
                                                                     }}
                                                                 />
                                                             ) : (
@@ -567,7 +573,10 @@ export default function TechnologiesManagementPage() {
                                                             alt={tech.name}
                                                             className="w-12 h-12 rounded-lg object-contain bg-jcoder-secondary p-1 flex-shrink-0"
                                                             onError={(e) => {
-                                                                e.currentTarget.src = '/icons/technologies_and_stacks/default.png';
+                                                                const fallbackDiv = document.createElement('div');
+                                                                fallbackDiv.className = 'w-12 h-12 rounded-lg bg-jcoder-gradient flex items-center justify-center text-black font-bold flex-shrink-0';
+                                                                fallbackDiv.textContent = tech.name.charAt(0);
+                                                                e.currentTarget.replaceWith(fallbackDiv);
                                                             }}
                                                         />
                                                     ) : (
