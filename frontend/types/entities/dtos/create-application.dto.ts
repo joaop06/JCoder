@@ -9,6 +9,7 @@ export interface CreateApplicationDto {
     description: string;
     applicationType: ApplicationTypeEnum;
     githubUrl?: string;
+    technologyIds?: number[];
     applicationComponentApi?: ApplicationComponentApiDto;
     applicationComponentMobile?: ApplicationComponentMobileDto;
     applicationComponentLibrary?: ApplicationComponentLibraryDto;

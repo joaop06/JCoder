@@ -2,12 +2,13 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Application } from './entities/application.entity';
+import { Technology } from '../technologies/entities/technology.entity';
 import { CacheService } from '../@common/services/cache.service';
 import { CreateApplicationDto } from './dto/create-application.dto';
 import { UpdateApplicationDto } from './dto/update-application.dto';
 import { QueryApplicationDto } from './dto/query-application.dto';
 import { ImageUploadService } from '../images/services/image-upload.service';
-import { FindManyOptions, FindOptionsWhere, Repository } from 'typeorm';
+import { FindManyOptions, FindOptionsWhere, In, Repository } from 'typeorm';
 import { PaginationDto, PaginatedResponseDto } from '../@common/dto/pagination.dto';
 import { ApplicationNotFoundException } from './exceptions/application-not-found.exception';
 
@@ -16,6 +17,8 @@ export class ApplicationsService {
   constructor(
     @InjectRepository(Application)
     private readonly repository: Repository<Application>,
+    @InjectRepository(Technology)
+    private readonly technologyRepository: Repository<Technology>,
     private readonly cacheService: CacheService,
     private readonly imageUploadService: ImageUploadService,
   ) { }
@@ -117,6 +120,7 @@ export class ApplicationsService {
         const application = await this.repository.findOne({
           where: { id },
           relations: {
+            technologies: true,
             applicationComponentApi: true,
             applicationComponentMobile: true,
             applicationComponentLibrary: true,
@@ -238,5 +242,57 @@ export class ApplicationsService {
       .set({ displayOrder: () => 'displayOrder - 1' })
       .where('displayOrder > :deletedPosition', { deletedPosition })
       .execute();
+  }
+
+  /**
+   * Associates technologies with an application
+   * @param applicationId - ID of the application
+   * @param technologyIds - Array of technology IDs to associate
+   */
+  async setApplicationTechnologies(applicationId: number, technologyIds?: number[]): Promise<void> {
+    if (!technologyIds || technologyIds.length === 0) {
+      // If no technologies provided, remove all associations
+      await this.repository
+        .createQueryBuilder()
+        .relation(Application, 'technologies')
+        .of(applicationId)
+        .addAndRemove([], await this.getApplicationTechnologyIds(applicationId));
+      return;
+    }
+
+    // Verify that all technology IDs exist
+    const technologies = await this.technologyRepository.find({
+      where: { id: In(technologyIds) },
+    });
+
+    if (technologies.length !== technologyIds.length) {
+      const foundIds = technologies.map((t) => t.id);
+      const missingIds = technologyIds.filter((id) => !foundIds.includes(id));
+      throw new Error(`Technologies not found: ${missingIds.join(', ')}`);
+    }
+
+    // Get current technology IDs for this application
+    const currentTechnologyIds = await this.getApplicationTechnologyIds(applicationId);
+
+    // Add new technologies and remove old ones
+    await this.repository
+      .createQueryBuilder()
+      .relation(Application, 'technologies')
+      .of(applicationId)
+      .addAndRemove(technologyIds, currentTechnologyIds);
+  }
+
+  /**
+   * Gets the technology IDs associated with an application
+   * @param applicationId - ID of the application
+   * @returns Array of technology IDs
+   */
+  private async getApplicationTechnologyIds(applicationId: number): Promise<number[]> {
+    const application = await this.repository.findOne({
+      where: { id: applicationId },
+      relations: ['technologies'],
+    });
+
+    return application?.technologies?.map((t) => t.id) || [];
   }
 };

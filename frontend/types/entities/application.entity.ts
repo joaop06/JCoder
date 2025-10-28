@@ -1,4 +1,5 @@
 import { ApplicationTypeEnum } from "../enums/application-type.enum";
+import { Technology } from "./technology.entity";
 import { ApplicationComponentApi } from "./application-component-api.entity";
 import { ApplicationComponentMobile } from "./application-component-mobile.entity";
 import { ApplicationComponentLibrary } from "./application-component-library.entity";
@@ -14,6 +15,7 @@ export interface Application {
     images?: string[];
     profileImage?: string;
     displayOrder: number;
+    technologies?: Technology[];
     applicationComponentApi?: ApplicationComponentApi | null;
     applicationComponentMobile?: ApplicationComponentMobile | null;
     applicationComponentLibrary?: ApplicationComponentLibrary | null;

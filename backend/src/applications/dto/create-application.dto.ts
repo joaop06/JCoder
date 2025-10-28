@@ -1,6 +1,7 @@
 import {
   IsUrl,
   IsEnum,
+  IsArray,
   IsNumber,
   IsString,
   IsNotEmpty,
@@ -106,4 +107,16 @@ export class CreateApplicationDto {
   @Type(() => ApplicationComponentFrontendDto)
   @ValidateNested()
   applicationComponentFrontend?: ApplicationComponentFrontendDto;
+
+  @ApiPropertyOptional({
+    nullable: true,
+    required: false,
+    type: [Number],
+    example: [1, 2, 3],
+    description: 'Array of technology IDs to associate with the application',
+  })
+  @IsOptional()
+  @IsArray()
+  @IsNumber({}, { each: true })
+  technologyIds?: number[];
 }

@@ -7,6 +7,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { useState, useEffect, useCallback } from 'react';
 import { useToast } from '@/components/toast/ToastContext';
 import ImageUpload from '@/components/applications/ImageUpload';
+import TechnologySelector from '@/components/applications/TechnologySelector';
 import { ApplicationService } from '@/services/applications.service';
 import { ApplicationTypeEnum } from '@/types/enums/application-type.enum';
 import { UpdateApplicationDto } from '@/types/entities/dtos/update-application.dto';
@@ -57,6 +58,7 @@ export default function EditApplicationPage() {
                     description: data.description,
                     applicationType: data.applicationType,
                     isActive: data.isActive ?? true,
+                    technologyIds: data.technologies?.map(t => t.id) || [],
                     applicationComponentMobile: {
                         platform: data.applicationComponentMobile!?.platform,
                         downloadUrl: data.applicationComponentMobile!?.downloadUrl,
@@ -559,6 +561,24 @@ export default function EditApplicationPage() {
                                     </div>
                                 </div>
                             )}
+
+                            {/* Technologies Section */}
+                            <div className="mt-6 pt-6 border-t border-jcoder border-l-4 border-jcoder-primary pl-4">
+                                <h3 className="text-lg font-medium text-jcoder-foreground mb-4">Technologies</h3>
+                                <p className="text-sm text-jcoder-muted mb-4">
+                                    Select the technologies used in this application
+                                </p>
+                                <TechnologySelector
+                                    selectedTechnologyIds={formData.technologyIds || []}
+                                    onSelectionChange={(technologyIds) => {
+                                        setFormData((prev) => ({
+                                            ...prev,
+                                            technologyIds,
+                                        }));
+                                    }}
+                                    disabled={loading}
+                                />
+                            </div>
 
                             {/* Profile Image Management Section */}
                             <div className="mt-6 pt-6 border-t border-jcoder border-l-4 border-jcoder-primary pl-4">

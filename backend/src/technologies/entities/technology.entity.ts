@@ -1,13 +1,15 @@
 import {
     Column,
     Entity,
+    ManyToMany,
     CreateDateColumn,
     DeleteDateColumn,
     UpdateDateColumn,
     PrimaryGeneratedColumn,
 } from 'typeorm';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { ExpertiseLevel } from '../enums/expertise-level.enum';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Application } from '../../applications/entities/application.entity';
 
 @Entity('technologies')
 export class Technology {
@@ -69,6 +71,14 @@ export class Technology {
     })
     @Column({ default: true })
     isActive: boolean;
+
+    @ApiPropertyOptional({
+        nullable: true,
+        type: () => [Application],
+        description: 'Applications that use this technology',
+    })
+    @ManyToMany(() => Application, (application) => application.technologies)
+    applications?: Application[];
 
     @ApiProperty({
         nullable: false,

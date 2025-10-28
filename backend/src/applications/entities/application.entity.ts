@@ -2,6 +2,8 @@ import {
   Column,
   Entity,
   OneToOne,
+  JoinTable,
+  ManyToMany,
   CreateDateColumn,
   DeleteDateColumn,
   UpdateDateColumn,
@@ -9,6 +11,7 @@ import {
 } from 'typeorm';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { ApplicationTypeEnum } from '../enums/application-type.enum';
+import { Technology } from '../../technologies/entities/technology.entity';
 import { ApplicationComponentApi } from '../application-components/entities/application-component-api.entity';
 import { ApplicationComponentMobile } from '../application-components/entities/application-component-mobile.entity';
 import { ApplicationComponentLibrary } from '../application-components/entities/application-component-library.entity';
@@ -132,6 +135,19 @@ export class Application {
   })
   @OneToOne(() => ApplicationComponentFrontend, (applicationComponentFrontend) => applicationComponentFrontend.application)
   applicationComponentFrontend?: ApplicationComponentFrontend;
+
+  @ApiPropertyOptional({
+    nullable: true,
+    type: () => [Technology],
+    description: 'Technologies associated with this application',
+  })
+  @ManyToMany(() => Technology, (technology) => technology.applications, { eager: false })
+  @JoinTable({
+    name: 'applications_technologies',
+    joinColumn: { name: 'applicationId', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'technologyId', referencedColumnName: 'id' },
+  })
+  technologies?: Technology[];
 
   @ApiProperty({
     nullable: false,

@@ -1,7 +1,7 @@
 import { Type } from "class-transformer";
 import { ApiPropertyOptional } from "@nestjs/swagger";
 import { ApplicationTypeEnum } from "../enums/application-type.enum";
-import { IsBoolean, IsEnum, IsNumber, IsOptional, IsString, IsUrl, ValidateNested } from "class-validator";
+import { IsArray, IsBoolean, IsEnum, IsNumber, IsOptional, IsString, IsUrl, ValidateNested } from "class-validator";
 import { ApplicationComponentApiDto } from "../application-components/dto/application-component-api.dto";
 import { ApplicationComponentMobileDto } from "../application-components/dto/application-component-mobile.dto";
 import { ApplicationComponentLibraryDto } from "../application-components/dto/application-component-library.dto";
@@ -108,4 +108,16 @@ export class UpdateApplicationDto {
     @Type(() => ApplicationComponentFrontendDto)
     @ValidateNested()
     applicationComponentFrontend?: ApplicationComponentFrontendDto;
+
+    @ApiPropertyOptional({
+        nullable: true,
+        required: false,
+        type: [Number],
+        example: [1, 2, 3],
+        description: 'Array of technology IDs to associate with the application',
+    })
+    @IsOptional()
+    @IsArray()
+    @IsNumber({}, { each: true })
+    technologyIds?: number[];
 };

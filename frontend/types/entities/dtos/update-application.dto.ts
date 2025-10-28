@@ -10,6 +10,7 @@ export interface UpdateApplicationDto {
     description?: string;
     applicationType?: ApplicationTypeEnum;
     isActive?: boolean;
+    technologyIds?: number[];
     applicationComponentApi?: ApplicationComponentApiDto;
     applicationComponentMobile?: ApplicationComponentMobileDto;
     applicationComponentLibrary?: ApplicationComponentLibraryDto;

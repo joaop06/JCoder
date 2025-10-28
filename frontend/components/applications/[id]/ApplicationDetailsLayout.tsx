@@ -1,5 +1,6 @@
 import React from 'react';
 import LinkDisplayBlock from './LinkDisplayBlock';
+import ApplicationTechnologies from './ApplicationTechnologies';
 import ApplicationImagesGallery from './ApplicationImagesGallery';
 import { Application } from '@/types/entities/application.entity';
 import { ApplicationService } from '@/services/applications.service';
@@ -83,6 +84,11 @@ const ApplicationDetailsLayout: React.FC<ApplicationDetailsLayoutProps> = ({
         <h2 className="text-base sm:text-lg font-semibold text-jcoder-foreground mb-2 sm:mb-3">Description</h2>
         <p className="text-sm sm:text-base text-jcoder-muted">{application.description}</p>
       </div>
+
+      {/* Technologies */}
+      {application.technologies && application.technologies.length > 0 && (
+        <ApplicationTechnologies technologies={application.technologies} />
+      )}
 
       {/* Images Gallery */}
       {application.images && application.images.length > 0 && (

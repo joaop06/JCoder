@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { CacheModule } from '@nestjs/cache-manager';
 import { ImagesModule } from '../images/images.module';
 import { Application } from './entities/application.entity';
+import { Technology } from '../technologies/entities/technology.entity';
 import { ApplicationsService } from './applications.service';
 import { CacheService } from '../@common/services/cache.service';
 import { ApplicationsController } from './applications.controller';
@@ -27,7 +28,7 @@ import { ApplicationComponentsModule } from './application-components/applicatio
     ConfigModule,
     ImagesModule,
     ApplicationComponentsModule,
-    TypeOrmModule.forFeature([Application]),
+    TypeOrmModule.forFeature([Application, Technology]),
     CacheModule.register({
       ttl: 300, // 5 minutes default
       max: 100, // maximum number of items in cache

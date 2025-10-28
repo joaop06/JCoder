@@ -53,6 +53,16 @@ export class CreateApplicationUseCase {
             },
         });
 
+        /**
+         * Associate technologies with the application
+         */
+        if (createApplicationDto.technologyIds) {
+            await this.applicationsService.setApplicationTechnologies(
+                application.id,
+                createApplicationDto.technologyIds,
+            );
+        }
+
         return await this.applicationsService.findById(application.id);
     }
 

@@ -7,6 +7,7 @@ import { UsersService } from '@/services/users.service';
 import { useState, useEffect, useCallback } from 'react';
 import { useToast } from '@/components/toast/ToastContext';
 import ImageUpload from '@/components/applications/ImageUpload';
+import TechnologySelector from '@/components/applications/TechnologySelector';
 import { ApplicationService } from '@/services/applications.service';
 import { ApplicationTypeEnum } from '@/types/enums/application-type.enum';
 import { CreateApplicationDto } from '@/types/entities/dtos/create-application.dto';
@@ -21,6 +22,7 @@ export default function NewApplicationPage() {
         name: '',
         description: '',
         applicationType: ApplicationTypeEnum.API,
+        technologyIds: [],
     });
     const [images, setImages] = useState<string[]>([]);
     const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
@@ -484,6 +486,24 @@ export default function NewApplicationPage() {
                                     </div>
                                 </div>
                             )}
+
+                            {/* Technologies Section */}
+                            <div className="mt-6 pt-6 border-t border-jcoder border-l-4 border-jcoder-primary pl-4">
+                                <h3 className="text-lg font-medium text-jcoder-foreground mb-4">Technologies</h3>
+                                <p className="text-sm text-jcoder-muted mb-4">
+                                    Select the technologies used in this application
+                                </p>
+                                <TechnologySelector
+                                    selectedTechnologyIds={formData.technologyIds || []}
+                                    onSelectionChange={(technologyIds) => {
+                                        setFormData((prev) => ({
+                                            ...prev,
+                                            technologyIds,
+                                        }));
+                                    }}
+                                    disabled={loading}
+                                />
+                            </div>
 
                             {/* Profile Image Upload Section */}
                             <div className="mt-6 pt-6 border-t border-jcoder border-l-4 border-jcoder-primary pl-4">

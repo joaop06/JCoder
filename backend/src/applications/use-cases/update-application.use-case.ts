@@ -37,6 +37,16 @@ export class UpdateApplicationUseCase {
             },
         });
 
+        /**
+         * Update technologies associated with the application
+         */
+        if (updateApplicationDto.technologyIds !== undefined) {
+            await this.applicationsService.setApplicationTechnologies(
+                id,
+                updateApplicationDto.technologyIds,
+            );
+        }
+
         return await this.applicationsService.findById(id);
     }
 
