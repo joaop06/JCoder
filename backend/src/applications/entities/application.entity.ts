@@ -92,6 +92,15 @@ export class Application {
   @Column({ nullable: true })
   profileImage?: string;
 
+  @ApiProperty({
+    example: 1,
+    type: 'number',
+    nullable: false,
+    description: 'Display order for sorting applications (lower numbers appear first)',
+  })
+  @Column({ nullable: false, default: 1 })
+  displayOrder: number;
+
   @ApiPropertyOptional({
     nullable: true,
     type: () => ApplicationComponentApi,

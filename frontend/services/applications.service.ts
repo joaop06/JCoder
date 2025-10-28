@@ -84,6 +84,17 @@ export const ApplicationService = {
         }
     },
 
+    async reorder(id: number, newDisplayOrder: number): Promise<Application> {
+        try {
+            const response = await ApiServiceWithRetry.put(`/applications/${id}/reorder`, {
+                displayOrder: newDisplayOrder,
+            });
+            return response.data.data;
+        } catch (error) {
+            throw error;
+        }
+    },
+
     async uploadImages(id: number, files: File[]): Promise<Application> {
         try {
             const formData = new FormData();

@@ -20,10 +20,14 @@ export default function ApplicationsManagementPage() {
     const [pagination, setPagination] = useState<PaginationDto>({
         page: 1,
         limit: 10,
-        sortOrder: 'DESC',
-        sortBy: 'createdAt',
+        sortOrder: 'ASC',
+        sortBy: 'displayOrder',
     });
     const [paginationMeta, setPaginationMeta] = useState<any>(null);
+
+    // Drag and drop states
+    const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+    const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
     const toast = useToast();
 
@@ -98,6 +102,79 @@ export default function ApplicationsManagementPage() {
         },
         [applications]
     );
+
+    const handleDragStart = (e: React.DragEvent<HTMLDivElement>, index: number) => {
+        setDraggedIndex(index);
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', index.toString());
+
+        // Find the parent row and add opacity
+        const row = e.currentTarget.closest('tr');
+        if (row) {
+            row.style.opacity = '0.5';
+        }
+    };
+
+    const handleDragEnd = (e: React.DragEvent<HTMLDivElement>) => {
+        // Find the parent row and restore opacity
+        const row = e.currentTarget.closest('tr');
+        if (row) {
+            row.style.opacity = '1';
+        }
+        setDraggedIndex(null);
+        setDragOverIndex(null);
+    };
+
+    const handleDragOver = (e: React.DragEvent<HTMLTableRowElement | HTMLDivElement>, index: number) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+
+        if (draggedIndex !== null && draggedIndex !== index) {
+            setDragOverIndex(index);
+        }
+    };
+
+    const handleDragLeave = (e: React.DragEvent<HTMLTableRowElement | HTMLDivElement>) => {
+        // Only clear if we're actually leaving the row
+        const rect = e.currentTarget.getBoundingClientRect();
+        if (
+            e.clientY < rect.top ||
+            e.clientY >= rect.bottom ||
+            e.clientX < rect.left ||
+            e.clientX >= rect.right
+        ) {
+            setDragOverIndex(null);
+        }
+    };
+
+    const handleDrop = async (e: React.DragEvent<HTMLTableRowElement | HTMLDivElement>, dropIndex: number) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (draggedIndex === null || draggedIndex === dropIndex) {
+            setDraggedIndex(null);
+            setDragOverIndex(null);
+            return;
+        }
+
+        const draggedApplication = applications[draggedIndex];
+        const targetApplication = applications[dropIndex];
+
+        try {
+            await ApplicationService.reorder(draggedApplication.id, (targetApplication as any).displayOrder || 1);
+            toast.success('Application reordered successfully!');
+
+            // Refresh the current page after reordering
+            const data = await ApplicationService.getAllPaginated(pagination);
+            setApplications(Array.isArray(data.data) ? data.data : []);
+            setPaginationMeta(data.meta);
+        } catch (err: any) {
+            toast.error(err?.response?.data?.message || 'Failed to reorder application');
+        } finally {
+            setDraggedIndex(null);
+            setDragOverIndex(null);
+        }
+    };
 
     const activeApplications = useMemo(
         () => applications.filter((app) => app.isActive).length,
@@ -256,6 +333,7 @@ export default function ApplicationsManagementPage() {
                             <table className="w-full">
                                 <thead className="bg-jcoder-secondary border-b border-jcoder">
                                     <tr>
+                                        <th className="px-4 py-4 text-center text-sm font-semibold text-jcoder-foreground w-16"></th>
                                         <th className="px-6 py-4 text-center text-sm font-semibold text-jcoder-foreground">Actions</th>
                                         <th className="px-6 py-4 text-left text-sm font-semibold text-jcoder-foreground">Name</th>
                                         <th className="px-6 py-4 text-center text-sm font-semibold text-jcoder-foreground">Type</th>
@@ -265,9 +343,33 @@ export default function ApplicationsManagementPage() {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-jcoder">
-                                    {!loading && applications.map((app) => {
+                                    {!loading && applications.map((app, index) => {
                                         return (
-                                            <tr key={app.id} className="hover:bg-jcoder-secondary/50 transition-colors">
+                                            <tr
+                                                key={app.id}
+                                                onDragOver={(e) => handleDragOver(e, index)}
+                                                onDragLeave={handleDragLeave}
+                                                onDrop={(e) => handleDrop(e, index)}
+                                                className={`transition-colors ${dragOverIndex === index && draggedIndex !== index
+                                                    ? 'border-t-2 border-jcoder-primary bg-jcoder-primary/10'
+                                                    : 'hover:bg-jcoder-secondary/50'
+                                                    }`}
+                                            >
+                                                <td className="px-4 py-4">
+                                                    <div className="flex items-center justify-center">
+                                                        <div
+                                                            draggable
+                                                            onDragStart={(e) => handleDragStart(e, index)}
+                                                            onDragEnd={handleDragEnd}
+                                                            className="p-2 text-jcoder-muted hover:text-jcoder-primary transition-colors cursor-grab active:cursor-grabbing select-none"
+                                                            title="Drag to reorder"
+                                                        >
+                                                            <svg className="w-5 h-5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                                                            </svg>
+                                                        </div>
+                                                    </div>
+                                                </td>
                                                 <td className="px-6 py-4">
                                                     <div className="flex items-center justify-center gap-2">
                                                         <button
@@ -349,7 +451,7 @@ export default function ApplicationsManagementPage() {
                                     })}
                                     {loading && (
                                         <tr>
-                                            <td colSpan={6} className="px-6 py-8 text-center text-jcoder-muted">
+                                            <td colSpan={7} className="px-6 py-8 text-center text-jcoder-muted">
                                                 <div className="flex items-center justify-center">
                                                     <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-jcoder-primary"></div>
                                                 </div>
@@ -358,7 +460,7 @@ export default function ApplicationsManagementPage() {
                                     )}
                                     {!loading && !applications.length && !fetchError && (
                                         <tr>
-                                            <td colSpan={6} className="px-6 py-8 text-center">
+                                            <td colSpan={7} className="px-6 py-8 text-center">
                                                 <div className="text-6xl mb-4">📱</div>
                                                 <p className="text-jcoder-muted text-lg">No applications found.</p>
                                             </td>
@@ -380,10 +482,32 @@ export default function ApplicationsManagementPage() {
                                     <p className="text-jcoder-muted text-lg">No applications found.</p>
                                 </div>
                             ) : (
-                                applications.map((app) => (
-                                    <div key={app.id} className="p-4">
-                                        {/* Header with Image, Name and Actions */}
+                                applications.map((app, index) => (
+                                    <div
+                                        key={app.id}
+                                        onDragOver={(e) => handleDragOver(e, index)}
+                                        onDragLeave={handleDragLeave}
+                                        onDrop={(e) => handleDrop(e, index)}
+                                        className={`p-4 transition-colors ${dragOverIndex === index && draggedIndex !== index
+                                            ? 'border-t-2 border-jcoder-primary bg-jcoder-primary/10'
+                                            : ''
+                                            }`}
+                                    >
+                                        {/* Header with Drag Handle, Image, Name and Actions */}
                                         <div className="flex items-start gap-3 mb-3">
+                                            {/* Drag Handle */}
+                                            <div
+                                                draggable
+                                                onDragStart={(e) => handleDragStart(e, index)}
+                                                onDragEnd={handleDragEnd}
+                                                className="p-2 text-jcoder-muted hover:text-jcoder-primary transition-colors cursor-grab active:cursor-grabbing select-none"
+                                                title="Drag to reorder"
+                                            >
+                                                <svg className="w-5 h-5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                                                </svg>
+                                            </div>
+
                                             {/* Image/Avatar */}
                                             {app.profileImage ? (
                                                 <img

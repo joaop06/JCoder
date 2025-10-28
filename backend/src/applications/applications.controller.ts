@@ -22,11 +22,13 @@ import { CreateApplicationDto } from './dto/create-application.dto';
 import { Roles } from '../@common/decorators/roles/roles.decorator';
 import { UpdateApplicationDto } from './dto/update-application.dto';
 import { QueryApplicationDto } from './dto/query-application.dto';
+import { ReorderApplicationDto } from './dto/reorder-application.dto';
 import { ApiNoContentResponse, ApiOkResponse } from '@nestjs/swagger';
 import { ParseQuery } from '../@common/decorators/query/parse-query.decorator';
 import { CreateApplicationUseCase } from './use-cases/create-application.use-case';
 import { DeleteApplicationUseCase } from './use-cases/delete-application.use-case';
 import { UpdateApplicationUseCase } from './use-cases/update-application.use-case';
+import { ReorderApplicationUseCase } from './use-cases/reorder-application.use-case';
 import { PaginationDto, PaginatedResponseDto } from '../@common/dto/pagination.dto';
 import { ApplicationNotFoundException } from './exceptions/application-not-found.exception';
 import { RequiredApiComponentToApiApplication } from './exceptions/required-api-component.exception';
@@ -45,6 +47,7 @@ export class ApplicationsController {
     private readonly createApplicationUseCase: CreateApplicationUseCase,
     private readonly deleteApplicationUseCase: DeleteApplicationUseCase,
     private readonly updateApplicationUseCase: UpdateApplicationUseCase,
+    private readonly reorderApplicationUseCase: ReorderApplicationUseCase,
   ) { }
 
   @Get()
@@ -106,6 +109,18 @@ export class ApplicationsController {
     @Body() updateApplicationDto: UpdateApplicationDto,
   ): Promise<Application> {
     return await this.updateApplicationUseCase.execute(+id, updateApplicationDto);
+  }
+
+  @Put(':id/reorder')
+  @Roles(RoleEnum.Admin)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiOkResponse({ type: () => Application })
+  @ApiExceptionResponse(() => [ApplicationNotFoundException])
+  async reorder(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() reorderApplicationDto: ReorderApplicationDto,
+  ): Promise<Application> {
+    return await this.reorderApplicationUseCase.execute(id, reorderApplicationDto);
   }
 
   @Delete(':id')

@@ -13,6 +13,7 @@ export interface Application {
     isActive: boolean;
     images?: string[];
     profileImage?: string;
+    displayOrder: number;
     applicationComponentApi?: ApplicationComponentApi | null;
     applicationComponentMobile?: ApplicationComponentMobile | null;
     applicationComponentLibrary?: ApplicationComponentLibrary | null;

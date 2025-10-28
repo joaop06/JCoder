@@ -10,12 +10,20 @@ export class DeleteApplicationUseCase {
     ) { }
 
     async execute(id: Application['id']): Promise<void> {
+        let application: Application;
         try {
-            await this.applicationsService.findById(id);
+            application = await this.applicationsService.findById(id);
         } catch {
             throw new AlreadyDeletedApplicationException();
         }
 
-        return await this.applicationsService.delete(id);
+        // Store the displayOrder before deleting
+        const deletedDisplayOrder = application.displayOrder;
+
+        // Delete the application
+        await this.applicationsService.delete(id);
+
+        // Reorder remaining applications (decrement displayOrder of applications after the deleted one)
+        await this.applicationsService.decrementDisplayOrderAfter(deletedDisplayOrder);
     }
 };

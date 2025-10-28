@@ -25,7 +25,7 @@ export class ApplicationsService {
   }
 
   async findAllPaginated(paginationDto: PaginationDto): Promise<PaginatedResponseDto<Application>> {
-    const { page = 1, limit = 10, sortBy = 'createdAt', sortOrder = 'DESC' } = paginationDto;
+    const { page = 1, limit = 10, sortBy = 'displayOrder', sortOrder = 'ASC' } = paginationDto;
     const skip = (page - 1) * limit;
 
     const cacheKey = this.cacheService.generateKey('applications', 'paginated', page, limit, sortBy, sortOrder);
@@ -62,8 +62,8 @@ export class ApplicationsService {
       page = 1,
       isActive,
       limit = 10,
-      sortOrder = 'DESC',
-      sortBy = 'createdAt',
+      sortOrder = 'ASC',
+      sortBy = 'displayOrder',
     } = queryDto;
     const skip = (page - 1) * limit;
 
@@ -145,7 +145,7 @@ export class ApplicationsService {
     return savedApplication;
   }
 
-  async update(id: number, updateApplicationDto: UpdateApplicationDto): Promise<Application> {
+  async update(id: number, updateApplicationDto: UpdateApplicationDto & { displayOrder?: number }): Promise<Application> {
     const application = await this.findById(id);
     this.repository.merge(application, updateApplicationDto);
     const updatedApplication = await this.repository.save(application);
@@ -175,4 +175,68 @@ export class ApplicationsService {
     await this.cacheService.del(this.cacheService.generateKey('applications', 'query'));
   }
 
+  /**
+   * Increments displayOrder of all applications that have displayOrder >= startPosition
+   * Used when inserting a new application at a specific position
+   */
+  async incrementDisplayOrderFrom(startPosition: number): Promise<void> {
+    await this.repository
+      .createQueryBuilder()
+      .update(Application)
+      .set({ displayOrder: () => 'displayOrder + 1' })
+      .where('displayOrder >= :startPosition', { startPosition })
+      .execute();
+  }
+
+  /**
+   * Reorders applications when an application's displayOrder is updated
+   * @param id - ID of the application being updated
+   * @param oldPosition - Current displayOrder position
+   * @param newPosition - New displayOrder position
+   */
+  async reorderOnUpdate(
+    id: number,
+    oldPosition: number,
+    newPosition: number,
+  ): Promise<void> {
+    if (oldPosition === newPosition) {
+      return; // No reordering needed
+    }
+
+    if (newPosition < oldPosition) {
+      // Moving up: increment displayOrder of applications between new and old position
+      await this.repository
+        .createQueryBuilder()
+        .update(Application)
+        .set({ displayOrder: () => 'displayOrder + 1' })
+        .where('displayOrder >= :newPosition', { newPosition })
+        .andWhere('displayOrder < :oldPosition', { oldPosition })
+        .andWhere('id != :id', { id })
+        .execute();
+    } else {
+      // Moving down: decrement displayOrder of applications between old and new position
+      await this.repository
+        .createQueryBuilder()
+        .update(Application)
+        .set({ displayOrder: () => 'displayOrder - 1' })
+        .where('displayOrder > :oldPosition', { oldPosition })
+        .andWhere('displayOrder <= :newPosition', { newPosition })
+        .andWhere('id != :id', { id })
+        .execute();
+    }
+  }
+
+  /**
+   * Decrements displayOrder of all applications that have displayOrder > deletedPosition
+   * Used when deleting an application to adjust the order of remaining applications
+   * @param deletedPosition - The displayOrder of the deleted application
+   */
+  async decrementDisplayOrderAfter(deletedPosition: number): Promise<void> {
+    await this.repository
+      .createQueryBuilder()
+      .update(Application)
+      .set({ displayOrder: () => 'displayOrder - 1' })
+      .where('displayOrder > :deletedPosition', { deletedPosition })
+      .execute();
+  }
 };
