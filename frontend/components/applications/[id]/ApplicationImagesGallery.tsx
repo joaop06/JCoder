@@ -12,10 +12,37 @@ const ApplicationImagesGallery: React.FC<ApplicationImagesGalleryProps> = ({
 }) => {
     const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
     const [imageErrors, setImageErrors] = useState<Set<number>>(new Set());
+    const [showAllImages, setShowAllImages] = useState<boolean>(false);
+
+    // Limit of images to show initially (4 on mobile, 10 on web)
+    const INITIAL_IMAGE_LIMIT_MOBILE = 4;
+    const INITIAL_IMAGE_LIMIT_WEB = 10;
+
+    // Determine current limit based on screen size
+    const [isMobile, setIsMobile] = useState<boolean>(false);
+
+    React.useEffect(() => {
+        const checkMobile = () => {
+            setIsMobile(window.innerWidth < 640); // sm breakpoint
+        };
+
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
+
+    const INITIAL_IMAGE_LIMIT = isMobile ? INITIAL_IMAGE_LIMIT_MOBILE : INITIAL_IMAGE_LIMIT_WEB;
 
     if (!images || images.length === 0) {
         return null;
     }
+
+    // Determine which images to display
+    const displayedImages = showAllImages ? images : images.slice(0, INITIAL_IMAGE_LIMIT);
+    const hasMoreImages = images.length > INITIAL_IMAGE_LIMIT;
+    // Calculate remaining images (including the last thumbnail)
+    const remainingCount = images.length - (INITIAL_IMAGE_LIMIT - 1);
 
     const openModal = (index: number) => {
         setSelectedImageIndex(index);
@@ -60,58 +87,107 @@ const ApplicationImagesGallery: React.FC<ApplicationImagesGalleryProps> = ({
     return (
         <>
             <div className="mb-6">
-                <h2 className="text-base sm:text-lg font-semibold text-jcoder-foreground mb-2 sm:mb-3">
-                    Images
-                </h2>
-                <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2 sm:gap-3">
-                    {images.map((image, index) => (
-                        <div
-                            key={index}
-                            className="relative aspect-square rounded-md overflow-hidden cursor-pointer group hover:scale-110 transition-transform duration-200 border border-jcoder/20 hover:border-jcoder-primary/50"
-                            onClick={() => openModal(index)}
+                <div className="flex items-center justify-between mt-10 mb-2 sm:mb-3">
+                    <h2 className="text-base sm:text-lg font-semibold text-jcoder-foreground">
+                        Images {images.length > 0 && <span className="text-jcoder-muted">({images.length})</span>}
+                    </h2>
+                    {hasMoreImages && showAllImages && (
+                        <button
+                            onClick={() => setShowAllImages(false)}
+                            className="text-sm text-jcoder-primary hover:text-jcoder-foreground transition-colors duration-200 flex items-center gap-1"
                         >
-                            {imageErrors.has(index) ? (
-                                <div className="w-full h-full bg-jcoder-card flex items-center justify-center">
-                                    <svg
-                                        className="w-6 h-6 text-jcoder-muted"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
-                                    >
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth={2}
-                                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                            <span>See Less</span>
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                            </svg>
+                        </button>
+                    )}
+                </div>
+                <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2 sm:gap-3">
+                    {displayedImages.map((image, displayIndex) => {
+                        // Get the original index from the full images array
+                        const originalIndex = images.indexOf(image);
+                        // Check if this is the 4th image and we have more images
+                        const isLastThumbnail = !showAllImages && hasMoreImages && displayIndex === INITIAL_IMAGE_LIMIT - 1;
+
+                        return (
+                            <div
+                                key={originalIndex}
+                                className="relative aspect-square rounded-md overflow-hidden cursor-pointer group hover:scale-110 transition-transform duration-200 border border-jcoder/20 hover:border-jcoder-primary/50"
+                                onClick={() => {
+                                    if (isLastThumbnail) {
+                                        // Expand to show all images
+                                        setShowAllImages(true);
+                                    } else {
+                                        // Open modal
+                                        openModal(originalIndex);
+                                    }
+                                }}
+                            >
+                                {imageErrors.has(originalIndex) ? (
+                                    <div className="w-full h-full bg-jcoder-card flex items-center justify-center">
+                                        <svg
+                                            className="w-6 h-6 text-jcoder-muted"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            viewBox="0 0 24 24"
+                                        >
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                strokeWidth={2}
+                                                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                            />
+                                        </svg>
+                                    </div>
+                                ) : (
+                                    <>
+                                        <img
+                                            src={getImageUrl(image)}
+                                            alt={`Application image ${originalIndex + 1}`}
+                                            className="w-full h-full object-cover"
+                                            loading="lazy"
+                                            onError={() => handleImageError(originalIndex)}
                                         />
-                                    </svg>
-                                </div>
-                            ) : (
-                                <img
-                                    src={getImageUrl(image)}
-                                    alt={`Application image ${index + 1}`}
-                                    className="w-full h-full object-cover"
-                                    loading="lazy"
-                                    onError={() => handleImageError(index)}
-                                />
-                            )}
-                            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-200 flex items-center justify-center">
-                                <svg
-                                    className="w-4 h-4 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"
-                                    />
-                                </svg>
+                                        {/* Blur overlay for the 4th thumbnail when showing limited images */}
+                                        {isLastThumbnail && (
+                                            <div className="absolute inset-0 backdrop-blur-md bg-black/60"></div>
+                                        )}
+                                    </>
+                                )}
+
+                                {/* Overlay for last thumbnail showing remaining count */}
+                                {isLastThumbnail && (
+                                    <div className="absolute inset-0 flex items-center justify-center z-10">
+                                        <div className="text-center">
+                                            <p className="text-white text-xl sm:text-2xl md:text-3xl font-bold drop-shadow-lg">
+                                                +{remainingCount}
+                                            </p>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Regular hover effect for non-last thumbnails */}
+                                {!isLastThumbnail && (
+                                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-200 flex items-center justify-center">
+                                        <svg
+                                            className="w-4 h-4 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            viewBox="0 0 24 24"
+                                        >
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                strokeWidth={2}
+                                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"
+                                            />
+                                        </svg>
+                                    </div>
+                                )}
                             </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             </div>
 
