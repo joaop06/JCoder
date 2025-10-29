@@ -57,6 +57,10 @@ export class UpdateProfileUseCase {
             user.linkedinUrl = updateProfileDto.linkedinUrl;
         }
 
+        if (updateProfileDto.profileImage !== undefined) {
+            user.profileImage = updateProfileDto.profileImage;
+        }
+
         return await this.usersService.update(user);
     }
 };

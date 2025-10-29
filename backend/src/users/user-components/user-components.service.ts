@@ -10,6 +10,10 @@ import { UserComponentAboutMeDto } from './dto/user-component-about-me.dto';
 import { UserComponentEducationDto } from './dto/user-component-education.dto';
 import { UserComponentExperienceDto } from './dto/user-component-experience.dto';
 import { UserComponentCertificateDto } from './dto/user-component-certificate.dto';
+import { UserComponentEducation } from './entities/user-component-education.entity';
+import { UserComponentExperience } from './entities/user-component-experience.entity';
+import { PaginationDto, PaginatedResponseDto } from '../../@common/dto/pagination.dto';
+import { UserComponentCertificate } from './entities/user-component-certificate.entity';
 import { UpdateUserComponentAboutMeDto } from './dto/update-user-component-about-me.dto';
 import { UpdateUserComponentEducationDto } from './dto/update-user-component-education.dto';
 import { UpdateUserComponentExperienceDto } from './dto/update-user-component-experience.dto';
@@ -49,7 +53,7 @@ export class UserComponentsService {
 
             // Create highlights
             if (dto.highlights && dto.highlights.length > 0) {
-                await this.repository.saveAboutMeHighlights(user.id, dto.highlights);
+                await this.repository.saveAboutMeHighlights(aboutMe.userId, dto.highlights);
             }
 
             return await this.repository.findAboutMeByUserId(user.id);
@@ -219,5 +223,18 @@ export class UserComponentsService {
                 }
             }
         }
+    }
+
+    // Paginated methods
+    async getEducationsPaginated(userId: number, pagination: PaginationDto): Promise<PaginatedResponseDto<UserComponentEducation>> {
+        return await this.repository.findEducationsByUserIdPaginated(userId, pagination);
+    }
+
+    async getExperiencesPaginated(userId: number, pagination: PaginationDto): Promise<PaginatedResponseDto<UserComponentExperience>> {
+        return await this.repository.findExperiencesByUserIdPaginated(userId, pagination);
+    }
+
+    async getCertificatesPaginated(userId: number, pagination: PaginationDto): Promise<PaginatedResponseDto<UserComponentCertificate>> {
+        return await this.repository.findCertificatesByUserIdPaginated(userId, pagination);
     }
 };

@@ -12,23 +12,22 @@ export class UsersService {
     ) { }
 
     async findById(id: number, includeComponents: boolean = false): Promise<User> {
-        const user = await this.repository.findOne({
-            where: { id },
-            relations: includeComponents ? {
-                userComponentAboutMe: {
-                    highlights: true,
-                },
-                userComponentEducation: {
-                    certificates: true,
-                },
-                userComponentExperience: {
-                    positions: true,
-                },
-                userComponentCertificate: {
-                    educations: true,
-                },
-            } : {},
-        });
+        const queryBuilder = this.repository.createQueryBuilder('user')
+            .where('user.id = :id', { id });
+
+        if (includeComponents) {
+            queryBuilder
+                .leftJoinAndSelect('user.userComponentAboutMe', 'aboutMe')
+                .leftJoinAndSelect('aboutMe.highlights', 'highlights')
+                .leftJoinAndSelect('user.userComponentEducation', 'education')
+                .leftJoinAndSelect('education.certificates', 'certificates')
+                .leftJoinAndSelect('user.userComponentExperience', 'experience')
+                .leftJoinAndSelect('experience.positions', 'positions')
+                .leftJoinAndSelect('user.userComponentCertificate', 'certificate')
+                .leftJoinAndSelect('certificate.educations', 'certificateEducations');
+        }
+
+        const user = await queryBuilder.getOne();
         if (!user) throw new UserNotFoundException();
 
         return user;
@@ -60,5 +59,28 @@ export class UsersService {
 
     async update(user: User): Promise<User> {
         return await this.repository.save(user);
+    }
+
+    async findBasicProfile(id: number): Promise<Partial<User>> {
+        const user = await this.repository.findOne({
+            where: { id },
+            select: ['id', 'username', 'firstName', 'name', 'email', 'githubUrl', 'linkedinUrl', 'role', 'createdAt', 'updatedAt']
+        });
+        if (!user) throw new UserNotFoundException();
+        return user;
+    }
+
+    async findProfileWithAboutMe(id: number): Promise<Partial<User>> {
+        const user = await this.repository.findOne({
+            where: { id },
+            select: ['id', 'username', 'firstName', 'name', 'email', 'githubUrl', 'linkedinUrl', 'role', 'createdAt', 'updatedAt'],
+            relations: {
+                userComponentAboutMe: {
+                    highlights: true
+                }
+            }
+        });
+        if (!user) throw new UserNotFoundException();
+        return user;
     }
 };

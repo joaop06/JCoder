@@ -5,6 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { UserComponentAboutMe } from './entities/user-component-about-me.entity';
 import { UserComponentEducation } from './entities/user-component-education.entity';
 import { UserComponentExperience } from './entities/user-component-experience.entity';
+import { PaginationDto, PaginatedResponseDto } from '../../@common/dto/pagination.dto';
 import { UserComponentCertificate } from './entities/user-component-certificate.entity';
 import { UserComponentAboutMeHighlight } from './entities/user-component-about-me-highlight.entity';
 import { UserComponentExperiencePosition } from './entities/user-component-experience-position.entity';
@@ -68,13 +69,19 @@ export class UserComponentsRepository {
     }
 
     async saveAboutMeHighlights(userId: number, highlights: Partial<UserComponentAboutMeHighlight>[]): Promise<UserComponentAboutMeHighlight[]> {
+        // Find the about me record to get the aboutMeId
+        const aboutMe = await this.findAboutMeByUserId(userId);
+        if (!aboutMe) {
+            throw new Error('About Me record not found');
+        }
+
         // Delete existing highlights
-        await this.deleteAboutMeHighlights(userId);
+        await this.deleteAboutMeHighlights(aboutMe.userId);
 
         // Create new highlights
         const savedHighlights = [];
         for (const highlight of highlights) {
-            const saved = await this.createAboutMeHighlight(userId, highlight);
+            const saved = await this.createAboutMeHighlight(aboutMe.userId, highlight);
             savedHighlights.push(saved);
         }
         return savedHighlights;
@@ -108,6 +115,7 @@ export class UserComponentsRepository {
         return await this.educationRepository.find({
             where: { userId },
             relations: ['certificates'],
+            select: ['userId', 'institutionName', 'courseName', 'degree', 'startDate', 'endDate', 'isCurrentlyStudying']
         });
     }
 
@@ -143,6 +151,7 @@ export class UserComponentsRepository {
         return await this.experienceRepository.find({
             where: { userId },
             relations: ['positions'],
+            select: ['userId', 'companyName']
         });
     }
 
@@ -150,26 +159,43 @@ export class UserComponentsRepository {
         await this.experienceRepository.delete(id);
     }
 
-    async deleteExperiencePositions(experienceId: number): Promise<void> {
-        await this.experiencePositionRepository.delete({ experienceId });
+    async deleteExperiencePositions(userId: number): Promise<void> {
+        // Find the experience record to get the experienceId
+        const experience = await this.findExperienceById(userId);
+        if (!experience) {
+            throw new Error('Experience record not found');
+        }
+        await this.experiencePositionRepository.delete({ experienceId: experience.userId });
     }
 
-    async createExperiencePosition(experienceId: number, data: Partial<UserComponentExperiencePosition>): Promise<UserComponentExperiencePosition> {
+    async createExperiencePosition(userId: number, data: Partial<UserComponentExperiencePosition>): Promise<UserComponentExperiencePosition> {
+        // Find the experience record to get the experienceId
+        const experience = await this.findExperienceById(userId);
+        if (!experience) {
+            throw new Error('Experience record not found');
+        }
+
         const position = this.experiencePositionRepository.create({
             ...data,
-            experienceId,
+            experienceId: experience.userId,
         });
         return await this.experiencePositionRepository.save(position);
     }
 
-    async saveExperiencePositions(experienceId: number, positions: Partial<UserComponentExperiencePosition>[]): Promise<UserComponentExperiencePosition[]> {
+    async saveExperiencePositions(userId: number, positions: Partial<UserComponentExperiencePosition>[]): Promise<UserComponentExperiencePosition[]> {
+        // Find the experience record to get the experienceId
+        const experience = await this.findExperienceById(userId);
+        if (!experience) {
+            throw new Error('Experience record not found');
+        }
+
         // Delete existing positions
-        await this.deleteExperiencePositions(experienceId);
+        await this.deleteExperiencePositions(experience.userId);
 
         // Create new positions
         const savedPositions = [];
         for (const position of positions) {
-            const saved = await this.createExperiencePosition(experienceId, position);
+            const saved = await this.createExperiencePosition(experience.userId, position);
             savedPositions.push(saved);
         }
         return savedPositions;
@@ -203,6 +229,7 @@ export class UserComponentsRepository {
         return await this.certificateRepository.find({
             where: { userId },
             relations: ['educations'],
+            select: ['userId', 'certificateName', 'issuedTo', 'issueDate', 'verificationUrl', 'registrationNumber', 'profileImage']
         });
     }
 
@@ -220,5 +247,86 @@ export class UserComponentsRepository {
 
         certificate.educations = educations;
         await this.certificateRepository.save(certificate);
+    }
+
+    /**
+     * Paginated methods
+     */
+    async findEducationsByUserIdPaginated(userId: number, pagination: PaginationDto): Promise<PaginatedResponseDto<UserComponentEducation>> {
+        const { page = 1, limit = 10 } = pagination;
+        const skip = (page - 1) * limit;
+
+        const [data, total] = await this.educationRepository.findAndCount({
+            where: { userId },
+            relations: ['certificates'],
+            select: ['userId', 'institutionName', 'courseName', 'degree', 'startDate', 'endDate', 'isCurrentlyStudying'],
+            skip,
+            take: limit,
+            order: { startDate: 'DESC' }
+        });
+
+        const totalPages = Math.ceil(total / limit);
+
+        return {
+            data,
+            total,
+            page,
+            limit,
+            totalPages,
+            hasNext: page < totalPages,
+            hasPrev: page > 1
+        };
+    }
+
+    async findExperiencesByUserIdPaginated(userId: number, pagination: PaginationDto): Promise<PaginatedResponseDto<UserComponentExperience>> {
+        const { page = 1, limit = 10 } = pagination;
+        const skip = (page - 1) * limit;
+
+        const [data, total] = await this.experienceRepository.findAndCount({
+            where: { userId },
+            relations: ['positions'],
+            select: ['userId', 'companyName'],
+            skip,
+            take: limit,
+            order: { companyName: 'ASC' }
+        });
+
+        const totalPages = Math.ceil(total / limit);
+
+        return {
+            data,
+            total,
+            page,
+            limit,
+            totalPages,
+            hasNext: page < totalPages,
+            hasPrev: page > 1
+        };
+    }
+
+    async findCertificatesByUserIdPaginated(userId: number, pagination: PaginationDto): Promise<PaginatedResponseDto<UserComponentCertificate>> {
+        const { page = 1, limit = 10 } = pagination;
+        const skip = (page - 1) * limit;
+
+        const [data, total] = await this.certificateRepository.findAndCount({
+            where: { userId },
+            relations: ['educations'],
+            select: ['userId', 'certificateName', 'issuedTo', 'issueDate', 'verificationUrl', 'registrationNumber', 'profileImage'],
+            skip,
+            take: limit,
+            order: { issueDate: 'DESC' }
+        });
+
+        const totalPages = Math.ceil(total / limit);
+
+        return {
+            data,
+            total,
+            page,
+            limit,
+            totalPages,
+            hasNext: page < totalPages,
+            hasPrev: page > 1
+        };
     }
 };

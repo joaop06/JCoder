@@ -6,11 +6,13 @@ import {
     Param,
     Patch,
     Delete,
+    Query,
     HttpCode,
     UseGuards,
     Controller,
     HttpStatus,
     ParseIntPipe,
+    UseInterceptors,
 } from '@nestjs/common';
 import {
     GetCertificateUseCase,
@@ -39,7 +41,10 @@ import {
     InvalidExperiencePositionDatesException,
 } from './user-components/exceptions/user-component.exceptions';
 import { User } from './entities/user.entity';
+import { UploadedFiles } from '@nestjs/common';
+import { FilesInterceptor } from '@nestjs/platform-express';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { PaginationDto } from '../@common/dto/pagination.dto';
 import { JwtAuthGuard } from '../@common/guards/jwt-auth.guard';
 import { GetProfileUseCase } from './use-cases/get-profile.use-case';
 import { ApiOkResponse, ApiNoContentResponse } from '@nestjs/swagger';
@@ -48,6 +53,7 @@ import { UserNotFoundException } from './exceptions/user-not-found.exception';
 import { CurrentUser } from '../@common/decorators/current-user/current-user.decorator';
 import { EmailAlreadyExistsException } from './exceptions/email-already-exists.exception';
 import { UserComponentAboutMeDto } from './user-components/dto/user-component-about-me.dto';
+import { UploadUserProfileImageUseCase } from './use-cases/upload-user-profile-image.use-case';
 import { UserComponentEducationDto } from './user-components/dto/user-component-education.dto';
 import { UserComponentExperienceDto } from './user-components/dto/user-component-experience.dto';
 import { InvalidCurrentPasswordException } from './exceptions/invalid-current-password.exception';
@@ -55,8 +61,11 @@ import { UserComponentCertificateDto } from './user-components/dto/user-componen
 import { UpdateUserComponentAboutMeDto } from './user-components/dto/update-user-component-about-me.dto';
 import { UpdateUserComponentEducationDto } from './user-components/dto/update-user-component-education.dto';
 import { ApiExceptionResponse } from '../@common/decorators/documentation/api-exception-response.decorator';
+import { GetEducationsPaginatedUseCase } from './user-components/use-cases/get-educations-paginated.use-case';
 import { UpdateUserComponentExperienceDto } from './user-components/dto/update-user-component-experience.dto';
+import { GetExperiencesPaginatedUseCase } from './user-components/use-cases/get-experiences-paginated.use-case';
 import { UpdateUserComponentCertificateDto } from './user-components/dto/update-user-component-certificate.dto';
+import { GetCertificatesPaginatedUseCase } from './user-components/use-cases/get-certificates-paginated.use-case';
 import { CreateOrUpdateAboutMeUseCase, UpdateAboutMeUseCase, GetAboutMeUseCase } from './user-components/use-cases/about-me.use-case';
 
 @Controller('users')
@@ -82,6 +91,10 @@ export class UsersController {
         private readonly deleteCertificateUseCase: DeleteCertificateUseCase,
         private readonly updateCertificateUseCase: UpdateCertificateUseCase,
         private readonly createOrUpdateAboutMeUseCase: CreateOrUpdateAboutMeUseCase,
+        private readonly getEducationsPaginatedUseCase: GetEducationsPaginatedUseCase,
+        private readonly getExperiencesPaginatedUseCase: GetExperiencesPaginatedUseCase,
+        private readonly getCertificatesPaginatedUseCase: GetCertificatesPaginatedUseCase,
+        private readonly uploadUserProfileImageUseCase: UploadUserProfileImageUseCase,
     ) { }
 
     @Get('profile')
@@ -290,6 +303,69 @@ export class UsersController {
     @ApiExceptionResponse(() => ComponentNotFoundException)
     async deleteCertificate(@Param('id', ParseIntPipe) id: number) {
         await this.deleteCertificateUseCase.execute(id);
+    }
+
+    // Paginated endpoints
+    @Get('profile/educations/paginated')
+    @UseGuards(JwtAuthGuard)
+    @HttpCode(HttpStatus.OK)
+    @ApiOkResponse()
+    async getEducationsPaginated(
+        @CurrentUser() user: User,
+        @Query() pagination: PaginationDto,
+    ) {
+        return await this.getEducationsPaginatedUseCase.execute(user.id, pagination);
+    }
+
+    @Get('profile/experiences/paginated')
+    @UseGuards(JwtAuthGuard)
+    @HttpCode(HttpStatus.OK)
+    @ApiOkResponse()
+    async getExperiencesPaginated(
+        @CurrentUser() user: User,
+        @Query() pagination: PaginationDto,
+    ) {
+        return await this.getExperiencesPaginatedUseCase.execute(user.id, pagination);
+    }
+
+    @Get('profile/certificates/paginated')
+    @UseGuards(JwtAuthGuard)
+    @HttpCode(HttpStatus.OK)
+    @ApiOkResponse()
+    async getCertificatesPaginated(
+        @CurrentUser() user: User,
+        @Query() pagination: PaginationDto,
+    ) {
+        return await this.getCertificatesPaginatedUseCase.execute(user.id, pagination);
+    }
+
+    // Image upload endpoints
+    @Post('profile/image')
+    @UseGuards(JwtAuthGuard)
+    @HttpCode(HttpStatus.OK)
+    @UseInterceptors(FilesInterceptor('profileImage', 1, {
+        limits: {
+            fileSize: 5 * 1024 * 1024, // 5MB
+        },
+        fileFilter: (req, file, cb) => {
+            const allowedMimes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+            if (allowedMimes.includes(file.mimetype)) {
+                cb(null, true);
+            } else {
+                cb(new Error('Invalid file type. Only JPEG, PNG and WebP images are allowed.'), false);
+            }
+        },
+    }))
+    @ApiOkResponse({ type: () => User })
+    @ApiExceptionResponse(() => UserNotFoundException)
+    async uploadProfileImage(
+        @CurrentUser() user: User,
+        @UploadedFiles() files: Express.Multer.File[],
+    ): Promise<User> {
+        if (!files || files.length === 0) {
+            throw new Error('No file uploaded');
+        }
+        return await this.uploadUserProfileImageUseCase.execute(user.id, files[0]);
     }
 };
 

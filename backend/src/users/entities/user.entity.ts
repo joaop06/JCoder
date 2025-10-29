@@ -80,6 +80,15 @@ export class User {
   @Column({ nullable: true })
   linkedinUrl?: string;
 
+  @ApiPropertyOptional({
+    type: 'string',
+    nullable: true,
+    example: 'profile-123e4567-e89b-12d3-a456-426614174000.jpg',
+    description: 'User profile image filename',
+  })
+  @Column({ nullable: true })
+  profileImage?: string;
+
   @Exclude()
   @Column({ nullable: false })
   password: string;

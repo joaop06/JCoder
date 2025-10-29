@@ -75,4 +75,14 @@ export class UpdateProfileDto {
     @IsString()
     @MinLength(6)
     declare newPassword?: string;
+
+    @ApiProperty({
+        type: 'string',
+        required: false,
+        example: 'profile-123e4567-e89b-12d3-a456-426614174000.jpg',
+        description: 'User profile image filename',
+    })
+    @IsOptional()
+    @IsString()
+    declare profileImage?: string;
 };
