@@ -3,10 +3,9 @@
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
 import { useRouter } from 'next/navigation';
-import { LazyImage, TableSkeleton } from '@/components/ui';
+import { LazyImage, TableSkeleton, ManagementTable } from '@/components/ui';
 import { useToast } from '@/components/toast/ToastContext';
 import { PaginationDto } from '@/types/api/pagination.type';
-import { Pagination } from '@/components/pagination/Pagination';
 import { Technology } from '@/types/entities/technology.entity';
 import { ExpertiseLevel } from '@/types/enums/expertise-level.enum';
 import { TechnologiesService } from '@/services/technologies.service';
@@ -607,20 +606,9 @@ export default function TechnologiesManagementPage() {
                     </nav>
 
                     {/* Page Header */}
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-                        <div>
-                            <h1 className="text-3xl font-bold text-jcoder-foreground mb-2">Technologies Management</h1>
-                            <p className="text-jcoder-muted">Manage technologies and tech stack for your portfolio</p>
-                        </div>
-                        <button
-                            onClick={() => setShowCreateModal(true)}
-                            className="inline-flex items-center gap-2 px-6 py-3 bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity font-medium"
-                        >
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                            </svg>
-                            <span>New Technology</span>
-                        </button>
+                    <div className="mb-8">
+                        <h1 className="text-3xl font-bold text-jcoder-foreground mb-2">Technologies Management</h1>
+                        <p className="text-jcoder-muted">Manage technologies and tech stack for your portfolio</p>
                     </div>
 
                     {/* Stats Cards */}
@@ -669,106 +657,81 @@ export default function TechnologiesManagementPage() {
                     </div>
 
                     {/* Technologies Table */}
-                    <div className="bg-jcoder-card border border-jcoder rounded-lg overflow-hidden">
-                        {loading ? (
-                            <TableSkeleton />
-                        ) : fetchError ? (
-                            <div className="text-center p-12">
-                                <p className="text-red-400 mb-4">{fetchError}</p>
-                                <button
-                                    onClick={fetchTechnologies}
-                                    className="px-6 py-3 bg-jcoder-primary text-black font-semibold rounded-lg hover:bg-jcoder-accent transition-colors"
-                                >
-                                    Try Again
-                                </button>
-                            </div>
-                        ) : technologies.length === 0 ? (
-                            <div className="text-center p-12">
-                                <div className="text-6xl mb-4">🚀</div>
-                                <p className="text-jcoder-muted text-lg mb-4">No technologies found.</p>
-                                <button
-                                    onClick={() => setShowCreateModal(true)}
-                                    className="px-6 py-3 bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity font-medium"
-                                >
-                                    Create your first technology
-                                </button>
-                            </div>
-                        ) : (
-                            <>
-                                {/* Desktop Table View */}
-                                <div className="hidden md:block overflow-x-auto">
-                                    <table className="w-full">
-                                        <thead className="bg-jcoder-secondary border-b border-jcoder">
-                                            <tr>
-                                                <th className="px-2 py-4 text-center text-sm font-semibold text-jcoder-foreground w-12"></th>
-                                                <th className="px-3 py-4 text-center text-sm font-semibold text-jcoder-foreground w-24">Actions</th>
-                                                <th className="px-4 py-4 text-left text-sm font-semibold text-jcoder-foreground">Technology</th>
-                                                <th className="px-4 py-4 text-center text-sm font-semibold text-jcoder-foreground w-32">Expertise</th>
-                                                <th className="px-4 py-4 text-center text-sm font-semibold text-jcoder-foreground w-32">Status</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="divide-y divide-jcoder">
-                                            {technologies.map((tech, index) => (
-                                                <TechnologyRow
-                                                    key={tech.id}
-                                                    tech={tech}
-                                                    index={index}
-                                                    draggedIndex={draggedIndex}
-                                                    dragOverIndex={dragOverIndex}
-                                                    onEdit={(tech) => {
-                                                        setSelectedTechnology(tech);
-                                                        setShowEditModal(true);
-                                                    }}
-                                                    onDelete={handleDelete}
-                                                    onToggleActive={handleToggleActive}
-                                                    onDragStart={handleDragStart}
-                                                    onDragEnd={handleDragEnd}
-                                                    onDragOver={handleDragOver}
-                                                    onDragLeave={handleDragLeave}
-                                                    onDrop={handleDrop}
-                                                />
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-
-                                {/* Mobile Card View */}
-                                <div className="md:hidden divide-y divide-jcoder">
-                                    {technologies.map((tech, index) => (
-                                        <TechnologyCard
-                                            key={tech.id}
-                                            tech={tech}
-                                            index={index}
-                                            draggedIndex={draggedIndex}
-                                            dragOverIndex={dragOverIndex}
-                                            onEdit={(tech) => {
-                                                setSelectedTechnology(tech);
-                                                setShowEditModal(true);
-                                            }}
-                                            onDelete={handleDelete}
-                                            onToggleActive={handleToggleActive}
-                                            onDragStart={handleDragStart}
-                                            onDragEnd={handleDragEnd}
-                                            onDragOver={handleDragOver}
-                                            onDragLeave={handleDragLeave}
-                                            onDrop={handleDrop}
-                                        />
-                                    ))}
-                                </div>
-
-                                {/* Pagination */}
-                                {paginationMeta && (
-                                    <div className="border-t border-jcoder p-4">
-                                        <Pagination
-                                            meta={paginationMeta}
-                                            onPageChange={handlePageChange}
-                                            onLimitChange={handleLimitChange}
-                                        />
-                                    </div>
-                                )}
-                            </>
+                    <ManagementTable
+                        title="Technologies"
+                        subtitle="Manage technologies and tech stack for your portfolio"
+                        actionButton={{
+                            label: 'New Technology',
+                            icon: (
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                </svg>
+                            ),
+                            onClick: () => setShowCreateModal(true),
+                        }}
+                        columns={[
+                            { label: '', className: 'px-2 py-4 text-center text-sm font-semibold text-jcoder-foreground w-12' },
+                            { label: 'Actions', className: 'px-3 py-4 text-center text-sm font-semibold text-jcoder-foreground w-24' },
+                            { label: 'Technology', className: 'px-4 py-4 text-left text-sm font-semibold text-jcoder-foreground' },
+                            { label: 'Expertise', className: 'px-4 py-4 text-center text-sm font-semibold text-jcoder-foreground w-32' },
+                            { label: 'Status', className: 'px-4 py-4 text-center text-sm font-semibold text-jcoder-foreground w-32' },
+                        ]}
+                        data={technologies}
+                        loading={loading}
+                        error={fetchError}
+                        renderDesktopRow={(tech, index) => (
+                            <TechnologyRow
+                                key={tech.id}
+                                tech={tech}
+                                index={index}
+                                draggedIndex={draggedIndex}
+                                dragOverIndex={dragOverIndex}
+                                onEdit={(tech) => {
+                                    setSelectedTechnology(tech);
+                                    setShowEditModal(true);
+                                }}
+                                onDelete={handleDelete}
+                                onToggleActive={handleToggleActive}
+                                onDragStart={handleDragStart}
+                                onDragEnd={handleDragEnd}
+                                onDragOver={handleDragOver}
+                                onDragLeave={handleDragLeave}
+                                onDrop={handleDrop}
+                            />
                         )}
-                    </div>
+                        renderMobileCard={(tech, index) => (
+                            <TechnologyCard
+                                key={tech.id}
+                                tech={tech}
+                                index={index}
+                                draggedIndex={draggedIndex}
+                                dragOverIndex={dragOverIndex}
+                                onEdit={(tech) => {
+                                    setSelectedTechnology(tech);
+                                    setShowEditModal(true);
+                                }}
+                                onDelete={handleDelete}
+                                onToggleActive={handleToggleActive}
+                                onDragStart={handleDragStart}
+                                onDragEnd={handleDragEnd}
+                                onDragOver={handleDragOver}
+                                onDragLeave={handleDragLeave}
+                                onDrop={handleDrop}
+                            />
+                        )}
+                        emptyState={{
+                            icon: '🚀',
+                            message: 'No technologies found.',
+                            actionButton: {
+                                label: 'Create your first technology',
+                                onClick: () => setShowCreateModal(true),
+                            },
+                        }}
+                        paginationMeta={paginationMeta}
+                        onPageChange={handlePageChange}
+                        onLimitChange={handleLimitChange}
+                        onRetry={fetchTechnologies}
+                    />
                 </div>
             </main>
 

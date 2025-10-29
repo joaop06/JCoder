@@ -5,11 +5,10 @@ import Header from '@/components/Header';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/toast/ToastContext';
 import { PaginationDto } from '@/types/api/pagination.type';
-import { Pagination } from '@/components/pagination/Pagination';
 import { useState, useEffect, useMemo, useCallback, memo } from 'react';
 import { Application } from '@/types/entities/application.entity';
 import { ApplicationService } from '@/services/applications.service';
-import { LazyImage, TableSkeleton } from '@/components/ui';
+import { LazyImage, TableSkeleton, ManagementTable } from '@/components/ui';
 
 // Memoized Application Row Component (Desktop)
 interface ApplicationRowProps {
@@ -569,13 +568,6 @@ export default function ApplicationsManagementPage() {
                         <p className="text-jcoder-muted">Create, update, and delete portfolio applications</p>
                     </div>
 
-                    {/* Error */}
-                    {fetchError && (
-                        <div className="mb-6 p-4 border border-red-400 bg-red-900/20 text-red-400 rounded">
-                            {fetchError}
-                        </div>
-                    )}
-
                     {/* Stats Cards */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                         <div className="bg-jcoder-card border border-jcoder rounded-lg p-6 hover:border-jcoder-primary transition-colors">
@@ -593,113 +585,71 @@ export default function ApplicationsManagementPage() {
                     </div>
 
                     {/* Applications Table */}
-                    <div className="bg-jcoder-card border border-jcoder rounded-lg overflow-hidden">
-                        <div className="p-6 border-b border-jcoder">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <h2 className="text-xl font-semibold text-jcoder-foreground mb-1">Applications</h2>
-                                    <p className="text-sm text-jcoder-muted">Manage all portfolio applications</p>
-                                </div>
-                                <button
-                                    onClick={() => router.push('/admin/applications/new')}
-                                    className="inline-flex items-center gap-2 px-4 py-2 bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity font-medium"
-                                >
-                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                                    </svg>
-                                    New Application
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* Desktop Table View */}
-                        <div className="hidden md:block overflow-x-auto">
-                            {loading ? (
-                                <TableSkeleton />
-                            ) : (
-                                <table className="w-full">
-                                    <thead className="bg-jcoder-secondary border-b border-jcoder">
-                                        <tr>
-                                            <th className="px-2 py-4 text-center text-sm font-semibold text-jcoder-foreground w-12"></th>
-                                            <th className="px-3 py-4 text-center text-sm font-semibold text-jcoder-foreground w-24">Actions</th>
-                                            <th className="px-4 py-4 text-left text-sm font-semibold text-jcoder-foreground">Name</th>
-                                            <th className="px-3 py-4 text-center text-sm font-semibold text-jcoder-foreground w-28">Type</th>
-                                            <th className="px-3 py-4 text-center text-sm font-semibold text-jcoder-foreground w-28">URL (GitHub)</th>
-                                            <th className="px-4 py-4 text-left text-sm font-semibold text-jcoder-foreground">Description</th>
-                                            <th className="px-3 py-4 text-center text-sm font-semibold text-jcoder-foreground w-28">Status</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-jcoder">
-                                        {applications.length > 0 ? (
-                                            applications.map((app, index) => (
-                                                <ApplicationRow
-                                                    key={app.id}
-                                                    app={app}
-                                                    index={index}
-                                                    draggedIndex={draggedIndex}
-                                                    dragOverIndex={dragOverIndex}
-                                                    onEdit={(app) => router.push(`/admin/applications/${app.id}/edit`)}
-                                                    onDelete={handleDelete}
-                                                    onDragStart={handleDragStart}
-                                                    onDragEnd={handleDragEnd}
-                                                    onDragOver={handleDragOver}
-                                                    onDragLeave={handleDragLeave}
-                                                    onDrop={handleDrop}
-                                                />
-                                            ))
-                                        ) : (
-                                            <tr>
-                                                <td colSpan={7} className="px-6 py-8 text-center">
-                                                    <div className="text-6xl mb-4">📱</div>
-                                                    <p className="text-jcoder-muted text-lg">No applications found.</p>
-                                                </td>
-                                            </tr>
-                                        )}
-                                    </tbody>
-                                </table>
-                            )}
-                        </div>
-
-                        {/* Mobile Card View */}
-                        <div className="md:hidden divide-y divide-jcoder">
-                            {loading ? (
-                                <div className="p-6">
-                                    <TableSkeleton />
-                                </div>
-                            ) : applications.length > 0 ? (
-                                applications.map((app, index) => (
-                                    <ApplicationCard
-                                        key={app.id}
-                                        app={app}
-                                        index={index}
-                                        draggedIndex={draggedIndex}
-                                        dragOverIndex={dragOverIndex}
-                                        onEdit={(app) => router.push(`/admin/applications/${app.id}/edit`)}
-                                        onDelete={handleDelete}
-                                        onDragStart={handleDragStart}
-                                        onDragEnd={handleDragEnd}
-                                        onDragOver={handleDragOver}
-                                        onDragLeave={handleDragLeave}
-                                        onDrop={handleDrop}
-                                    />
-                                ))
-                            ) : (
-                                <div className="text-center p-12">
-                                    <div className="text-6xl mb-4">📱</div>
-                                    <p className="text-jcoder-muted text-lg">No applications found.</p>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Pagination */}
-                        {paginationMeta && (
-                            <Pagination
-                                meta={paginationMeta}
-                                onPageChange={handlePageChange}
-                                onLimitChange={handleLimitChange}
+                    <ManagementTable
+                        title="Applications"
+                        subtitle="Manage all portfolio applications"
+                        actionButton={{
+                            label: 'New Application',
+                            icon: (
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                </svg>
+                            ),
+                            onClick: () => router.push('/admin/applications/new'),
+                        }}
+                        columns={[
+                            { label: '', className: 'px-2 py-4 text-center text-sm font-semibold text-jcoder-foreground w-12' },
+                            { label: 'Actions', className: 'px-3 py-4 text-center text-sm font-semibold text-jcoder-foreground w-24' },
+                            { label: 'Name', className: 'px-4 py-4 text-left text-sm font-semibold text-jcoder-foreground' },
+                            { label: 'Type', className: 'px-3 py-4 text-center text-sm font-semibold text-jcoder-foreground w-28' },
+                            { label: 'URL (GitHub)', className: 'px-3 py-4 text-center text-sm font-semibold text-jcoder-foreground w-28' },
+                            { label: 'Description', className: 'px-4 py-4 text-left text-sm font-semibold text-jcoder-foreground' },
+                            { label: 'Status', className: 'px-3 py-4 text-center text-sm font-semibold text-jcoder-foreground w-28' },
+                        ]}
+                        data={applications}
+                        loading={loading}
+                        error={fetchError}
+                        renderDesktopRow={(app, index) => (
+                            <ApplicationRow
+                                key={app.id}
+                                app={app}
+                                index={index}
+                                draggedIndex={draggedIndex}
+                                dragOverIndex={dragOverIndex}
+                                onEdit={(app) => router.push(`/admin/applications/${app.id}/edit`)}
+                                onDelete={handleDelete}
+                                onDragStart={handleDragStart}
+                                onDragEnd={handleDragEnd}
+                                onDragOver={handleDragOver}
+                                onDragLeave={handleDragLeave}
+                                onDrop={handleDrop}
                             />
                         )}
-                    </div>
+                        renderMobileCard={(app, index) => (
+                            <ApplicationCard
+                                key={app.id}
+                                app={app}
+                                index={index}
+                                draggedIndex={draggedIndex}
+                                dragOverIndex={dragOverIndex}
+                                onEdit={(app) => router.push(`/admin/applications/${app.id}/edit`)}
+                                onDelete={handleDelete}
+                                onDragStart={handleDragStart}
+                                onDragEnd={handleDragEnd}
+                                onDragOver={handleDragOver}
+                                onDragLeave={handleDragLeave}
+                                onDrop={handleDrop}
+                            />
+                        )}
+                        emptyState={{
+                            icon: '📱',
+                            message: 'No applications found.',
+                        }}
+                        paginationMeta={paginationMeta}
+                        onPageChange={handlePageChange}
+                        onLimitChange={handleLimitChange}
+                        onRetry={fetchApplications}
+                    />
                 </div>
             </main>
 

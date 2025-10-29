@@ -11,3 +11,5 @@ export type { LazyImageProps } from './LazyImage';
 export { TableSkeleton } from './TableSkeleton';
 export type { TableSkeletonProps, TableSkeletonColumn } from './TableSkeleton';
 
+export { ManagementTable } from './ManagementTable';
+
