@@ -326,21 +326,9 @@ export default function ApplicationsManagementPage() {
 
     const fetchStats = useCallback(async () => {
         try {
-            // Fetch active applications count
-            const activeData = await ApplicationService.query({
-                page: 1,
-                limit: 1,
-                isActive: true
-            });
-            setTotalActive(activeData.meta?.total || 0);
-
-            // Fetch inactive applications count
-            const inactiveData = await ApplicationService.query({
-                page: 1,
-                limit: 1,
-                isActive: false
-            });
-            setTotalInactive(inactiveData.meta?.total || 0);
+            const stats = await ApplicationService.getStats();
+            setTotalActive(stats.active);
+            setTotalInactive(stats.inactive);
         } catch (err: any) {
             // Silently fail for stats, don't show error to user
             console.error('Failed to fetch application stats:', err);

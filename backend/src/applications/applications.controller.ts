@@ -70,6 +70,21 @@ export class ApplicationsController {
     return await this.applicationsService.findAllByQuery(queryDto);
   }
 
+  @Get('stats')
+  @ApiOkResponse({
+    schema: {
+      type: 'object',
+      properties: {
+        active: { type: 'number' },
+        inactive: { type: 'number' },
+        total: { type: 'number' },
+      },
+    },
+  })
+  async getStats(): Promise<{ active: number; inactive: number; total: number }> {
+    return await this.applicationsService.getStats();
+  }
+
   @Get(':id')
   @ApiOkResponse({ type: () => Application })
   @ApiExceptionResponse(() => ApplicationNotFoundException)

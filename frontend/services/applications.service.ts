@@ -169,4 +169,16 @@ export const ApplicationService = {
     getProfileImageUrl(id: number): string {
         return `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/api/v1/images/applications/${id}/profile-image`;
     },
+
+    /**
+     * Get applications statistics
+     */
+    async getStats(): Promise<{ active: number; inactive: number; total: number }> {
+        try {
+            const response = await ApiServiceWithRetry.get('/applications/stats');
+            return response.data.data;
+        } catch (error) {
+            throw error;
+        }
+    },
 };

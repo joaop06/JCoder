@@ -145,6 +145,7 @@ export class ApplicationsService {
     // Invalidate cache
     await this.cacheService.del(this.cacheService.generateKey('applications', 'paginated'));
     await this.cacheService.del(this.cacheService.generateKey('applications', 'query'));
+    await this.cacheService.del(this.cacheService.generateKey('applications', 'stats'));
 
     return savedApplication;
   }
@@ -158,6 +159,7 @@ export class ApplicationsService {
     await this.cacheService.del(this.cacheService.applicationKey(id, 'full'));
     await this.cacheService.del(this.cacheService.generateKey('applications', 'paginated'));
     await this.cacheService.del(this.cacheService.generateKey('applications', 'query'));
+    await this.cacheService.del(this.cacheService.generateKey('applications', 'stats'));
 
     return updatedApplication;
   }
@@ -177,6 +179,7 @@ export class ApplicationsService {
     await this.cacheService.del(this.cacheService.applicationKey(id, 'full'));
     await this.cacheService.del(this.cacheService.generateKey('applications', 'paginated'));
     await this.cacheService.del(this.cacheService.generateKey('applications', 'query'));
+    await this.cacheService.del(this.cacheService.generateKey('applications', 'stats'));
   }
 
   /**
@@ -294,5 +297,26 @@ export class ApplicationsService {
     });
 
     return application?.technologies?.map((t) => t.id) || [];
+  }
+
+  /**
+   * Get applications statistics (active and inactive counts)
+   */
+  async getStats(): Promise<{ active: number; inactive: number; total: number }> {
+    const cacheKey = this.cacheService.generateKey('applications', 'stats');
+
+    return await this.cacheService.getOrSet(
+      cacheKey,
+      async () => {
+        const [active, inactive, total] = await Promise.all([
+          this.repository.count({ where: { isActive: true } }),
+          this.repository.count({ where: { isActive: false } }),
+          this.repository.count(),
+        ]);
+
+        return { active, inactive, total };
+      },
+      300, // 5 minutes cache
+    );
   }
 };

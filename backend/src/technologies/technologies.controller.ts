@@ -67,6 +67,21 @@ export class TechnologiesController {
         return await this.technologiesService.findAllByQuery(queryDto);
     }
 
+    @Get('stats')
+    @ApiOkResponse({
+        schema: {
+            type: 'object',
+            properties: {
+                active: { type: 'number' },
+                inactive: { type: 'number' },
+                total: { type: 'number' },
+            },
+        },
+    })
+    async getStats(): Promise<{ active: number; inactive: number; total: number }> {
+        return await this.technologiesService.getStats();
+    }
+
     @Get(':id')
     @ApiOkResponse({ type: () => Technology })
     @ApiExceptionResponse(() => TechnologyNotFoundException)

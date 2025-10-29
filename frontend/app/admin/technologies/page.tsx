@@ -331,21 +331,9 @@ export default function TechnologiesManagementPage() {
 
     const fetchStats = useCallback(async () => {
         try {
-            // Fetch active technologies count
-            const activeData = await TechnologiesService.query({
-                page: 1,
-                limit: 1,
-                isActive: true
-            });
-            setTotalActive(activeData.meta?.total || 0);
-
-            // Fetch inactive technologies count
-            const inactiveData = await TechnologiesService.query({
-                page: 1,
-                limit: 1,
-                isActive: false
-            });
-            setTotalInactive(inactiveData.meta?.total || 0);
+            const stats = await TechnologiesService.getStats();
+            setTotalActive(stats.active);
+            setTotalInactive(stats.inactive);
         } catch (err: any) {
             // Silently fail for stats, don't show error to user
             console.error('Failed to fetch technology stats:', err);

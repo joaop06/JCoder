@@ -163,6 +163,9 @@ export class TechnologiesService {
         await this.cacheService.del(
             this.cacheService.generateKey('technologies', 'query'),
         );
+        await this.cacheService.del(
+            this.cacheService.generateKey('technologies', 'stats'),
+        );
 
         return savedTechnology;
     }
@@ -182,6 +185,9 @@ export class TechnologiesService {
         );
         await this.cacheService.del(
             this.cacheService.generateKey('technologies', 'query'),
+        );
+        await this.cacheService.del(
+            this.cacheService.generateKey('technologies', 'stats'),
         );
 
         return updatedTechnology;
@@ -208,6 +214,9 @@ export class TechnologiesService {
         await this.cacheService.del(
             this.cacheService.generateKey('technologies', 'query'),
         );
+        await this.cacheService.del(
+            this.cacheService.generateKey('technologies', 'stats'),
+        );
     }
 
     async restore(id: number): Promise<Technology> {
@@ -220,6 +229,9 @@ export class TechnologiesService {
         );
         await this.cacheService.del(
             this.cacheService.generateKey('technologies', 'query'),
+        );
+        await this.cacheService.del(
+            this.cacheService.generateKey('technologies', 'stats'),
         );
 
         return await this.findById(id);
@@ -288,6 +300,27 @@ export class TechnologiesService {
             .set({ displayOrder: () => 'displayOrder - 1' })
             .where('displayOrder > :deletedPosition', { deletedPosition })
             .execute();
+    }
+
+    /**
+     * Get technologies statistics (active and inactive counts)
+     */
+    async getStats(): Promise<{ active: number; inactive: number; total: number }> {
+        const cacheKey = this.cacheService.generateKey('technologies', 'stats');
+
+        return await this.cacheService.getOrSet(
+            cacheKey,
+            async () => {
+                const [active, inactive, total] = await Promise.all([
+                    this.repository.count({ where: { isActive: true } }),
+                    this.repository.count({ where: { isActive: false } }),
+                    this.repository.count(),
+                ]);
+
+                return { active, inactive, total };
+            },
+            300, // 5 minutes cache
+        );
     }
 }
 
