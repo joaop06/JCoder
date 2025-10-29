@@ -285,6 +285,7 @@ export default function TechnologiesManagementPage() {
 
     const [loading, setLoading] = useState(true);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [checkingAuth, setCheckingAuth] = useState(true);
     const [fetchError, setFetchError] = useState<string | null>(null);
     const [technologies, setTechnologies] = useState<Technology[]>([]);
     const [pagination, setPagination] = useState<PaginationDto>({
@@ -317,6 +318,7 @@ export default function TechnologiesManagementPage() {
             return;
         }
         setIsAuthenticated(true);
+        setCheckingAuth(false);
     }, [router]);
 
     const fetchTechnologies = useCallback(async () => {
@@ -357,7 +359,7 @@ export default function TechnologiesManagementPage() {
         setPagination(prev => ({ ...prev, limit, page: 1 }));
     }, []);
 
-    const handleCreate = async (formData: CreateTechnologyDto | UpdateTechnologyDto, imageFile?: File | null) => {
+    const handleCreate = useCallback(async (formData: CreateTechnologyDto | UpdateTechnologyDto, imageFile?: File | null) => {
         setSubmitting(true);
         try {
             const createdTech = await TechnologiesService.create({
@@ -385,9 +387,9 @@ export default function TechnologiesManagementPage() {
         } finally {
             setSubmitting(false);
         }
-    };
+    }, [toast, fetchTechnologies]);
 
-    const handleUpdate = async (id: number, formData: CreateTechnologyDto | UpdateTechnologyDto, imageFile?: File | null, deleteImage?: boolean) => {
+    const handleUpdate = useCallback(async (id: number, formData: CreateTechnologyDto | UpdateTechnologyDto, imageFile?: File | null, deleteImage?: boolean) => {
         setSubmitting(true);
         try {
             // Update technology data
@@ -428,7 +430,7 @@ export default function TechnologiesManagementPage() {
         } finally {
             setSubmitting(false);
         }
-    };
+    }, [toast, fetchTechnologies]);
 
     const handleDelete = useCallback(
         async (technology: Technology) => {
@@ -461,7 +463,7 @@ export default function TechnologiesManagementPage() {
         }
     }, [toast, fetchTechnologies]);
 
-    const handleDragStart = (e: React.DragEvent<HTMLDivElement>, index: number) => {
+    const handleDragStart = useCallback((e: React.DragEvent<HTMLDivElement>, index: number) => {
         setDraggedIndex(index);
         e.dataTransfer.effectAllowed = 'move';
         e.dataTransfer.setData('text/plain', index.toString());
@@ -471,9 +473,9 @@ export default function TechnologiesManagementPage() {
         if (row) {
             row.style.opacity = '0.5';
         }
-    };
+    }, []);
 
-    const handleDragEnd = (e: React.DragEvent<HTMLDivElement>) => {
+    const handleDragEnd = useCallback((e: React.DragEvent<HTMLDivElement>) => {
         // Find the parent row and restore opacity
         const row = e.currentTarget.closest('tr');
         if (row) {
@@ -481,18 +483,18 @@ export default function TechnologiesManagementPage() {
         }
         setDraggedIndex(null);
         setDragOverIndex(null);
-    };
+    }, []);
 
-    const handleDragOver = (e: React.DragEvent<HTMLTableRowElement | HTMLDivElement>, index: number) => {
+    const handleDragOver = useCallback((e: React.DragEvent<HTMLTableRowElement | HTMLDivElement>, index: number) => {
         e.preventDefault();
         e.dataTransfer.dropEffect = 'move';
 
         if (draggedIndex !== null && draggedIndex !== index) {
             setDragOverIndex(index);
         }
-    };
+    }, [draggedIndex]);
 
-    const handleDragLeave = (e: React.DragEvent<HTMLTableRowElement | HTMLDivElement>) => {
+    const handleDragLeave = useCallback((e: React.DragEvent<HTMLTableRowElement | HTMLDivElement>) => {
         // Only clear if we're actually leaving the row
         const rect = e.currentTarget.getBoundingClientRect();
         if (
@@ -503,9 +505,9 @@ export default function TechnologiesManagementPage() {
         ) {
             setDragOverIndex(null);
         }
-    };
+    }, []);
 
-    const handleDrop = async (e: React.DragEvent<HTMLTableRowElement | HTMLDivElement>, dropIndex: number) => {
+    const handleDrop = useCallback(async (e: React.DragEvent<HTMLTableRowElement | HTMLDivElement>, dropIndex: number) => {
         e.preventDefault();
         e.stopPropagation();
 
@@ -528,7 +530,7 @@ export default function TechnologiesManagementPage() {
             setDraggedIndex(null);
             setDragOverIndex(null);
         }
-    };
+    }, [draggedIndex, technologies, toast, fetchTechnologies]);
 
     const activeTechnologies = useMemo(
         () => technologies.filter((tech) => tech.isActive).length,
@@ -553,8 +555,32 @@ export default function TechnologiesManagementPage() {
         });
     };
 
-    if (!isAuthenticated) {
-        return null;
+    if (checkingAuth || !isAuthenticated) {
+        return (
+            <div className="min-h-screen flex flex-col bg-background">
+                <Header isAdmin={true} onLogout={handleLogout} />
+                <main className="flex-1 container mx-auto px-4 pt-24 pb-12">
+                    <div className="max-w-7xl mx-auto">
+                        <div className="mb-8">
+                            <div className="h-10 w-72 bg-jcoder-secondary rounded-lg mb-2 animate-pulse"></div>
+                            <div className="h-4 w-96 bg-jcoder-secondary rounded-lg animate-pulse"></div>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                            {[1, 2, 3].map((i) => (
+                                <div key={i} className="bg-jcoder-card border border-jcoder rounded-lg p-6">
+                                    <div className="h-4 w-32 bg-jcoder-secondary rounded mb-2 animate-pulse"></div>
+                                    <div className="h-10 w-20 bg-jcoder-secondary rounded animate-pulse"></div>
+                                </div>
+                            ))}
+                        </div>
+                        <div className="bg-jcoder-card border border-jcoder rounded-lg p-6">
+                            <TableSkeleton />
+                        </div>
+                    </div>
+                </main>
+                <Footer />
+            </div>
+        );
     }
 
     return (
