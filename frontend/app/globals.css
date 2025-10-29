@@ -478,3 +478,43 @@ body {
   color: #dc2626;
   border: 1px solid rgba(239, 68, 68, 0.4);
 }
+
+/* Pagination Dark Theme Styles */
+[data-theme="dark"] .pagination-container {
+  background-color: var(--card);
+  border-color: var(--border);
+}
+
+[data-theme="dark"] .pagination-info {
+  color: var(--muted-foreground);
+}
+
+[data-theme="dark"] .pagination-label {
+  color: var(--muted-foreground);
+}
+
+[data-theme="dark"] .pagination-select {
+  background-color: var(--secondary);
+  border-color: var(--border);
+  color: var(--foreground);
+}
+
+[data-theme="dark"] .pagination-select:focus {
+  --tw-ring-color: var(--primary);
+}
+
+[data-theme="dark"] .pagination-button {
+  background-color: transparent;
+  border-color: var(--border);
+  color: var(--foreground);
+}
+
+[data-theme="dark"] .pagination-button:hover:not(:disabled) {
+  background-color: var(--secondary);
+}
+
+[data-theme="dark"] .pagination-button-active {
+  background-color: var(--primary) !important;
+  border-color: var(--primary) !important;
+  color: #000000 !important;
+}

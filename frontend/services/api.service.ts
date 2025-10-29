@@ -86,13 +86,7 @@ const retryRequest = async (
 
 // Interceptor for handling responses and errors
 ApiService.interceptors.response.use(
-    (response) => {
-        // Log successful responses in development
-        if (process.env.NODE_ENV === 'development') {
-            console.log(`✅ ${response.config.method?.toUpperCase()} ${response.config.url} - ${response.status}`);
-        }
-        return response;
-    },
+    (response) => response,
     (error) => {
         // Log errors in development
         if (process.env.NODE_ENV === 'development') {

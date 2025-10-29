@@ -57,9 +57,9 @@ export const Pagination: React.FC<PaginationProps> = ({
     }
 
     return (
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 bg-white border-t">
+        <div className="pagination-container flex flex-col sm:flex-row items-center justify-between gap-4 p-4 bg-white border-t border-gray-300">
             {/* Results info */}
-            <div className="text-sm text-gray-700">
+            <div className="pagination-info text-sm text-gray-700">
                 Showing {((page - 1) * limit) + 1} to {Math.min(page * limit, total)} of {total} results
             </div>
 
@@ -68,14 +68,14 @@ export const Pagination: React.FC<PaginationProps> = ({
                 {/* Items per page */}
                 {onLimitChange && (
                     <div className="flex items-center gap-2">
-                        <label htmlFor="limit" className="text-sm text-gray-700">
+                        <label htmlFor="limit" className="pagination-label text-sm text-gray-700">
                             Show:
                         </label>
                         <select
                             id="limit"
                             value={limit}
                             onChange={handleLimitChange}
-                            className="px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="pagination-select px-2 py-1 border border-gray-300 rounded text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
                             <option value={10}>10</option>
                             <option value={20}>20</option>
@@ -89,7 +89,7 @@ export const Pagination: React.FC<PaginationProps> = ({
                 <button
                     onClick={handlePrevious}
                     disabled={!hasPreviousPage}
-                    className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="pagination-button px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                     Previous
                 </button>
@@ -100,9 +100,9 @@ export const Pagination: React.FC<PaginationProps> = ({
                         <button
                             key={pageNum}
                             onClick={() => onPageChange(pageNum)}
-                            className={`px-3 py-1 text-sm border rounded ${pageNum === page
-                                    ? 'bg-blue-500 text-white border-blue-500'
-                                    : 'border-gray-300 hover:bg-gray-50'
+                            className={`pagination-button px-3 py-1 text-sm border rounded ${pageNum === page
+                                ? 'pagination-button-active bg-blue-500 text-white border-blue-500'
+                                : 'border-gray-300 hover:bg-gray-50'
                                 }`}
                         >
                             {pageNum}
@@ -114,7 +114,7 @@ export const Pagination: React.FC<PaginationProps> = ({
                 <button
                     onClick={handleNext}
                     disabled={!hasNextPage}
-                    className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="pagination-button px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                     Next
                 </button>

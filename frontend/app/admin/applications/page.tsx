@@ -4,11 +4,11 @@ import Footer from '@/components/Footer';
 import Header from '@/components/Header';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/toast/ToastContext';
+import { PaginationDto } from '@/types/api/pagination.type';
 import { Pagination } from '@/components/pagination/Pagination';
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Application } from '@/types/entities/application.entity';
 import { ApplicationService } from '@/services/applications.service';
-import { PaginationDto, PaginatedResponse } from '@/types/api/pagination.type';
 
 export default function ApplicationsManagementPage() {
     const router = useRouter();
