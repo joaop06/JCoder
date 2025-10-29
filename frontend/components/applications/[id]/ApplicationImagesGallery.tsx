@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { ApplicationService } from '@/services/applications.service';
+import { LazyImage } from '@/components/ui';
 
 interface ApplicationImagesGalleryProps {
     applicationId: number;
@@ -34,37 +35,27 @@ const ApplicationImagesGallery: React.FC<ApplicationImagesGalleryProps> = ({
 
     const INITIAL_IMAGE_LIMIT = isMobile ? INITIAL_IMAGE_LIMIT_MOBILE : INITIAL_IMAGE_LIMIT_WEB;
 
-    if (!images || images.length === 0) {
-        return null;
-    }
-
-    // Determine which images to display
-    const displayedImages = showAllImages ? images : images.slice(0, INITIAL_IMAGE_LIMIT);
-    const hasMoreImages = images.length > INITIAL_IMAGE_LIMIT;
-    // Calculate remaining images (including the last thumbnail)
-    const remainingCount = images.length - (INITIAL_IMAGE_LIMIT - 1);
-
-    const openModal = (index: number) => {
+    const openModal = useCallback((index: number) => {
         setSelectedImageIndex(index);
-    };
+    }, []);
 
-    const closeModal = () => {
+    const closeModal = useCallback(() => {
         setSelectedImageIndex(null);
-    };
+    }, []);
 
-    const nextImage = () => {
+    const nextImage = useCallback(() => {
         if (selectedImageIndex !== null) {
             setSelectedImageIndex((selectedImageIndex + 1) % images.length);
         }
-    };
+    }, [selectedImageIndex, images.length]);
 
-    const prevImage = () => {
+    const prevImage = useCallback(() => {
         if (selectedImageIndex !== null) {
             setSelectedImageIndex(selectedImageIndex === 0 ? images.length - 1 : selectedImageIndex - 1);
         }
-    };
+    }, [selectedImageIndex, images.length]);
 
-    const handleKeyDown = (e: React.KeyboardEvent) => {
+    const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
         if (e.key === 'Escape') {
             closeModal();
         } else if (e.key === 'ArrowRight') {
@@ -72,17 +63,34 @@ const ApplicationImagesGallery: React.FC<ApplicationImagesGalleryProps> = ({
         } else if (e.key === 'ArrowLeft') {
             prevImage();
         }
-    };
+    }, [closeModal, nextImage, prevImage]);
 
-    const handleImageError = (index: number) => {
+    const handleImageError = useCallback((index: number) => {
         setImageErrors(prev => new Set(prev).add(index));
-    };
+    }, []);
 
-    const getImageUrl = (filename: string) => {
-        const baseUrl = process.env.NEXT_PUBLIC_BACKEND_BASE_URL;
-        const url = `${baseUrl}/api/v1/images/applications/${applicationId}/images/${filename}`;
-        return url;
-    };
+    const getImageUrl = useCallback((filename: string) => {
+        return ApplicationService.getImageUrl(applicationId, filename);
+    }, [applicationId]);
+
+    const displayedImages = useMemo(
+        () => showAllImages ? images : images.slice(0, INITIAL_IMAGE_LIMIT),
+        [showAllImages, images, INITIAL_IMAGE_LIMIT]
+    );
+
+    const hasMoreImages = useMemo(
+        () => images.length > INITIAL_IMAGE_LIMIT,
+        [images.length, INITIAL_IMAGE_LIMIT]
+    );
+
+    const remainingCount = useMemo(
+        () => images.length - (INITIAL_IMAGE_LIMIT - 1),
+        [images.length, INITIAL_IMAGE_LIMIT]
+    );
+
+    if (!images || images.length === 0) {
+        return null;
+    }
 
     return (
         <>
@@ -142,11 +150,14 @@ const ApplicationImagesGallery: React.FC<ApplicationImagesGalleryProps> = ({
                                     </div>
                                 ) : (
                                     <>
-                                        <img
+                                        <LazyImage
                                             src={getImageUrl(image)}
                                             alt={`Application image ${originalIndex + 1}`}
-                                            className="w-full h-full object-cover"
-                                            loading="lazy"
+                                            fallback={`Image ${originalIndex + 1}`}
+                                            className="object-cover"
+                                            size="custom"
+                                            width="w-full"
+                                            height="h-full"
                                             onError={() => handleImageError(originalIndex)}
                                         />
                                         {/* Blur overlay for the 4th thumbnail when showing limited images */}

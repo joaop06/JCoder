@@ -4,6 +4,7 @@ import ApplicationTechnologies from './ApplicationTechnologies';
 import ApplicationImagesGallery from './ApplicationImagesGallery';
 import { Application } from '@/types/entities/application.entity';
 import { ApplicationService } from '@/services/applications.service';
+import { LazyImage } from '@/components/ui';
 
 interface ApplicationDetailsLayoutProps {
   application: Application;
@@ -22,21 +23,25 @@ const ApplicationDetailsLayout: React.FC<ApplicationDetailsLayoutProps> = ({
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-6 gap-4">
         <div className="flex items-start gap-3 sm:gap-4 min-w-0">
           {application.profileImage ? (
-            <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-lg overflow-hidden flex-shrink-0">
-              <img
-                src={ApplicationService.getProfileImageUrl(application.id)}
-                alt={application.name}
-                className="w-full h-full object-cover"
-              />
-            </div>
+            <LazyImage
+              src={ApplicationService.getProfileImageUrl(application.id)}
+              alt={application.name}
+              fallback={application.name}
+              className="object-cover"
+              size="custom"
+              width="w-12 sm:w-16"
+              height="h-12 sm:h-16"
+            />
           ) : application.images && application.images.length > 0 ? (
-            <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-lg overflow-hidden flex-shrink-0">
-              <img
-                src={ApplicationService.getImageUrl(application.id, application.images[0])}
-                alt={application.name}
-                className="w-full h-full object-cover"
-              />
-            </div>
+            <LazyImage
+              src={ApplicationService.getImageUrl(application.id, application.images[0])}
+              alt={application.name}
+              fallback={application.name}
+              className="object-cover"
+              size="custom"
+              width="w-12 sm:w-16"
+              height="h-12 sm:h-16"
+            />
           ) : (
             <div className="w-12 h-12 sm:w-16 sm:h-16 bg-jcoder-gradient rounded-lg flex items-center justify-center flex-shrink-0">
               <span className="text-black font-bold text-lg sm:text-2xl">

@@ -3,7 +3,7 @@
 
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Application } from '@/types/entities/application.entity';
 import { ApplicationService } from '@/services/applications.service';
@@ -11,6 +11,7 @@ import { ApplicationTypeEnum } from '@/types/enums/application-type.enum';
 
 // Import new components
 import { useToast } from '@/components/toast/ToastContext';
+import { TableSkeleton } from '@/components/ui';
 import ApplicationApiDetails from '@/components/applications/[id]/ApplicationApiDetails';
 import ApplicationDetailsLayout from '@/components/applications/[id]/ApplicationDetailsLayout';
 import ApplicationMobileDetails from '@/components/applications/[id]/ApplicationMobileDetails';
@@ -34,15 +35,11 @@ export default function ApplicationDetailPage() {
     return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
   }, [params]);
 
-  useEffect(() => {
-    let isMounted = true;
-
-    // If is invalid ID, don't call the api and show error
+  const fetchApplication = useCallback(async () => {
     if (appId === null) {
       const errorMessage = 'Invalid ID Application';
       setError(errorMessage);
       toast.error(errorMessage);
-
       setLoading(false);
       return;
     }
@@ -50,40 +47,45 @@ export default function ApplicationDetailPage() {
     setLoading(true);
     setError(null);
 
-    ApplicationService.getById(appId)
-      .then((data) => {
-        if (!isMounted) return;
-        if (!data) {
-          const errorMessage = 'Application not found';
-          setError(errorMessage);
-          toast.error(errorMessage);
-
-          setApplication(null);
-          return;
-        }
-        setApplication(data);
-      })
-      .catch((err: any) => {
-        if (!isMounted) return;
-        const status = err?.response?.status;
-
-        let errorMessage: string;
-        if (status === 404) errorMessage = 'Application not found';
-        else errorMessage = 'The application could not be loaded. Please try again';
-
-        setApplication(null);
+    try {
+      const data = await ApplicationService.getById(appId);
+      if (!data) {
+        const errorMessage = 'Application not found';
         setError(errorMessage);
         toast.error(errorMessage);
-      })
-      .finally(() => {
-        if (!isMounted) return;
-        setLoading(false);
-      });
+        setApplication(null);
+        return;
+      }
+      setApplication(data);
+    } catch (err: any) {
+      const status = err?.response?.status;
+      const errorMessage = status === 404
+        ? 'Application not found'
+        : 'The application could not be loaded. Please try again';
 
-    return () => {
-      isMounted = false;
-    };
-  }, [appId]);
+      setApplication(null);
+      setError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  }, [appId, toast]);
+
+  const handleRetry = useCallback(() => {
+    fetchApplication();
+  }, [fetchApplication]);
+
+  const handleGoHome = useCallback(() => {
+    router.push('/');
+  }, [router]);
+
+  const handleBack = useCallback(() => {
+    router.back();
+  }, [router]);
+
+  useEffect(() => {
+    fetchApplication();
+  }, [fetchApplication]);
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -93,7 +95,7 @@ export default function ApplicationDetailPage() {
         <div className="max-w-7xl mx-auto">
           {/* Back Button */}
           <button
-            onClick={() => router.back()}
+            onClick={handleBack}
             className="inline-flex items-center gap-2 text-jcoder-muted hover:text-jcoder-primary transition-colors mb-8"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -104,36 +106,53 @@ export default function ApplicationDetailPage() {
 
           {/* States: loading / error / content */}
           {loading ? (
-            <div className="bg-jcoder-card border border-jcoder rounded-lg p-12 text-center">
-              <div className="inline-block animate-spin rounded-full h-16 w-16 border-b-2 border-jcoder-primary mb-4"></div>
-              <p className="text-jcoder-muted text-lg">Loading application details...</p>
+            <div className="bg-jcoder-card border border-jcoder rounded-lg p-4 sm:p-8 shadow-lg">
+              {/* Header Skeleton */}
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-6 gap-4">
+                <div className="flex items-start gap-3 sm:gap-4 min-w-0">
+                  <div className="w-12 h-12 sm:w-16 sm:h-16 bg-jcoder-secondary rounded-lg animate-pulse flex-shrink-0"></div>
+                  <div className="min-w-0 flex-1">
+                    <div className="h-7 w-48 bg-jcoder-secondary rounded-lg mb-2 animate-pulse"></div>
+                    <div className="h-4 w-32 bg-jcoder-secondary rounded-lg animate-pulse"></div>
+                  </div>
+                </div>
+                <div className="w-full sm:w-48 h-24 bg-jcoder-secondary rounded-lg animate-pulse"></div>
+              </div>
+
+              {/* Description Skeleton */}
+              <div className="mb-6">
+                <div className="h-6 w-32 bg-jcoder-secondary rounded-lg mb-3 animate-pulse"></div>
+                <div className="h-4 w-full bg-jcoder-secondary rounded-lg mb-2 animate-pulse"></div>
+                <div className="h-4 w-5/6 bg-jcoder-secondary rounded-lg animate-pulse"></div>
+              </div>
+
+              {/* Technologies Skeleton */}
+              <div className="mb-6">
+                <div className="h-6 w-32 bg-jcoder-secondary rounded-lg mb-3 animate-pulse"></div>
+                <div className="flex flex-wrap gap-2">
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <div key={i} className="w-24 h-8 bg-jcoder-secondary rounded-full animate-pulse"></div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Content Skeleton */}
+              <div className="p-6">
+                <TableSkeleton />
+              </div>
             </div>
           ) : error ? (
             <div className="bg-jcoder-card border border-red-400 rounded-lg p-8 text-center">
               <p className="text-red-400">{error}</p>
               <div className="mt-4 flex items-center justify-center gap-3">
                 <button
-                  onClick={() => {
-                    // force reload (if appId is valid, the effect runs again when changing the dummy state if necessary)
-                    if (appId !== null) {
-                      setLoading(true);
-                      setError(null);
-                      ApplicationService.getById(appId)
-                        .then((data) => setApplication(data ?? null))
-                        .catch(() => {
-                          const errorMessage = 'The application could not be loaded. Please try again';
-                          setError(errorMessage);
-                          toast.error(errorMessage);
-                        })
-                        .finally(() => setLoading(false));
-                    }
-                  }}
+                  onClick={handleRetry}
                   className="inline-flex items-center px-4 py-2 border border-jcoder-primary text-jcoder-primary rounded-md text-sm hover:bg-jcoder-secondary transition-colors"
                 >
                   Try again
                 </button>
                 <button
-                  onClick={() => router.push('/')}
+                  onClick={handleGoHome}
                   className="inline-flex items-center px-4 py-2 bg-jcoder-gradient text-black rounded-md text-sm hover:opacity-90 transition-opacity font-medium"
                 >
                   Go to top

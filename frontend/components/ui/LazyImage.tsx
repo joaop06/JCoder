@@ -54,6 +54,8 @@ export interface LazyImageProps {
     rounded?: string;
     /** Object fit class (default: object-contain) */
     objectFit?: 'object-contain' | 'object-cover' | 'object-fill' | 'object-none' | 'object-scale-down';
+    /** Callback function called when image fails to load */
+    onError?: () => void;
 }
 
 export const LazyImage = memo(({
@@ -71,6 +73,7 @@ export const LazyImage = memo(({
     showSkeleton = true,
     rounded = 'rounded-lg',
     objectFit = 'object-contain',
+    onError,
 }: LazyImageProps) => {
     const [loaded, setLoaded] = useState(false);
     const [error, setError] = useState(false);
@@ -155,7 +158,10 @@ export const LazyImage = memo(({
                     decoding="async"
                     className={`${className} ${sizeClasses} ${rounded} ${objectFit} ${loaded ? 'opacity-100' : 'opacity-0'} transition-opacity duration-300`}
                     onLoad={() => setLoaded(true)}
-                    onError={() => setError(true)}
+                    onError={() => {
+                        setError(true);
+                        onError?.();
+                    }}
                 />
             )}
         </div>
