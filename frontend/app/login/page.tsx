@@ -1,11 +1,12 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { AuthService } from '@/services/auth.service';
 import { useToast } from '@/components/toast/ToastContext';
 import type { LoginResponse } from '@/types/api/login.type';
+import { LazyImage } from '@/components/ui';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -15,7 +16,15 @@ export default function LoginPage() {
 
   const toast = useToast();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleEmailChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setEmail(e.target.value);
+  }, []);
+
+  const handlePasswordChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setPassword(e.target.value);
+  }, []);
+
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
@@ -46,7 +55,7 @@ export default function LoginPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [email, password, router, toast]);
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -56,11 +65,14 @@ export default function LoginPage() {
           <div className="flex items-center">
             <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
               <div className="w-10 h-10 bg-transparent rounded-lg flex items-center justify-center">
-                <img
-                  alt="JCoder"
-                  width={400}
-                  height={300}
+                <LazyImage
                   src="/images/jcoder-logo.png"
+                  alt="JCoder"
+                  fallback="JC"
+                  className="object-contain"
+                  size="custom"
+                  width="w-full"
+                  height="h-full"
                 />
               </div>
               <span className="text-xl font-semibold text-jcoder-foreground">JCoder</span>
@@ -75,11 +87,14 @@ export default function LoginPage() {
           {/* Logo and Title */}
           <div className="text-center mb-8">
             <div className="inline-flex items-center justify-center w-16 h-16 bg-transparent rounded-lg mb-4">
-              <img
-                alt="JCoder"
-                width={400}
-                height={300}
+              <LazyImage
                 src="/images/jcoder-logo.png"
+                alt="JCoder"
+                fallback="JC"
+                className="object-contain"
+                size="custom"
+                width="w-full"
+                height="h-full"
               />
             </div>
             <h1 className="text-2xl font-bold text-jcoder-foreground mb-2">
@@ -111,7 +126,7 @@ export default function LoginPage() {
                   value={email}
                   disabled={isLoading}
                   placeholder="your@email.com"
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={handleEmailChange}
                   className="w-full px-4 py-3 border border-jcoder rounded-lg focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-transparent disabled:opacity-60 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted"
                 />
               </div>
@@ -127,7 +142,7 @@ export default function LoginPage() {
                   value={password}
                   disabled={isLoading}
                   placeholder="••••••••"
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={handlePasswordChange}
                   className="w-full px-4 py-3 border border-jcoder rounded-lg focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-transparent disabled:opacity-60 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted"
                 />
               </div>
