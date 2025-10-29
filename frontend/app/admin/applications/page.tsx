@@ -49,13 +49,13 @@ const ApplicationRow = memo(({
                 : 'hover:bg-jcoder-secondary/50'
                 }`}
         >
-            <td className="px-4 py-4">
+            <td className="px-2 py-4">
                 <div className="flex items-center justify-center">
                     <div
                         draggable
                         onDragStart={(e) => onDragStart(e, index)}
                         onDragEnd={onDragEnd}
-                        className="p-2 text-jcoder-muted hover:text-jcoder-primary transition-colors cursor-grab active:cursor-grabbing select-none"
+                        className="p-1 text-jcoder-muted hover:text-jcoder-primary transition-colors cursor-grab active:cursor-grabbing select-none"
                         title="Drag to reorder"
                     >
                         <svg className="w-5 h-5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -64,8 +64,8 @@ const ApplicationRow = memo(({
                     </div>
                 </div>
             </td>
-            <td className="px-6 py-4">
-                <div className="flex items-center justify-center gap-2">
+            <td className="px-3 py-4">
+                <div className="flex items-center justify-center gap-1">
                     <button
                         onClick={() => onEdit(app)}
                         className="p-2 text-blue-500 hover:bg-blue-500/10 rounded-lg transition-colors"
@@ -86,8 +86,8 @@ const ApplicationRow = memo(({
                     </button>
                 </div>
             </td>
-            <td className="px-6 py-4">
-                <div className="flex items-center gap-3">
+            <td className="px-4 py-4">
+                <div className="flex items-center gap-2">
                     {app.profileImage ? (
                         <LazyImage
                             src={ApplicationService.getProfileImageUrl(app.id)}
@@ -97,25 +97,25 @@ const ApplicationRow = memo(({
                             size="small"
                         />
                     ) : (
-                        <div className="w-10 h-10 rounded-lg bg-jcoder-gradient flex items-center justify-center text-black font-bold">
+                        <div className="w-10 h-10 rounded-lg bg-jcoder-gradient flex items-center justify-center text-black font-bold flex-shrink-0">
                             {app.name?.charAt(0)?.toUpperCase() ?? '?'}
                         </div>
                     )}
-                    <div>
-                        <p className="font-medium text-jcoder-foreground">{app.name}</p>
+                    <div className="min-w-0">
+                        <p className="font-medium text-jcoder-foreground truncate">{app.name}</p>
                     </div>
                 </div>
             </td>
-            <td className="px-6 py-4 text-center">
-                <span className="text-jcoder-foreground">{app.applicationType}</span>
+            <td className="px-3 py-4 text-center">
+                <span className="text-sm text-jcoder-foreground whitespace-nowrap">{app.applicationType}</span>
             </td>
-            <td className="px-6 py-4 text-center">
+            <td className="px-3 py-4 text-center">
                 {app.githubUrl ? (
                     <a
                         href={app.githubUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-jcoder-primary hover:text-jcoder-accent transition-colors inline-flex items-center gap-1"
+                        className="text-jcoder-primary hover:text-jcoder-accent transition-colors inline-flex items-center gap-1 text-sm"
                         title={app.githubUrl}
                     >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -127,15 +127,15 @@ const ApplicationRow = memo(({
                     <span className="text-jcoder-muted">—</span>
                 )}
             </td>
-            <td className="px-6 py-4">
-                <p className="text-sm text-jcoder-muted truncate max-w-md">{app.description}</p>
+            <td className="px-4 py-4">
+                <p className="text-sm text-jcoder-muted truncate max-w-xs">{app.description}</p>
             </td>
-            <td className="px-6 py-4 text-center">
-                <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${app.isActive
+            <td className="px-3 py-4 text-center">
+                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium whitespace-nowrap ${app.isActive
                     ? 'bg-green-500/20 text-green-500'
                     : 'bg-red-500/20 text-red-500'
                     }`}>
-                    <div className={`w-2 h-2 rounded-full ${app.isActive ? 'bg-green-500' : 'bg-red-500'}`} />
+                    <div className={`w-1.5 h-1.5 rounded-full ${app.isActive ? 'bg-green-500' : 'bg-red-500'}`} />
                     {app.isActive ? 'Active' : 'Inactive'}
                 </span>
             </td>
@@ -620,13 +620,13 @@ export default function ApplicationsManagementPage() {
                                 <table className="w-full">
                                     <thead className="bg-jcoder-secondary border-b border-jcoder">
                                         <tr>
-                                            <th className="px-4 py-4 text-center text-sm font-semibold text-jcoder-foreground w-16"></th>
-                                            <th className="px-6 py-4 text-center text-sm font-semibold text-jcoder-foreground">Actions</th>
-                                            <th className="px-6 py-4 text-left text-sm font-semibold text-jcoder-foreground">Name</th>
-                                            <th className="px-6 py-4 text-center text-sm font-semibold text-jcoder-foreground">Type</th>
-                                            <th className="px-6 py-4 text-center text-sm font-semibold text-jcoder-foreground">URL (GitHub)</th>
-                                            <th className="px-6 py-4 text-left text-sm font-semibold text-jcoder-foreground">Description</th>
-                                            <th className="px-6 py-4 text-center text-sm font-semibold text-jcoder-foreground">Status</th>
+                                            <th className="px-2 py-4 text-center text-sm font-semibold text-jcoder-foreground w-12"></th>
+                                            <th className="px-3 py-4 text-center text-sm font-semibold text-jcoder-foreground w-24">Actions</th>
+                                            <th className="px-4 py-4 text-left text-sm font-semibold text-jcoder-foreground">Name</th>
+                                            <th className="px-3 py-4 text-center text-sm font-semibold text-jcoder-foreground w-28">Type</th>
+                                            <th className="px-3 py-4 text-center text-sm font-semibold text-jcoder-foreground w-28">URL (GitHub)</th>
+                                            <th className="px-4 py-4 text-left text-sm font-semibold text-jcoder-foreground">Description</th>
+                                            <th className="px-3 py-4 text-center text-sm font-semibold text-jcoder-foreground w-28">Status</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-jcoder">
