@@ -3,7 +3,7 @@
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
 import { useRouter } from 'next/navigation';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 
 export default function AdminDashboardPage() {
   const router = useRouter();
@@ -26,11 +26,7 @@ export default function AdminDashboardPage() {
     router.push('/');
   }, [router]);
 
-  if (!isAuthenticated || loading) {
-    return null;
-  }
-
-  const adminSections = [
+  const adminSections = useMemo(() => [
     {
       title: 'Applications',
       description: 'Manage your portfolio applications - create, update, and delete',
@@ -67,7 +63,48 @@ export default function AdminDashboardPage() {
       color: 'from-green-500 to-emerald-500',
       available: true,
     },
-  ];
+  ], []);
+
+  if (!isAuthenticated || loading) {
+    return (
+      <div className="min-h-screen flex flex-col bg-background">
+        <Header isAdmin={true} onLogout={handleLogout} />
+        <main className="flex-1 container mx-auto px-4 pt-24 pb-12">
+          <div className="max-w-7xl mx-auto">
+            <div className="mb-12">
+              <div className="h-12 w-80 bg-jcoder-secondary rounded-lg mb-3 animate-pulse"></div>
+              <div className="h-6 w-96 bg-jcoder-secondary rounded-lg animate-pulse"></div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="bg-jcoder-card border border-jcoder rounded-xl p-8">
+                  <div className="w-16 h-16 bg-jcoder-secondary rounded-xl mb-6 animate-pulse"></div>
+                  <div className="h-8 w-40 bg-jcoder-secondary rounded-lg mb-3 animate-pulse"></div>
+                  <div className="h-4 w-full bg-jcoder-secondary rounded-lg mb-2 animate-pulse"></div>
+                  <div className="h-4 w-3/4 bg-jcoder-secondary rounded-lg animate-pulse"></div>
+                </div>
+              ))}
+            </div>
+            <div className="mt-12 bg-jcoder-card border border-jcoder rounded-xl p-8">
+              <div className="h-8 w-48 bg-jcoder-secondary rounded-lg mb-4 animate-pulse"></div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {[1, 2].map((i) => (
+                  <div key={i} className="flex items-center gap-4 p-4 bg-jcoder-secondary border border-jcoder rounded-lg">
+                    <div className="w-12 h-12 bg-jcoder-secondary rounded-lg animate-pulse"></div>
+                    <div className="flex-1">
+                      <div className="h-5 w-40 bg-jcoder-secondary rounded mb-2 animate-pulse"></div>
+                      <div className="h-4 w-56 bg-jcoder-secondary rounded animate-pulse"></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
