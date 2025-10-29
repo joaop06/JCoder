@@ -6,15 +6,290 @@ import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/toast/ToastContext';
 import { PaginationDto } from '@/types/api/pagination.type';
 import { Pagination } from '@/components/pagination/Pagination';
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, memo } from 'react';
 import { Application } from '@/types/entities/application.entity';
 import { ApplicationService } from '@/services/applications.service';
+import { LazyImage, TableSkeleton } from '@/components/ui';
+
+// Memoized Application Row Component (Desktop)
+interface ApplicationRowProps {
+    app: Application;
+    index: number;
+    draggedIndex: number | null;
+    dragOverIndex: number | null;
+    onEdit: (app: Application) => void;
+    onDelete: (app: Application) => void;
+    onDragStart: (e: React.DragEvent<HTMLDivElement>, index: number) => void;
+    onDragEnd: (e: React.DragEvent<HTMLDivElement>) => void;
+    onDragOver: (e: React.DragEvent<HTMLTableRowElement>, index: number) => void;
+    onDragLeave: (e: React.DragEvent<HTMLTableRowElement>) => void;
+    onDrop: (e: React.DragEvent<HTMLTableRowElement>, index: number) => void;
+}
+
+const ApplicationRow = memo(({
+    app,
+    index,
+    draggedIndex,
+    dragOverIndex,
+    onEdit,
+    onDelete,
+    onDragStart,
+    onDragEnd,
+    onDragOver,
+    onDragLeave,
+    onDrop,
+}: ApplicationRowProps) => {
+    return (
+        <tr
+            onDragOver={(e) => onDragOver(e, index)}
+            onDragLeave={onDragLeave}
+            onDrop={(e) => onDrop(e, index)}
+            className={`transition-colors ${dragOverIndex === index && draggedIndex !== index
+                ? 'border-t-2 border-jcoder-primary bg-jcoder-primary/10'
+                : 'hover:bg-jcoder-secondary/50'
+                }`}
+        >
+            <td className="px-4 py-4">
+                <div className="flex items-center justify-center">
+                    <div
+                        draggable
+                        onDragStart={(e) => onDragStart(e, index)}
+                        onDragEnd={onDragEnd}
+                        className="p-2 text-jcoder-muted hover:text-jcoder-primary transition-colors cursor-grab active:cursor-grabbing select-none"
+                        title="Drag to reorder"
+                    >
+                        <svg className="w-5 h-5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                        </svg>
+                    </div>
+                </div>
+            </td>
+            <td className="px-6 py-4">
+                <div className="flex items-center justify-center gap-2">
+                    <button
+                        onClick={() => onEdit(app)}
+                        className="p-2 text-blue-500 hover:bg-blue-500/10 rounded-lg transition-colors"
+                        title="Edit"
+                    >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                    </button>
+                    <button
+                        onClick={() => onDelete(app)}
+                        className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
+                        title="Delete"
+                    >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                    </button>
+                </div>
+            </td>
+            <td className="px-6 py-4">
+                <div className="flex items-center gap-3">
+                    {app.profileImage ? (
+                        <LazyImage
+                            src={ApplicationService.getProfileImageUrl(app.id)}
+                            alt={app.name}
+                            fallback={app.name}
+                            className="bg-jcoder-secondary p-1 object-cover"
+                            size="small"
+                        />
+                    ) : (
+                        <div className="w-10 h-10 rounded-lg bg-jcoder-gradient flex items-center justify-center text-black font-bold">
+                            {app.name?.charAt(0)?.toUpperCase() ?? '?'}
+                        </div>
+                    )}
+                    <div>
+                        <p className="font-medium text-jcoder-foreground">{app.name}</p>
+                    </div>
+                </div>
+            </td>
+            <td className="px-6 py-4 text-center">
+                <span className="text-jcoder-foreground">{app.applicationType}</span>
+            </td>
+            <td className="px-6 py-4 text-center">
+                {app.githubUrl ? (
+                    <a
+                        href={app.githubUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-jcoder-primary hover:text-jcoder-accent transition-colors inline-flex items-center gap-1"
+                        title={app.githubUrl}
+                    >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        </svg>
+                        GitHub
+                    </a>
+                ) : (
+                    <span className="text-jcoder-muted">—</span>
+                )}
+            </td>
+            <td className="px-6 py-4">
+                <p className="text-sm text-jcoder-muted truncate max-w-md">{app.description}</p>
+            </td>
+            <td className="px-6 py-4 text-center">
+                <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${app.isActive
+                    ? 'bg-green-500/20 text-green-500'
+                    : 'bg-red-500/20 text-red-500'
+                    }`}>
+                    <div className={`w-2 h-2 rounded-full ${app.isActive ? 'bg-green-500' : 'bg-red-500'}`} />
+                    {app.isActive ? 'Active' : 'Inactive'}
+                </span>
+            </td>
+        </tr>
+    );
+});
+
+ApplicationRow.displayName = 'ApplicationRow';
+
+// Memoized Application Card Component (Mobile)
+interface ApplicationCardProps {
+    app: Application;
+    index: number;
+    draggedIndex: number | null;
+    dragOverIndex: number | null;
+    onEdit: (app: Application) => void;
+    onDelete: (app: Application) => void;
+    onDragStart: (e: React.DragEvent<HTMLDivElement>, index: number) => void;
+    onDragEnd: (e: React.DragEvent<HTMLDivElement>) => void;
+    onDragOver: (e: React.DragEvent<HTMLDivElement>, index: number) => void;
+    onDragLeave: (e: React.DragEvent<HTMLDivElement>) => void;
+    onDrop: (e: React.DragEvent<HTMLDivElement>, index: number) => void;
+}
+
+const ApplicationCard = memo(({
+    app,
+    index,
+    draggedIndex,
+    dragOverIndex,
+    onEdit,
+    onDelete,
+    onDragStart,
+    onDragEnd,
+    onDragOver,
+    onDragLeave,
+    onDrop,
+}: ApplicationCardProps) => {
+    return (
+        <div
+            onDragOver={(e) => onDragOver(e, index)}
+            onDragLeave={onDragLeave}
+            onDrop={(e) => onDrop(e, index)}
+            className={`p-4 transition-colors ${dragOverIndex === index && draggedIndex !== index
+                ? 'border-t-2 border-jcoder-primary bg-jcoder-primary/10'
+                : ''
+                }`}
+        >
+            {/* Header with Drag Handle, Image, Name and Actions */}
+            <div className="flex items-start gap-3 mb-3">
+                {/* Drag Handle */}
+                <div
+                    draggable
+                    onDragStart={(e) => onDragStart(e, index)}
+                    onDragEnd={onDragEnd}
+                    className="p-2 text-jcoder-muted hover:text-jcoder-primary transition-colors cursor-grab active:cursor-grabbing select-none"
+                    title="Drag to reorder"
+                >
+                    <svg className="w-5 h-5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                    </svg>
+                </div>
+
+                {/* Image/Avatar */}
+                {app.profileImage ? (
+                    <LazyImage
+                        src={ApplicationService.getProfileImageUrl(app.id)}
+                        alt={app.name}
+                        fallback={app.name}
+                        className="bg-jcoder-secondary p-1 object-cover"
+                        size="custom"
+                        width="w-12"
+                        height="h-12"
+                    />
+                ) : (
+                    <div className="w-12 h-12 rounded-lg bg-jcoder-gradient flex items-center justify-center text-black font-bold flex-shrink-0">
+                        {app.name?.charAt(0)?.toUpperCase() ?? '?'}
+                    </div>
+                )}
+
+                {/* Name and Type */}
+                <div className="flex-1 min-w-0">
+                    <p className="font-medium text-jcoder-foreground truncate">{app.name}</p>
+                    <p className="text-sm text-jcoder-muted mt-0.5">{app.applicationType}</p>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex gap-1">
+                    <button
+                        onClick={() => onEdit(app)}
+                        className="p-2 text-blue-500 hover:bg-blue-500/10 rounded-lg transition-colors"
+                        title="Edit"
+                    >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                    </button>
+                    <button
+                        onClick={() => onDelete(app)}
+                        className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
+                        title="Delete"
+                    >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            {/* Description */}
+            {app.description && (
+                <p className="text-sm text-jcoder-muted mb-3 line-clamp-2">{app.description}</p>
+            )}
+
+            {/* Footer with GitHub Link and Status */}
+            <div className="flex items-center justify-between gap-3">
+                {/* GitHub Link */}
+                {app.githubUrl ? (
+                    <a
+                        href={app.githubUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-jcoder-primary hover:text-jcoder-accent transition-colors inline-flex items-center gap-1 text-sm"
+                        title={app.githubUrl}
+                    >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        </svg>
+                        GitHub
+                    </a>
+                ) : (
+                    <span className="text-jcoder-muted text-sm">No GitHub URL</span>
+                )}
+
+                {/* Status */}
+                <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium ${app.isActive
+                    ? 'bg-green-500/20 text-green-500'
+                    : 'bg-red-500/20 text-red-500'
+                    }`}>
+                    <div className={`w-2 h-2 rounded-full ${app.isActive ? 'bg-green-500' : 'bg-red-500'}`} />
+                    {app.isActive ? 'Active' : 'Inactive'}
+                </span>
+            </div>
+        </div>
+    );
+});
+
+ApplicationCard.displayName = 'ApplicationCard';
 
 export default function ApplicationsManagementPage() {
     const router = useRouter();
 
     const [loading, setLoading] = useState(true);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [checkingAuth, setCheckingAuth] = useState(true);
     const [fetchError, setFetchError] = useState<string | null>(null);
     const [applications, setApplications] = useState<Application[]>([]);
     const [pagination, setPagination] = useState<PaginationDto>({
@@ -38,29 +313,29 @@ export default function ApplicationsManagementPage() {
             return;
         }
         setIsAuthenticated(true);
+        setCheckingAuth(false);
     }, [router]);
+
+    const fetchApplications = useCallback(async () => {
+        setLoading(true);
+        setFetchError(null);
+        try {
+            const data = await ApplicationService.getAllPaginated(pagination);
+            setApplications(Array.isArray(data.data) ? data.data : []);
+            setPaginationMeta(data.meta);
+        } catch (err: any) {
+            const errorMessage = 'The applications could not be loaded. Please try again.';
+            toast.error(errorMessage);
+            setFetchError(errorMessage);
+        } finally {
+            setLoading(false);
+        }
+    }, [pagination, toast]);
 
     useEffect(() => {
         if (!isAuthenticated) return;
-
-        const fetchApplications = async () => {
-            setLoading(true);
-            setFetchError(null);
-            try {
-                const data = await ApplicationService.getAllPaginated(pagination);
-                setApplications(Array.isArray(data.data) ? data.data : []);
-                setPaginationMeta(data.meta);
-            } catch (err: any) {
-                const errorMessage = 'The applications could not be loaded. Please try again.';
-                toast.error(errorMessage);
-                setFetchError(errorMessage);
-            } finally {
-                setLoading(false);
-            }
-        };
-
         fetchApplications();
-    }, [isAuthenticated, pagination]);
+    }, [isAuthenticated, fetchApplications]);
 
     const handleLogout = useCallback(() => {
         localStorage.removeItem('user');
@@ -84,23 +359,15 @@ export default function ApplicationsManagementPage() {
             });
             if (!confirmed) return;
 
-            const prev = applications;
-
             try {
                 await ApplicationService.delete(application.id);
                 toast.success(`${application.name} successfully deleted!`);
-
-                // Refresh the current page after deletion
-                const data = await ApplicationService.getAllPaginated(pagination);
-                setApplications(Array.isArray(data.data) ? data.data : []);
-                setPaginationMeta(data.meta);
-
+                fetchApplications();
             } catch (err) {
-                toast.error('The application could not be deleted. Returning to the previous state.');
-                setApplications(prev);
+                toast.error('The application could not be deleted.');
             }
         },
-        [applications]
+        [toast, fetchApplications]
     );
 
     const handleDragStart = (e: React.DragEvent<HTMLDivElement>, index: number) => {
@@ -147,7 +414,7 @@ export default function ApplicationsManagementPage() {
         }
     };
 
-    const handleDrop = async (e: React.DragEvent<HTMLTableRowElement | HTMLDivElement>, dropIndex: number) => {
+    const handleDrop = useCallback(async (e: React.DragEvent<HTMLTableRowElement | HTMLDivElement>, dropIndex: number) => {
         e.preventDefault();
         e.stopPropagation();
 
@@ -163,18 +430,14 @@ export default function ApplicationsManagementPage() {
         try {
             await ApplicationService.reorder(draggedApplication.id, (targetApplication as any).displayOrder || 1);
             toast.success('Application reordered successfully!');
-
-            // Refresh the current page after reordering
-            const data = await ApplicationService.getAllPaginated(pagination);
-            setApplications(Array.isArray(data.data) ? data.data : []);
-            setPaginationMeta(data.meta);
+            fetchApplications();
         } catch (err: any) {
             toast.error(err?.response?.data?.message || 'Failed to reorder application');
         } finally {
             setDraggedIndex(null);
             setDragOverIndex(null);
         }
-    };
+    }, [draggedIndex, applications, toast, fetchApplications]);
 
     const activeApplications = useMemo(
         () => applications.filter((app) => app.isActive).length,
@@ -249,8 +512,32 @@ export default function ApplicationsManagementPage() {
         return formatRelativeDate(mostRecent, 'en-US');
     }, [applications]);
 
-    if (!isAuthenticated) {
-        return null;
+    if (checkingAuth || !isAuthenticated) {
+        return (
+            <div className="min-h-screen flex flex-col bg-background">
+                <Header isAdmin={true} onLogout={handleLogout} />
+                <main className="flex-1 container mx-auto px-4 pt-24 pb-12">
+                    <div className="max-w-7xl mx-auto">
+                        <div className="mb-8">
+                            <div className="h-10 w-64 bg-jcoder-secondary rounded-lg mb-2 animate-pulse"></div>
+                            <div className="h-4 w-96 bg-jcoder-secondary rounded-lg animate-pulse"></div>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                            {[1, 2, 3].map((i) => (
+                                <div key={i} className="bg-jcoder-card border border-jcoder rounded-lg p-6">
+                                    <div className="h-4 w-32 bg-jcoder-secondary rounded mb-2 animate-pulse"></div>
+                                    <div className="h-10 w-20 bg-jcoder-secondary rounded animate-pulse"></div>
+                                </div>
+                            ))}
+                        </div>
+                        <div className="bg-jcoder-card border border-jcoder rounded-lg p-6">
+                            <TableSkeleton />
+                        </div>
+                    </div>
+                </main>
+                <Footer />
+            </div>
+        );
     }
 
     return (
@@ -282,10 +569,7 @@ export default function ApplicationsManagementPage() {
                         <p className="text-jcoder-muted">Create, update, and delete portfolio applications</p>
                     </div>
 
-                    {/* Loading / Error */}
-                    {loading && (
-                        <div className="mb-6 text-jcoder-muted">Loading applications...</div>
-                    )}
+                    {/* Error */}
                     {fetchError && (
                         <div className="mb-6 p-4 border border-red-400 bg-red-900/20 text-red-400 rounded">
                             {fetchError}
@@ -330,265 +614,80 @@ export default function ApplicationsManagementPage() {
 
                         {/* Desktop Table View */}
                         <div className="hidden md:block overflow-x-auto">
-                            <table className="w-full">
-                                <thead className="bg-jcoder-secondary border-b border-jcoder">
-                                    <tr>
-                                        <th className="px-4 py-4 text-center text-sm font-semibold text-jcoder-foreground w-16"></th>
-                                        <th className="px-6 py-4 text-center text-sm font-semibold text-jcoder-foreground">Actions</th>
-                                        <th className="px-6 py-4 text-left text-sm font-semibold text-jcoder-foreground">Name</th>
-                                        <th className="px-6 py-4 text-center text-sm font-semibold text-jcoder-foreground">Type</th>
-                                        <th className="px-6 py-4 text-center text-sm font-semibold text-jcoder-foreground">URL (GitHub)</th>
-                                        <th className="px-6 py-4 text-left text-sm font-semibold text-jcoder-foreground">Description</th>
-                                        <th className="px-6 py-4 text-center text-sm font-semibold text-jcoder-foreground">Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-jcoder">
-                                    {!loading && applications.map((app, index) => {
-                                        return (
-                                            <tr
-                                                key={app.id}
-                                                onDragOver={(e) => handleDragOver(e, index)}
-                                                onDragLeave={handleDragLeave}
-                                                onDrop={(e) => handleDrop(e, index)}
-                                                className={`transition-colors ${dragOverIndex === index && draggedIndex !== index
-                                                    ? 'border-t-2 border-jcoder-primary bg-jcoder-primary/10'
-                                                    : 'hover:bg-jcoder-secondary/50'
-                                                    }`}
-                                            >
-                                                <td className="px-4 py-4">
-                                                    <div className="flex items-center justify-center">
-                                                        <div
-                                                            draggable
-                                                            onDragStart={(e) => handleDragStart(e, index)}
-                                                            onDragEnd={handleDragEnd}
-                                                            className="p-2 text-jcoder-muted hover:text-jcoder-primary transition-colors cursor-grab active:cursor-grabbing select-none"
-                                                            title="Drag to reorder"
-                                                        >
-                                                            <svg className="w-5 h-5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
-                                                            </svg>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <div className="flex items-center justify-center gap-2">
-                                                        <button
-                                                            onClick={() => router.push(`/admin/applications/${app.id}/edit`)}
-                                                            className="p-2 text-blue-500 hover:bg-blue-500/10 rounded-lg transition-colors"
-                                                            title="Edit"
-                                                        >
-                                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                                            </svg>
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleDelete(app)}
-                                                            className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
-                                                            title="Delete"
-                                                        >
-                                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                            </svg>
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <div className="flex items-center gap-3">
-                                                        {app.profileImage ? (
-                                                            <img
-                                                                src={ApplicationService.getProfileImageUrl(app.id)}
-                                                                alt={`${app.name} profile`}
-                                                                className="w-10 h-10 rounded-lg object-cover bg-jcoder-secondary p-1"
-                                                                onError={(e) => {
-                                                                    e.currentTarget.src = '/icons/default.png';
-                                                                }}
-                                                            />
-                                                        ) : (
-                                                            <div className="w-10 h-10 rounded-lg bg-jcoder-gradient flex items-center justify-center text-black font-bold">
-                                                                {app.name?.charAt(0)?.toUpperCase() ?? '?'}
-                                                            </div>
-                                                        )}
-                                                        <div>
-                                                            <p className="font-medium text-jcoder-foreground">{app.name}</p>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4 text-center">
-                                                    <span className="text-jcoder-foreground">{app.applicationType}</span>
-                                                </td>
-                                                <td className="px-6 py-4 text-center">
-                                                    {app.githubUrl ? (
-                                                        <a
-                                                            href={app.githubUrl}
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
-                                                            className="text-jcoder-primary hover:text-jcoder-accent transition-colors inline-flex items-center gap-1"
-                                                            title={app.githubUrl}
-                                                        >
-                                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                                                            </svg>
-                                                            GitHub
-                                                        </a>
-                                                    ) : (
-                                                        <span className="text-jcoder-muted">—</span>
-                                                    )}
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <p className="text-sm text-jcoder-muted truncate max-w-md">{app.description}</p>
-                                                </td>
-                                                <td className="px-6 py-4 text-center">
-                                                    <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${app.isActive
-                                                        ? 'bg-green-500/20 text-green-500'
-                                                        : 'bg-red-500/20 text-red-500'
-                                                        }`}>
-                                                        <div className={`w-2 h-2 rounded-full ${app.isActive ? 'bg-green-500' : 'bg-red-500'}`} />
-                                                        {app.isActive ? 'Active' : 'Inactive'}
-                                                    </span>
+                            {loading ? (
+                                <TableSkeleton />
+                            ) : (
+                                <table className="w-full">
+                                    <thead className="bg-jcoder-secondary border-b border-jcoder">
+                                        <tr>
+                                            <th className="px-4 py-4 text-center text-sm font-semibold text-jcoder-foreground w-16"></th>
+                                            <th className="px-6 py-4 text-center text-sm font-semibold text-jcoder-foreground">Actions</th>
+                                            <th className="px-6 py-4 text-left text-sm font-semibold text-jcoder-foreground">Name</th>
+                                            <th className="px-6 py-4 text-center text-sm font-semibold text-jcoder-foreground">Type</th>
+                                            <th className="px-6 py-4 text-center text-sm font-semibold text-jcoder-foreground">URL (GitHub)</th>
+                                            <th className="px-6 py-4 text-left text-sm font-semibold text-jcoder-foreground">Description</th>
+                                            <th className="px-6 py-4 text-center text-sm font-semibold text-jcoder-foreground">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-jcoder">
+                                        {applications.length > 0 ? (
+                                            applications.map((app, index) => (
+                                                <ApplicationRow
+                                                    key={app.id}
+                                                    app={app}
+                                                    index={index}
+                                                    draggedIndex={draggedIndex}
+                                                    dragOverIndex={dragOverIndex}
+                                                    onEdit={(app) => router.push(`/admin/applications/${app.id}/edit`)}
+                                                    onDelete={handleDelete}
+                                                    onDragStart={handleDragStart}
+                                                    onDragEnd={handleDragEnd}
+                                                    onDragOver={handleDragOver}
+                                                    onDragLeave={handleDragLeave}
+                                                    onDrop={handleDrop}
+                                                />
+                                            ))
+                                        ) : (
+                                            <tr>
+                                                <td colSpan={7} className="px-6 py-8 text-center">
+                                                    <div className="text-6xl mb-4">📱</div>
+                                                    <p className="text-jcoder-muted text-lg">No applications found.</p>
                                                 </td>
                                             </tr>
-                                        );
-                                    })}
-                                    {loading && (
-                                        <tr>
-                                            <td colSpan={7} className="px-6 py-8 text-center text-jcoder-muted">
-                                                <div className="flex items-center justify-center">
-                                                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-jcoder-primary"></div>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    )}
-                                    {!loading && !applications.length && !fetchError && (
-                                        <tr>
-                                            <td colSpan={7} className="px-6 py-8 text-center">
-                                                <div className="text-6xl mb-4">📱</div>
-                                                <p className="text-jcoder-muted text-lg">No applications found.</p>
-                                            </td>
-                                        </tr>
-                                    )}
-                                </tbody>
-                            </table>
+                                        )}
+                                    </tbody>
+                                </table>
+                            )}
                         </div>
 
                         {/* Mobile Card View */}
                         <div className="md:hidden divide-y divide-jcoder">
                             {loading ? (
-                                <div className="flex items-center justify-center p-12">
-                                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-jcoder-primary"></div>
+                                <div className="p-6">
+                                    <TableSkeleton />
                                 </div>
-                            ) : !applications.length && !fetchError ? (
+                            ) : applications.length > 0 ? (
+                                applications.map((app, index) => (
+                                    <ApplicationCard
+                                        key={app.id}
+                                        app={app}
+                                        index={index}
+                                        draggedIndex={draggedIndex}
+                                        dragOverIndex={dragOverIndex}
+                                        onEdit={(app) => router.push(`/admin/applications/${app.id}/edit`)}
+                                        onDelete={handleDelete}
+                                        onDragStart={handleDragStart}
+                                        onDragEnd={handleDragEnd}
+                                        onDragOver={handleDragOver}
+                                        onDragLeave={handleDragLeave}
+                                        onDrop={handleDrop}
+                                    />
+                                ))
+                            ) : (
                                 <div className="text-center p-12">
                                     <div className="text-6xl mb-4">📱</div>
                                     <p className="text-jcoder-muted text-lg">No applications found.</p>
                                 </div>
-                            ) : (
-                                applications.map((app, index) => (
-                                    <div
-                                        key={app.id}
-                                        onDragOver={(e) => handleDragOver(e, index)}
-                                        onDragLeave={handleDragLeave}
-                                        onDrop={(e) => handleDrop(e, index)}
-                                        className={`p-4 transition-colors ${dragOverIndex === index && draggedIndex !== index
-                                            ? 'border-t-2 border-jcoder-primary bg-jcoder-primary/10'
-                                            : ''
-                                            }`}
-                                    >
-                                        {/* Header with Drag Handle, Image, Name and Actions */}
-                                        <div className="flex items-start gap-3 mb-3">
-                                            {/* Drag Handle */}
-                                            <div
-                                                draggable
-                                                onDragStart={(e) => handleDragStart(e, index)}
-                                                onDragEnd={handleDragEnd}
-                                                className="p-2 text-jcoder-muted hover:text-jcoder-primary transition-colors cursor-grab active:cursor-grabbing select-none"
-                                                title="Drag to reorder"
-                                            >
-                                                <svg className="w-5 h-5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
-                                                </svg>
-                                            </div>
-
-                                            {/* Image/Avatar */}
-                                            {app.profileImage ? (
-                                                <img
-                                                    src={ApplicationService.getProfileImageUrl(app.id)}
-                                                    alt={`${app.name} profile`}
-                                                    className="w-12 h-12 rounded-lg object-cover bg-jcoder-secondary p-1 flex-shrink-0"
-                                                    onError={(e) => {
-                                                        e.currentTarget.src = '/icons/default.png';
-                                                    }}
-                                                />
-                                            ) : (
-                                                <div className="w-12 h-12 rounded-lg bg-jcoder-gradient flex items-center justify-center text-black font-bold flex-shrink-0">
-                                                    {app.name?.charAt(0)?.toUpperCase() ?? '?'}
-                                                </div>
-                                            )}
-
-                                            {/* Name and Type */}
-                                            <div className="flex-1 min-w-0">
-                                                <p className="font-medium text-jcoder-foreground truncate">{app.name}</p>
-                                                <p className="text-sm text-jcoder-muted mt-0.5">{app.applicationType}</p>
-                                            </div>
-
-                                            {/* Action Buttons */}
-                                            <div className="flex gap-1">
-                                                <button
-                                                    onClick={() => router.push(`/admin/applications/${app.id}/edit`)}
-                                                    className="p-2 text-blue-500 hover:bg-blue-500/10 rounded-lg transition-colors"
-                                                    title="Edit"
-                                                >
-                                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                                    </svg>
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDelete(app)}
-                                                    className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
-                                                    title="Delete"
-                                                >
-                                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                    </svg>
-                                                </button>
-                                            </div>
-                                        </div>
-
-                                        {/* Description */}
-                                        {app.description && (
-                                            <p className="text-sm text-jcoder-muted mb-3 line-clamp-2">{app.description}</p>
-                                        )}
-
-                                        {/* Footer with GitHub Link and Status */}
-                                        <div className="flex items-center justify-between gap-3">
-                                            {/* GitHub Link */}
-                                            {app.githubUrl ? (
-                                                <a
-                                                    href={app.githubUrl}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="text-jcoder-primary hover:text-jcoder-accent transition-colors inline-flex items-center gap-1 text-sm"
-                                                    title={app.githubUrl}
-                                                >
-                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                                                    </svg>
-                                                    GitHub
-                                                </a>
-                                            ) : (
-                                                <span className="text-jcoder-muted text-sm">No GitHub URL</span>
-                                            )}
-
-                                            {/* Status */}
-                                            <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium ${app.isActive
-                                                ? 'bg-green-500/20 text-green-500'
-                                                : 'bg-red-500/20 text-red-500'
-                                                }`}>
-                                                <div className={`w-2 h-2 rounded-full ${app.isActive ? 'bg-green-500' : 'bg-red-500'}`} />
-                                                {app.isActive ? 'Active' : 'Inactive'}
-                                            </span>
-                                        </div>
-                                    </div>
-                                ))
                             )}
                         </div>
 
