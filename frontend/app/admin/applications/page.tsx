@@ -302,8 +302,13 @@ export default function ApplicationsManagementPage() {
     // Drag and drop states
     const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
     const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+    const [tempApplications, setTempApplications] = useState<Application[]>([]);
+    const [isDragging, setIsDragging] = useState(false);
 
     const toast = useToast();
+
+    // Use temp array during drag, otherwise use the original
+    const displayApplications = isDragging ? tempApplications : applications;
 
     useEffect(() => {
         const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
@@ -371,6 +376,8 @@ export default function ApplicationsManagementPage() {
 
     const handleDragStart = (e: React.DragEvent<HTMLDivElement>, index: number) => {
         setDraggedIndex(index);
+        setIsDragging(true);
+        setTempApplications([...applications]);
         e.dataTransfer.effectAllowed = 'move';
         e.dataTransfer.setData('text/plain', index.toString());
 
@@ -389,14 +396,24 @@ export default function ApplicationsManagementPage() {
         }
         setDraggedIndex(null);
         setDragOverIndex(null);
+        setIsDragging(false);
+        setTempApplications([]);
     };
 
     const handleDragOver = (e: React.DragEvent<HTMLTableRowElement | HTMLDivElement>, index: number) => {
         e.preventDefault();
         e.dataTransfer.dropEffect = 'move';
 
-        if (draggedIndex !== null && draggedIndex !== index) {
+        if (draggedIndex !== null && dragOverIndex !== index) {
             setDragOverIndex(index);
+
+            // Reorganize array visually during drag
+            const newArray = [...applications];
+            const draggedItem = newArray[draggedIndex];
+            newArray.splice(draggedIndex, 1);
+            newArray.splice(index, 0, draggedItem);
+
+            setTempApplications(newArray);
         }
     };
 
@@ -420,23 +437,34 @@ export default function ApplicationsManagementPage() {
         if (draggedIndex === null || draggedIndex === dropIndex) {
             setDraggedIndex(null);
             setDragOverIndex(null);
+            setIsDragging(false);
+            setTempApplications([]);
             return;
         }
 
+        // Get the items from the original array
         const draggedApplication = applications[draggedIndex];
         const targetApplication = applications[dropIndex];
 
         try {
             await ApplicationService.reorder(draggedApplication.id, (targetApplication as any).displayOrder || 1);
             toast.success('Application reordered successfully!');
-            fetchApplications();
+
+            // Update local state with the new order instead of reloading
+            const newArray = [...applications];
+            const draggedItem = newArray[draggedIndex];
+            newArray.splice(draggedIndex, 1);
+            newArray.splice(dropIndex, 0, draggedItem);
+            setApplications(newArray);
         } catch (err: any) {
             toast.error(err?.response?.data?.message || 'Failed to reorder application');
         } finally {
             setDraggedIndex(null);
             setDragOverIndex(null);
+            setIsDragging(false);
+            setTempApplications([]);
         }
-    }, [draggedIndex, applications, toast, fetchApplications]);
+    }, [draggedIndex, applications, toast]);
 
     const activeApplications = useMemo(
         () => applications.filter((app) => app.isActive).length,
@@ -606,7 +634,7 @@ export default function ApplicationsManagementPage() {
                             { label: 'Description', className: 'px-4 py-4 text-left text-sm font-semibold text-jcoder-foreground' },
                             { label: 'Status', className: 'px-3 py-4 text-center text-sm font-semibold text-jcoder-foreground w-28' },
                         ]}
-                        data={applications}
+                        data={displayApplications}
                         loading={loading}
                         error={fetchError}
                         renderDesktopRow={(app, index) => (

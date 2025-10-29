@@ -307,8 +307,13 @@ export default function TechnologiesManagementPage() {
     // Drag and drop states
     const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
     const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+    const [tempTechnologies, setTempTechnologies] = useState<Technology[]>([]);
+    const [isDragging, setIsDragging] = useState(false);
 
     const toast = useToast();
+
+    // Use temp array during drag, otherwise use the original
+    const displayTechnologies = isDragging ? tempTechnologies : technologies;
 
     useEffect(() => {
         const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
@@ -464,6 +469,8 @@ export default function TechnologiesManagementPage() {
 
     const handleDragStart = useCallback((e: React.DragEvent<HTMLDivElement>, index: number) => {
         setDraggedIndex(index);
+        setIsDragging(true);
+        setTempTechnologies([...technologies]);
         e.dataTransfer.effectAllowed = 'move';
         e.dataTransfer.setData('text/plain', index.toString());
 
@@ -472,7 +479,7 @@ export default function TechnologiesManagementPage() {
         if (row) {
             row.style.opacity = '0.5';
         }
-    }, []);
+    }, [technologies]);
 
     const handleDragEnd = useCallback((e: React.DragEvent<HTMLDivElement>) => {
         // Find the parent row and restore opacity
@@ -482,16 +489,26 @@ export default function TechnologiesManagementPage() {
         }
         setDraggedIndex(null);
         setDragOverIndex(null);
+        setIsDragging(false);
+        setTempTechnologies([]);
     }, []);
 
     const handleDragOver = useCallback((e: React.DragEvent<HTMLTableRowElement | HTMLDivElement>, index: number) => {
         e.preventDefault();
         e.dataTransfer.dropEffect = 'move';
 
-        if (draggedIndex !== null && draggedIndex !== index) {
+        if (draggedIndex !== null && dragOverIndex !== index) {
             setDragOverIndex(index);
+
+            // Reorganize array visually during drag
+            const newArray = [...technologies];
+            const draggedItem = newArray[draggedIndex];
+            newArray.splice(draggedIndex, 1);
+            newArray.splice(index, 0, draggedItem);
+
+            setTempTechnologies(newArray);
         }
-    }, [draggedIndex]);
+    }, [draggedIndex, dragOverIndex, technologies]);
 
     const handleDragLeave = useCallback((e: React.DragEvent<HTMLTableRowElement | HTMLDivElement>) => {
         // Only clear if we're actually leaving the row
@@ -513,23 +530,34 @@ export default function TechnologiesManagementPage() {
         if (draggedIndex === null || draggedIndex === dropIndex) {
             setDraggedIndex(null);
             setDragOverIndex(null);
+            setIsDragging(false);
+            setTempTechnologies([]);
             return;
         }
 
+        // Get the items from the original array
         const draggedTechnology = technologies[draggedIndex];
         const targetTechnology = technologies[dropIndex];
 
         try {
             await TechnologiesService.reorder(draggedTechnology.id, targetTechnology.displayOrder);
             toast.success('Technology reordered successfully!');
-            fetchTechnologies();
+
+            // Update local state with the new order instead of reloading
+            const newArray = [...technologies];
+            const draggedItem = newArray[draggedIndex];
+            newArray.splice(draggedIndex, 1);
+            newArray.splice(dropIndex, 0, draggedItem);
+            setTechnologies(newArray);
         } catch (err: any) {
             toast.error(err?.response?.data?.message || 'Failed to reorder technology');
         } finally {
             setDraggedIndex(null);
             setDragOverIndex(null);
+            setIsDragging(false);
+            setTempTechnologies([]);
         }
-    }, [draggedIndex, technologies, toast, fetchTechnologies]);
+    }, [draggedIndex, technologies, toast]);
 
     const activeTechnologies = useMemo(
         () => technologies.filter((tech) => tech.isActive).length,
@@ -676,7 +704,7 @@ export default function TechnologiesManagementPage() {
                             { label: 'Expertise', className: 'px-4 py-4 text-center text-sm font-semibold text-jcoder-foreground w-32' },
                             { label: 'Status', className: 'px-4 py-4 text-center text-sm font-semibold text-jcoder-foreground w-32' },
                         ]}
-                        data={technologies}
+                        data={displayTechnologies}
                         loading={loading}
                         error={fetchError}
                         renderDesktopRow={(tech, index) => (
