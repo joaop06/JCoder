@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { Application } from '@/types/entities/application.entity';
 import { ApplicationService } from '@/services/applications.service';
+import LazyImage from '@/components/ui/LazyImage';
 
 interface ApplicationCardProps {
   application: Application;
@@ -34,21 +35,29 @@ export default function ApplicationCard({ application }: ApplicationCardProps) {
       <div className="flex items-start gap-4">
         {/* Icon or Image */}
         {application.profileImage ? (
-          <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
-            <img
-              src={ApplicationService.getProfileImageUrl(application.id)}
-              alt={application.name}
-              className="w-full h-full object-cover"
-            />
-          </div>
+          <LazyImage
+            src={ApplicationService.getProfileImageUrl(application.id)}
+            alt={application.name}
+            fallback={getInitial(application.name)}
+            size="custom"
+            width="w-12"
+            height="h-12"
+            rounded="rounded-lg"
+            objectFit="object-cover"
+            rootMargin="100px"
+          />
         ) : application.images && application.images.length > 0 ? (
-          <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
-            <img
-              src={ApplicationService.getImageUrl(application.id, application.images[0])}
-              alt={application.name}
-              className="w-full h-full object-cover"
-            />
-          </div>
+          <LazyImage
+            src={ApplicationService.getImageUrl(application.id, application.images[0])}
+            alt={application.name}
+            fallback={getInitial(application.name)}
+            size="custom"
+            width="w-12"
+            height="h-12"
+            rounded="rounded-lg"
+            objectFit="object-cover"
+            rootMargin="100px"
+          />
         ) : (
           <div className="w-12 h-12 bg-jcoder-gradient rounded-lg flex items-center justify-center flex-shrink-0">
             <span className="text-black font-bold text-lg">{getInitial(application.name)}</span>
