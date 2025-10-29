@@ -310,6 +310,10 @@ export default function TechnologiesManagementPage() {
     const [tempTechnologies, setTempTechnologies] = useState<Technology[]>([]);
     const [isDragging, setIsDragging] = useState(false);
 
+    // Stats states
+    const [totalActive, setTotalActive] = useState<number>(0);
+    const [totalInactive, setTotalInactive] = useState<number>(0);
+
     const toast = useToast();
 
     // Use temp array during drag, otherwise use the original
@@ -324,6 +328,29 @@ export default function TechnologiesManagementPage() {
         setIsAuthenticated(true);
         setCheckingAuth(false);
     }, [router]);
+
+    const fetchStats = useCallback(async () => {
+        try {
+            // Fetch active technologies count
+            const activeData = await TechnologiesService.query({
+                page: 1,
+                limit: 1,
+                isActive: true
+            });
+            setTotalActive(activeData.meta?.total || 0);
+
+            // Fetch inactive technologies count
+            const inactiveData = await TechnologiesService.query({
+                page: 1,
+                limit: 1,
+                isActive: false
+            });
+            setTotalInactive(inactiveData.meta?.total || 0);
+        } catch (err: any) {
+            // Silently fail for stats, don't show error to user
+            console.error('Failed to fetch technology stats:', err);
+        }
+    }, []);
 
     const fetchTechnologies = useCallback(async () => {
         setLoading(true);
@@ -347,7 +374,8 @@ export default function TechnologiesManagementPage() {
     useEffect(() => {
         if (!isAuthenticated) return;
         fetchTechnologies();
-    }, [isAuthenticated, fetchTechnologies]);
+        fetchStats();
+    }, [isAuthenticated, fetchTechnologies, fetchStats]);
 
     const handleLogout = useCallback(() => {
         localStorage.removeItem('user');
@@ -386,12 +414,13 @@ export default function TechnologiesManagementPage() {
             toast.success('Technology created successfully!');
             setShowCreateModal(false);
             fetchTechnologies();
+            fetchStats();
         } catch (err: any) {
             toast.error(err?.response?.data?.message || 'Failed to create technology');
         } finally {
             setSubmitting(false);
         }
-    }, [toast, fetchTechnologies]);
+    }, [toast, fetchTechnologies, fetchStats]);
 
     const handleUpdate = useCallback(async (id: number, formData: CreateTechnologyDto | UpdateTechnologyDto, imageFile?: File | null, deleteImage?: boolean) => {
         setSubmitting(true);
@@ -406,6 +435,7 @@ export default function TechnologiesManagementPage() {
                 } catch (delErr: any) {
                     toast.error('Technology updated but image deletion failed: ' + (delErr?.response?.data?.message || 'Unknown error'));
                     fetchTechnologies();
+                    fetchStats();
                     setShowEditModal(false);
                     setSelectedTechnology(null);
                     return;
@@ -419,6 +449,7 @@ export default function TechnologiesManagementPage() {
                 } catch (imgErr: any) {
                     toast.error('Technology updated but image upload failed: ' + (imgErr?.response?.data?.message || 'Unknown error'));
                     fetchTechnologies();
+                    fetchStats();
                     setShowEditModal(false);
                     setSelectedTechnology(null);
                     return;
@@ -429,12 +460,13 @@ export default function TechnologiesManagementPage() {
             setShowEditModal(false);
             setSelectedTechnology(null);
             fetchTechnologies();
+            fetchStats();
         } catch (err: any) {
             toast.error(err?.response?.data?.message || 'Failed to update technology');
         } finally {
             setSubmitting(false);
         }
-    }, [toast, fetchTechnologies]);
+    }, [toast, fetchTechnologies, fetchStats]);
 
     const handleDelete = useCallback(
         async (technology: Technology) => {
@@ -448,11 +480,12 @@ export default function TechnologiesManagementPage() {
                 await TechnologiesService.delete(technology.id);
                 toast.success(`${technology.name} successfully deleted!`);
                 fetchTechnologies();
+                fetchStats();
             } catch (err) {
                 toast.error('Failed to delete technology.');
             }
         },
-        [toast, fetchTechnologies]
+        [toast, fetchTechnologies, fetchStats]
     );
 
     const handleToggleActive = useCallback(async (technology: Technology) => {
@@ -462,10 +495,11 @@ export default function TechnologiesManagementPage() {
             });
             toast.success(`Technology ${technology.isActive ? 'deactivated' : 'activated'} successfully!`);
             fetchTechnologies();
+            fetchStats();
         } catch (err) {
             toast.error('Failed to update technology status.');
         }
-    }, [toast, fetchTechnologies]);
+    }, [toast, fetchTechnologies, fetchStats]);
 
     const handleDragStart = useCallback((e: React.DragEvent<HTMLDivElement>, index: number) => {
         setDraggedIndex(index);
@@ -559,11 +593,6 @@ export default function TechnologiesManagementPage() {
         }
     }, [draggedIndex, technologies, toast]);
 
-    const activeTechnologies = useMemo(
-        () => technologies.filter((tech) => tech.isActive).length,
-        [technologies]
-    );
-
     const formatRelativeDate = (date: Date, locale = 'en-US'): string => {
         const now = new Date();
         const diffMs = now.getTime() - date.getTime();
@@ -575,12 +604,61 @@ export default function TechnologiesManagementPage() {
         if (diffMin < 60) return `${diffMin} min ago`;
         if (diffHrs < 24) return `${diffHrs} hours ago`;
 
+        // Same date of the current day -> "Today HH:mm"
+        const sameDay =
+            date.getFullYear() === now.getFullYear() &&
+            date.getMonth() === now.getMonth() &&
+            date.getDate() === now.getDate();
+        if (sameDay) {
+            return `Today ${date.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}`;
+        }
+
+        // Yesterday
+        const yesterday = new Date(now);
+        yesterday.setDate(now.getDate() - 1);
+        const isYesterday =
+            date.getFullYear() === yesterday.getFullYear() &&
+            date.getMonth() === yesterday.getMonth() &&
+            date.getDate() === yesterday.getDate();
+        if (isYesterday) {
+            return `Yesterday ${date.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}`;
+        }
+
         return date.toLocaleString(locale, {
             day: '2-digit',
-            month: '2-digit',
+            hour: '2-digit',
             year: 'numeric',
+            month: '2-digit',
+            minute: '2-digit',
         });
     };
+
+    const parseToDate = (value: string | number | Date | null | undefined): Date | null => {
+        if (!value) return null;
+        const d = value instanceof Date ? value : new Date(value);
+        return isNaN(d.getTime()) ? null : d;
+    };
+
+    const lastUpdate = useMemo(() => {
+        if (!technologies?.length) return 'Never';
+
+        // For each technology, we took the most recent one between updatedAt and createdAt
+        const latestDates: Date[] = technologies
+            .map((tech: Technology) => {
+                const created = parseToDate(tech.createdAt);
+                const updated = parseToDate(tech.updatedAt);
+                if (created && updated) return updated > created ? updated : created;
+                return updated ?? created ?? null;
+            })
+            .filter((d): d is Date => d !== null);
+
+        if (!latestDates.length) return 'Never';
+
+        // Select the most recent date from all of them
+        const mostRecent = latestDates.reduce((a, b) => (a > b ? a : b));
+
+        return formatRelativeDate(mostRecent, 'en-US');
+    }, [technologies]);
 
     if (checkingAuth || !isAuthenticated) {
         return (
@@ -641,7 +719,8 @@ export default function TechnologiesManagementPage() {
 
                     {/* Stats Cards */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                        <div className="bg-jcoder-card border border-jcoder rounded-lg p-6">
+                        {/* Total Technologies Card */}
+                        <div className="bg-jcoder-card border border-jcoder rounded-lg p-6 hover:border-jcoder-primary transition-colors">
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-jcoder-muted text-sm mb-1">Total Technologies</p>
@@ -655,29 +734,48 @@ export default function TechnologiesManagementPage() {
                             </div>
                         </div>
 
-                        <div className="bg-jcoder-card border border-jcoder rounded-lg p-6">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-jcoder-muted text-sm mb-1">Active</p>
-                                    <p className="text-3xl font-bold text-green-500">{activeTechnologies}</p>
-                                </div>
-                                <div className="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center">
-                                    <svg className="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                    </svg>
+                        {/* Status Card */}
+                        <div className="bg-jcoder-card border border-jcoder rounded-lg p-6 hover:border-jcoder-primary transition-colors">
+                            <div>
+                                <p className="text-jcoder-muted text-sm mb-3">Status</p>
+                                <div className="flex items-center justify-between gap-4">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center">
+                                            <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs text-jcoder-muted">Active</p>
+                                            <p className="text-2xl font-bold text-green-500">{totalActive}</p>
+                                        </div>
+                                    </div>
+                                    <div className="w-px h-12 bg-jcoder"></div>
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-10 h-10 bg-red-500/20 rounded-lg flex items-center justify-center">
+                                            <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs text-jcoder-muted">Inactive</p>
+                                            <p className="text-2xl font-bold text-red-500">{totalInactive}</p>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="bg-jcoder-card border border-jcoder rounded-lg p-6">
+                        {/* Last Update Card */}
+                        <div className="bg-jcoder-card border border-jcoder rounded-lg p-6 hover:border-jcoder-primary transition-colors">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-jcoder-muted text-sm mb-1">Inactive</p>
-                                    <p className="text-3xl font-bold text-red-500">{(paginationMeta?.total || 0) - activeTechnologies}</p>
+                                    <p className="text-jcoder-muted text-sm mb-1">Last Update</p>
+                                    <p className="text-3xl font-bold text-jcoder-foreground">{lastUpdate}</p>
                                 </div>
-                                <div className="w-12 h-12 bg-red-500/20 rounded-lg flex items-center justify-center">
-                                    <svg className="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                                    <svg className="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
                                 </div>
                             </div>

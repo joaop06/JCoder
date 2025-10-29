@@ -305,6 +305,10 @@ export default function ApplicationsManagementPage() {
     const [tempApplications, setTempApplications] = useState<Application[]>([]);
     const [isDragging, setIsDragging] = useState(false);
 
+    // Stats states
+    const [totalActive, setTotalActive] = useState<number>(0);
+    const [totalInactive, setTotalInactive] = useState<number>(0);
+
     const toast = useToast();
 
     // Use temp array during drag, otherwise use the original
@@ -319,6 +323,29 @@ export default function ApplicationsManagementPage() {
         setIsAuthenticated(true);
         setCheckingAuth(false);
     }, [router]);
+
+    const fetchStats = useCallback(async () => {
+        try {
+            // Fetch active applications count
+            const activeData = await ApplicationService.query({
+                page: 1,
+                limit: 1,
+                isActive: true
+            });
+            setTotalActive(activeData.meta?.total || 0);
+
+            // Fetch inactive applications count
+            const inactiveData = await ApplicationService.query({
+                page: 1,
+                limit: 1,
+                isActive: false
+            });
+            setTotalInactive(inactiveData.meta?.total || 0);
+        } catch (err: any) {
+            // Silently fail for stats, don't show error to user
+            console.error('Failed to fetch application stats:', err);
+        }
+    }, []);
 
     const fetchApplications = useCallback(async () => {
         setLoading(true);
@@ -339,7 +366,8 @@ export default function ApplicationsManagementPage() {
     useEffect(() => {
         if (!isAuthenticated) return;
         fetchApplications();
-    }, [isAuthenticated, fetchApplications]);
+        fetchStats();
+    }, [isAuthenticated, fetchApplications, fetchStats]);
 
     const handleLogout = useCallback(() => {
         localStorage.removeItem('user');
@@ -367,11 +395,12 @@ export default function ApplicationsManagementPage() {
                 await ApplicationService.delete(application.id);
                 toast.success(`${application.name} successfully deleted!`);
                 fetchApplications();
+                fetchStats();
             } catch (err) {
                 toast.error('The application could not be deleted.');
             }
         },
-        [toast, fetchApplications]
+        [toast, fetchApplications, fetchStats]
     );
 
     const handleDragStart = (e: React.DragEvent<HTMLDivElement>, index: number) => {
@@ -465,11 +494,6 @@ export default function ApplicationsManagementPage() {
             setTempApplications([]);
         }
     }, [draggedIndex, applications, toast]);
-
-    const activeApplications = useMemo(
-        () => applications.filter((app) => app.isActive).length,
-        [applications]
-    );
 
     const formatRelativeDate = (date: Date, locale = 'en-US'): string => {
         const now = new Date();
@@ -598,17 +622,66 @@ export default function ApplicationsManagementPage() {
 
                     {/* Stats Cards */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        {/* Total Applications Card */}
                         <div className="bg-jcoder-card border border-jcoder rounded-lg p-6 hover:border-jcoder-primary transition-colors">
-                            <p className="text-sm text-jcoder-muted mb-2">Total Applications</p>
-                            <p className="text-3xl font-bold text-jcoder-foreground">{paginationMeta?.total || 0}</p>
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-jcoder-muted text-sm mb-1">Total Applications</p>
+                                    <p className="text-3xl font-bold text-jcoder-foreground">{paginationMeta?.total || 0}</p>
+                                </div>
+                                <div className="w-12 h-12 bg-jcoder-gradient rounded-lg flex items-center justify-center">
+                                    <svg className="w-6 h-6 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 16a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1H5a1 1 0 01-1-1v-3zM14 16a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1h-4a1 1 0 01-1-1v-3z" />
+                                    </svg>
+                                </div>
+                            </div>
                         </div>
+
+                        {/* Status Card */}
                         <div className="bg-jcoder-card border border-jcoder rounded-lg p-6 hover:border-jcoder-primary transition-colors">
-                            <p className="text-sm text-jcoder-muted mb-2">Active Applications</p>
-                            <p className="text-3xl font-bold text-jcoder-primary">{activeApplications}</p>
+                            <div>
+                                <p className="text-jcoder-muted text-sm mb-3">Status</p>
+                                <div className="flex items-center justify-between gap-4">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center">
+                                            <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs text-jcoder-muted">Active</p>
+                                            <p className="text-2xl font-bold text-green-500">{totalActive}</p>
+                                        </div>
+                                    </div>
+                                    <div className="w-px h-12 bg-jcoder"></div>
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-10 h-10 bg-red-500/20 rounded-lg flex items-center justify-center">
+                                            <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs text-jcoder-muted">Inactive</p>
+                                            <p className="text-2xl font-bold text-red-500">{totalInactive}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
+
+                        {/* Last Update Card */}
                         <div className="bg-jcoder-card border border-jcoder rounded-lg p-6 hover:border-jcoder-primary transition-colors">
-                            <p className="text-sm text-jcoder-muted mb-2">Last Update</p>
-                            <p className="text-3xl font-bold text-jcoder-foreground">{lastUpdate}</p>
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-jcoder-muted text-sm mb-1">Last Update</p>
+                                    <p className="text-3xl font-bold text-jcoder-foreground">{lastUpdate}</p>
+                                </div>
+                                <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                                    <svg className="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
