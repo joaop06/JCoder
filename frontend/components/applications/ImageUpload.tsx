@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react';
 import { useToast } from '@/components/toast/ToastContext';
 import { ApplicationService } from '@/services/applications.service';
+import LazyImage from '@/components/ui/LazyImage';
 
 interface ImageUploadProps {
     images: string[];
@@ -164,13 +165,17 @@ export default function ImageUpload({ images, onImagesChange, applicationId, dis
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                     {images.map((image, index) => (
                         <div key={index} className="relative group">
-                            <div className="aspect-square rounded-lg overflow-hidden bg-jcoder-secondary">
-                                <img
-                                    src={image.startsWith('data:') ? image : (applicationId ? ApplicationService.getImageUrl(applicationId, image) : '')}
-                                    alt={`Application image ${index + 1}`}
-                                    className="w-full h-full object-cover"
-                                />
-                            </div>
+                            <LazyImage
+                                src={image.startsWith('data:') ? image : (applicationId ? ApplicationService.getImageUrl(applicationId, image) : '')}
+                                alt={`Application image ${index + 1}`}
+                                fallback={`Img ${index + 1}`}
+                                size="custom"
+                                width="w-full"
+                                height="aspect-square"
+                                rounded="rounded-lg"
+                                objectFit="object-cover"
+                                rootMargin="100px"
+                            />
 
                             {!disabled && (
                                 <button

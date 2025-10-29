@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react';
 import { ApplicationService } from '@/services/applications.service';
 import { useToast } from '@/components/toast/ToastContext';
+import LazyImage from '@/components/ui/LazyImage';
 
 interface ProfileImageUploadProps {
     applicationId: number;
@@ -131,10 +132,17 @@ export default function ProfileImageUpload({
                 <div className="flex items-center space-x-4">
                     <div className="relative">
                         {getProfileImageUrl() ? (
-                            <img
+                            <LazyImage
                                 src={getProfileImageUrl()!}
                                 alt="Profile preview"
-                                className="w-20 h-20 rounded-lg object-cover border border-jcoder"
+                                fallback="P"
+                                size="custom"
+                                width="w-20"
+                                height="h-20"
+                                rounded="rounded-lg"
+                                objectFit="object-cover"
+                                className="border border-jcoder"
+                                rootMargin="50px"
                             />
                         ) : (
                             <div className="w-20 h-20 rounded-lg border-2 border-dashed border-jcoder flex items-center justify-center bg-jcoder-secondary">

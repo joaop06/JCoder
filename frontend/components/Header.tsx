@@ -5,9 +5,10 @@ import { ThemeToggle } from './theme';
 import { useRouter } from 'next/navigation';
 import { RoleEnum } from '@/types/enums/role.enum';
 import { UsersService } from '@/services/users.service';
-import { useEffect, useState, useCallback, useMemo } from 'react';
+import { useEffect, useState, useCallback, useMemo, memo } from 'react';
 import { HealthStatusComponent } from './health/HealthStatus';
 import { useSmoothScroll } from '@/hooks/useSmoothScroll';
+import LazyImage from './ui/LazyImage';
 
 interface HeaderProps {
   isAdmin?: boolean;
@@ -61,36 +62,44 @@ export default function Header({
     return currentPath.startsWith('/admin');
   }, [currentPath]);
 
-  // Scroll detection for active section
+  // Scroll detection for active section with throttle
   useEffect(() => {
     if (!isClient || isLoggedIn) return;
 
+    let ticking = false;
+
     const handleScroll = () => {
-      const sections = ['about', 'projects', 'tech-stack', 'contact'];
-      const scrollPosition = window.scrollY + 120; // Account for fixed header
-      const documentHeight = document.documentElement.scrollHeight;
-      const windowHeight = window.innerHeight;
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          const sections = ['about', 'projects', 'tech-stack', 'contact'];
+          const scrollPosition = window.scrollY + 120; // Account for fixed header
+          const documentHeight = document.documentElement.scrollHeight;
+          const windowHeight = window.innerHeight;
 
-      // Check if user is near the bottom of the page (within 200px)
-      const isNearBottom = scrollPosition + windowHeight >= documentHeight - 200;
+          // Check if user is near the bottom of the page (within 200px)
+          const isNearBottom = scrollPosition + windowHeight >= documentHeight - 200;
 
-      if (isNearBottom) {
-        // If near bottom, activate the last section (contact)
-        setActiveSection('contact');
-        return;
-      }
+          if (isNearBottom) {
+            // If near bottom, activate the last section (contact)
+            setActiveSection('contact');
+          } else {
+            // Normal scroll detection for other sections
+            for (let i = sections.length - 1; i >= 0; i--) {
+              const element = document.getElementById(sections[i]);
+              if (element && element.offsetTop <= scrollPosition) {
+                setActiveSection(sections[i]);
+                break;
+              }
+            }
+          }
 
-      // Normal scroll detection for other sections
-      for (let i = sections.length - 1; i >= 0; i--) {
-        const element = document.getElementById(sections[i]);
-        if (element && element.offsetTop <= scrollPosition) {
-          setActiveSection(sections[i]);
-          break;
-        }
+          ticking = false;
+        });
+        ticking = true;
       }
     };
 
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     handleScroll(); // Check initial position
 
     return () => window.removeEventListener('scroll', handleScroll);
@@ -178,20 +187,23 @@ export default function Header({
   }, [isProfileDropdownOpen]);
 
 
-  // Logo component
-  const Logo = () => (
+  // Logo component - Memoized
+  const Logo = memo(() => (
     <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-      <div className="w-10 h-10 bg-transparent rounded-lg flex items-center justify-center">
-        <img
-          alt="JCoder"
-          width={400}
-          height={300}
-          src="/images/jcoder-logo.png"
-        />
-      </div>
+      <LazyImage
+        src="/images/jcoder-logo.png"
+        alt="JCoder"
+        fallback="JC"
+        size="custom"
+        width="w-10"
+        height="h-10"
+        rounded="rounded-lg"
+        showSkeleton={false}
+        rootMargin="0px"
+      />
       <span className="text-xl font-semibold text-jcoder-foreground">JCoder</span>
     </Link>
-  );
+  ));
 
   // Profile section for desktop
   const DesktopProfileSection = () => (
@@ -208,10 +220,17 @@ export default function Header({
           aria-label="Profile menu"
           title="Profile menu"
         >
-          <img
+          <LazyImage
             src="/images/profile_picture.jpeg"
             alt="Profile"
-            className="w-full h-full object-cover"
+            fallback="JP"
+            size="custom"
+            width="w-full"
+            height="h-full"
+            rounded="rounded-full"
+            objectFit="object-cover"
+            showSkeleton={false}
+            rootMargin="0px"
           />
         </button>
 
@@ -335,10 +354,17 @@ export default function Header({
           aria-label="Profile menu"
           title="Profile menu"
         >
-          <img
+          <LazyImage
             src="/images/profile_picture.jpeg"
             alt="Profile"
-            className="w-full h-full object-cover"
+            fallback="JP"
+            size="custom"
+            width="w-full"
+            height="h-full"
+            rounded="rounded-full"
+            objectFit="object-cover"
+            showSkeleton={false}
+            rootMargin="0px"
           />
         </button>
 
@@ -652,10 +678,17 @@ export default function Header({
           aria-label="Profile menu"
           title="Profile menu"
         >
-          <img
+          <LazyImage
             src="/images/profile_picture.jpeg"
             alt="Profile"
-            className="w-full h-full object-cover"
+            fallback="JP"
+            size="custom"
+            width="w-full"
+            height="h-full"
+            rounded="rounded-full"
+            objectFit="object-cover"
+            showSkeleton={false}
+            rootMargin="0px"
           />
         </button>
 

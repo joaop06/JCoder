@@ -23,14 +23,24 @@ const ApplicationImagesGallery: React.FC<ApplicationImagesGalleryProps> = ({
     const [isMobile, setIsMobile] = useState<boolean>(false);
 
     React.useEffect(() => {
+        let timeoutId: NodeJS.Timeout;
+
         const checkMobile = () => {
             setIsMobile(window.innerWidth < 640); // sm breakpoint
         };
 
-        checkMobile();
-        window.addEventListener('resize', checkMobile);
+        const debouncedCheckMobile = () => {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(checkMobile, 150); // Debounce 150ms
+        };
 
-        return () => window.removeEventListener('resize', checkMobile);
+        checkMobile();
+        window.addEventListener('resize', debouncedCheckMobile, { passive: true });
+
+        return () => {
+            clearTimeout(timeoutId);
+            window.removeEventListener('resize', debouncedCheckMobile);
+        };
     }, []);
 
     const INITIAL_IMAGE_LIMIT = isMobile ? INITIAL_IMAGE_LIMIT_MOBILE : INITIAL_IMAGE_LIMIT_WEB;
@@ -261,12 +271,17 @@ const ApplicationImagesGallery: React.FC<ApplicationImagesGalleryProps> = ({
                         )}
 
                         {/* Image */}
-                        <div className="relative">
-                            <img
+                        <div className="relative" onClick={(e) => e.stopPropagation()}>
+                            <LazyImage
                                 src={getImageUrl(images[selectedImageIndex])}
                                 alt={`Application image ${selectedImageIndex + 1}`}
-                                className="max-w-full max-h-[80vh] object-contain rounded-lg shadow-2xl"
-                                onClick={(e) => e.stopPropagation()}
+                                fallback={`Image ${selectedImageIndex + 1}`}
+                                className="rounded-lg shadow-2xl"
+                                size="custom"
+                                width="max-w-full"
+                                height="max-h-[80vh]"
+                                objectFit="object-contain"
+                                rootMargin="0px"
                             />
                         </div>
 

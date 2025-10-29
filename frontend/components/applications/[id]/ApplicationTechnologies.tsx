@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { Technology } from '@/types/entities/technology.entity';
 import { TechnologiesService } from '@/services/technologies.service';
 import { ExpertiseLevel } from '@/types/enums/expertise-level.enum';
+import LazyImage from '@/components/ui/LazyImage';
 
 interface ApplicationTechnologiesProps {
     technologies: Technology[];
@@ -59,8 +60,7 @@ interface TechnologyCardProps {
     technology: Technology;
 }
 
-function TechnologyCard({ technology }: TechnologyCardProps) {
-    const [imageError, setImageError] = useState(false);
+const TechnologyCard = memo(({ technology }: TechnologyCardProps) => {
     const imageUrl = TechnologiesService.getProfileImageUrl(technology.id);
 
     return (
@@ -70,12 +70,16 @@ function TechnologyCard({ technology }: TechnologyCardProps) {
         >
             {/* Technology Image */}
             <div className="w-16 h-16 mb-3 bg-jcoder-secondary rounded-lg flex items-center justify-center p-2 group-hover:bg-jcoder-gradient/10 transition-colors">
-                {technology.profileImage && !imageError ? (
-                    <img
+                {technology.profileImage ? (
+                    <LazyImage
                         src={imageUrl}
                         alt={technology.name}
-                        className="w-full h-full object-contain"
-                        onError={() => setImageError(true)}
+                        fallback={technology.name.substring(0, 2)}
+                        size="custom"
+                        width="w-full"
+                        height="h-full"
+                        objectFit="object-contain"
+                        rootMargin="100px"
                     />
                 ) : (
                     <svg className="w-8 h-8 text-jcoder-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -97,5 +101,7 @@ function TechnologyCard({ technology }: TechnologyCardProps) {
             </span>
         </div>
     );
-}
+});
+
+TechnologyCard.displayName = 'TechnologyCard';
 

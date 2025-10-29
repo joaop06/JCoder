@@ -2,6 +2,7 @@
 
 import { useSmoothScroll } from '@/hooks/useSmoothScroll';
 import { GitHubIcon } from '@/components/theme';
+import LazyImage from './ui/LazyImage';
 
 export default function Footer() {
   const { scrollToElement } = useSmoothScroll();
@@ -14,10 +15,14 @@ export default function Footer() {
             {/* Brand */}
             <div className="text-center">
               <div className="flex items-center justify-center gap-2 mb-4">
-                <img
+                <LazyImage
                   src="/images/jcoder-logo.png"
                   alt="JCoder"
-                  className="w-8 h-8"
+                  fallback="JC"
+                  size="custom"
+                  width="w-8"
+                  height="h-8"
+                  showSkeleton={false}
                 />
                 <span className="text-xl font-semibold text-jcoder-foreground">JCoder</span>
               </div>
@@ -62,7 +67,15 @@ export default function Footer() {
               <h3 className="font-semibold text-jcoder-foreground mb-4">Contact</h3>
               <div className="space-y-2">
                 <a href="mailto:joaopedroborges@gmail.com" className="flex items-center justify-center gap-2 text-sm text-jcoder-muted hover:text-jcoder-primary transition-colors">
-                  <img src="/icons/gmail.png" alt="Gmail" className="w-4 h-4" />
+                  <LazyImage
+                    src="/icons/gmail.png"
+                    alt="Gmail"
+                    fallback="@"
+                    size="custom"
+                    width="w-4"
+                    height="h-4"
+                    showSkeleton={false}
+                  />
                   joaopedroborges@gmail.com
                 </a>
                 <a href="https://github.com/joaop06" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 text-sm text-jcoder-muted hover:text-jcoder-primary transition-colors">
@@ -70,7 +83,15 @@ export default function Footer() {
                   GitHub
                 </a>
                 <a href="https://www.linkedin.com/in/jo%C3%A3o-pedro-borges-ara%C3%BAjo-9a134116b " target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 text-sm text-jcoder-muted hover:text-jcoder-primary transition-colors">
-                  <img src="/icons/linkedin.png" alt="LinkedIn" className="w-4 h-4 dark" />
+                  <LazyImage
+                    src="/icons/linkedin.png"
+                    alt="LinkedIn"
+                    fallback="Li"
+                    size="custom"
+                    width="w-4"
+                    height="h-4"
+                    showSkeleton={false}
+                  />
                   LinkedIn
                 </a>
               </div>
@@ -82,10 +103,14 @@ export default function Footer() {
             {/* Brand */}
             <div className="text-center mb-6">
               <div className="flex items-center justify-center gap-2 mb-4">
-                <img
+                <LazyImage
                   src="/images/jcoder-logo.png"
                   alt="JCoder"
-                  className="w-8 h-8"
+                  fallback="JC"
+                  size="custom"
+                  width="w-8"
+                  height="h-8"
+                  showSkeleton={false}
                 />
                 <span className="text-xl font-semibold text-jcoder-foreground">JCoder</span>
               </div>
@@ -132,13 +157,29 @@ export default function Footer() {
                 <h3 className="font-semibold text-jcoder-foreground mb-4">Contact</h3>
                 <div className="flex justify-center gap-4">
                   <a href="mailto:joaopedroborges@gmail.com" className="text-jcoder-muted hover:text-jcoder-primary transition-colors" title="Gmail">
-                    <img src="/icons/gmail.png" alt="Gmail" className="w-7 h-7" />
+                    <LazyImage
+                      src="/icons/gmail.png"
+                      alt="Gmail"
+                      fallback="@"
+                      size="custom"
+                      width="w-7"
+                      height="h-7"
+                      showSkeleton={false}
+                    />
                   </a>
                   <a href="https://github.com/joaop06" target="_blank" rel="noopener noreferrer" className="text-jcoder-muted hover:text-jcoder-primary transition-colors" title="GitHub">
                     <GitHubIcon className="w-7 h-7" />
                   </a>
                   <a href="https://www.linkedin.com/in/jo%C3%A3o-pedro-borges-ara%C3%BAjo-9a134116b " target="_blank" rel="noopener noreferrer" className="text-jcoder-muted hover:text-jcoder-primary transition-colors" title="LinkedIn">
-                    <img src="/icons/linkedin.png" alt="LinkedIn" className="w-7 h-7" />
+                    <LazyImage
+                      src="/icons/linkedin.png"
+                      alt="LinkedIn"
+                      fallback="Li"
+                      size="custom"
+                      width="w-7"
+                      height="h-7"
+                      showSkeleton={false}
+                    />
                   </a>
                 </div>
               </div>

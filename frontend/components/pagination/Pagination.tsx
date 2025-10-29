@@ -57,9 +57,9 @@ export const Pagination: React.FC<PaginationProps> = ({
     }
 
     return (
-        <div className="pagination-container flex flex-col sm:flex-row items-center justify-between gap-4 p-4 bg-white border-t border-gray-300">
+        <div className="pagination-container flex flex-col sm:flex-row items-center justify-between gap-4 p-4 bg-jcoder-card border-t border-jcoder">
             {/* Results info */}
-            <div className="pagination-info text-sm text-gray-700">
+            <div className="pagination-info text-sm text-jcoder-muted">
                 Showing {((page - 1) * limit) + 1} to {Math.min(page * limit, total)} of {total} results
             </div>
 
@@ -68,14 +68,14 @@ export const Pagination: React.FC<PaginationProps> = ({
                 {/* Items per page */}
                 {onLimitChange && (
                     <div className="flex items-center gap-2">
-                        <label htmlFor="limit" className="pagination-label text-sm text-gray-700">
+                        <label htmlFor="limit" className="pagination-label text-sm text-jcoder-muted">
                             Show:
                         </label>
                         <select
                             id="limit"
                             value={limit}
                             onChange={handleLimitChange}
-                            className="pagination-select px-2 py-1 border border-gray-300 rounded text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="pagination-select px-2 py-1 border border-jcoder rounded text-sm bg-jcoder-secondary text-jcoder-foreground focus:outline-none focus:ring-2 focus:ring-jcoder-primary"
                         >
                             <option value={10}>10</option>
                             <option value={20}>20</option>
@@ -89,7 +89,7 @@ export const Pagination: React.FC<PaginationProps> = ({
                 <button
                     onClick={handlePrevious}
                     disabled={!hasPreviousPage}
-                    className="pagination-button px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="pagination-button px-3 py-1 text-sm border border-jcoder rounded bg-jcoder-secondary text-jcoder-foreground hover:bg-jcoder-secondary/80 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                     Previous
                 </button>
@@ -100,9 +100,9 @@ export const Pagination: React.FC<PaginationProps> = ({
                         <button
                             key={pageNum}
                             onClick={() => onPageChange(pageNum)}
-                            className={`pagination-button px-3 py-1 text-sm border rounded ${pageNum === page
-                                ? 'pagination-button-active bg-blue-500 text-white border-blue-500'
-                                : 'border-gray-300 hover:bg-gray-50'
+                            className={`pagination-button px-3 py-1 text-sm border rounded transition-colors ${pageNum === page
+                                ? 'pagination-button-active bg-jcoder-primary text-black border-jcoder-primary'
+                                : 'border-jcoder bg-jcoder-secondary text-jcoder-foreground hover:bg-jcoder-secondary/80'
                                 }`}
                         >
                             {pageNum}
@@ -114,7 +114,7 @@ export const Pagination: React.FC<PaginationProps> = ({
                 <button
                     onClick={handleNext}
                     disabled={!hasNextPage}
-                    className="pagination-button px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="pagination-button px-3 py-1 text-sm border border-jcoder rounded bg-jcoder-secondary text-jcoder-foreground hover:bg-jcoder-secondary/80 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                     Next
                 </button>

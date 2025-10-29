@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, memo } from 'react';
 import { Technology } from '@/types/entities/technology.entity';
 import { TechnologiesService } from '@/services/technologies.service';
+import LazyImage from '@/components/ui/LazyImage';
 
 interface TechnologySelectorProps {
     selectedTechnologyIds: number[];
@@ -108,11 +109,15 @@ export default function TechnologySelector({
                                 >
                                     {/* Só renderiza a imagem se não houve erro ao carregar */}
                                     {hasImage && (
-                                        <img
+                                        <LazyImage
                                             src={TechnologiesService.getProfileImageUrl(tech.id)}
                                             alt={tech.name}
-                                            className={`object-contain ${showImageOnly ? 'w-6 h-6 md:w-5 md:h-5' : 'w-5 h-5'
-                                                }`}
+                                            fallback={tech.name.substring(0, 2)}
+                                            size="custom"
+                                            width={showImageOnly ? 'w-6 md:w-5' : 'w-5'}
+                                            height={showImageOnly ? 'h-6 md:h-5' : 'h-5'}
+                                            objectFit="object-contain"
+                                            showSkeleton={false}
                                             onError={() => handleImageError(tech.id)}
                                         />
                                     )}
@@ -224,13 +229,17 @@ export default function TechnologySelector({
 
                                                 {/* Technology Image */}
                                                 {tech.profileImage && (
-                                                    <img
+                                                    <LazyImage
                                                         src={TechnologiesService.getProfileImageUrl(tech.id)}
                                                         alt={tech.name}
-                                                        className="w-8 h-8 object-contain rounded"
-                                                        onError={(e) => {
-                                                            e.currentTarget.style.display = 'none';
-                                                        }}
+                                                        fallback={tech.name.substring(0, 2)}
+                                                        size="custom"
+                                                        width="w-8"
+                                                        height="h-8"
+                                                        rounded="rounded"
+                                                        objectFit="object-contain"
+                                                        showSkeleton={false}
+                                                        onError={() => { }}
                                                     />
                                                 )}
 
