@@ -6,6 +6,7 @@ export interface User {
     name?: string;
     email: string;
     role: RoleEnum;
+    profileImage?: string | null;
     createdAt: Date;
     updatedAt: Date;
     deletedAt?: Date;
