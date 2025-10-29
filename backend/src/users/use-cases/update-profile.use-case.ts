@@ -5,6 +5,7 @@ import { UsersService } from "../users.service";
 import { UpdateProfileDto } from "../dto/update-profile.dto";
 import { InvalidCurrentPasswordException } from "../exceptions/invalid-current-password.exception";
 import { EmailAlreadyExistsException } from "../exceptions/email-already-exists.exception";
+import { UsernameAlreadyExistsException } from "../exceptions/username-already-exists.exception";
 
 @Injectable()
 export class UpdateProfileUseCase {
@@ -41,8 +42,20 @@ export class UpdateProfileUseCase {
         }
 
         // Update other fields
+        if (updateProfileDto.firstName !== undefined) {
+            user.firstName = updateProfileDto.firstName;
+        }
+
         if (updateProfileDto.name !== undefined) {
             user.name = updateProfileDto.name;
+        }
+
+        if (updateProfileDto.githubUrl !== undefined) {
+            user.githubUrl = updateProfileDto.githubUrl;
+        }
+
+        if (updateProfileDto.linkedinUrl !== undefined) {
+            user.linkedinUrl = updateProfileDto.linkedinUrl;
         }
 
         return await this.usersService.update(user);

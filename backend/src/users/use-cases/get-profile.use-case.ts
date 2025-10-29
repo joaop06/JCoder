@@ -8,8 +8,7 @@ export class GetProfileUseCase {
         private readonly usersService: UsersService,
     ) { }
 
-    async execute(userId: number): Promise<User> {
-        return await this.usersService.findById(userId);
+    async execute(userId: number, includeComponents: boolean = true): Promise<User> {
+        return await this.usersService.findById(userId, includeComponents);
     }
 };
-

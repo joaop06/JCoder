@@ -11,8 +11,24 @@ export class UsersService {
         private readonly repository: Repository<User>,
     ) { }
 
-    async findById(id: number): Promise<User> {
-        const user = await this.repository.findOneBy({ id });
+    async findById(id: number, includeComponents: boolean = false): Promise<User> {
+        const user = await this.repository.findOne({
+            where: { id },
+            relations: includeComponents ? {
+                userComponentAboutMe: {
+                    highlights: true,
+                },
+                userComponentEducation: {
+                    certificates: true,
+                },
+                userComponentExperience: {
+                    positions: true,
+                },
+                userComponentCertificate: {
+                    educations: true,
+                },
+            } : {},
+        });
         if (!user) throw new UserNotFoundException();
 
         return user;
@@ -23,6 +39,18 @@ export class UsersService {
         if (!user) throw new UserNotFoundException();
 
         return user;
+    }
+
+    async findByUsername(username: string): Promise<User> {
+        const user = await this.repository.findOneBy({ username });
+        if (!user) throw new UserNotFoundException();
+
+        return user;
+    }
+
+    async usernameExists(username: string): Promise<boolean> {
+        const user = await this.repository.findOneBy({ username });
+        return !!user;
     }
 
     async emailExists(email: string): Promise<boolean> {
