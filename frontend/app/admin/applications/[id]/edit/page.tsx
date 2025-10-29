@@ -11,6 +11,7 @@ import TechnologySelector from '@/components/applications/TechnologySelector';
 import { ApplicationService } from '@/services/applications.service';
 import { ApplicationTypeEnum } from '@/types/enums/application-type.enum';
 import { UpdateApplicationDto } from '@/types/entities/dtos/update-application.dto';
+import { LazyImage, TableSkeleton } from '@/components/ui';
 
 export default function EditApplicationPage() {
     const router = useRouter();
@@ -214,8 +215,13 @@ export default function EditApplicationPage() {
                 <Header isAdmin={true} onLogout={() => router.push('/')} />
                 <main className="flex-1 container mx-auto px-4 py-12 pt-24">
                     <div className="max-w-4xl mx-auto">
-                        <h1 className="text-3xl font-bold text-jcoder-foreground mb-2">Loading Application...</h1>
-                        <p className="text-jcoder-muted">Please wait while we load the application details.</p>
+                        <div className="mb-8">
+                            <div className="h-8 w-48 bg-jcoder-secondary rounded-lg mb-2 animate-pulse"></div>
+                            <div className="h-4 w-64 bg-jcoder-secondary rounded-lg animate-pulse"></div>
+                        </div>
+                        <div className="bg-jcoder-card border border-jcoder rounded-lg p-6">
+                            <TableSkeleton />
+                        </div>
                     </div>
                 </main>
                 <Footer />
@@ -596,10 +602,14 @@ export default function EditApplicationPage() {
                                                     className="w-20 h-20 rounded-lg object-cover border border-jcoder"
                                                 />
                                             ) : profileImage ? (
-                                                <img
+                                                <LazyImage
                                                     src={ApplicationService.getProfileImageUrl(Number(applicationId))}
                                                     alt="Current profile"
-                                                    className="w-20 h-20 rounded-lg object-cover border border-jcoder"
+                                                    fallback={formData.name!}
+                                                    className="border border-jcoder object-cover"
+                                                    size="custom"
+                                                    width="w-20"
+                                                    height="h-20"
                                                 />
                                             ) : (
                                                 <div className="w-20 h-20 rounded-lg border-2 border-dashed border-jcoder flex items-center justify-center bg-jcoder-secondary">
