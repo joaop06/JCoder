@@ -3,7 +3,6 @@
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
 import { useRouter } from 'next/navigation';
-import { UsersService } from '@/services/users.service';
 import { useState, useEffect, useCallback } from 'react';
 import { useToast } from '@/components/toast/ToastContext';
 import ImageUpload from '@/components/applications/ImageUpload';
@@ -11,12 +10,14 @@ import TechnologySelector from '@/components/applications/TechnologySelector';
 import { ApplicationService } from '@/services/applications.service';
 import { ApplicationTypeEnum } from '@/types/enums/application-type.enum';
 import { CreateApplicationDto } from '@/types/entities/dtos/create-application.dto';
+import { LazyImage, TableSkeleton } from '@/components/ui';
 
 export default function NewApplicationPage() {
     const router = useRouter();
 
     const [loading, setLoading] = useState(false);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [checkingAuth, setCheckingAuth] = useState(true);
     const [formError, setFormError] = useState<string | null>(null);
     const [formData, setFormData] = useState<CreateApplicationDto>({
         name: '',
@@ -37,6 +38,7 @@ export default function NewApplicationPage() {
             return;
         }
         setIsAuthenticated(true);
+        setCheckingAuth(false);
     }, [router]);
 
     const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -169,8 +171,24 @@ export default function NewApplicationPage() {
         }
     }, [formData, images, profileImageFile, router, toast]);
 
-    if (!isAuthenticated) {
-        return null;
+    if (checkingAuth || !isAuthenticated) {
+        return (
+            <div className="min-h-screen flex flex-col bg-background">
+                <Header isAdmin={true} onLogout={() => router.push('/')} />
+                <main className="flex-1 container mx-auto px-4 py-12 pt-24">
+                    <div className="max-w-4xl mx-auto">
+                        <div className="mb-8">
+                            <div className="h-8 w-48 bg-jcoder-secondary rounded-lg mb-2 animate-pulse"></div>
+                            <div className="h-4 w-64 bg-jcoder-secondary rounded-lg animate-pulse"></div>
+                        </div>
+                        <div className="bg-jcoder-card border border-jcoder rounded-lg p-6">
+                            <TableSkeleton />
+                        </div>
+                    </div>
+                </main>
+                <Footer />
+            </div>
+        );
     }
 
     return (
