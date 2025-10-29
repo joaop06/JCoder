@@ -7,6 +7,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useToast } from '@/components/toast/ToastContext';
 import { UsersService } from '@/services/users.service';
 import { User } from '@/types/entities/user.entity';
+import { TableSkeleton } from '@/components/ui';
 
 export default function ProfileManagementPage() {
     const router = useRouter();
@@ -14,6 +15,7 @@ export default function ProfileManagementPage() {
 
     const [loading, setLoading] = useState(true);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [checkingAuth, setCheckingAuth] = useState(true);
     const [user, setUser] = useState<User | null>(null);
     const [isEditing, setIsEditing] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
@@ -39,44 +41,44 @@ export default function ProfileManagementPage() {
             return;
         }
         setIsAuthenticated(true);
+        setCheckingAuth(false);
     }, [router]);
+
+    const loadUserProfile = useCallback(() => {
+        setLoading(true);
+        try {
+            const userData = UsersService.getUserStorage();
+            if (!userData) {
+                toast.error('Failed to load profile. Please try again.');
+                handleLogout();
+                return;
+            }
+            setUser(userData);
+            setFormData({
+                name: userData.name || '',
+                email: userData.email || '',
+                currentPassword: '',
+                newPassword: '',
+                confirmPassword: '',
+            });
+        } catch (err: any) {
+            toast.error('Failed to load profile. Please try again.');
+        } finally {
+            setLoading(false);
+        }
+    }, [toast, handleLogout]);
 
     useEffect(() => {
         if (!isAuthenticated) return;
-
-        const loadUserProfile = () => {
-            setLoading(true);
-            try {
-                const userData = UsersService.getUserStorage();
-                if (!userData) {
-                    toast.error('Failed to load profile. Please try again.');
-                    handleLogout();
-                    return;
-                }
-                setUser(userData);
-                setFormData({
-                    name: userData.name || '',
-                    email: userData.email || '',
-                    currentPassword: '',
-                    newPassword: '',
-                    confirmPassword: '',
-                });
-            } catch (err: any) {
-                toast.error('Failed to load profile. Please try again.');
-            } finally {
-                setLoading(false);
-            }
-        };
-
         loadUserProfile();
-    }, [isAuthenticated, handleLogout]);
+    }, [isAuthenticated, loadUserProfile]);
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
-    };
+    }, []);
 
-    const handleSaveProfile = async () => {
+    const handleSaveProfile = useCallback(async () => {
         if (!user) return;
 
         // Validate password change if attempting to change password
@@ -126,9 +128,9 @@ export default function ProfileManagementPage() {
         } finally {
             setIsSaving(false);
         }
-    };
+    }, [user, formData, toast]);
 
-    const handleCancelEdit = () => {
+    const handleCancelEdit = useCallback(() => {
         if (user) {
             setFormData({
                 name: user.name || '',
@@ -139,10 +141,38 @@ export default function ProfileManagementPage() {
             });
         }
         setIsEditing(false);
-    };
+    }, [user]);
 
-    if (!isAuthenticated || loading) {
-        return null;
+    if (checkingAuth || !isAuthenticated || loading) {
+        return (
+            <div className="min-h-screen flex flex-col bg-background">
+                <Header isAdmin={true} onLogout={handleLogout} />
+                <main className="flex-1 container mx-auto px-4 pt-24 pb-12">
+                    <div className="max-w-4xl mx-auto">
+                        <div className="mb-8">
+                            <div className="h-10 w-64 bg-jcoder-secondary rounded-lg mb-2 animate-pulse"></div>
+                            <div className="h-4 w-96 bg-jcoder-secondary rounded-lg animate-pulse"></div>
+                        </div>
+                        <div className="bg-jcoder-card border border-jcoder rounded-lg overflow-hidden">
+                            <div className="bg-gradient-to-r from-purple-500 to-pink-500 h-32 animate-pulse"></div>
+                            <div className="px-8 pb-8">
+                                <div className="flex items-end gap-4 -mt-16 mb-8">
+                                    <div className="w-32 h-32 bg-jcoder-secondary border-4 border-jcoder-card rounded-full animate-pulse"></div>
+                                    <div className="mb-4">
+                                        <div className="h-8 w-48 bg-jcoder-secondary rounded-lg mb-2 animate-pulse"></div>
+                                        <div className="h-4 w-64 bg-jcoder-secondary rounded-lg animate-pulse"></div>
+                                    </div>
+                                </div>
+                                <div className="p-6">
+                                    <TableSkeleton />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+                <Footer />
+            </div>
+        );
     }
 
     return (
