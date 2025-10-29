@@ -1,10 +1,10 @@
 import {
+    IsDate,
+    IsEnum,
     IsString,
+    IsBoolean,
     IsNotEmpty,
     IsOptional,
-    IsDate,
-    IsBoolean,
-    IsEnum,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
@@ -15,8 +15,8 @@ export class UserComponentExperiencePositionDto {
         type: 'string',
         required: true,
         nullable: false,
-        example: 'Senior Software Engineer',
         description: 'Job position title',
+        example: 'Senior Software Engineer',
     })
     @IsNotEmpty()
     @IsString()
@@ -67,13 +67,12 @@ export class UserComponentExperiencePositionDto {
     location?: string;
 
     @ApiPropertyOptional({
-        enum: WorkLocationTypeEnum,
         nullable: true,
-        example: WorkLocationTypeEnum.REMOTE,
+        enum: WorkLocationTypeEnum,
         description: 'Work location type',
+        example: WorkLocationTypeEnum.REMOTE,
     })
     @IsOptional()
     @IsEnum(WorkLocationTypeEnum)
     locationType?: WorkLocationTypeEnum;
 };
-

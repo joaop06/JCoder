@@ -55,14 +55,14 @@ export class UserComponentsRepository {
         });
     }
 
-    async deleteAboutMeHighlights(userId: number): Promise<void> {
-        await this.aboutMeHighlightRepository.delete({ userId });
+    async deleteAboutMeHighlights(aboutMeId: number): Promise<void> {
+        await this.aboutMeHighlightRepository.delete({ aboutMeId });
     }
 
-    async createAboutMeHighlight(userId: number, data: Partial<UserComponentAboutMeHighlight>): Promise<UserComponentAboutMeHighlight> {
+    async createAboutMeHighlight(aboutMeId: number, data: Partial<UserComponentAboutMeHighlight>): Promise<UserComponentAboutMeHighlight> {
         const highlight = this.aboutMeHighlightRepository.create({
             ...data,
-            userId,
+            aboutMeId,
         });
         return await this.aboutMeHighlightRepository.save(highlight);
     }
@@ -92,14 +92,14 @@ export class UserComponentsRepository {
         return await this.educationRepository.save(education);
     }
 
-    async updateEducation(id: number, data: Partial<UserComponentEducation>): Promise<UserComponentEducation> {
-        await this.educationRepository.update({ id }, data);
-        return await this.educationRepository.findOne({ where: { id } });
+    async updateEducation(userId: number, data: Partial<UserComponentEducation>): Promise<UserComponentEducation> {
+        await this.educationRepository.update({ userId }, data);
+        return await this.educationRepository.findOne({ where: { userId } });
     }
 
-    async findEducationById(id: number): Promise<UserComponentEducation | null> {
+    async findEducationById(userId: number): Promise<UserComponentEducation | null> {
         return await this.educationRepository.findOne({
-            where: { id },
+            where: { userId },
             relations: ['certificates'],
         });
     }
@@ -127,14 +127,14 @@ export class UserComponentsRepository {
         return await this.experienceRepository.save(experience);
     }
 
-    async updateExperience(id: number, data: Partial<UserComponentExperience>): Promise<UserComponentExperience> {
-        await this.experienceRepository.update({ id }, data);
-        return await this.experienceRepository.findOne({ where: { id } });
+    async updateExperience(userId: number, data: Partial<UserComponentExperience>): Promise<UserComponentExperience> {
+        await this.experienceRepository.update({ userId }, data);
+        return await this.experienceRepository.findOne({ where: { userId } });
     }
 
-    async findExperienceById(id: number): Promise<UserComponentExperience | null> {
+    async findExperienceById(userId: number): Promise<UserComponentExperience | null> {
         return await this.experienceRepository.findOne({
-            where: { id },
+            where: { userId },
             relations: ['positions'],
         });
     }
@@ -187,14 +187,14 @@ export class UserComponentsRepository {
         return await this.certificateRepository.save(certificate);
     }
 
-    async updateCertificate(id: number, data: Partial<UserComponentCertificate>): Promise<UserComponentCertificate> {
-        await this.certificateRepository.update({ id }, data);
-        return await this.certificateRepository.findOne({ where: { id } });
+    async updateCertificate(userId: number, data: Partial<UserComponentCertificate>): Promise<UserComponentCertificate> {
+        await this.certificateRepository.update({ userId }, data);
+        return await this.certificateRepository.findOne({ where: { userId } });
     }
 
-    async findCertificateById(id: number): Promise<UserComponentCertificate | null> {
+    async findCertificateById(userId: number): Promise<UserComponentCertificate | null> {
         return await this.certificateRepository.findOne({
-            where: { id },
+            where: { userId },
             relations: ['educations'],
         });
     }
@@ -215,7 +215,7 @@ export class UserComponentsRepository {
         if (!certificate) return;
 
         const educations = educationIds.length > 0
-            ? await this.educationRepository.find({ where: { id: In(educationIds) } })
+            ? await this.educationRepository.find({ where: { userId: In(educationIds) } })
             : [];
 
         certificate.educations = educations;

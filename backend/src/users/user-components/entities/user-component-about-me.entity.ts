@@ -5,9 +5,6 @@ import {
     OneToMany,
     JoinColumn,
     PrimaryColumn,
-    CreateDateColumn,
-    DeleteDateColumn,
-    UpdateDateColumn,
 } from 'typeorm';
 import { User } from '../../entities/user.entity';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
@@ -58,38 +55,13 @@ export class UserComponentAboutMe {
     description?: string;
 
     @ApiPropertyOptional({
+        isArray: true,
         nullable: true,
-        type: () => [UserComponentAboutMeHighlight],
         description: 'Highlights/achievements',
+        type: () => UserComponentAboutMeHighlight,
     })
     @OneToMany(() => UserComponentAboutMeHighlight, (highlight) => highlight.aboutMe, {
         cascade: true,
     })
     highlights?: UserComponentAboutMeHighlight[];
-
-    @ApiProperty({
-        nullable: false,
-        type: () => Date,
-        example: new Date(),
-    })
-    @CreateDateColumn()
-    createdAt: Date;
-
-    @ApiProperty({
-        nullable: false,
-        type: () => Date,
-        example: new Date(),
-    })
-    @UpdateDateColumn()
-    updatedAt: Date;
-
-    @ApiProperty({
-        example: null,
-        nullable: true,
-        required: false,
-        type: () => Date,
-    })
-    @DeleteDateColumn()
-    deletedAt?: Date;
 };
-

@@ -1,9 +1,9 @@
 import {
+    IsDate,
     IsString,
+    IsBoolean,
     IsNotEmpty,
     IsOptional,
-    IsDate,
-    IsBoolean,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
@@ -75,4 +75,3 @@ export class UserComponentEducationDto {
     @IsBoolean()
     isCurrentlyStudying?: boolean;
 };
-

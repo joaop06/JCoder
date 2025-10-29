@@ -1,9 +1,9 @@
 import {
+    IsArray,
     IsString,
     IsNotEmpty,
     IsOptional,
     ValidateNested,
-    IsArray,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
@@ -22,8 +22,9 @@ export class UserComponentExperienceDto {
     companyName!: string;
 
     @ApiPropertyOptional({
+        isArray: true,
         nullable: true,
-        type: () => [UserComponentExperiencePositionDto],
+        type: () => UserComponentExperiencePositionDto,
         description: 'Positions held at this company',
     })
     @IsOptional()
@@ -32,4 +33,3 @@ export class UserComponentExperienceDto {
     @Type(() => UserComponentExperiencePositionDto)
     positions?: UserComponentExperiencePositionDto[];
 };
-

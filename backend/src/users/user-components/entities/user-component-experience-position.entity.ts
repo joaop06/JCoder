@@ -3,9 +3,6 @@ import {
     Entity,
     ManyToOne,
     JoinColumn,
-    CreateDateColumn,
-    DeleteDateColumn,
-    UpdateDateColumn,
     PrimaryGeneratedColumn,
 } from 'typeorm';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
@@ -18,6 +15,7 @@ export class UserComponentExperiencePosition {
         example: 1,
         type: 'number',
         nullable: false,
+        description: 'ID',
     })
     @PrimaryGeneratedColumn()
     id: number;
@@ -34,7 +32,7 @@ export class UserComponentExperiencePosition {
     @ManyToOne(() => UserComponentExperience, (experience) => experience.positions, {
         onDelete: 'CASCADE',
     })
-    @JoinColumn({ name: 'experienceId' })
+    @JoinColumn({ name: 'experienceId', referencedColumnName: 'userId' })
     experience: UserComponentExperience;
 
     @ApiProperty({
@@ -95,30 +93,4 @@ export class UserComponentExperiencePosition {
         nullable: true,
     })
     locationType?: WorkLocationTypeEnum;
-
-    @ApiProperty({
-        nullable: false,
-        type: () => Date,
-        example: new Date(),
-    })
-    @CreateDateColumn()
-    createdAt: Date;
-
-    @ApiProperty({
-        nullable: false,
-        type: () => Date,
-        example: new Date(),
-    })
-    @UpdateDateColumn()
-    updatedAt: Date;
-
-    @ApiProperty({
-        example: null,
-        nullable: true,
-        required: false,
-        type: () => Date,
-    })
-    @DeleteDateColumn()
-    deletedAt?: Date;
 };
-

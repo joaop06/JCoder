@@ -110,10 +110,10 @@ export class UserComponentsService {
 
         if (dto.positions && dto.positions.length > 0) {
             this.validateExperiencePositions(dto.positions);
-            await this.repository.saveExperiencePositions(experience.id, dto.positions);
+            await this.repository.saveExperiencePositions(experience.userId, dto.positions);
         }
 
-        return await this.repository.findExperienceById(experience.id);
+        return await this.repository.findExperienceById(experience.userId);
     }
 
     async updateExperience(id: number, dto: UpdateUserComponentExperienceDto) {
@@ -153,10 +153,10 @@ export class UserComponentsService {
         });
 
         if (dto.educationIds && dto.educationIds.length > 0) {
-            await this.repository.setCertificateEducations(certificate.id, dto.educationIds);
+            await this.repository.setCertificateEducations(certificate.userId, dto.educationIds);
         }
 
-        return await this.repository.findCertificateById(certificate.id);
+        return await this.repository.findCertificateById(certificate.userId);
     }
 
     async updateCertificate(id: number, dto: UpdateUserComponentCertificateDto) {

@@ -5,4 +5,3 @@ export class EmailAlreadyExistsException extends ConflictException {
         super('Email already exists');
     }
 };
-

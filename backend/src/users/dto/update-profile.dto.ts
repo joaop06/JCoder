@@ -76,4 +76,3 @@ export class UpdateProfileDto {
     @MinLength(6)
     declare newPassword?: string;
 };
-

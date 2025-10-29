@@ -3,9 +3,8 @@ import { Injectable } from "@nestjs/common";
 import { User } from "../entities/user.entity";
 import { UsersService } from "../users.service";
 import { UpdateProfileDto } from "../dto/update-profile.dto";
-import { InvalidCurrentPasswordException } from "../exceptions/invalid-current-password.exception";
 import { EmailAlreadyExistsException } from "../exceptions/email-already-exists.exception";
-import { UsernameAlreadyExistsException } from "../exceptions/username-already-exists.exception";
+import { InvalidCurrentPasswordException } from "../exceptions/invalid-current-password.exception";
 
 @Injectable()
 export class UpdateProfileUseCase {
@@ -61,4 +60,3 @@ export class UpdateProfileUseCase {
         return await this.usersService.update(user);
     }
 };
-

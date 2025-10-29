@@ -2,13 +2,10 @@ import {
     Column,
     Entity,
     ManyToOne,
-    ManyToMany,
     JoinTable,
     JoinColumn,
-    CreateDateColumn,
-    DeleteDateColumn,
-    UpdateDateColumn,
-    PrimaryGeneratedColumn,
+    ManyToMany,
+    PrimaryColumn,
 } from 'typeorm';
 import { User } from '../../entities/user.entity';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
@@ -20,17 +17,9 @@ export class UserComponentCertificate {
         example: 1,
         type: 'number',
         nullable: false,
-    })
-    @PrimaryGeneratedColumn()
-    id: number;
-
-    @ApiProperty({
-        example: 1,
-        type: 'number',
-        nullable: false,
         description: 'Linked user ID',
     })
-    @Column()
+    @PrimaryColumn()
     userId: number;
 
     @ManyToOne(() => User, (user) => user.userComponentCertificate, {
@@ -42,8 +31,8 @@ export class UserComponentCertificate {
     @ApiProperty({
         type: 'string',
         nullable: false,
-        example: 'AWS Certified Solutions Architect',
         description: 'Certificate name',
+        example: 'AWS Certified Solutions Architect',
     })
     @Column({ nullable: false })
     certificateName: string;
@@ -60,8 +49,8 @@ export class UserComponentCertificate {
     @ApiPropertyOptional({
         nullable: true,
         type: 'string',
-        example: 'https://verify.credential.com/certificate/123456',
         description: 'URL to verify certificate authenticity',
+        example: 'https://verify.credential.com/certificate/123456',
     })
     @Column({ nullable: true })
     verificationUrl?: string;
@@ -94,8 +83,9 @@ export class UserComponentCertificate {
     profileImage?: string;
 
     @ApiPropertyOptional({
+        isArray: true,
         nullable: true,
-        type: () => [UserComponentEducation],
+        type: () => UserComponentEducation,
         description: 'Related education records (ManyToMany relationship)',
     })
     @ManyToMany(() => UserComponentEducation, (education) => education.certificates, {
@@ -103,34 +93,8 @@ export class UserComponentCertificate {
     })
     @JoinTable({
         name: 'users_certificates_educations',
-        joinColumn: { name: 'certificateId', referencedColumnName: 'id' },
-        inverseJoinColumn: { name: 'educationId', referencedColumnName: 'id' },
+        joinColumn: { name: 'certificateId', referencedColumnName: 'userId' },
+        inverseJoinColumn: { name: 'educationId', referencedColumnName: 'userId' },
     })
     educations?: UserComponentEducation[];
-
-    @ApiProperty({
-        nullable: false,
-        type: () => Date,
-        example: new Date(),
-    })
-    @CreateDateColumn()
-    createdAt: Date;
-
-    @ApiProperty({
-        nullable: false,
-        type: () => Date,
-        example: new Date(),
-    })
-    @UpdateDateColumn()
-    updatedAt: Date;
-
-    @ApiProperty({
-        example: null,
-        nullable: true,
-        required: false,
-        type: () => Date,
-    })
-    @DeleteDateColumn()
-    deletedAt?: Date;
 };
-

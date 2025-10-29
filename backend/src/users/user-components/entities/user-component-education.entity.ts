@@ -4,10 +4,7 @@ import {
     ManyToOne,
     ManyToMany,
     JoinColumn,
-    PrimaryGeneratedColumn,
-    CreateDateColumn,
-    UpdateDateColumn,
-    DeleteDateColumn,
+    PrimaryColumn,
 } from 'typeorm';
 import { User } from '../../entities/user.entity';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
@@ -19,17 +16,9 @@ export class UserComponentEducation {
         example: 1,
         type: 'number',
         nullable: false,
-    })
-    @PrimaryGeneratedColumn()
-    id: number;
-
-    @ApiProperty({
-        example: 1,
-        type: 'number',
-        nullable: false,
         description: 'Linked user ID',
     })
-    @Column()
+    @PrimaryColumn()
     userId: number;
 
     @ManyToOne(() => User, (user) => user.userComponentEducation, {
@@ -94,36 +83,11 @@ export class UserComponentEducation {
     isCurrentlyStudying: boolean;
 
     @ApiPropertyOptional({
+        isArray: true,
         nullable: true,
-        type: () => [UserComponentCertificate],
+        type: () => UserComponentCertificate,
         description: 'Related certificates (ManyToMany relationship)',
     })
     @ManyToMany(() => UserComponentCertificate, (certificate) => certificate.educations)
     certificates?: UserComponentCertificate[];
-
-    @ApiProperty({
-        nullable: false,
-        type: () => Date,
-        example: new Date(),
-    })
-    @CreateDateColumn()
-    createdAt: Date;
-
-    @ApiProperty({
-        nullable: false,
-        type: () => Date,
-        example: new Date(),
-    })
-    @UpdateDateColumn()
-    updatedAt: Date;
-
-    @ApiProperty({
-        example: null,
-        nullable: true,
-        required: false,
-        type: () => Date,
-    })
-    @DeleteDateColumn()
-    deletedAt?: Date;
 };
-

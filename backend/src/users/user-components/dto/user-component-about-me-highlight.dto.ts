@@ -37,4 +37,3 @@ export class UserComponentAboutMeHighlightDto {
     @IsString()
     emoji?: string;
 };
-

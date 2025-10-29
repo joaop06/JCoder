@@ -1,11 +1,11 @@
 import {
+    IsUrl,
+    IsDate,
+    IsArray,
+    IsNumber,
     IsString,
     IsNotEmpty,
     IsOptional,
-    IsDate,
-    IsUrl,
-    IsArray,
-    IsNumber,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
@@ -15,8 +15,8 @@ export class UserComponentCertificateDto {
         type: 'string',
         required: true,
         nullable: false,
-        example: 'AWS Certified Solutions Architect',
         description: 'Certificate name',
+        example: 'AWS Certified Solutions Architect',
     })
     @IsNotEmpty()
     @IsString()
@@ -35,8 +35,8 @@ export class UserComponentCertificateDto {
     @ApiPropertyOptional({
         nullable: true,
         type: 'string',
-        example: 'https://verify.credential.com/certificate/123456',
         description: 'URL to verify certificate authenticity',
+        example: 'https://verify.credential.com/certificate/123456',
     })
     @IsOptional()
     @IsString()

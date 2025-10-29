@@ -1,9 +1,9 @@
 import {
+    IsArray,
     IsString,
     IsNotEmpty,
     IsOptional,
     ValidateNested,
-    IsArray,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
@@ -42,9 +42,10 @@ export class UserComponentAboutMeDto {
     description?: string;
 
     @ApiPropertyOptional({
+        isArray: true,
         nullable: true,
-        type: () => [UserComponentAboutMeHighlightDto],
         description: 'Highlights/achievements',
+        type: () => UserComponentAboutMeHighlightDto,
     })
     @IsOptional()
     @IsArray()
@@ -52,4 +53,3 @@ export class UserComponentAboutMeDto {
     @Type(() => UserComponentAboutMeHighlightDto)
     highlights?: UserComponentAboutMeHighlightDto[];
 };
-

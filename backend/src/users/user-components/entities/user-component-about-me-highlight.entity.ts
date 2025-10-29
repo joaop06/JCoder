@@ -3,9 +3,6 @@ import {
     Entity,
     ManyToOne,
     JoinColumn,
-    CreateDateColumn,
-    UpdateDateColumn,
-    DeleteDateColumn,
     PrimaryGeneratedColumn,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
@@ -17,6 +14,7 @@ export class UserComponentAboutMeHighlight {
         example: 1,
         type: 'number',
         nullable: false,
+        description: 'ID',
     })
     @PrimaryGeneratedColumn()
     id: number;
@@ -28,12 +26,12 @@ export class UserComponentAboutMeHighlight {
         description: 'Linked About Me component user ID',
     })
     @Column()
-    userId: number;
+    aboutMeId: number;
 
     @ManyToOne(() => UserComponentAboutMe, (aboutMe) => aboutMe.highlights, {
         onDelete: 'CASCADE',
     })
-    @JoinColumn({ name: 'userId', referencedColumnName: 'userId' })
+    @JoinColumn({ name: 'aboutMeId', referencedColumnName: 'userId' })
     aboutMe: UserComponentAboutMe;
 
     @ApiProperty({
@@ -62,30 +60,4 @@ export class UserComponentAboutMeHighlight {
     })
     @Column({ nullable: true })
     emoji?: string;
-
-    @ApiProperty({
-        nullable: false,
-        type: () => Date,
-        example: new Date(),
-    })
-    @CreateDateColumn()
-    createdAt: Date;
-
-    @ApiProperty({
-        nullable: false,
-        type: () => Date,
-        example: new Date(),
-    })
-    @UpdateDateColumn()
-    updatedAt: Date;
-
-    @ApiProperty({
-        example: null,
-        nullable: true,
-        required: false,
-        type: () => Date,
-    })
-    @DeleteDateColumn()
-    deletedAt?: Date;
 };
-

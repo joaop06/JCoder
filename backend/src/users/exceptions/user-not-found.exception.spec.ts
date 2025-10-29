@@ -1,5 +1,5 @@
-import { UserNotFoundException } from './user-not-found.exception';
 import { NotFoundException } from '@nestjs/common';
+import { UserNotFoundException } from './user-not-found.exception';
 
 describe('UserNotFoundException', () => {
     it('should be defined', () => {
@@ -60,7 +60,7 @@ describe('UserNotFoundException', () => {
     it('should work in try-catch blocks', () => {
         try {
             throw new UserNotFoundException();
-        } catch (error) {
+        } catch (error: any) {
             expect(error).toBeInstanceOf(UserNotFoundException);
             expect(error.message).toBe('User is not found');
             expect(error.getStatus()).toBe(404);

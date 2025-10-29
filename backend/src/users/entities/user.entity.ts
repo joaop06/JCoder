@@ -99,35 +99,37 @@ export class User {
 
   @ApiPropertyOptional({
     nullable: true,
-    type: () => Object,
+    type: () => UserComponentAboutMe,
     description: 'About Me component',
   })
-  @OneToOne(() => UserComponentAboutMe, (aboutMe: any) => aboutMe.user)
-  userComponentAboutMe?: any;
+  @OneToOne(() => UserComponentAboutMe, (aboutMe) => aboutMe.user)
+  userComponentAboutMe?: UserComponentAboutMe;
 
   @ApiPropertyOptional({
+    isArray: true,
     nullable: true,
-    type: () => Array,
+    type: () => UserComponentEducation,
     description: 'Education components',
   })
-  @OneToMany(() => UserComponentEducation, (education: any) => education.user)
-  userComponentEducation?: any[];
+  @OneToMany(() => UserComponentEducation, (education) => education.user)
+  userComponentEducation?: UserComponentEducation[];
 
   @ApiPropertyOptional({
+    isArray: true,
     nullable: true,
-    type: () => Array,
+    type: () => UserComponentExperience,
     description: 'Experience components',
   })
-  @OneToMany(() => UserComponentExperience, (experience: any) => experience.user)
-  userComponentExperience?: any[];
+  @OneToMany(() => UserComponentExperience, (experience) => experience.user)
+  userComponentExperience?: UserComponentExperience[];
 
   @ApiPropertyOptional({
     nullable: true,
     type: () => Array,
     description: 'Certificate components',
   })
-  @OneToMany(() => UserComponentCertificate, (certificate: any) => certificate.user)
-  userComponentCertificate?: any[];
+  @OneToMany(() => UserComponentCertificate, (certificate) => certificate.user)
+  userComponentCertificate?: UserComponentCertificate[];
 
   @ApiProperty({
     nullable: false,
