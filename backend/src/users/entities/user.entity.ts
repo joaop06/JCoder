@@ -32,17 +32,34 @@ export class User {
     example: 'johndoe',
     description: 'Unique username used for login',
   })
-  @Column({ unique: true })
+  @Column({ unique: true, nullable: false })
   username: string;
+
+  @Exclude()
+  @Column({ nullable: false })
+  password: string;
+
+  @ApiProperty({
+    enum: RoleEnum,
+    nullable: false,
+    example: RoleEnum.Admin,
+  })
+  @Column({
+    type: 'enum',
+    enum: RoleEnum,
+    nullable: false,
+    default: RoleEnum.User,
+  })
+  role: RoleEnum;
 
   @ApiProperty({
     type: 'string',
-    nullable: false,
+    nullable: true,
     example: 'John',
     description: 'User first name',
   })
-  @Column({ nullable: false })
-  firstName: string;
+  @Column({ nullable: true })
+  firstName?: string;
 
   @ApiProperty({
     type: 'string',
@@ -65,8 +82,8 @@ export class User {
   @ApiPropertyOptional({
     type: 'string',
     nullable: true,
-    example: 'https://github.com/johndoe',
     description: 'GitHub profile URL',
+    example: 'https://github.com/johndoe',
   })
   @Column({ nullable: true })
   githubUrl?: string;
@@ -74,8 +91,8 @@ export class User {
   @ApiPropertyOptional({
     type: 'string',
     nullable: true,
-    example: 'https://linkedin.com/in/johndoe',
     description: 'LinkedIn profile URL',
+    example: 'https://linkedin.com/in/johndoe',
   })
   @Column({ nullable: true })
   linkedinUrl?: string;
@@ -83,28 +100,11 @@ export class User {
   @ApiPropertyOptional({
     type: 'string',
     nullable: true,
-    example: 'profile-123e4567-e89b-12d3-a456-426614174000.jpg',
     description: 'User profile image filename',
+    example: 'profile-123e4567-e89b-12d3-a456-426614174000.jpg',
   })
   @Column({ nullable: true })
   profileImage?: string;
-
-  @Exclude()
-  @Column({ nullable: false })
-  password: string;
-
-  @ApiProperty({
-    enum: RoleEnum,
-    nullable: false,
-    example: RoleEnum.Admin,
-  })
-  @Column({
-    type: 'enum',
-    enum: RoleEnum,
-    nullable: false,
-    default: RoleEnum.User,
-  })
-  role: RoleEnum;
 
   @ApiPropertyOptional({
     nullable: true,
