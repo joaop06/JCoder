@@ -18,22 +18,31 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     useEffect(() => {
         setMounted(true);
         // Verificar se há um tema salvo no localStorage
-        const savedTheme = localStorage.getItem('jcoder-theme') as Theme;
-        if (savedTheme && (savedTheme === 'dark' || savedTheme === 'light')) {
-            setTheme(savedTheme);
-        } else {
-            // Verificar preferência do sistema
-            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            setTheme(prefersDark ? 'dark' : 'light');
+        try {
+            const savedTheme = typeof window !== 'undefined' ? localStorage.getItem('jcoder-theme') as Theme : null;
+            if (savedTheme && (savedTheme === 'dark' || savedTheme === 'light')) {
+                setTheme(savedTheme);
+            } else if (typeof window !== 'undefined') {
+                // Verificar preferência do sistema
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                setTheme(prefersDark ? 'dark' : 'light');
+            }
+        } catch (error) {
+            console.error('Error loading theme:', error);
+            setTheme('dark'); // Fallback to dark theme
         }
     }, []);
 
     useEffect(() => {
-        if (mounted) {
-            // Aplicar tema ao documento
-            document.documentElement.setAttribute('data-theme', theme);
-            document.body.setAttribute('data-theme', theme);
-            localStorage.setItem('jcoder-theme', theme);
+        if (mounted && typeof window !== 'undefined' && typeof document !== 'undefined') {
+            try {
+                // Aplicar tema ao documento
+                document.documentElement.setAttribute('data-theme', theme);
+                document.body.setAttribute('data-theme', theme);
+                localStorage.setItem('jcoder-theme', theme);
+            } catch (error) {
+                console.error('Error applying theme:', error);
+            }
         }
     }, [theme, mounted]);
 

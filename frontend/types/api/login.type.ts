@@ -1,8 +1,8 @@
 import { User } from "../entities/user.entity";
 
 export interface LoginRequest {
-    email: string;
     password: string;
+    username: string;
 };
 
 export interface LoginResponse {

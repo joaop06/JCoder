@@ -33,6 +33,8 @@ export default function Home() {
       const data = await ApplicationService.query({
         isActive: true,
         limit: 100,
+        sortBy: 'displayOrder',
+        sortOrder: 'ASC',
       });
       setApplications(data.data || []);
     } catch (err) {

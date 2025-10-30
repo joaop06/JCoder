@@ -12,9 +12,12 @@ export const UsersService = {
             return {
                 id: user?.id,
                 name: user?.name,
+                firstName: user?.firstName,
                 role: user?.role,
                 email: user?.email,
                 profileImage: user?.profileImage,
+                githubUrl: user?.githubUrl,
+                linkedinUrl: user?.linkedinUrl,
                 createdAt: user?.createdAt,
                 updatedAt: user?.updatedAt,
                 deletedAt: user?.deletedAt,
@@ -33,7 +36,7 @@ export const UsersService = {
         const response = await ApiService.patch('/users/profile', data);
 
         // Update local storage with new user data
-        const updatedUser = response.data;
+        const updatedUser = response.data.data;
         localStorage.setItem('user', JSON.stringify(updatedUser));
 
         return updatedUser;

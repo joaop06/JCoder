@@ -1,23 +1,23 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useCallback } from 'react';
+import { LazyImage } from '@/components/ui';
 import { useRouter } from 'next/navigation';
+import { useState, useCallback } from 'react';
 import { AuthService } from '@/services/auth.service';
 import { useToast } from '@/components/toast/ToastContext';
 import type { LoginResponse } from '@/types/api/login.type';
-import { LazyImage } from '@/components/ui';
 
 export default function LoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const toast = useToast();
 
-  const handleEmailChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setEmail(e.target.value);
+  const handleUsernameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setUsername(e.target.value);
   }, []);
 
   const handlePasswordChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -29,7 +29,7 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const data: LoginResponse = await AuthService.login({ email, password });
+      const data: LoginResponse = await AuthService.login({ username, password });
 
       const user = data.user;
       const accessToken = data.accessToken;
@@ -55,7 +55,7 @@ export default function LoginPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [email, password, router, toast]);
+  }, [username, password, router, toast]);
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -116,17 +116,17 @@ export default function LoginPage() {
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-jcoder-muted mb-2">
-                  Email
+                <label htmlFor="username" className="block text-sm font-medium text-jcoder-muted mb-2">
+                  Username
                 </label>
                 <input
                   required
-                  id="email"
-                  type="email"
-                  value={email}
+                  id="username"
+                  type="text"
+                  value={username}
                   disabled={isLoading}
-                  placeholder="your@email.com"
-                  onChange={handleEmailChange}
+                  placeholder="johndoe"
+                  onChange={handleUsernameChange}
                   className="w-full px-4 py-3 border border-jcoder rounded-lg focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-transparent disabled:opacity-60 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted"
                 />
               </div>
