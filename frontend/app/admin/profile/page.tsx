@@ -335,7 +335,7 @@ export default function ProfileManagementPage() {
                                 <div className="flex flex-col sm:flex-row items-center sm:items-end gap-4 mb-4 md:mb-0">
                                     <ProfileImageUploader
                                         userId={user?.id || 0}
-                                        currentImage={user?.profileImage}
+                                        currentImage={user?.profileImage ? UsersService.getProfileImageUrl(user.id) : null}
                                         userName={user?.fullName || user?.firstName}
                                         onImageUpdate={(url) => {
                                             if (user) {

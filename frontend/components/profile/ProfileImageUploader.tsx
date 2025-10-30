@@ -56,7 +56,15 @@ export const ProfileImageUploader: React.FC<ProfileImageUploaderProps> = ({
     };
 
     const handleDeleteImage = async () => {
-        if (!confirm('Are you sure you want to delete your profile image?')) return;
+        const confirmed = await toast.confirm(
+            'Are you sure you want to delete your profile image?',
+            {
+                confirmText: 'Delete',
+                cancelText: 'Cancel'
+            }
+        );
+
+        if (!confirmed) return;
 
         setIsUploading(true);
         try {

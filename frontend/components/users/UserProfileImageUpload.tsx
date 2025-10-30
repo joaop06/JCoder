@@ -74,6 +74,16 @@ export default function UserProfileImageUpload({
     const deleteProfileImage = async () => {
         if (!currentUser.profileImage) return;
 
+        const confirmed = await toast.confirm(
+            'Are you sure you want to delete your profile image?',
+            {
+                confirmText: 'Delete',
+                cancelText: 'Cancel'
+            }
+        );
+
+        if (!confirmed) return;
+
         setUploading(true);
         try {
             await UsersService.deleteProfileImage();
