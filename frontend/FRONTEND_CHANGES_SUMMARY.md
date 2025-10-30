@@ -54,7 +54,8 @@ Todo o frontend foi atualizado para refletir a refatoração do backend. Todas a
    ```typescript
    export interface User {
        id: number;
-       name?: string;
+       firstName?: string;
+       fullName?: string;
        email: string;
        role: RoleEnum;
    +   profileImage?: string | null; // NOVO CAMPO

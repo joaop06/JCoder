@@ -20,7 +20,7 @@ export class UpdateProfileDto {
     })
     @IsOptional()
     @IsString()
-    declare name?: string;
+    declare fullName?: string;
 
     @ApiProperty({
         type: 'string',

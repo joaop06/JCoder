@@ -45,8 +45,8 @@ export class UpdateProfileUseCase {
             user.firstName = updateProfileDto.firstName;
         }
 
-        if (updateProfileDto.name !== undefined) {
-            user.name = updateProfileDto.name;
+        if (updateProfileDto.fullName !== undefined) {
+            user.fullName = updateProfileDto.fullName;
         }
 
         if (updateProfileDto.githubUrl !== undefined) {

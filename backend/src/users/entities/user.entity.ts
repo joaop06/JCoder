@@ -51,7 +51,7 @@ export class User {
     description: 'User full name',
   })
   @Column({ nullable: true })
-  name?: string;
+  fullName?: string;
 
   @ApiProperty({
     type: 'string',

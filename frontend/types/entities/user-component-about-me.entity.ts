@@ -8,7 +8,6 @@ export interface UserComponentAboutMeHighlight {
 
 export interface UserComponentAboutMe {
     userId: number;
-    fullName: string;
     occupation?: string;
     description?: string;
     highlights?: UserComponentAboutMeHighlight[];

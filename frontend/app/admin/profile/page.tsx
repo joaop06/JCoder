@@ -42,7 +42,7 @@ export default function ProfileManagementPage() {
     // Form data
     const [basicInfoForm, setBasicInfoForm] = useState({
         firstName: '',
-        name: '',
+        fullName: '',
         email: '',
         githubUrl: '',
         linkedinUrl: '',
@@ -52,7 +52,6 @@ export default function ProfileManagementPage() {
     });
 
     const [aboutMeForm, setAboutMeForm] = useState({
-        fullName: '',
         occupation: '',
         description: '',
         highlights: [] as Array<{ title: string; subtitle?: string; emoji?: string }>,
@@ -86,7 +85,7 @@ export default function ProfileManagementPage() {
             setUser(userData);
             setBasicInfoForm({
                 firstName: userData.firstName || '',
-                name: userData.name || '',
+                fullName: userData.fullName || '',
                 email: userData.email || '',
                 githubUrl: userData.githubUrl || '',
                 linkedinUrl: userData.linkedinUrl || '',
@@ -106,7 +105,6 @@ export default function ProfileManagementPage() {
             setAboutMe(aboutMeData);
             if (aboutMeData) {
                 setAboutMeForm({
-                    fullName: aboutMeData.fullName || '',
                     occupation: aboutMeData.occupation || '',
                     description: aboutMeData.description || '',
                     highlights: aboutMeData.highlights?.map(h => ({
@@ -164,7 +162,7 @@ export default function ProfileManagementPage() {
         try {
             const updateData: any = {
                 firstName: basicInfoForm.firstName,
-                name: basicInfoForm.name,
+                fullName: basicInfoForm.fullName,
                 email: basicInfoForm.email,
                 githubUrl: basicInfoForm.githubUrl || undefined,
                 linkedinUrl: basicInfoForm.linkedinUrl || undefined,
@@ -182,7 +180,7 @@ export default function ProfileManagementPage() {
             // Update form with new values and clear password fields
             setBasicInfoForm({
                 firstName: updatedUser.firstName || '',
-                name: updatedUser.name || '',
+                fullName: updatedUser.fullName || '',
                 email: updatedUser.email || '',
                 githubUrl: updatedUser.githubUrl || '',
                 linkedinUrl: updatedUser.linkedinUrl || '',
@@ -211,7 +209,6 @@ export default function ProfileManagementPage() {
         try {
             // Always use createOrUpdateAboutMe - the backend handles create vs update
             const result = await UserComponentsService.createOrUpdateAboutMe({
-                fullName: aboutMeForm.fullName,
                 occupation: aboutMeForm.occupation,
                 description: aboutMeForm.description,
                 highlights: aboutMeForm.highlights as any, // Type cast needed as backend will assign id and aboutMeId
@@ -230,7 +227,7 @@ export default function ProfileManagementPage() {
         if (user) {
             setBasicInfoForm({
                 firstName: user.firstName || '',
-                name: user.name || '',
+                fullName: user.fullName || '',
                 email: user.email || '',
                 githubUrl: user.githubUrl || '',
                 linkedinUrl: user.linkedinUrl || '',
@@ -245,7 +242,6 @@ export default function ProfileManagementPage() {
     const handleCancelAboutMe = useCallback(() => {
         if (aboutMe) {
             setAboutMeForm({
-                fullName: aboutMe.fullName || '',
                 occupation: aboutMe.occupation || '',
                 description: aboutMe.description || '',
                 highlights: aboutMe.highlights?.map(h => ({
@@ -340,7 +336,7 @@ export default function ProfileManagementPage() {
                                     <ProfileImageUploader
                                         userId={user?.id || 0}
                                         currentImage={user?.profileImage}
-                                        userName={user?.name || user?.firstName}
+                                        userName={user?.fullName || user?.firstName}
                                         onImageUpdate={(url) => {
                                             if (user) {
                                                 setUser({ ...user, profileImage: url });
@@ -349,7 +345,7 @@ export default function ProfileManagementPage() {
                                     />
                                     <div className="text-center sm:text-left mb-4 sm:mb-0">
                                         <h2 className="text-xl md:text-2xl font-bold text-jcoder-foreground">
-                                            {user?.name || user?.firstName || 'User'}
+                                            {user?.fullName || user?.firstName || 'User'}
                                         </h2>
                                         <p className="text-sm md:text-base text-jcoder-muted">{user?.email}</p>
                                         {aboutMe?.occupation && (
@@ -424,8 +420,8 @@ export default function ProfileManagementPage() {
                                             <label className="block text-sm font-medium text-jcoder-muted mb-2">Full Name</label>
                                             <input
                                                 type="text"
-                                                name="name"
-                                                value={basicInfoForm.name}
+                                                name="fullName"
+                                                value={basicInfoForm.fullName}
                                                 onChange={handleBasicInfoInputChange}
                                                 className="w-full px-4 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none"
                                             />
@@ -528,7 +524,7 @@ export default function ProfileManagementPage() {
                                     />
                                     <InfoField
                                         label="Full Name"
-                                        value={user?.name}
+                                        value={user?.fullName}
                                         icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>}
                                     />
                                     <InfoField
@@ -577,16 +573,6 @@ export default function ProfileManagementPage() {
                         >
                             {isEditingAboutMe ? (
                                 <div className="space-y-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-jcoder-muted mb-2">Full Name</label>
-                                        <input
-                                            type="text"
-                                            name="fullName"
-                                            value={aboutMeForm.fullName}
-                                            onChange={handleAboutMeInputChange}
-                                            className="w-full px-4 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none"
-                                        />
-                                    </div>
                                     <div>
                                         <label className="block text-sm font-medium text-jcoder-muted mb-2">Occupation/Title</label>
                                         <input
@@ -706,7 +692,6 @@ export default function ProfileManagementPage() {
                                 </div>
                             ) : aboutMe ? (
                                 <div className="space-y-4">
-                                    <InfoField label="Full Name" value={aboutMe.fullName} />
                                     <InfoField label="Occupation" value={aboutMe.occupation} />
                                     <InfoField
                                         label="Description"

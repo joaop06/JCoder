@@ -119,7 +119,7 @@ export default function UserProfileImageUpload({
                             <LazyImage
                                 src={getProfileImageUrl()!}
                                 alt="Profile preview"
-                                fallback={currentUser.name?.[0] || 'U'}
+                                fallback={currentUser.fullName?.[0] || 'U'}
                                 size="custom"
                                 width="w-24"
                                 height="h-24"

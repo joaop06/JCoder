@@ -29,15 +29,6 @@ export class UserComponentAboutMe {
 
     @ApiProperty({
         type: 'string',
-        nullable: false,
-        example: 'John Doe',
-        description: 'User full name',
-    })
-    @Column({ nullable: false })
-    fullName: string;
-
-    @ApiProperty({
-        type: 'string',
         nullable: true,
         example: 'Senior Software Engineer',
         description: 'User job title/occupation',

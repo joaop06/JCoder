@@ -64,7 +64,7 @@ export class UsersService {
     async findBasicProfile(id: number): Promise<Partial<User>> {
         const user = await this.repository.findOne({
             where: { id },
-            select: ['id', 'username', 'firstName', 'name', 'email', 'githubUrl', 'linkedinUrl', 'role', 'createdAt', 'updatedAt']
+            select: ['id', 'username', 'firstName', 'fullName', 'email', 'githubUrl', 'linkedinUrl', 'role', 'createdAt', 'updatedAt']
         });
         if (!user) throw new UserNotFoundException();
         return user;
@@ -73,7 +73,7 @@ export class UsersService {
     async findProfileWithAboutMe(id: number): Promise<Partial<User>> {
         const user = await this.repository.findOne({
             where: { id },
-            select: ['id', 'username', 'firstName', 'name', 'email', 'githubUrl', 'linkedinUrl', 'role', 'createdAt', 'updatedAt'],
+            select: ['id', 'username', 'firstName', 'fullName', 'email', 'githubUrl', 'linkedinUrl', 'role', 'createdAt', 'updatedAt'],
             relations: {
                 userComponentAboutMe: {
                     highlights: true

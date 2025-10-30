@@ -32,7 +32,6 @@ export class UserComponentsService {
         if (existing) {
             // Update existing
             await this.repository.updateAboutMe(user.id, {
-                fullName: dto.fullName,
                 occupation: dto.occupation,
                 description: dto.description,
             });
@@ -46,7 +45,6 @@ export class UserComponentsService {
         } else {
             // Create new
             const aboutMe = await this.repository.createAboutMe(user, {
-                fullName: dto.fullName,
                 occupation: dto.occupation,
                 description: dto.description,
             });
@@ -67,7 +65,6 @@ export class UserComponentsService {
         }
 
         await this.repository.updateAboutMe(userId, {
-            fullName: dto.fullName,
             occupation: dto.occupation,
             description: dto.description,
         });

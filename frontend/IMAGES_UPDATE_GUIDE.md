@@ -95,7 +95,8 @@ Adicionado campo `profileImage`:
 ```typescript
 export interface User {
     id: number;
-    name?: string;
+    firstName?: string;
+    fullName?: string;
     email: string;
     role: RoleEnum;
     profileImage?: string | null; // NEW

@@ -10,17 +10,6 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { UserComponentAboutMeHighlightDto } from './user-component-about-me-highlight.dto';
 
 export class UserComponentAboutMeDto {
-    @ApiProperty({
-        type: 'string',
-        required: true,
-        nullable: false,
-        example: 'John Doe',
-        description: 'User full name',
-    })
-    @IsNotEmpty()
-    @IsString()
-    fullName!: string;
-
     @ApiPropertyOptional({
         type: 'string',
         nullable: true,

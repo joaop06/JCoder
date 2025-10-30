@@ -9,7 +9,7 @@ export interface User {
     id: number;
     username?: string;
     firstName?: string;
-    name?: string;
+    fullName?: string;
     email: string;
     githubUrl?: string;
     linkedinUrl?: string;
