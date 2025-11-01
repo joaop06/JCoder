@@ -37,6 +37,8 @@ export default function ProfileManagementPage() {
     // Edit states
     const [isEditingBasicInfo, setIsEditingBasicInfo] = useState(false);
     const [isEditingAboutMe, setIsEditingAboutMe] = useState(false);
+    const [isEditingEducation, setIsEditingEducation] = useState(false);
+    const [editingEducationId, setEditingEducationId] = useState<number | null>(null);
     const [isSaving, setIsSaving] = useState(false);
 
     // Form data
@@ -55,6 +57,15 @@ export default function ProfileManagementPage() {
         occupation: '',
         description: '',
         highlights: [] as Array<{ title: string; subtitle?: string; emoji?: string }>,
+    });
+
+    const [educationForm, setEducationForm] = useState({
+        institutionName: '',
+        courseName: '',
+        degree: '',
+        startDate: '',
+        endDate: '',
+        isCurrentlyStudying: false,
     });
 
     const handleLogout = useCallback(() => {
@@ -276,6 +287,134 @@ export default function ProfileManagementPage() {
             )
         }));
     }, []);
+
+    const handleEducationInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+        const { name, value, type } = e.target;
+        if (type === 'checkbox') {
+            const checked = (e.target as HTMLInputElement).checked;
+            setEducationForm(prev => ({ ...prev, [name]: checked }));
+        } else {
+            setEducationForm(prev => ({ ...prev, [name]: value }));
+        }
+    }, []);
+
+    const handleAddEducation = useCallback(() => {
+        setEducationForm({
+            institutionName: '',
+            courseName: '',
+            degree: '',
+            startDate: '',
+            endDate: '',
+            isCurrentlyStudying: false,
+        });
+        setEditingEducationId(null);
+        setIsEditingEducation(true);
+    }, []);
+
+    const handleEditEducation = useCallback((education: UserComponentEducation) => {
+        setEducationForm({
+            institutionName: education.institutionName || '',
+            courseName: education.courseName || '',
+            degree: education.degree || '',
+            startDate: education.startDate ? new Date(education.startDate).toISOString().split('T')[0] : '',
+            endDate: education.endDate ? new Date(education.endDate).toISOString().split('T')[0] : '',
+            isCurrentlyStudying: education.isCurrentlyStudying || false,
+        });
+        setEditingEducationId(education.id || education.userId || null);
+        setIsEditingEducation(true);
+    }, []);
+
+    const handleCancelEducation = useCallback(() => {
+        setIsEditingEducation(false);
+        setEditingEducationId(null);
+        setEducationForm({
+            institutionName: '',
+            courseName: '',
+            degree: '',
+            startDate: '',
+            endDate: '',
+            isCurrentlyStudying: false,
+        });
+    }, []);
+
+    const handleSaveEducation = useCallback(async () => {
+        // Validate form
+        if (!educationForm.institutionName.trim()) {
+            toast.error('Institution name is required.');
+            return;
+        }
+        if (!educationForm.courseName.trim()) {
+            toast.error('Course name is required.');
+            return;
+        }
+        if (!educationForm.startDate) {
+            toast.error('Start date is required.');
+            return;
+        }
+        if (!educationForm.isCurrentlyStudying && !educationForm.endDate) {
+            toast.error('End date is required when not currently studying.');
+            return;
+        }
+        if (educationForm.endDate && educationForm.startDate && new Date(educationForm.endDate) < new Date(educationForm.startDate)) {
+            toast.error('End date must be after start date.');
+            return;
+        }
+        if (educationForm.isCurrentlyStudying && educationForm.endDate && new Date(educationForm.endDate) < new Date()) {
+            toast.error('If currently studying, end date must be in the future.');
+            return;
+        }
+
+        setIsSaving(true);
+        try {
+            const educationData: any = {
+                institutionName: educationForm.institutionName,
+                courseName: educationForm.courseName,
+                degree: educationForm.degree || undefined,
+                startDate: new Date(educationForm.startDate),
+                isCurrentlyStudying: educationForm.isCurrentlyStudying,
+            };
+
+            if (!educationForm.isCurrentlyStudying && educationForm.endDate) {
+                educationData.endDate = new Date(educationForm.endDate);
+            } else if (educationForm.isCurrentlyStudying) {
+                educationData.endDate = undefined;
+            }
+
+            let updatedEducation: UserComponentEducation;
+            if (editingEducationId) {
+                updatedEducation = await UserComponentsService.updateEducation(editingEducationId, educationData);
+                setEducations(prev => prev.map(edu => (edu.id || edu.userId) === editingEducationId ? updatedEducation : edu));
+            } else {
+                updatedEducation = await UserComponentsService.createEducation(educationData);
+                setEducations(prev => [...prev, updatedEducation]);
+            }
+
+            setIsEditingEducation(false);
+            setEditingEducationId(null);
+            toast.success(`Education ${editingEducationId ? 'updated' : 'created'} successfully!`);
+        } catch (err: any) {
+            toast.error(err.message || `Failed to ${editingEducationId ? 'update' : 'create'} education. Please try again.`);
+        } finally {
+            setIsSaving(false);
+        }
+    }, [educationForm, editingEducationId, toast]);
+
+    const handleDeleteEducation = useCallback(async (educationId: number) => {
+        if (!confirm('Are you sure you want to delete this education record?')) {
+            return;
+        }
+
+        setIsSaving(true);
+        try {
+            await UserComponentsService.deleteEducation(educationId);
+            setEducations(prev => prev.filter(edu => (edu.id || edu.userId) !== educationId));
+            toast.success('Education deleted successfully!');
+        } catch (err: any) {
+            toast.error(err.message || 'Failed to delete education. Please try again.');
+        } finally {
+            setIsSaving(false);
+        }
+    }, [toast]);
 
     const formatDate = (date: Date | string | undefined) => {
         if (!date) return 'Present';
@@ -732,20 +871,151 @@ export default function ProfileManagementPage() {
                         <SectionCard
                             title="Education"
                             icon={<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>}
+                            action={
+                                !isEditingEducation && (
+                                    <button
+                                        onClick={handleAddEducation}
+                                        className="px-3 py-1.5 md:px-4 md:py-2 text-sm bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity font-medium"
+                                    >
+                                        Add Education
+                                    </button>
+                                )
+                            }
                             collapsible={true}
-                            isEmpty={educations.length === 0}
+                            isEmpty={educations.length === 0 && !isEditingEducation}
                             emptyMessage="No education records added yet"
                         >
-                            {educations.map((edu, index) => (
-                                <TimelineItem
-                                    key={index}
-                                    title={edu.courseName}
-                                    subtitle={edu.institutionName}
-                                    period={`${formatDate(edu.startDate)} - ${edu.isCurrentlyStudying ? 'Present' : formatDate(edu.endDate)}`}
-                                    isActive={edu.isCurrentlyStudying}
-                                    tags={edu.degree ? [edu.degree] : undefined}
-                                />
-                            ))}
+                            {isEditingEducation ? (
+                                <div className="space-y-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="md:col-span-2">
+                                            <label className="block text-sm font-medium text-jcoder-muted mb-2">Institution Name *</label>
+                                            <input
+                                                type="text"
+                                                name="institutionName"
+                                                value={educationForm.institutionName}
+                                                onChange={handleEducationInputChange}
+                                                placeholder="e.g., University of Technology"
+                                                className="w-full px-4 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none"
+                                            />
+                                        </div>
+                                        <div className="md:col-span-2">
+                                            <label className="block text-sm font-medium text-jcoder-muted mb-2">Course Name *</label>
+                                            <input
+                                                type="text"
+                                                name="courseName"
+                                                value={educationForm.courseName}
+                                                onChange={handleEducationInputChange}
+                                                placeholder="e.g., Computer Science"
+                                                className="w-full px-4 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none"
+                                            />
+                                        </div>
+                                        <div className="md:col-span-2">
+                                            <label className="block text-sm font-medium text-jcoder-muted mb-2">Degree (Optional)</label>
+                                            <input
+                                                type="text"
+                                                name="degree"
+                                                value={educationForm.degree}
+                                                onChange={handleEducationInputChange}
+                                                placeholder="e.g., Bachelor's Degree"
+                                                className="w-full px-4 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-jcoder-muted mb-2">Start Date *</label>
+                                            <input
+                                                type="date"
+                                                name="startDate"
+                                                value={educationForm.startDate}
+                                                onChange={handleEducationInputChange}
+                                                className="w-full px-4 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-jcoder-muted mb-2">
+                                                End Date {educationForm.isCurrentlyStudying ? '(Optional)' : '*'}
+                                            </label>
+                                            <input
+                                                type="date"
+                                                name="endDate"
+                                                value={educationForm.endDate}
+                                                onChange={handleEducationInputChange}
+                                                disabled={educationForm.isCurrentlyStudying}
+                                                className="w-full px-4 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+                                            />
+                                        </div>
+                                        <div className="md:col-span-2">
+                                            <label className="flex items-center gap-2 cursor-pointer">
+                                                <input
+                                                    type="checkbox"
+                                                    name="isCurrentlyStudying"
+                                                    checked={educationForm.isCurrentlyStudying}
+                                                    onChange={handleEducationInputChange}
+                                                    className="w-4 h-4 text-jcoder-primary bg-jcoder-secondary border-jcoder rounded focus:ring-jcoder-primary"
+                                                />
+                                                <span className="text-sm font-medium text-jcoder-foreground">Currently studying</span>
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    {/* Action Buttons */}
+                                    <div className="flex items-center justify-end gap-3 pt-4">
+                                        <button
+                                            onClick={handleCancelEducation}
+                                            disabled={isSaving}
+                                            className="px-4 py-2 border border-jcoder text-jcoder-foreground rounded-lg hover:border-jcoder-primary transition-colors text-sm md:text-base"
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            onClick={handleSaveEducation}
+                                            disabled={isSaving}
+                                            className="px-4 py-2 bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity font-medium disabled:opacity-50 text-sm md:text-base"
+                                        >
+                                            {isSaving ? 'Saving...' : editingEducationId ? 'Update' : 'Create'}
+                                        </button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="space-y-4">
+                                    {educations.map((edu, index) => {
+                                        const educationId = edu.id || edu.userId;
+                                        return (
+                                            <div key={educationId || index} className="group relative">
+                                                <TimelineItem
+                                                    title={edu.courseName}
+                                                    subtitle={edu.institutionName}
+                                                    period={`${formatDate(edu.startDate)} - ${edu.isCurrentlyStudying ? 'Present' : formatDate(edu.endDate)}`}
+                                                    isActive={edu.isCurrentlyStudying}
+                                                    tags={edu.degree ? [edu.degree] : undefined}
+                                                />
+                                                <div className="absolute top-0 right-0 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <button
+                                                        onClick={() => handleEditEducation(edu)}
+                                                        className="p-2 bg-jcoder-secondary border border-jcoder rounded-lg hover:border-jcoder-primary transition-colors"
+                                                        title="Edit education"
+                                                    >
+                                                        <svg className="w-4 h-4 text-jcoder-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                        </svg>
+                                                    </button>
+                                                    {educationId && (
+                                                        <button
+                                                            onClick={() => handleDeleteEducation(educationId)}
+                                                            className="p-2 bg-jcoder-secondary border border-red-500/50 rounded-lg hover:border-red-500 transition-colors"
+                                                            title="Delete education"
+                                                        >
+                                                            <svg className="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                            </svg>
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
                         </SectionCard>
 
                         {/* Experience Section */}

@@ -1,4 +1,5 @@
 export interface UserComponentEducation {
+    id?: number;
     userId: number;
     institutionName: string;
     courseName: string;
