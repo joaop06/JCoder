@@ -16,7 +16,7 @@ import { UserComponentsService } from '@/services/user-components.service';
 import { ProfileImageUploader } from '@/components/profile/ProfileImageUploader';
 import { UserComponentAboutMe } from '@/types/entities/user-component-about-me.entity';
 import { UserComponentEducation } from '@/types/entities/user-component-education.entity';
-import { UserComponentExperience } from '@/types/entities/user-component-experience.entity';
+import { UserComponentExperience, UserComponentExperiencePosition, WorkLocationTypeEnum } from '@/types/entities/user-component-experience.entity';
 import { UserComponentCertificate } from '@/types/entities/user-component-certificate.entity';
 
 export default function ProfileManagementPage() {
@@ -39,6 +39,10 @@ export default function ProfileManagementPage() {
     const [isEditingAboutMe, setIsEditingAboutMe] = useState(false);
     const [isEditingEducation, setIsEditingEducation] = useState(false);
     const [editingEducationId, setEditingEducationId] = useState<number | null>(null);
+    const [isEditingExperience, setIsEditingExperience] = useState(false);
+    const [editingExperienceId, setEditingExperienceId] = useState<number | null>(null);
+    const [editingPositionIndex, setEditingPositionIndex] = useState<number | null>(null);
+    const [isAddingPosition, setIsAddingPosition] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
 
     // Form data
@@ -66,6 +70,20 @@ export default function ProfileManagementPage() {
         startDate: '',
         endDate: '',
         isCurrentlyStudying: false,
+    });
+
+    const [experienceForm, setExperienceForm] = useState({
+        companyName: '',
+    });
+
+    const [positionForm, setPositionForm] = useState({
+        position: '',
+        description: '',
+        startDate: '',
+        endDate: '',
+        isCurrentPosition: false,
+        location: '',
+        locationType: '' as WorkLocationTypeEnum | '',
     });
 
     const handleLogout = useCallback(() => {
@@ -415,6 +433,322 @@ export default function ProfileManagementPage() {
             setIsSaving(false);
         }
     }, [toast]);
+
+    // Experience handlers
+    const handleExperienceInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        setExperienceForm(prev => ({ ...prev, [name]: value }));
+    }, []);
+
+    const handlePositionInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+        const { name, value, type } = e.target;
+        if (type === 'checkbox') {
+            const checked = (e.target as HTMLInputElement).checked;
+            setPositionForm(prev => ({ ...prev, [name]: checked }));
+        } else {
+            setPositionForm(prev => ({ ...prev, [name]: value }));
+        }
+    }, []);
+
+    const handleAddExperience = useCallback(() => {
+        setExperienceForm({ companyName: '' });
+        setEditingExperienceId(null);
+        setIsEditingExperience(true);
+        setEditingPositionIndex(null);
+        setIsAddingPosition(false);
+        setPositionForm({
+            position: '',
+            description: '',
+            startDate: '',
+            endDate: '',
+            isCurrentPosition: false,
+            location: '',
+            locationType: '',
+        });
+    }, []);
+
+    const handleEditExperience = useCallback((experience: UserComponentExperience) => {
+        setExperienceForm({
+            companyName: experience.companyName || '',
+        });
+        setEditingExperienceId(experience.userId);
+        setIsEditingExperience(true);
+        setEditingPositionIndex(null);
+        setIsAddingPosition(false);
+        setPositionForm({
+            position: '',
+            description: '',
+            startDate: '',
+            endDate: '',
+            isCurrentPosition: false,
+            location: '',
+            locationType: '',
+        });
+    }, []);
+
+    const handleCancelExperience = useCallback(() => {
+        setIsEditingExperience(false);
+        setEditingExperienceId(null);
+        setEditingPositionIndex(null);
+        setIsAddingPosition(false);
+        setExperienceForm({ companyName: '' });
+        setPositionForm({
+            position: '',
+            description: '',
+            startDate: '',
+            endDate: '',
+            isCurrentPosition: false,
+            location: '',
+            locationType: '',
+        });
+    }, []);
+
+    const handleSaveExperience = useCallback(async () => {
+        if (!experienceForm.companyName.trim()) {
+            toast.error('Company name is required.');
+            return;
+        }
+
+        setIsSaving(true);
+        try {
+            const experienceData: any = {
+                companyName: experienceForm.companyName,
+            };
+
+            // Get positions from the current editing experience if editing
+            let positionsToSave: UserComponentExperiencePosition[] = [];
+            if (editingExperienceId) {
+                const currentExp = experiences.find(e => e.userId === editingExperienceId);
+                if (currentExp?.positions) {
+                    positionsToSave = currentExp.positions;
+                }
+            }
+
+            let updatedExperience: UserComponentExperience;
+            if (editingExperienceId) {
+                experienceData.positions = positionsToSave.map(p => ({
+                    position: p.position || p.positionName || '',
+                    description: p.description,
+                    startDate: p.startDate ? new Date(p.startDate) : undefined,
+                    endDate: p.endDate ? new Date(p.endDate) : undefined,
+                    isCurrentPosition: p.isCurrentPosition,
+                    location: p.location,
+                    locationType: p.locationType,
+                }));
+                updatedExperience = await UserComponentsService.updateExperience(editingExperienceId, experienceData);
+                setExperiences(prev => prev.map(exp => exp.userId === editingExperienceId ? updatedExperience : exp));
+            } else {
+                updatedExperience = await UserComponentsService.createExperience(experienceData);
+                setExperiences(prev => [...prev, updatedExperience]);
+                // After creating, keep editing mode to allow adding positions
+                setEditingExperienceId(updatedExperience.userId);
+            }
+
+            // Don't exit edit mode automatically - let user manage positions first
+            // setIsEditingExperience(false);
+            // setEditingExperienceId(null);
+            toast.success(`Experience ${editingExperienceId ? 'updated' : 'created'} successfully!`);
+        } catch (err: any) {
+            toast.error(err.message || `Failed to ${editingExperienceId ? 'update' : 'create'} experience. Please try again.`);
+        } finally {
+            setIsSaving(false);
+        }
+    }, [experienceForm, editingExperienceId, experiences, toast]);
+
+    const handleDeleteExperience = useCallback(async (experienceId: number) => {
+        if (!confirm('Are you sure you want to delete this experience? All positions associated with it will also be deleted.')) {
+            return;
+        }
+
+        setIsSaving(true);
+        try {
+            await UserComponentsService.deleteExperience(experienceId);
+            setExperiences(prev => prev.filter(exp => exp.userId !== experienceId));
+            toast.success('Experience deleted successfully!');
+        } catch (err: any) {
+            toast.error(err.message || 'Failed to delete experience. Please try again.');
+        } finally {
+            setIsSaving(false);
+        }
+    }, [toast]);
+
+    // Position handlers
+    const handleAddPosition = useCallback((experienceId: number) => {
+        if (!editingExperienceId || editingExperienceId !== experienceId) {
+            toast.error('Please save the company first before adding positions.');
+            return;
+        }
+        setPositionForm({
+            position: '',
+            description: '',
+            startDate: '',
+            endDate: '',
+            isCurrentPosition: false,
+            location: '',
+            locationType: '',
+        });
+        setEditingPositionIndex(null);
+        setIsAddingPosition(true);
+    }, [editingExperienceId, toast]);
+
+    const handleEditPosition = useCallback((experienceId: number, positionIndex: number) => {
+        if (!editingExperienceId || editingExperienceId !== experienceId) {
+            toast.error('Please save the company first before editing positions.');
+            return;
+        }
+        const currentExp = experiences.find(e => e.userId === experienceId);
+        if (!currentExp?.positions?.[positionIndex]) {
+            toast.error('Position not found.');
+            return;
+        }
+        const position = currentExp.positions[positionIndex];
+        setPositionForm({
+            position: position.position || position.positionName || '',
+            description: position.description || '',
+            startDate: position.startDate ? new Date(position.startDate).toISOString().split('T')[0] : '',
+            endDate: position.endDate ? new Date(position.endDate).toISOString().split('T')[0] : '',
+            isCurrentPosition: position.isCurrentPosition || false,
+            location: position.location || '',
+            locationType: position.locationType || '',
+        });
+        setEditingPositionIndex(positionIndex);
+        setIsAddingPosition(false);
+    }, [editingExperienceId, experiences, toast]);
+
+    const handleCancelPosition = useCallback(() => {
+        setEditingPositionIndex(null);
+        setIsAddingPosition(false);
+        setPositionForm({
+            position: '',
+            description: '',
+            startDate: '',
+            endDate: '',
+            isCurrentPosition: false,
+            location: '',
+            locationType: '',
+        });
+    }, []);
+
+    const handleSavePosition = useCallback(async (experienceId: number) => {
+        if (!positionForm.position.trim()) {
+            toast.error('Position title is required.');
+            return;
+        }
+        if (!positionForm.startDate) {
+            toast.error('Start date is required.');
+            return;
+        }
+        if (!positionForm.isCurrentPosition && !positionForm.endDate) {
+            toast.error('End date is required when not current position.');
+            return;
+        }
+        if (positionForm.endDate && positionForm.startDate && new Date(positionForm.endDate) < new Date(positionForm.startDate)) {
+            toast.error('End date must be after start date.');
+            return;
+        }
+
+        const currentExp = experiences.find(e => e.userId === experienceId);
+        if (!currentExp) {
+            toast.error('Experience not found.');
+            return;
+        }
+
+        setIsSaving(true);
+        try {
+            const newPosition: UserComponentExperiencePosition = {
+                position: positionForm.position,
+                description: positionForm.description || undefined,
+                startDate: new Date(positionForm.startDate),
+                endDate: positionForm.isCurrentPosition ? undefined : (positionForm.endDate ? new Date(positionForm.endDate) : undefined),
+                isCurrentPosition: positionForm.isCurrentPosition,
+                location: positionForm.location || undefined,
+                locationType: positionForm.locationType || undefined,
+            };
+
+            let updatedPositions = [...(currentExp.positions || [])];
+            if (editingPositionIndex !== null) {
+                updatedPositions[editingPositionIndex] = {
+                    ...updatedPositions[editingPositionIndex],
+                    ...newPosition,
+                };
+            } else {
+                updatedPositions.push(newPosition);
+            }
+
+            // Update experience with new positions
+            const experienceData: any = {
+                companyName: currentExp.companyName,
+                positions: updatedPositions.map(p => ({
+                    position: p.position || p.positionName || '',
+                    description: p.description,
+                    startDate: p.startDate,
+                    endDate: p.endDate,
+                    isCurrentPosition: p.isCurrentPosition,
+                    location: p.location,
+                    locationType: p.locationType,
+                })),
+            };
+
+            const updatedExperience = await UserComponentsService.updateExperience(experienceId, experienceData);
+            setExperiences(prev => prev.map(exp => exp.userId === experienceId ? updatedExperience : exp));
+
+            setEditingPositionIndex(null);
+            setIsAddingPosition(false);
+            setPositionForm({
+                position: '',
+                description: '',
+                startDate: '',
+                endDate: '',
+                isCurrentPosition: false,
+                location: '',
+                locationType: '',
+            });
+            toast.success(`Position ${editingPositionIndex !== null ? 'updated' : 'added'} successfully!`);
+        } catch (err: any) {
+            toast.error(err.message || `Failed to ${editingPositionIndex !== null ? 'update' : 'add'} position. Please try again.`);
+        } finally {
+            setIsSaving(false);
+        }
+    }, [positionForm, editingPositionIndex, experiences, toast]);
+
+    const handleDeletePosition = useCallback(async (experienceId: number, positionIndex: number) => {
+        if (!confirm('Are you sure you want to delete this position?')) {
+            return;
+        }
+
+        const currentExp = experiences.find(e => e.userId === experienceId);
+        if (!currentExp?.positions) {
+            toast.error('Position not found.');
+            return;
+        }
+
+        setIsSaving(true);
+        try {
+            const updatedPositions = currentExp.positions.filter((_, idx) => idx !== positionIndex);
+
+            const experienceData: any = {
+                companyName: currentExp.companyName,
+                positions: updatedPositions.map(p => ({
+                    position: p.position || p.positionName || '',
+                    description: p.description,
+                    startDate: p.startDate,
+                    endDate: p.endDate,
+                    isCurrentPosition: p.isCurrentPosition,
+                    location: p.location,
+                    locationType: p.locationType,
+                })),
+            };
+
+            const updatedExperience = await UserComponentsService.updateExperience(experienceId, experienceData);
+            setExperiences(prev => prev.map(exp => exp.userId === experienceId ? updatedExperience : exp));
+
+            toast.success('Position deleted successfully!');
+        } catch (err: any) {
+            toast.error(err.message || 'Failed to delete position. Please try again.');
+        } finally {
+            setIsSaving(false);
+        }
+    }, [experiences, toast]);
 
     const formatDate = (date: Date | string | undefined) => {
         if (!date) return 'Present';
@@ -1022,24 +1356,305 @@ export default function ProfileManagementPage() {
                         <SectionCard
                             title="Professional Experience"
                             icon={<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>}
+                            action={
+                                !isEditingExperience && (
+                                    <button
+                                        onClick={handleAddExperience}
+                                        className="px-3 py-1.5 md:px-4 md:py-2 text-sm bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity font-medium"
+                                    >
+                                        Add Experience
+                                    </button>
+                                )
+                            }
                             collapsible={true}
-                            isEmpty={experiences.length === 0}
+                            isEmpty={experiences.length === 0 && !isEditingExperience}
                             emptyMessage="No professional experience added yet"
                         >
-                            {experiences.map((exp, index) => (
-                                <div key={index} className="mb-6 last:mb-0">
-                                    <h4 className="text-lg font-semibold text-jcoder-foreground mb-4">{exp.companyName}</h4>
-                                    {exp.positions && exp.positions.map((position, pIndex) => (
-                                        <TimelineItem
-                                            key={pIndex}
-                                            title={position.positionName}
-                                            period={`${formatDate(position.startDate)} - ${position.isCurrentPosition ? 'Present' : formatDate(position.endDate)}`}
-                                            description={position.description}
-                                            isActive={position.isCurrentPosition}
-                                        />
+                            {isEditingExperience ? (
+                                <div className="space-y-6">
+                                    {/* Company Form */}
+                                    <div className="p-4 bg-jcoder-secondary rounded-lg border border-jcoder">
+                                        <h4 className="text-base font-semibold text-jcoder-foreground mb-4">
+                                            {editingExperienceId ? 'Edit Company' : 'Add Company'}
+                                        </h4>
+                                        <div className="space-y-4">
+                                            <div>
+                                                <label className="block text-sm font-medium text-jcoder-muted mb-2">Company Name *</label>
+                                                <input
+                                                    type="text"
+                                                    name="companyName"
+                                                    value={experienceForm.companyName}
+                                                    onChange={handleExperienceInputChange}
+                                                    placeholder="e.g., Tech Company Inc."
+                                                    className="w-full px-4 py-2 bg-jcoder-background border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none"
+                                                />
+                                            </div>
+
+                                            {/* Action Buttons for Company */}
+                                            <div className="flex items-center justify-end gap-3 pt-4 border-t border-jcoder">
+                                                <button
+                                                    onClick={handleCancelExperience}
+                                                    disabled={isSaving}
+                                                    className="px-4 py-2 border border-jcoder text-jcoder-foreground rounded-lg hover:border-jcoder-primary transition-colors text-sm md:text-base"
+                                                >
+                                                    Cancel
+                                                </button>
+                                                <button
+                                                    onClick={handleSaveExperience}
+                                                    disabled={isSaving}
+                                                    className="px-4 py-2 bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity font-medium disabled:opacity-50 text-sm md:text-base"
+                                                >
+                                                    {isSaving ? 'Saving...' : editingExperienceId ? 'Update Company' : 'Create Company'}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Positions Management - Only show if company is saved/being edited */}
+                                    {editingExperienceId && (
+                                        <div className="p-4 bg-jcoder-secondary rounded-lg border border-jcoder">
+                                            <div className="flex items-center justify-between mb-4">
+                                                <h4 className="text-base font-semibold text-jcoder-foreground">Positions</h4>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleAddPosition(editingExperienceId)}
+                                                    className="px-3 py-1.5 text-sm bg-jcoder-primary/10 text-jcoder-primary rounded-lg hover:bg-jcoder-primary/20 transition-colors font-medium flex items-center gap-1"
+                                                >
+                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                                    </svg>
+                                                    Add Position
+                                                </button>
+                                            </div>
+
+                                            {/* Position Form - Show when adding or editing a position */}
+                                            {(isAddingPosition || editingPositionIndex !== null) && (
+                                                <div className="mb-4 p-4 bg-jcoder-background rounded-lg border border-jcoder">
+                                                    <h5 className="text-sm font-semibold text-jcoder-foreground mb-3">
+                                                        {editingPositionIndex !== null ? 'Edit Position' : 'New Position'}
+                                                    </h5>
+                                                    <div className="space-y-3">
+                                                        <div>
+                                                            <label className="block text-xs font-medium text-jcoder-muted mb-1">Position Title *</label>
+                                                            <input
+                                                                type="text"
+                                                                name="position"
+                                                                value={positionForm.position}
+                                                                onChange={handlePositionInputChange}
+                                                                placeholder="e.g., Senior Software Engineer"
+                                                                className="w-full px-3 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none text-sm"
+                                                            />
+                                                        </div>
+                                                        <div>
+                                                            <label className="block text-xs font-medium text-jcoder-muted mb-1">Description (Optional)</label>
+                                                            <textarea
+                                                                name="description"
+                                                                value={positionForm.description}
+                                                                onChange={handlePositionInputChange}
+                                                                rows={3}
+                                                                placeholder="Describe your responsibilities and achievements..."
+                                                                className="w-full px-3 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none resize-none text-sm"
+                                                            />
+                                                        </div>
+                                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                            <div>
+                                                                <label className="block text-xs font-medium text-jcoder-muted mb-1">Start Date *</label>
+                                                                <input
+                                                                    type="date"
+                                                                    name="startDate"
+                                                                    value={positionForm.startDate}
+                                                                    onChange={handlePositionInputChange}
+                                                                    className="w-full px-3 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none text-sm"
+                                                                />
+                                                            </div>
+                                                            <div>
+                                                                <label className="block text-xs font-medium text-jcoder-muted mb-1">
+                                                                    End Date {positionForm.isCurrentPosition ? '(Optional)' : '*'}
+                                                                </label>
+                                                                <input
+                                                                    type="date"
+                                                                    name="endDate"
+                                                                    value={positionForm.endDate}
+                                                                    onChange={handlePositionInputChange}
+                                                                    disabled={positionForm.isCurrentPosition}
+                                                                    className="w-full px-3 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                            <div>
+                                                                <label className="block text-xs font-medium text-jcoder-muted mb-1">Location (Optional)</label>
+                                                                <input
+                                                                    type="text"
+                                                                    name="location"
+                                                                    value={positionForm.location}
+                                                                    onChange={handlePositionInputChange}
+                                                                    placeholder="e.g., São Paulo, Brazil"
+                                                                    className="w-full px-3 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none text-sm"
+                                                                />
+                                                            </div>
+                                                            <div>
+                                                                <label className="block text-xs font-medium text-jcoder-muted mb-1">Location Type (Optional)</label>
+                                                                <select
+                                                                    name="locationType"
+                                                                    value={positionForm.locationType}
+                                                                    onChange={handlePositionInputChange}
+                                                                    className="w-full px-3 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none text-sm"
+                                                                >
+                                                                    <option value="">Select type</option>
+                                                                    <option value={WorkLocationTypeEnum.REMOTE}>Remote</option>
+                                                                    <option value={WorkLocationTypeEnum.HYBRID}>Hybrid</option>
+                                                                    <option value={WorkLocationTypeEnum.IN_PERSON}>In Person</option>
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                        <div>
+                                                            <label className="flex items-center gap-2 cursor-pointer">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    name="isCurrentPosition"
+                                                                    checked={positionForm.isCurrentPosition}
+                                                                    onChange={handlePositionInputChange}
+                                                                    className="w-4 h-4 text-jcoder-primary bg-jcoder-secondary border-jcoder rounded focus:ring-jcoder-primary"
+                                                                />
+                                                                <span className="text-xs font-medium text-jcoder-foreground">Currently working in this position</span>
+                                                            </label>
+                                                        </div>
+                                                        <div className="flex items-center justify-end gap-2 pt-2">
+                                                            <button
+                                                                onClick={handleCancelPosition}
+                                                                disabled={isSaving}
+                                                                className="px-3 py-1.5 text-xs border border-jcoder text-jcoder-foreground rounded-lg hover:border-jcoder-primary transition-colors"
+                                                            >
+                                                                Cancel
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleSavePosition(editingExperienceId)}
+                                                                disabled={isSaving}
+                                                                className="px-3 py-1.5 text-xs bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity font-medium disabled:opacity-50"
+                                                            >
+                                                                {isSaving ? 'Saving...' : editingPositionIndex !== null ? 'Update' : 'Add'}
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Existing Positions List */}
+                                            {(() => {
+                                                const currentExp = experiences.find(e => e.userId === editingExperienceId);
+                                                const positions = currentExp?.positions || [];
+                                                if (positions.length === 0 && !isAddingPosition && editingPositionIndex === null) {
+                                                    return (
+                                                        <p className="text-sm text-jcoder-muted italic">No positions added yet. Click "Add Position" to get started.</p>
+                                                    );
+                                                }
+                                                return (
+                                                    <div className="space-y-3">
+                                                        {positions.map((position, pIndex) => (
+                                                            <div key={pIndex} className="group relative p-3 bg-jcoder-background rounded-lg border border-jcoder">
+                                                                {editingPositionIndex === pIndex ? null : (
+                                                                    <>
+                                                                        <div className="flex items-start justify-between mb-2">
+                                                                            <div className="flex-1">
+                                                                                <div className="flex items-center gap-2">
+                                                                                    <h5 className="text-sm font-semibold text-jcoder-foreground">
+                                                                                        {position.position || position.positionName}
+                                                                                    </h5>
+                                                                                    {position.isCurrentPosition && (
+                                                                                        <span className="px-2 py-0.5 text-xs bg-green-500/20 text-green-500 rounded-full">Current</span>
+                                                                                    )}
+                                                                                </div>
+                                                                                <p className="text-xs text-jcoder-muted mt-1">
+                                                                                    {formatDate(position.startDate)} - {position.isCurrentPosition ? 'Present' : formatDate(position.endDate)}
+                                                                                </p>
+                                                                                {position.location && (
+                                                                                    <p className="text-xs text-jcoder-muted mt-1">
+                                                                                        {position.location} {position.locationType && `• ${position.locationType}`}
+                                                                                    </p>
+                                                                                )}
+                                                                                {position.description && (
+                                                                                    <p className="text-xs text-jcoder-muted mt-2 line-clamp-2">{position.description}</p>
+                                                                                )}
+                                                                            </div>
+                                                                            <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                                <button
+                                                                                    onClick={() => handleEditPosition(editingExperienceId, pIndex)}
+                                                                                    className="p-1.5 bg-jcoder-secondary border border-jcoder rounded hover:border-jcoder-primary transition-colors"
+                                                                                    title="Edit position"
+                                                                                >
+                                                                                    <svg className="w-3.5 h-3.5 text-jcoder-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                                                    </svg>
+                                                                                </button>
+                                                                                <button
+                                                                                    onClick={() => handleDeletePosition(editingExperienceId, pIndex)}
+                                                                                    className="p-1.5 bg-jcoder-secondary border border-red-500/50 rounded hover:border-red-500 transition-colors"
+                                                                                    title="Delete position"
+                                                                                >
+                                                                                    <svg className="w-3.5 h-3.5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                                                    </svg>
+                                                                                </button>
+                                                                            </div>
+                                                                        </div>
+                                                                    </>
+                                                                )}
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                );
+                                            })()}
+                                        </div>
+                                    )}
+                                </div>
+                            ) : (
+                                <div className="space-y-6">
+                                    {experiences.map((exp, index) => (
+                                        <div key={exp.userId || index} className="group relative">
+                                            <div className="mb-4 flex items-center justify-between">
+                                                <h4 className="text-lg font-semibold text-jcoder-foreground">{exp.companyName}</h4>
+                                                <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <button
+                                                        onClick={() => handleEditExperience(exp)}
+                                                        className="p-2 bg-jcoder-secondary border border-jcoder rounded-lg hover:border-jcoder-primary transition-colors"
+                                                        title="Edit experience"
+                                                    >
+                                                        <svg className="w-4 h-4 text-jcoder-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                        </svg>
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDeleteExperience(exp.userId)}
+                                                        className="p-2 bg-jcoder-secondary border border-red-500/50 rounded-lg hover:border-red-500 transition-colors"
+                                                        title="Delete experience"
+                                                    >
+                                                        <svg className="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            {exp.positions && exp.positions.length > 0 ? (
+                                                <div className="space-y-3">
+                                                    {exp.positions.map((position, pIndex) => (
+                                                        <TimelineItem
+                                                            key={pIndex}
+                                                            title={position.position || position.positionName || 'Position'}
+                                                            period={`${formatDate(position.startDate)} - ${position.isCurrentPosition ? 'Present' : formatDate(position.endDate)}`}
+                                                            description={position.description}
+                                                            isActive={position.isCurrentPosition}
+                                                            tags={position.location ? [position.location, position.locationType].filter((t): t is string => Boolean(t)) : undefined}
+                                                        />
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <p className="text-sm text-jcoder-muted italic">No positions added for this company yet.</p>
+                                            )}
+                                        </div>
                                     ))}
                                 </div>
-                            ))}
+                            )}
                         </SectionCard>
 
                         {/* Certificates Section */}
