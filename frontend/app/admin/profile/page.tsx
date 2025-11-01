@@ -43,6 +43,8 @@ export default function ProfileManagementPage() {
     const [editingExperienceId, setEditingExperienceId] = useState<number | null>(null);
     const [editingPositionIndex, setEditingPositionIndex] = useState<number | null>(null);
     const [isAddingPosition, setIsAddingPosition] = useState(false);
+    const [isEditingCertificate, setIsEditingCertificate] = useState(false);
+    const [editingCertificateId, setEditingCertificateId] = useState<number | null>(null);
     const [isSaving, setIsSaving] = useState(false);
 
     // Form data
@@ -84,6 +86,15 @@ export default function ProfileManagementPage() {
         isCurrentPosition: false,
         location: '',
         locationType: '' as WorkLocationTypeEnum | '',
+    });
+
+    const [certificateForm, setCertificateForm] = useState({
+        certificateName: '',
+        registrationNumber: '',
+        verificationUrl: '',
+        issueDate: '',
+        issuedTo: '',
+        educationIds: [] as number[],
     });
 
     const handleLogout = useCallback(() => {
@@ -749,6 +760,132 @@ export default function ProfileManagementPage() {
             setIsSaving(false);
         }
     }, [experiences, toast]);
+
+    // Certificate handlers
+    const handleCertificateInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        setCertificateForm(prev => ({ ...prev, [name]: value }));
+    }, []);
+
+    const handleAddCertificate = useCallback(() => {
+        setCertificateForm({
+            certificateName: '',
+            registrationNumber: '',
+            verificationUrl: '',
+            issueDate: '',
+            issuedTo: user?.fullName || user?.firstName || '',
+            educationIds: [],
+        });
+        setEditingCertificateId(null);
+        setIsEditingCertificate(true);
+    }, [user]);
+
+    const handleEditCertificate = useCallback((certificate: UserComponentCertificate) => {
+        const educationIds = certificate.educations?.map(e => e.id ?? e.userId).filter((id): id is number => id !== undefined) || [];
+        setCertificateForm({
+            certificateName: certificate.certificateName || '',
+            registrationNumber: certificate.registrationNumber || '',
+            verificationUrl: certificate.verificationUrl || '',
+            issueDate: certificate.issueDate ? new Date(certificate.issueDate).toISOString().split('T')[0] : '',
+            issuedTo: certificate.issuedTo || '',
+            educationIds,
+        });
+        const certId = certificate.id ?? certificate.userId;
+        setEditingCertificateId(certId ?? null);
+        setIsEditingCertificate(true);
+    }, []);
+
+    const handleCancelCertificate = useCallback(() => {
+        setIsEditingCertificate(false);
+        setEditingCertificateId(null);
+        setCertificateForm({
+            certificateName: '',
+            registrationNumber: '',
+            verificationUrl: '',
+            issueDate: '',
+            issuedTo: '',
+            educationIds: [],
+        });
+    }, []);
+
+    const handleSaveCertificate = useCallback(async () => {
+        if (!certificateForm.certificateName.trim()) {
+            toast.error('Certificate name is required.');
+            return;
+        }
+        if (!certificateForm.issuedTo.trim()) {
+            toast.error('Issued to is required.');
+            return;
+        }
+        if (!certificateForm.issueDate) {
+            toast.error('Issue date is required.');
+            return;
+        }
+
+        setIsSaving(true);
+        try {
+            const certificateData: any = {
+                certificateName: certificateForm.certificateName,
+                issuedTo: certificateForm.issuedTo,
+                issueDate: new Date(certificateForm.issueDate),
+                registrationNumber: certificateForm.registrationNumber || undefined,
+                verificationUrl: certificateForm.verificationUrl || undefined,
+                educationIds: certificateForm.educationIds.length > 0 ? certificateForm.educationIds : undefined,
+            };
+
+            let updatedCertificate: UserComponentCertificate;
+            if (editingCertificateId) {
+                updatedCertificate = await UserComponentsService.updateCertificate(editingCertificateId, certificateData);
+                setCertificates(prev => prev.map(cert => {
+                    const certId = cert.id ?? cert.userId;
+                    return certId === editingCertificateId ? updatedCertificate : cert;
+                }));
+            } else {
+                updatedCertificate = await UserComponentsService.createCertificate(certificateData);
+                setCertificates(prev => [...prev, updatedCertificate]);
+            }
+
+            setIsEditingCertificate(false);
+            setEditingCertificateId(null);
+            toast.success(`Certificate ${editingCertificateId ? 'updated' : 'created'} successfully!`);
+        } catch (err: any) {
+            toast.error(err.message || `Failed to ${editingCertificateId ? 'update' : 'create'} certificate. Please try again.`);
+        } finally {
+            setIsSaving(false);
+        }
+    }, [certificateForm, editingCertificateId, toast]);
+
+    const handleDeleteCertificate = useCallback(async (certificateId: number) => {
+        if (!confirm('Are you sure you want to delete this certificate?')) {
+            return;
+        }
+
+        setIsSaving(true);
+        try {
+            await UserComponentsService.deleteCertificate(certificateId);
+            setCertificates(prev => prev.filter(cert => {
+                const certId = cert.id ?? cert.userId;
+                return certId !== certificateId;
+            }));
+            toast.success('Certificate deleted successfully!');
+        } catch (err: any) {
+            toast.error(err.message || 'Failed to delete certificate. Please try again.');
+        } finally {
+            setIsSaving(false);
+        }
+    }, [toast]);
+
+    const handleEducationToggle = useCallback((educationId: number) => {
+        setCertificateForm(prev => {
+            const isSelected = prev.educationIds.includes(educationId);
+            return {
+                ...prev,
+                educationIds: isSelected
+                    ? prev.educationIds.filter(id => id !== educationId)
+                    : [...prev.educationIds, educationId],
+            };
+        });
+    }, []);
 
     const formatDate = (date: Date | string | undefined) => {
         if (!date) return 'Present';
@@ -1661,33 +1798,197 @@ export default function ProfileManagementPage() {
                         <SectionCard
                             title="Certifications"
                             icon={<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" /></svg>}
+                            action={
+                                !isEditingCertificate && (
+                                    <button
+                                        onClick={handleAddCertificate}
+                                        className="px-3 py-1.5 md:px-4 md:py-2 text-sm bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity font-medium"
+                                    >
+                                        Add Certificate
+                                    </button>
+                                )
+                            }
                             collapsible={true}
-                            isEmpty={certificates.length === 0}
+                            isEmpty={certificates.length === 0 && !isEditingCertificate}
                             emptyMessage="No certificates added yet"
                         >
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {certificates.map((cert, index) => (
-                                    <div key={index} className="p-4 bg-jcoder-secondary rounded-lg border border-jcoder hover:border-jcoder-primary transition-all">
-                                        <h4 className="text-base font-semibold text-jcoder-foreground mb-2">{cert.certificateName}</h4>
-                                        <p className="text-sm text-jcoder-muted mb-2">Issued to: {cert.issuedTo}</p>
-                                        <p className="text-xs text-jcoder-muted mb-2">Issued: {formatDate(cert.issueDate)}</p>
-                                        {cert.registrationNumber && (
-                                            <p className="text-xs text-jcoder-muted mb-2">Registration: {cert.registrationNumber}</p>
-                                        )}
-                                        {cert.verificationUrl && (
-                                            <a
-                                                href={cert.verificationUrl}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="inline-flex items-center gap-1 text-xs text-jcoder-primary hover:underline"
-                                            >
-                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
-                                                Verify Certificate
-                                            </a>
-                                        )}
+                            {isEditingCertificate ? (
+                                <div className="space-y-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="md:col-span-2">
+                                            <label className="block text-sm font-medium text-jcoder-muted mb-2">Certificate Name *</label>
+                                            <input
+                                                type="text"
+                                                name="certificateName"
+                                                value={certificateForm.certificateName}
+                                                onChange={handleCertificateInputChange}
+                                                placeholder="e.g., AWS Certified Solutions Architect"
+                                                className="w-full px-4 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none"
+                                            />
+                                        </div>
+                                        <div className="md:col-span-2">
+                                            <label className="block text-sm font-medium text-jcoder-muted mb-2">Issued To *</label>
+                                            <input
+                                                type="text"
+                                                name="issuedTo"
+                                                value={certificateForm.issuedTo}
+                                                onChange={handleCertificateInputChange}
+                                                placeholder="e.g., John Doe"
+                                                className="w-full px-4 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-jcoder-muted mb-2">Issue Date *</label>
+                                            <input
+                                                type="date"
+                                                name="issueDate"
+                                                value={certificateForm.issueDate}
+                                                onChange={handleCertificateInputChange}
+                                                className="w-full px-4 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-jcoder-muted mb-2">Registration Number (Optional)</label>
+                                            <input
+                                                type="text"
+                                                name="registrationNumber"
+                                                value={certificateForm.registrationNumber}
+                                                onChange={handleCertificateInputChange}
+                                                placeholder="e.g., AWS-1234567890"
+                                                className="w-full px-4 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none"
+                                            />
+                                        </div>
+                                        <div className="md:col-span-2">
+                                            <label className="block text-sm font-medium text-jcoder-muted mb-2">Verification URL (Optional)</label>
+                                            <input
+                                                type="url"
+                                                name="verificationUrl"
+                                                value={certificateForm.verificationUrl}
+                                                onChange={handleCertificateInputChange}
+                                                placeholder="https://verify.credential.com/certificate/123456"
+                                                className="w-full px-4 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none"
+                                            />
+                                        </div>
                                     </div>
-                                ))}
-                            </div>
+
+                                    {/* Education Link Section */}
+                                    {educations.length > 0 && (
+                                        <div className="pt-4 border-t border-jcoder">
+                                            <h4 className="text-base font-semibold text-jcoder-foreground mb-3">Link to Education (Optional)</h4>
+                                            <p className="text-sm text-jcoder-muted mb-3">Select education records to link this certificate to:</p>
+                                            <div className="space-y-2 max-h-48 overflow-y-auto">
+                                                {educations.map((edu) => {
+                                                    const educationId = edu.id ?? edu.userId;
+                                                    if (educationId === undefined) return null;
+                                                    const isSelected = certificateForm.educationIds.includes(educationId);
+                                                    return (
+                                                        <label
+                                                            key={educationId}
+                                                            className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${isSelected
+                                                                ? 'bg-jcoder-primary/10 border-jcoder-primary'
+                                                                : 'bg-jcoder-secondary border-jcoder hover:border-jcoder-primary/50'
+                                                                }`}
+                                                        >
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={isSelected}
+                                                                onChange={() => handleEducationToggle(educationId)}
+                                                                className="w-4 h-4 text-jcoder-primary bg-jcoder-secondary border-jcoder rounded focus:ring-jcoder-primary"
+                                                            />
+                                                            <div className="flex-1">
+                                                                <p className="text-sm font-medium text-jcoder-foreground">{edu.courseName}</p>
+                                                                <p className="text-xs text-jcoder-muted">{edu.institutionName}</p>
+                                                                {edu.degree && (
+                                                                    <p className="text-xs text-jcoder-muted">{edu.degree}</p>
+                                                                )}
+                                                            </div>
+                                                        </label>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Action Buttons */}
+                                    <div className="flex items-center justify-end gap-3 pt-4">
+                                        <button
+                                            onClick={handleCancelCertificate}
+                                            disabled={isSaving}
+                                            className="px-4 py-2 border border-jcoder text-jcoder-foreground rounded-lg hover:border-jcoder-primary transition-colors text-sm md:text-base"
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            onClick={handleSaveCertificate}
+                                            disabled={isSaving}
+                                            className="px-4 py-2 bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity font-medium disabled:opacity-50 text-sm md:text-base"
+                                        >
+                                            {isSaving ? 'Saving...' : editingCertificateId ? 'Update' : 'Create'}
+                                        </button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {certificates.map((cert, index) => {
+                                        const certificateId = cert.id ?? cert.userId;
+                                        return (
+                                            <div key={certificateId || index} className="group relative p-4 bg-jcoder-secondary rounded-lg border border-jcoder hover:border-jcoder-primary transition-all">
+                                                <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <button
+                                                        onClick={() => handleEditCertificate(cert)}
+                                                        className="p-2 bg-jcoder-background border border-jcoder rounded-lg hover:border-jcoder-primary transition-colors"
+                                                        title="Edit certificate"
+                                                    >
+                                                        <svg className="w-4 h-4 text-jcoder-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                        </svg>
+                                                    </button>
+                                                    {certificateId && (
+                                                        <button
+                                                            onClick={() => handleDeleteCertificate(certificateId)}
+                                                            className="p-2 bg-jcoder-background border border-red-500/50 rounded-lg hover:border-red-500 transition-colors"
+                                                            title="Delete certificate"
+                                                        >
+                                                            <svg className="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                            </svg>
+                                                        </button>
+                                                    )}
+                                                </div>
+                                                <h4 className="text-base font-semibold text-jcoder-foreground mb-2 pr-12">{cert.certificateName}</h4>
+                                                <p className="text-sm text-jcoder-muted mb-2">Issued to: {cert.issuedTo}</p>
+                                                <p className="text-xs text-jcoder-muted mb-2">Issued: {formatDate(cert.issueDate)}</p>
+                                                {cert.registrationNumber && (
+                                                    <p className="text-xs text-jcoder-muted mb-2">Registration: {cert.registrationNumber}</p>
+                                                )}
+                                                {cert.educations && cert.educations.length > 0 && (
+                                                    <div className="mb-2">
+                                                        <p className="text-xs font-medium text-jcoder-muted mb-1">Linked to Education:</p>
+                                                        <div className="flex flex-wrap gap-1">
+                                                            {cert.educations.map((edu, eduIndex) => (
+                                                                <span key={eduIndex} className="px-2 py-0.5 text-xs bg-jcoder-primary/10 text-jcoder-primary rounded-full">
+                                                                    {edu.institutionName}
+                                                                </span>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                                {cert.verificationUrl && (
+                                                    <a
+                                                        href={cert.verificationUrl}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="inline-flex items-center gap-1 text-xs text-jcoder-primary hover:underline mt-2"
+                                                    >
+                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                                                        Verify Certificate
+                                                    </a>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
                         </SectionCard>
                     </div>
                 </div>
