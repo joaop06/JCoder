@@ -9,6 +9,13 @@ import { Application } from '@/types/entities/application.entity';
 import { Technology } from '@/types/entities/technology.entity';
 import { ApplicationService } from '@/services/applications.service';
 import { TechnologiesService } from '@/services/technologies.service';
+import { UserComponentsService } from '@/services/user-components.service';
+import { ImagesService } from '@/services/images.service';
+import ApiService from '@/services/api.service';
+import { UserComponentAboutMe } from '@/types/entities/user-component-about-me.entity';
+import { UserComponentEducation } from '@/types/entities/user-component-education.entity';
+import { UserComponentExperience } from '@/types/entities/user-component-experience.entity';
+import { UserComponentCertificate } from '@/types/entities/user-component-certificate.entity';
 import ApplicationCard from '@/components/applications/ApplicationCard';
 import { useSmoothScroll } from '@/hooks/useSmoothScroll';
 import { GitHubIcon } from '@/components/theme';
@@ -21,6 +28,16 @@ export default function Home() {
   const [applications, setApplications] = useState<Application[]>([]);
   const [technologies, setTechnologies] = useState<Technology[]>([]);
   const [loadingTechs, setLoadingTechs] = useState(true);
+
+  // User components states
+  const [aboutMe, setAboutMe] = useState<UserComponentAboutMe | null>(null);
+  const [loadingAboutMe, setLoadingAboutMe] = useState(true);
+  const [educations, setEducations] = useState<UserComponentEducation[]>([]);
+  const [loadingEducations, setLoadingEducations] = useState(true);
+  const [experiences, setExperiences] = useState<UserComponentExperience[]>([]);
+  const [loadingExperiences, setLoadingExperiences] = useState(true);
+  const [certificates, setCertificates] = useState<UserComponentCertificate[]>([]);
+  const [loadingCertificates, setLoadingCertificates] = useState(true);
 
   const toast = useToast();
   const { scrollToElement } = useSmoothScroll();
@@ -66,6 +83,58 @@ export default function Home() {
     }
   };
 
+  const loadAboutMe = async () => {
+    setLoadingAboutMe(true);
+    try {
+      const data = await UserComponentsService.getAboutMe();
+      setAboutMe(data);
+    } catch (err) {
+      console.error('Failure to load about me', err);
+      setAboutMe(null);
+    } finally {
+      setLoadingAboutMe(false);
+    }
+  };
+
+  const loadEducations = async () => {
+    setLoadingEducations(true);
+    try {
+      const data = await UserComponentsService.getEducations();
+      setEducations(data || []);
+    } catch (err) {
+      console.error('Failure to load educations', err);
+      setEducations([]);
+    } finally {
+      setLoadingEducations(false);
+    }
+  };
+
+  const loadExperiences = async () => {
+    setLoadingExperiences(true);
+    try {
+      const data = await UserComponentsService.getExperiences();
+      setExperiences(data || []);
+    } catch (err) {
+      console.error('Failure to load experiences', err);
+      setExperiences([]);
+    } finally {
+      setLoadingExperiences(false);
+    }
+  };
+
+  const loadCertificates = async () => {
+    setLoadingCertificates(true);
+    try {
+      const data = await UserComponentsService.getCertificates();
+      setCertificates(data || []);
+    } catch (err) {
+      console.error('Failure to load certificates', err);
+      setCertificates([]);
+    } finally {
+      setLoadingCertificates(false);
+    }
+  };
+
   useEffect(() => {
     let isMounted = true;
 
@@ -74,7 +143,11 @@ export default function Home() {
       // Carregamento paralelo para melhor performance
       await Promise.all([
         loadApplications(),
-        loadTechnologies()
+        loadTechnologies(),
+        loadAboutMe(),
+        loadEducations(),
+        loadExperiences(),
+        loadCertificates()
       ]);
     };
 
@@ -87,6 +160,54 @@ export default function Home() {
 
   const scrollToSection = (sectionId: string) => {
     scrollToElement(sectionId, 80); // 80px offset para o header
+  };
+
+  // Function to download resume/curriculum
+  const handleDownloadResume = async () => {
+    try {
+      // TODO: Replace with actual API endpoint when backend is ready
+      const response = await ApiService.get('/resume/download', {
+        responseType: 'blob',
+        headers: {
+          'Accept': 'application/pdf',
+        },
+      });
+
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'Joao_Pedro_Borges_Resume.pdf';
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      toast.success('Resume downloaded successfully!');
+    } catch (err) {
+      console.error('Failure to download resume', err);
+      const errorMessage = 'The resume could not be downloaded. Please try again.';
+      toast.error(errorMessage);
+    }
+  };
+
+  // Helper function to format dates
+  const formatDate = (date: Date | string | undefined): string => {
+    if (!date) return '';
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    return new Intl.DateTimeFormat('en-US', { year: 'numeric', month: 'short' }).format(dateObj);
+  };
+
+  // Helper function to format date range
+  const formatDateRange = (startDate: Date | string, endDate?: Date | string, isCurrent?: boolean): string => {
+    const start = formatDate(startDate);
+    if (isCurrent) {
+      return `${start} - Present`;
+    }
+    if (endDate) {
+      return `${start} - ${formatDate(endDate)}`;
+    }
+    return start;
   };
 
   return (
@@ -148,6 +269,26 @@ export default function Home() {
                 View Projects
               </button>
               <button
+                onClick={handleDownloadResume}
+                className="px-8 py-4 border-2 border-jcoder-primary text-jcoder-primary font-semibold rounded-lg hover:bg-jcoder-primary hover:text-black transition-all duration-300 flex items-center gap-2"
+              >
+                Download Resume
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                  />
+                </svg>
+              </button>
+              <button
                 onClick={() => scrollToSection('contact')}
                 className="px-8 py-4 border-2 border-jcoder-primary text-jcoder-primary font-semibold rounded-lg hover:bg-jcoder-primary hover:text-black transition-all duration-300 flex items-center gap-2"
               >
@@ -180,96 +321,190 @@ export default function Home() {
                 About Me
               </h2>
 
-              <div className="grid lg:grid-cols-2 gap-12 items-center">
-                {/* Profile Image */}
-                <div className="order-2 lg:order-1">
-                  <div className="relative">
-                    <div className="w-80 h-80 mx-auto lg:mx-0 rounded-2xl overflow-hidden bg-jcoder-gradient p-1">
-                      <div className="w-full h-full rounded-2xl overflow-hidden bg-jcoder-card">
-                        <LazyImage
-                          src="/images/profile_picture.jpeg"
-                          alt="João Pedro - Backend Developer"
-                          fallback="JP"
-                          size="custom"
-                          width="w-full"
-                          height="h-full"
-                          rounded="rounded-2xl"
-                          objectFit="object-cover"
-                          rootMargin="100px"
+              {loadingAboutMe ? (
+                <AboutMeSkeleton />
+              ) : aboutMe ? (
+                <div className="grid lg:grid-cols-2 gap-12 items-center">
+                  {/* Profile Image */}
+                  <div className="order-2 lg:order-1">
+                    <div className="relative">
+                      <div className="w-80 h-80 mx-auto lg:mx-0 rounded-2xl overflow-hidden bg-jcoder-gradient p-1">
+                        <div className="w-full h-full rounded-2xl overflow-hidden bg-jcoder-card">
+                          <LazyImage
+                            src="/images/profile_picture.jpeg"
+                            alt="Profile Picture"
+                            fallback="JP"
+                            size="custom"
+                            width="w-full"
+                            height="h-full"
+                            rounded="rounded-2xl"
+                            objectFit="object-cover"
+                            rootMargin="100px"
+                          />
+                        </div>
+                      </div>
+                      {/* Decorative elements */}
+                      <div className="absolute -top-4 -right-4 w-8 h-8 bg-jcoder-cyan rounded-full opacity-60"></div>
+                      <div className="absolute -bottom-4 -left-4 w-6 h-6 bg-jcoder-blue rounded-full opacity-40"></div>
+                    </div>
+                  </div>
+
+                  {/* Content */}
+                  <div className="order-1 lg:order-2 text-center lg:text-left">
+                    <div className="mb-8">
+                      <h3 className="text-2xl font-bold text-jcoder-foreground mb-4">
+                        João Pedro Borges
+                      </h3>
+                      {aboutMe.occupation && (
+                        <p className="text-lg text-jcoder-primary font-semibold mb-6">
+                          {aboutMe.occupation}
+                        </p>
+                      )}
+                    </div>
+
+                    {aboutMe.description && (
+                      <div className="space-y-6 mb-8">
+                        <div
+                          className="text-lg text-jcoder-muted leading-relaxed prose prose-invert max-w-none"
+                          dangerouslySetInnerHTML={{ __html: aboutMe.description }}
                         />
                       </div>
+                    )}
+
+                    {/* Skills & Achievements */}
+                    {aboutMe.highlights && aboutMe.highlights.length > 0 && (
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+                        {aboutMe.highlights.map((highlight, index) => (
+                          <div key={index} className="bg-jcoder-card rounded-xl p-4 border border-jcoder">
+                            {highlight.emoji && <div className="text-2xl mb-2">{highlight.emoji}</div>}
+                            <h4 className="font-semibold text-jcoder-foreground mb-1">{highlight.title}</h4>
+                            {highlight.subtitle && (
+                              <p className="text-sm text-jcoder-muted">{highlight.subtitle}</p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Call to Action */}
+                    <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                      <button
+                        onClick={() => scrollToSection('projects')}
+                        className="px-6 py-3 bg-jcoder-gradient text-black font-semibold rounded-lg hover:shadow-jcoder-primary transition-all duration-300 transform hover:scale-105"
+                      >
+                        View My Work
+                      </button>
+                      <button
+                        onClick={handleDownloadResume}
+                        className="px-6 py-3 border-2 border-jcoder-primary text-jcoder-primary font-semibold rounded-lg hover:bg-jcoder-primary hover:text-black transition-all duration-300 flex items-center gap-2"
+                      >
+                        Download Resume
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                          />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => scrollToSection('contact')}
+                        className="px-6 py-3 border-2 border-jcoder-primary text-jcoder-primary font-semibold rounded-lg hover:bg-jcoder-primary hover:text-black transition-all duration-300"
+                      >
+                        Get in Touch
+                      </button>
                     </div>
-                    {/* Decorative elements */}
-                    <div className="absolute -top-4 -right-4 w-8 h-8 bg-jcoder-cyan rounded-full opacity-60"></div>
-                    <div className="absolute -bottom-4 -left-4 w-6 h-6 bg-jcoder-blue rounded-full opacity-40"></div>
                   </div>
                 </div>
-
-                {/* Content */}
-                <div className="order-1 lg:order-2 text-center lg:text-left">
-                  <div className="mb-8">
-                    <h3 className="text-2xl font-bold text-jcoder-foreground mb-4">
-                      João Pedro Borges
-                    </h3>
-                    <p className="text-lg text-jcoder-primary font-semibold mb-6">
-                      Backend Developer & Software Engineer
-                    </p>
-                  </div>
-
-                  <div className="space-y-6 mb-8">
-                    <p className="text-lg text-jcoder-muted leading-relaxed">
-                      I'm 22 years old and have been working as a programmer for over 2 years (approximately 2 years and 5 months).
-                      My specialty is in the backend area with JavaScript (Node.js), developing robust and scalable solutions.
-                    </p>
-                    <p className="text-lg text-jcoder-muted leading-relaxed">
-                      I graduated in Multiplatform Software Development from Fatec Franca Dr. Thomas Novelino,
-                      with 2640 hours of course including internship and extension activities. Always seeking new challenges
-                      and professional growth opportunities.
-                    </p>
-                  </div>
-
-                  {/* Skills & Achievements */}
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-                    <div className="bg-jcoder-card rounded-xl p-4 border border-jcoder">
-                      <div className="text-2xl mb-2">🎯</div>
-                      <h4 className="font-semibold text-jcoder-foreground mb-1">Backend Specialist</h4>
-                      <p className="text-sm text-jcoder-muted">Node.js & JavaScript</p>
-                    </div>
-                    <div className="bg-jcoder-card rounded-xl p-4 border border-jcoder">
-                      <div className="text-2xl mb-2">🎓</div>
-                      <h4 className="font-semibold text-jcoder-foreground mb-1">Fatec Graduate</h4>
-                      <p className="text-sm text-jcoder-muted">Software Development</p>
-                    </div>
-                    <div className="bg-jcoder-card rounded-xl p-4 border border-jcoder">
-                      <div className="text-2xl mb-2">🚀</div>
-                      <h4 className="font-semibold text-jcoder-foreground mb-1">2+ Years Experience</h4>
-                      <p className="text-sm text-jcoder-muted">Professional Development</p>
-                    </div>
-                  </div>
-
-                  {/* Call to Action */}
-                  <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                    <button
-                      onClick={() => scrollToSection('projects')}
-                      className="px-6 py-3 bg-jcoder-gradient text-black font-semibold rounded-lg hover:shadow-jcoder-primary transition-all duration-300 transform hover:scale-105"
-                    >
-                      View My Work
-                    </button>
-                    <button
-                      onClick={() => scrollToSection('contact')}
-                      className="px-6 py-3 border-2 border-jcoder-primary text-jcoder-primary font-semibold rounded-lg hover:bg-jcoder-primary hover:text-black transition-all duration-300"
-                    >
-                      Get in Touch
-                    </button>
-                  </div>
+              ) : (
+                <div className="text-center py-12">
+                  <p className="text-jcoder-muted text-lg">About Me information not available.</p>
                 </div>
-              </div>
+              )}
             </div>
           </div>
         </section>
 
+        {/* Professional Experience Section */}
+        {(loadingExperiences || experiences.length > 0) && (
+          <section id="experience" className="py-20 bg-jcoder-card/50">
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="max-w-6xl mx-auto">
+                <h2 className="text-4xl font-bold text-jcoder-foreground text-center mb-12">
+                  Professional Experience
+                </h2>
+
+                {loadingExperiences ? (
+                  <ExperienceSkeleton />
+                ) : experiences.length > 0 ? (
+                  <div className="space-y-8">
+                    {experiences.map((experience, expIndex) => (
+                      <div
+                        key={`experience-${experience.userId}-${experience.companyName}-${expIndex}`}
+                        className="bg-jcoder-card rounded-2xl p-6 border border-jcoder hover:border-jcoder-primary transition-all duration-300"
+                      >
+                        <h3 className="text-2xl font-bold text-jcoder-foreground mb-6">
+                          {experience.companyName}
+                        </h3>
+
+                        {experience.positions && experience.positions.length > 0 && (
+                          <div className="space-y-6 pl-4 border-l-2 border-jcoder-primary/30">
+                            {experience.positions.map((position, index) => (
+                              <div key={`position-${position.id || index}-${position.position || position.positionName}`} className="relative">
+                                <div className="absolute -left-[29px] top-0 w-4 h-4 bg-jcoder-primary rounded-full"></div>
+                                <div className="mb-4">
+                                  <h4 className="text-xl font-semibold text-jcoder-foreground mb-2">
+                                    {position.position || position.positionName}
+                                  </h4>
+                                  <div className="flex flex-wrap items-center gap-4 mb-2">
+                                    <p className="text-jcoder-muted text-sm">
+                                      {formatDateRange(
+                                        position.startDate,
+                                        position.endDate,
+                                        position.isCurrentPosition
+                                      )}
+                                    </p>
+                                    {position.location && (
+                                      <span className="text-jcoder-muted text-sm">
+                                        📍 {position.location}
+                                        {position.locationType && ` • ${position.locationType}`}
+                                      </span>
+                                    )}
+                                    {position.isCurrentPosition && (
+                                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-jcoder-primary/20 text-jcoder-primary">
+                                        Current
+                                      </span>
+                                    )}
+                                  </div>
+                                  {position.description && (
+                                    <div
+                                      className="text-jcoder-muted leading-relaxed prose prose-invert max-w-none"
+                                      dangerouslySetInnerHTML={{ __html: position.description }}
+                                    />
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          </section>
+        )}
+
         {/* Projects Section */}
-        <section id="projects" className="py-20 bg-jcoder-card/50">
+        <section id="projects" className="py-20">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-6xl mx-auto">
               <h2 className="text-4xl font-bold text-jcoder-foreground text-center mb-12">
@@ -305,7 +540,7 @@ export default function Home() {
         </section>
 
         {/* Tech Stack Section */}
-        <section id="tech-stack" className="py-20">
+        <section id="tech-stack" className="py-20 bg-jcoder-card/50">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-6xl mx-auto">
               <h2 className="text-4xl font-bold text-jcoder-foreground text-center mb-12">
@@ -359,6 +594,159 @@ export default function Home() {
             </div>
           </div>
         </section>
+
+        {/* Education & Certifications Section - Combined */}
+        {((loadingEducations || educations.length > 0) || (loadingCertificates || certificates.length > 0)) && (
+          <section id="education-certifications" className="py-20 bg-jcoder-card/50">
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="max-w-6xl mx-auto">
+                <h2 className="text-4xl font-bold text-jcoder-foreground text-center mb-12">
+                  Education & Certifications
+                </h2>
+
+                <div className="grid lg:grid-cols-2 gap-8">
+                  {/* Education Column */}
+                  <div>
+                    {(loadingEducations || educations.length > 0) && (
+                      <>
+                        <h3 className="text-2xl font-bold text-jcoder-foreground mb-6">
+                          Education
+                        </h3>
+                        {loadingEducations ? (
+                          <EducationSkeleton />
+                        ) : educations.length > 0 ? (
+                          <div className="space-y-6">
+                            {educations.map((education, eduIndex) => (
+                              <div
+                                key={education.id || `edu-${eduIndex}`}
+                                className="bg-jcoder-card rounded-2xl p-6 border border-jcoder hover:border-jcoder-primary transition-all duration-300"
+                              >
+                                <div className="flex flex-col gap-4">
+                                  <div className="flex-1">
+                                    <h4 className="text-xl font-bold text-jcoder-foreground mb-2">
+                                      {education.courseName}
+                                    </h4>
+                                    <p className="text-lg text-jcoder-primary font-semibold mb-2">
+                                      {education.institutionName}
+                                    </p>
+                                    {education.degree && (
+                                      <p className="text-jcoder-muted mb-4">{education.degree}</p>
+                                    )}
+                                  </div>
+                                  <div className="flex items-center justify-between">
+                                    <p className="text-jcoder-foreground font-semibold text-sm">
+                                      {formatDateRange(
+                                        education.startDate,
+                                        education.endDate,
+                                        education.isCurrentlyStudying
+                                      )}
+                                    </p>
+                                    {education.isCurrentlyStudying && (
+                                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-jcoder-primary/20 text-jcoder-primary">
+                                        Current
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="text-center py-8">
+                            <p className="text-jcoder-muted">No education records found.</p>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+
+                  {/* Certifications Column */}
+                  <div>
+                    {(loadingCertificates || certificates.length > 0) && (
+                      <>
+                        <h3 className="text-2xl font-bold text-jcoder-foreground mb-6">
+                          Certifications
+                        </h3>
+                        {loadingCertificates ? (
+                          <CertificatesSkeleton />
+                        ) : certificates.length > 0 ? (
+                          <div className="space-y-6">
+                            {certificates.map((certificate, certIndex) => (
+                              <div
+                                key={certificate.id || `cert-${certIndex}`}
+                                className="bg-jcoder-card rounded-2xl p-6 border border-jcoder hover:border-jcoder-primary transition-all duration-300 hover:shadow-lg"
+                              >
+                                {certificate.profileImage && certificate.id && (
+                                  <div className="mb-4 rounded-lg overflow-hidden bg-jcoder-secondary">
+                                    <LazyImage
+                                      src={ImagesService.getCertificateImageUrl(certificate.id)}
+                                      alt={certificate.certificateName}
+                                      fallback="🎓"
+                                      size="custom"
+                                      width="w-full"
+                                      height="h-40"
+                                      rounded="rounded-lg"
+                                      objectFit="object-cover"
+                                      rootMargin="100px"
+                                    />
+                                  </div>
+                                )}
+                                <h4 className="text-lg font-bold text-jcoder-foreground mb-2">
+                                  {certificate.certificateName}
+                                </h4>
+                                {certificate.registrationNumber && (
+                                  <p className="text-xs text-jcoder-muted mb-1">
+                                    Registration: {certificate.registrationNumber}
+                                  </p>
+                                )}
+                                <p className="text-xs text-jcoder-muted mb-2">
+                                  Issued: {formatDate(certificate.issueDate)}
+                                </p>
+                                {certificate.issuedTo && (
+                                  <p className="text-xs text-jcoder-muted mb-3">
+                                    To: {certificate.issuedTo}
+                                  </p>
+                                )}
+                                {certificate.verificationUrl && (
+                                  <a
+                                    href={certificate.verificationUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-1 text-jcoder-primary hover:text-jcoder-accent transition-colors text-xs font-semibold"
+                                  >
+                                    Verify Certificate
+                                    <svg
+                                      className="w-3 h-3"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      viewBox="0 0 24 24"
+                                      xmlns="http://www.w3.org/2000/svg"
+                                    >
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                                      />
+                                    </svg>
+                                  </a>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="text-center py-8">
+                            <p className="text-jcoder-muted">No certifications found.</p>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* Social & Contact Section */}
         <section id="contact" className="py-20">
@@ -557,6 +945,96 @@ const getExpertiseLevelColor = (level: ExpertiseLevel): string => {
   };
   return colors[level];
 };
+
+// About Me Skeleton Component
+function AboutMeSkeleton() {
+  return (
+    <div className="grid lg:grid-cols-2 gap-12 items-center animate-pulse">
+      <div className="order-2 lg:order-1">
+        <div className="w-80 h-80 mx-auto lg:mx-0 rounded-2xl bg-jcoder-secondary"></div>
+      </div>
+      <div className="order-1 lg:order-2 space-y-6">
+        <div className="h-8 bg-jcoder-secondary rounded w-3/4"></div>
+        <div className="h-6 bg-jcoder-secondary rounded w-1/2"></div>
+        <div className="space-y-3">
+          <div className="h-4 bg-jcoder-secondary rounded w-full"></div>
+          <div className="h-4 bg-jcoder-secondary rounded w-5/6"></div>
+          <div className="h-4 bg-jcoder-secondary rounded w-4/6"></div>
+        </div>
+        <div className="grid grid-cols-3 gap-4">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="bg-jcoder-secondary rounded-xl p-4 h-24"></div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Education Skeleton Component
+function EducationSkeleton() {
+  return (
+    <div className="space-y-6">
+      {[...Array(2)].map((_, i) => (
+        <div key={i} className="bg-jcoder-card rounded-2xl p-6 border border-jcoder animate-pulse">
+          <div className="flex flex-col gap-4">
+            <div className="flex-1 space-y-3">
+              <div className="h-6 bg-jcoder-secondary rounded w-3/4"></div>
+              <div className="h-5 bg-jcoder-secondary rounded w-1/2"></div>
+              <div className="h-4 bg-jcoder-secondary rounded w-1/3"></div>
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="h-4 bg-jcoder-secondary rounded w-32"></div>
+              <div className="h-6 bg-jcoder-secondary rounded w-16"></div>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// Experience Skeleton Component
+function ExperienceSkeleton() {
+  return (
+    <div className="space-y-8">
+      {[...Array(2)].map((_, i) => (
+        <div key={i} className="bg-jcoder-card rounded-2xl p-6 border border-jcoder animate-pulse">
+          <div className="h-6 bg-jcoder-secondary rounded w-1/3 mb-6"></div>
+          <div className="space-y-6 pl-4 border-l-2 border-jcoder-primary/30">
+            {[...Array(2)].map((_, j) => (
+              <div key={j} className="space-y-3">
+                <div className="h-5 bg-jcoder-secondary rounded w-1/2"></div>
+                <div className="h-4 bg-jcoder-secondary rounded w-32"></div>
+                <div className="space-y-2">
+                  <div className="h-3 bg-jcoder-secondary rounded w-full"></div>
+                  <div className="h-3 bg-jcoder-secondary rounded w-5/6"></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// Certificates Skeleton Component
+function CertificatesSkeleton() {
+  return (
+    <div className="space-y-6">
+      {[...Array(3)].map((_, i) => (
+        <div key={i} className="bg-jcoder-card rounded-2xl p-6 border border-jcoder animate-pulse">
+          <div className="h-40 bg-jcoder-secondary rounded-lg mb-4"></div>
+          <div className="h-5 bg-jcoder-secondary rounded w-3/4 mb-2"></div>
+          <div className="h-3 bg-jcoder-secondary rounded w-1/2 mb-1"></div>
+          <div className="h-3 bg-jcoder-secondary rounded w-1/3 mb-3"></div>
+          <div className="h-3 bg-jcoder-secondary rounded w-24"></div>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 // Technology Card Component
 interface TechnologyCardProps {
