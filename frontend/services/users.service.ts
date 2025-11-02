@@ -27,6 +27,22 @@ export const UsersService = {
         }
     },
 
+    /**
+     * Get public user profile data (for homepage/resume)
+     * @returns User data with public information (email, fullName, githubUrl, linkedinUrl)
+     */
+    async getPublicProfile(): Promise<User | null> {
+        try {
+            // Try public endpoint first
+            const response = await ApiService.get('/users/public/profile');
+            return response.data.data || response.data;
+        } catch (error) {
+            // Fallback to localStorage if public endpoint fails
+            console.warn('Public profile endpoint not available, using localStorage data:', error);
+            return this.getUserStorage();
+        }
+    },
+
     clearUserStorage(): void {
         localStorage.removeItem('user');
         localStorage.removeItem('accessToken');

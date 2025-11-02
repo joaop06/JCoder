@@ -11,8 +11,9 @@ import { ApplicationService } from '@/services/applications.service';
 import { TechnologiesService } from '@/services/technologies.service';
 import { UserComponentsService } from '@/services/user-components.service';
 import { ImagesService } from '@/services/images.service';
-import ApiService from '@/services/api.service';
+import { UsersService } from '@/services/users.service';
 import { UserComponentAboutMe } from '@/types/entities/user-component-about-me.entity';
+import { User } from '@/types/entities/user.entity';
 import { UserComponentEducation } from '@/types/entities/user-component-education.entity';
 import { UserComponentExperience } from '@/types/entities/user-component-experience.entity';
 import { UserComponentCertificate } from '@/types/entities/user-component-certificate.entity';
@@ -21,6 +22,8 @@ import { useSmoothScroll } from '@/hooks/useSmoothScroll';
 import { GitHubIcon } from '@/components/theme';
 import { ExpertiseLevel } from '@/types/enums/expertise-level.enum';
 import LazyImage from '@/components/ui/LazyImage';
+import Resume from '@/components/resume/Resume';
+import { generateResumePDF } from '@/utils/resume-pdf';
 
 export default function Home() {
   const [loading, setLoading] = useState(true);
@@ -38,6 +41,8 @@ export default function Home() {
   const [loadingExperiences, setLoadingExperiences] = useState(true);
   const [certificates, setCertificates] = useState<UserComponentCertificate[]>([]);
   const [loadingCertificates, setLoadingCertificates] = useState(true);
+  const [generatingPDF, setGeneratingPDF] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
 
   const toast = useToast();
   const { scrollToElement } = useSmoothScroll();
@@ -135,6 +140,16 @@ export default function Home() {
     }
   };
 
+  const loadUser = async () => {
+    try {
+      const data = await UsersService.getPublicProfile();
+      setUser(data);
+    } catch (err) {
+      console.error('Failure to load user data', err);
+      setUser(null);
+    }
+  };
+
   useEffect(() => {
     let isMounted = true;
 
@@ -147,7 +162,8 @@ export default function Home() {
         loadAboutMe(),
         loadEducations(),
         loadExperiences(),
-        loadCertificates()
+        loadCertificates(),
+        loadUser()
       ]);
     };
 
@@ -179,6 +195,20 @@ export default function Home() {
       return `${start} - ${formatDate(endDate)}`;
     }
     return start;
+  };
+
+  // Handle PDF generation
+  const handleDownloadResume = async () => {
+    setGeneratingPDF(true);
+    try {
+      await generateResumePDF();
+      toast.success('Resume downloaded successfully!');
+    } catch (error) {
+      console.error('Error generating resume PDF:', error);
+      toast.error('Failed to generate resume. Please try again.');
+    } finally {
+      setGeneratingPDF(false);
+    }
   };
 
   return (
@@ -238,6 +268,39 @@ export default function Home() {
                 className="px-8 py-4 bg-jcoder-gradient text-black font-semibold rounded-lg hover:shadow-jcoder-primary transition-all duration-300 transform hover:scale-105"
               >
                 View Projects
+              </button>
+              <button
+                onClick={handleDownloadResume}
+                disabled={generatingPDF}
+                className="px-8 py-4 bg-jcoder-card border-2 border-jcoder-primary text-jcoder-primary font-semibold rounded-lg hover:bg-jcoder-primary hover:text-black transition-all duration-300 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {generatingPDF ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                      />
+                    </svg>
+                    Download Resume
+                  </>
+                )}
               </button>
               <button
                 onClick={() => scrollToSection('contact')}
@@ -778,6 +841,19 @@ export default function Home() {
 
       <Footer />
       <ScrollToTop />
+
+      {/* Hidden Resume Component for PDF Generation */}
+      <div style={{ display: 'none' }}>
+        <Resume
+          aboutMe={aboutMe}
+          educations={educations}
+          experiences={experiences}
+          certificates={certificates}
+          applications={applications}
+          technologies={technologies}
+          user={user}
+        />
+      </div>
     </div>
   );
 }

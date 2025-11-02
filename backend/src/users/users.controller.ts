@@ -193,6 +193,16 @@ export class UsersController {
         return await this.getCertificatesUseCase.execute(adminUserId);
     }
 
+    @Get('public/profile')
+    @HttpCode(HttpStatus.OK)
+    @ApiOkResponse({ type: () => User })
+    async getPublicProfile() {
+        // Buscar usuário admin primeiro e usar o ID
+        const adminUserId = await this.getAdminUserId();
+        // Retornar apenas dados básicos do perfil (email, fullName, githubUrl, linkedinUrl)
+        return await this.usersService.findBasicProfile(adminUserId);
+    }
+
     @Get('profile/about-me')
     @UseGuards(JwtAuthGuard)
     @HttpCode(HttpStatus.OK)
