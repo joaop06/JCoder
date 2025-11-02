@@ -162,7 +162,6 @@ types/entities/
 - [ ] Rich text editor for descriptions
 - [ ] File attachments for certificates
 - [ ] Social media integration
-- [ ] Export profile as PDF
 - [ ] Public profile view
 - [ ] Skills and technologies section
 - [ ] Projects showcase

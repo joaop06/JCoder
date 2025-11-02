@@ -162,35 +162,6 @@ export default function Home() {
     scrollToElement(sectionId, 80); // 80px offset para o header
   };
 
-  // Function to download resume/curriculum
-  const handleDownloadResume = async () => {
-    try {
-      // TODO: Replace with actual API endpoint when backend is ready
-      const response = await ApiService.get('/resume/download', {
-        responseType: 'blob',
-        headers: {
-          'Accept': 'application/pdf',
-        },
-      });
-
-      const blob = new Blob([response.data], { type: 'application/pdf' });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'Joao_Pedro_Borges_Resume.pdf';
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-
-      toast.success('Resume downloaded successfully!');
-    } catch (err) {
-      console.error('Failure to download resume', err);
-      const errorMessage = 'The resume could not be downloaded. Please try again.';
-      toast.error(errorMessage);
-    }
-  };
-
   // Helper function to format dates
   const formatDate = (date: Date | string | undefined): string => {
     if (!date) return '';
@@ -267,26 +238,6 @@ export default function Home() {
                 className="px-8 py-4 bg-jcoder-gradient text-black font-semibold rounded-lg hover:shadow-jcoder-primary transition-all duration-300 transform hover:scale-105"
               >
                 View Projects
-              </button>
-              <button
-                onClick={handleDownloadResume}
-                className="px-8 py-4 border-2 border-jcoder-primary text-jcoder-primary font-semibold rounded-lg hover:bg-jcoder-primary hover:text-black transition-all duration-300 flex items-center gap-2"
-              >
-                Download Resume
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                  />
-                </svg>
               </button>
               <button
                 onClick={() => scrollToSection('contact')}
@@ -393,26 +344,6 @@ export default function Home() {
                         className="px-6 py-3 bg-jcoder-gradient text-black font-semibold rounded-lg hover:shadow-jcoder-primary transition-all duration-300 transform hover:scale-105"
                       >
                         View My Work
-                      </button>
-                      <button
-                        onClick={handleDownloadResume}
-                        className="px-6 py-3 border-2 border-jcoder-primary text-jcoder-primary font-semibold rounded-lg hover:bg-jcoder-primary hover:text-black transition-all duration-300 flex items-center gap-2"
-                      >
-                        Download Resume
-                        <svg
-                          className="w-4 h-4"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                          />
-                        </svg>
                       </button>
                       <button
                         onClick={() => scrollToSection('contact')}
