@@ -13,12 +13,9 @@ import {
     ParseIntPipe,
 } from '@nestjs/common';
 import { FindManyOptions } from 'typeorm';
-import { RoleEnum } from '../@common/enums/role.enum';
-import { RolesGuard } from '../@common/guards/roles.guard';
 import { Technology } from './entities/technology.entity';
 import { TechnologiesService } from './technologies.service';
 import { JwtAuthGuard } from '../@common/guards/jwt-auth.guard';
-import { Roles } from '../@common/decorators/roles/roles.decorator';
 import { CreateTechnologyDto } from './dto/create-technology.dto';
 import { UpdateTechnologyDto } from './dto/update-technology.dto';
 import { QueryTechnologyDto } from './dto/query-technology.dto';
@@ -92,8 +89,7 @@ export class TechnologiesController {
     }
 
     @Post()
-    @Roles(RoleEnum.Admin)
-    @UseGuards(JwtAuthGuard, RolesGuard)
+    @UseGuards(JwtAuthGuard)
     @ApiOkResponse({ type: () => Technology })
     @ApiExceptionResponse(() => [
         TechnologyNotFoundException,
@@ -106,8 +102,7 @@ export class TechnologiesController {
     }
 
     @Put(':id')
-    @Roles(RoleEnum.Admin)
-    @UseGuards(JwtAuthGuard, RolesGuard)
+    @UseGuards(JwtAuthGuard)
     @ApiOkResponse({ type: () => Technology })
     @ApiExceptionResponse(() => [
         TechnologyNotFoundException,
@@ -121,8 +116,7 @@ export class TechnologiesController {
     }
 
     @Put(':id/reorder')
-    @Roles(RoleEnum.Admin)
-    @UseGuards(JwtAuthGuard, RolesGuard)
+    @UseGuards(JwtAuthGuard)
     @ApiOkResponse({ type: () => Technology })
     @ApiExceptionResponse(() => [TechnologyNotFoundException])
     async reorder(
@@ -133,9 +127,8 @@ export class TechnologiesController {
     }
 
     @Delete(':id')
-    @Roles(RoleEnum.Admin)
     @HttpCode(HttpStatus.NO_CONTENT)
-    @UseGuards(JwtAuthGuard, RolesGuard)
+    @UseGuards(JwtAuthGuard)
     @ApiNoContentResponse()
     @ApiExceptionResponse(() => [
         TechnologyNotFoundException,

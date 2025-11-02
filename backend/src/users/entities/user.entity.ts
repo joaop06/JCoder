@@ -9,7 +9,6 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
-import { RoleEnum } from '../../@common/enums/role.enum';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { UserComponentAboutMe } from '../user-components/entities/user-component-about-me.entity';
 import { UserComponentEducation } from '../user-components/entities/user-component-education.entity';
@@ -38,19 +37,6 @@ export class User {
   @Exclude()
   @Column({ nullable: false })
   password: string;
-
-  @ApiProperty({
-    enum: RoleEnum,
-    nullable: false,
-    example: RoleEnum.Admin,
-  })
-  @Column({
-    type: 'enum',
-    enum: RoleEnum,
-    nullable: false,
-    default: RoleEnum.User,
-  })
-  role: RoleEnum;
 
   @ApiProperty({
     type: 'string',

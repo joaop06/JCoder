@@ -3,7 +3,6 @@ import { Injectable } from "@nestjs/common";
 import { User } from "./entities/user.entity";
 import { InjectRepository } from "@nestjs/typeorm";
 import { UserNotFoundException } from "./exceptions/user-not-found.exception";
-import { RoleEnum } from "src/@common/enums/role.enum";
 
 @Injectable()
 export class UsersService {
@@ -65,7 +64,7 @@ export class UsersService {
     async findBasicProfile(id: number): Promise<Partial<User>> {
         const user = await this.repository.findOne({
             where: { id },
-            select: ['id', 'username', 'firstName', 'fullName', 'email', 'githubUrl', 'linkedinUrl', 'role', 'createdAt', 'updatedAt']
+            select: ['id', 'username', 'firstName', 'fullName', 'email', 'githubUrl', 'linkedinUrl', 'createdAt', 'updatedAt']
         });
         if (!user) throw new UserNotFoundException();
         return user;
@@ -74,7 +73,7 @@ export class UsersService {
     async findProfileWithAboutMe(id: number): Promise<Partial<User>> {
         const user = await this.repository.findOne({
             where: { id },
-            select: ['id', 'username', 'firstName', 'fullName', 'email', 'githubUrl', 'linkedinUrl', 'role', 'createdAt', 'updatedAt'],
+            select: ['id', 'username', 'firstName', 'fullName', 'email', 'githubUrl', 'linkedinUrl', 'createdAt', 'updatedAt'],
             relations: {
                 userComponentAboutMe: {
                     highlights: true
@@ -85,13 +84,6 @@ export class UsersService {
         return user;
     }
 
-    async findAdminUserId(): Promise<number | null> {
-        const admin = await this.repository.findOne({
-            where: { role: RoleEnum.Admin },
-            select: ['id'],
-        });
-        return admin?.id || null;
-    }
 
     async findUserIdByUsername(username: string): Promise<number> {
         const user = await this.findByUsername(username);
@@ -123,7 +115,7 @@ export class UsersService {
     async findBasicProfileByUsername(username: string): Promise<Partial<User>> {
         const user = await this.repository.findOne({
             where: { username },
-            select: ['id', 'username', 'firstName', 'fullName', 'email', 'githubUrl', 'linkedinUrl', 'role', 'createdAt', 'updatedAt']
+            select: ['id', 'username', 'firstName', 'fullName', 'email', 'githubUrl', 'linkedinUrl', 'createdAt', 'updatedAt']
         });
         if (!user) throw new UserNotFoundException();
         return user;

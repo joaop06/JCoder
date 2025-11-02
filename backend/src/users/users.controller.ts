@@ -12,7 +12,6 @@ import {
     Controller,
     HttpStatus,
     ParseIntPipe,
-    UseInterceptors,
 } from '@nestjs/common';
 import {
     GetCertificateUseCase,
@@ -41,7 +40,7 @@ import {
     InvalidExperiencePositionDatesException,
 } from './user-components/exceptions/user-component.exceptions';
 import { User } from './entities/user.entity';
-import { UsersService } from './users.service';
+import { OwnerGuard } from '../@common/guards/owner.guard';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { PaginationDto } from '../@common/dto/pagination.dto';
 import { JwtAuthGuard } from '../@common/guards/jwt-auth.guard';
@@ -49,6 +48,7 @@ import { GetProfileUseCase } from './use-cases/get-profile.use-case';
 import { ApiOkResponse, ApiNoContentResponse } from '@nestjs/swagger';
 import { UpdateProfileUseCase } from './use-cases/update-profile.use-case';
 import { UserNotFoundException } from './exceptions/user-not-found.exception';
+import { UnauthorizedAccessException } from './exceptions/unauthorized-access.exception';
 import { EmailAlreadyExistsException } from './exceptions/email-already-exists.exception';
 import { UserComponentAboutMeDto } from './user-components/dto/user-component-about-me.dto';
 import { UserComponentEducationDto } from './user-components/dto/user-component-education.dto';
@@ -103,12 +103,10 @@ export class UsersController {
     }
 
     @Patch(':username/profile')
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(JwtAuthGuard, OwnerGuard)
     @HttpCode(HttpStatus.OK)
     @ApiOkResponse({ type: () => User })
-    @ApiExceptionResponse(() => UserNotFoundException)
-    @ApiExceptionResponse(() => InvalidCurrentPasswordException)
-    @ApiExceptionResponse(() => EmailAlreadyExistsException)
+    @ApiExceptionResponse(() => [UserNotFoundException, InvalidCurrentPasswordException, EmailAlreadyExistsException, UnauthorizedAccessException])
     async updateProfile(
         @Param('username') username: string,
         @Body() updateProfileDto: UpdateProfileDto,
@@ -151,7 +149,7 @@ export class UsersController {
 
     // About Me endpoints (authenticated)
     @Post(':username/about-me')
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(JwtAuthGuard, OwnerGuard)
     @HttpCode(HttpStatus.CREATED)
     @ApiOkResponse()
     @ApiExceptionResponse(() => [ComponentNotFoundException])
@@ -163,7 +161,7 @@ export class UsersController {
     }
 
     @Patch(':username/about-me')
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(JwtAuthGuard, OwnerGuard)
     @HttpCode(HttpStatus.OK)
     @ApiOkResponse()
     @ApiExceptionResponse(() => ComponentNotFoundException)
@@ -176,7 +174,7 @@ export class UsersController {
 
     // Education endpoints
     @Post(':username/educations')
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(JwtAuthGuard, OwnerGuard)
     @HttpCode(HttpStatus.CREATED)
     @ApiOkResponse()
     @ApiExceptionResponse(() => InvalidEducationDatesException)
@@ -188,7 +186,7 @@ export class UsersController {
     }
 
     @Put(':username/educations/:id')
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(JwtAuthGuard, OwnerGuard)
     @HttpCode(HttpStatus.OK)
     @ApiOkResponse()
     @ApiExceptionResponse(() => [ComponentNotFoundException, InvalidEducationDatesException])
@@ -212,7 +210,7 @@ export class UsersController {
     }
 
     @Delete(':username/educations/:id')
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(JwtAuthGuard, OwnerGuard)
     @HttpCode(HttpStatus.NO_CONTENT)
     @ApiNoContentResponse()
     @ApiExceptionResponse(() => ComponentNotFoundException)
@@ -225,7 +223,7 @@ export class UsersController {
 
     // Experience endpoints
     @Post(':username/experiences')
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(JwtAuthGuard, OwnerGuard)
     @HttpCode(HttpStatus.CREATED)
     @ApiOkResponse()
     @ApiExceptionResponse(() => InvalidExperiencePositionDatesException)
@@ -237,7 +235,7 @@ export class UsersController {
     }
 
     @Put(':username/experiences/:id')
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(JwtAuthGuard, OwnerGuard)
     @HttpCode(HttpStatus.OK)
     @ApiOkResponse()
     @ApiExceptionResponse(() => [ComponentNotFoundException, InvalidExperiencePositionDatesException])
@@ -261,7 +259,7 @@ export class UsersController {
     }
 
     @Delete(':username/experiences/:id')
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(JwtAuthGuard, OwnerGuard)
     @HttpCode(HttpStatus.NO_CONTENT)
     @ApiNoContentResponse()
     @ApiExceptionResponse(() => ComponentNotFoundException)
@@ -274,7 +272,7 @@ export class UsersController {
 
     // Certificate endpoints
     @Post(':username/certificates')
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(JwtAuthGuard, OwnerGuard)
     @HttpCode(HttpStatus.CREATED)
     @ApiOkResponse()
     async createCertificate(
@@ -285,7 +283,7 @@ export class UsersController {
     }
 
     @Put(':username/certificates/:id')
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(JwtAuthGuard, OwnerGuard)
     @HttpCode(HttpStatus.OK)
     @ApiOkResponse()
     @ApiExceptionResponse(() => ComponentNotFoundException)
@@ -309,7 +307,7 @@ export class UsersController {
     }
 
     @Delete(':username/certificates/:id')
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(JwtAuthGuard, OwnerGuard)
     @HttpCode(HttpStatus.NO_CONTENT)
     @ApiNoContentResponse()
     @ApiExceptionResponse(() => ComponentNotFoundException)
@@ -350,6 +348,4 @@ export class UsersController {
     ) {
         return await this.getCertificatesPaginatedUseCase.execute(username, pagination);
     }
-
 };
-

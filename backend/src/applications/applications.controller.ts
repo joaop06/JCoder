@@ -13,13 +13,10 @@ import {
   ParseIntPipe,
 } from '@nestjs/common';
 import { FindManyOptions } from 'typeorm';
-import { RoleEnum } from '../@common/enums/role.enum';
-import { RolesGuard } from '../@common/guards/roles.guard';
 import { Application } from './entities/application.entity';
 import { ApplicationsService } from './applications.service';
 import { JwtAuthGuard } from '../@common/guards/jwt-auth.guard';
 import { CreateApplicationDto } from './dto/create-application.dto';
-import { Roles } from '../@common/decorators/roles/roles.decorator';
 import { UpdateApplicationDto } from './dto/update-application.dto';
 import { QueryApplicationDto } from './dto/query-application.dto';
 import { ReorderApplicationDto } from './dto/reorder-application.dto';
@@ -93,8 +90,7 @@ export class ApplicationsController {
   }
 
   @Post()
-  @Roles(RoleEnum.Admin)
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiOkResponse({ type: () => Application })
   @ApiExceptionResponse(() => [
     ApplicationNotFoundException,
@@ -112,8 +108,7 @@ export class ApplicationsController {
   }
 
   @Put(':id')
-  @Roles(RoleEnum.Admin)
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiOkResponse({ type: () => Application })
   @ApiExceptionResponse(() => [
     ApplicationNotFoundException,
@@ -127,8 +122,7 @@ export class ApplicationsController {
   }
 
   @Put(':id/reorder')
-  @Roles(RoleEnum.Admin)
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiOkResponse({ type: () => Application })
   @ApiExceptionResponse(() => [ApplicationNotFoundException])
   async reorder(
@@ -139,9 +133,8 @@ export class ApplicationsController {
   }
 
   @Delete(':id')
-  @Roles(RoleEnum.Admin)
   @HttpCode(HttpStatus.NO_CONTENT)
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiNoContentResponse()
   @ApiExceptionResponse(() => AlreadyDeletedApplicationException)
   async delete(@Param('id') id: string) {

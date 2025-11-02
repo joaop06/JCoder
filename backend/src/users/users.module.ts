@@ -7,12 +7,14 @@ import { GetProfileUseCase } from "./use-cases/get-profile.use-case";
 import { UpdateProfileUseCase } from "./use-cases/update-profile.use-case";
 import { UserComponentsModule } from "./user-components/user-components.module";
 import { ImagesModule } from "../images/images.module";
+import { OwnerGuard } from "../@common/guards/owner.guard";
 
 @Module({
     providers: [
         UsersService,
         GetProfileUseCase,
         UpdateProfileUseCase,
+        OwnerGuard,
     ],
     exports: [UsersService],
     controllers: [UsersController],

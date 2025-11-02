@@ -15,14 +15,11 @@ import {
 } from '@nestjs/common';
 import * as fs from 'fs';
 import { Response } from 'express';
-import { RoleEnum } from '../@common/enums/role.enum';
-import { RolesGuard } from '../@common/guards/roles.guard';
 import { Application } from '../applications/entities/application.entity';
 import { Technology } from '../technologies/entities/technology.entity';
 import { User } from '../users/entities/user.entity';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from '../@common/guards/jwt-auth.guard';
-import { Roles } from '../@common/decorators/roles/roles.decorator';
 import { CurrentUser } from '../@common/decorators/current-user/current-user.decorator';
 import { ApiNoContentResponse, ApiOkResponse } from '@nestjs/swagger';
 import { ApiExceptionResponse } from '../@common/decorators/documentation/api-exception-response.decorator';
@@ -78,8 +75,7 @@ export class ImagesController {
     // ==================== APPLICATION ENDPOINTS ====================
 
     @Post('applications/:id/images')
-    @Roles(RoleEnum.Admin)
-    @UseGuards(JwtAuthGuard, RolesGuard)
+    @UseGuards(JwtAuthGuard)
     @UseInterceptors(FilesInterceptor('images', 10, {
         limits: {
             fileSize: 5 * 1024 * 1024, // 5MB
@@ -122,8 +118,7 @@ export class ImagesController {
     }
 
     @Delete('applications/:id/images/:filename')
-    @Roles(RoleEnum.Admin)
-    @UseGuards(JwtAuthGuard, RolesGuard)
+    @UseGuards(JwtAuthGuard)
     @HttpCode(HttpStatus.NO_CONTENT)
     @ApiNoContentResponse()
     @ApiExceptionResponse(() => ApplicationNotFoundException)
@@ -135,8 +130,7 @@ export class ImagesController {
     }
 
     @Post('applications/:id/profile-image')
-    @Roles(RoleEnum.Admin)
-    @UseGuards(JwtAuthGuard, RolesGuard)
+    @UseGuards(JwtAuthGuard)
     @UseInterceptors(FilesInterceptor('profileImage', 1, {
         limits: {
             fileSize: 5 * 1024 * 1024,
@@ -163,8 +157,7 @@ export class ImagesController {
     }
 
     @Put('applications/:id/profile-image')
-    @Roles(RoleEnum.Admin)
-    @UseGuards(JwtAuthGuard, RolesGuard)
+    @UseGuards(JwtAuthGuard)
     @UseInterceptors(FilesInterceptor('profileImage', 1, {
         limits: {
             fileSize: 5 * 1024 * 1024,
@@ -209,8 +202,7 @@ export class ImagesController {
     }
 
     @Delete('applications/:id/profile-image')
-    @Roles(RoleEnum.Admin)
-    @UseGuards(JwtAuthGuard, RolesGuard)
+    @UseGuards(JwtAuthGuard)
     @HttpCode(HttpStatus.NO_CONTENT)
     @ApiNoContentResponse()
     @ApiExceptionResponse(() => ApplicationNotFoundException)
@@ -223,8 +215,7 @@ export class ImagesController {
     // ==================== TECHNOLOGIES ENDPOINTS ====================
 
     @Post('technologies/:id/profile-image')
-    @Roles(RoleEnum.Admin)
-    @UseGuards(JwtAuthGuard, RolesGuard)
+    @UseGuards(JwtAuthGuard)
     @UseInterceptors(FilesInterceptor('profileImage', 1, {
         limits: {
             fileSize: 5 * 1024 * 1024,
@@ -269,8 +260,7 @@ export class ImagesController {
     }
 
     @Delete('technologies/:id/profile-image')
-    @Roles(RoleEnum.Admin)
-    @UseGuards(JwtAuthGuard, RolesGuard)
+    @UseGuards(JwtAuthGuard)
     @HttpCode(HttpStatus.NO_CONTENT)
     @ApiNoContentResponse()
     @ApiExceptionResponse(() => TechnologyNotFoundException)

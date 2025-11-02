@@ -43,8 +43,8 @@ const createInitialUserAdmin = async () => {
         }
 
         await conn.execute(
-            'INSERT INTO `users` (`username`, `password`, `role`) VALUES (?, ?, ?)',
-            [DATABASE_INITIAL_USERNAME_ADMIN, passwordToStore, 'admin']
+            'INSERT INTO `users` (`username`, `password`) VALUES (?, ?)',
+            [DATABASE_INITIAL_USERNAME_ADMIN, passwordToStore]
         );
     } finally {
         await conn.end();
