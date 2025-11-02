@@ -6,6 +6,19 @@ import { UserComponentExperience } from '../entities/user-component-experience.e
 import { UpdateUserComponentExperienceDto } from '../dto/update-user-component-experience.dto';
 
 @Injectable()
+export class GetExperiencesUseCase {
+    constructor(
+        private readonly usersService: UsersService,
+        private readonly userComponentsService: UserComponentsService,
+    ) { }
+
+    async execute(username: string): Promise<UserComponentExperience[]> {
+        const userId = await this.usersService.findUserIdByUsername(username);
+        return await this.userComponentsService.getExperiences(userId);
+    }
+};
+
+@Injectable()
 export class CreateExperienceUseCase {
     constructor(
         private readonly usersService: UsersService,
@@ -26,30 +39,6 @@ export class UpdateExperienceUseCase {
 
     async execute(id: number, dto: UpdateUserComponentExperienceDto): Promise<UserComponentExperience> {
         return await this.userComponentsService.updateExperience(id, dto);
-    }
-};
-
-@Injectable()
-export class GetExperienceUseCase {
-    constructor(
-        private readonly userComponentsService: UserComponentsService,
-    ) { }
-
-    async execute(id: number): Promise<UserComponentExperience | null> {
-        return await this.userComponentsService.getExperience(id);
-    }
-};
-
-@Injectable()
-export class GetExperiencesUseCase {
-    constructor(
-        private readonly usersService: UsersService,
-        private readonly userComponentsService: UserComponentsService,
-    ) { }
-
-    async execute(username: string): Promise<UserComponentExperience[]> {
-        const userId = await this.usersService.findUserIdByUsername(username);
-        return await this.userComponentsService.getExperiences(userId);
     }
 };
 

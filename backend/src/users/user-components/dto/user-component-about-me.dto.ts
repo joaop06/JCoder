@@ -1,12 +1,11 @@
 import {
     IsArray,
     IsString,
-    IsNotEmpty,
     IsOptional,
     ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiPropertyOptional } from '@nestjs/swagger';
 import { UserComponentAboutMeHighlightDto } from './user-component-about-me-highlight.dto';
 
 export class UserComponentAboutMeDto {

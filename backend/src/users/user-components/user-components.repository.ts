@@ -5,7 +5,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { UserComponentAboutMe } from './entities/user-component-about-me.entity';
 import { UserComponentEducation } from './entities/user-component-education.entity';
 import { UserComponentExperience } from './entities/user-component-experience.entity';
-import { PaginationDto, PaginatedResponseDto } from '../../@common/dto/pagination.dto';
 import { UserComponentCertificate } from './entities/user-component-certificate.entity';
 import { UserComponentAboutMeHighlight } from './entities/user-component-about-me-highlight.entity';
 import { UserComponentExperiencePosition } from './entities/user-component-experience-position.entity';
@@ -249,84 +248,4 @@ export class UserComponentsRepository {
         await this.certificateRepository.save(certificate);
     }
 
-    /**
-     * Paginated methods
-     */
-    async findEducationsByUserIdPaginated(userId: number, pagination: PaginationDto): Promise<PaginatedResponseDto<UserComponentEducation>> {
-        const { page = 1, limit = 10 } = pagination;
-        const skip = (page - 1) * limit;
-
-        const [data, total] = await this.educationRepository.findAndCount({
-            where: { userId },
-            relations: ['certificates'],
-            select: ['userId', 'institutionName', 'courseName', 'degree', 'startDate', 'endDate', 'isCurrentlyStudying'],
-            skip,
-            take: limit,
-            order: { startDate: 'DESC' }
-        });
-
-        const totalPages = Math.ceil(total / limit);
-
-        return {
-            data,
-            total,
-            page,
-            limit,
-            totalPages,
-            hasNext: page < totalPages,
-            hasPrev: page > 1
-        };
-    }
-
-    async findExperiencesByUserIdPaginated(userId: number, pagination: PaginationDto): Promise<PaginatedResponseDto<UserComponentExperience>> {
-        const { page = 1, limit = 10 } = pagination;
-        const skip = (page - 1) * limit;
-
-        const [data, total] = await this.experienceRepository.findAndCount({
-            where: { userId },
-            relations: ['positions'],
-            select: ['userId', 'companyName'],
-            skip,
-            take: limit,
-            order: { companyName: 'ASC' }
-        });
-
-        const totalPages = Math.ceil(total / limit);
-
-        return {
-            data,
-            total,
-            page,
-            limit,
-            totalPages,
-            hasNext: page < totalPages,
-            hasPrev: page > 1
-        };
-    }
-
-    async findCertificatesByUserIdPaginated(userId: number, pagination: PaginationDto): Promise<PaginatedResponseDto<UserComponentCertificate>> {
-        const { page = 1, limit = 10 } = pagination;
-        const skip = (page - 1) * limit;
-
-        const [data, total] = await this.certificateRepository.findAndCount({
-            where: { userId },
-            relations: ['educations'],
-            select: ['userId', 'certificateName', 'issuedTo', 'issueDate', 'verificationUrl', 'registrationNumber', 'profileImage'],
-            skip,
-            take: limit,
-            order: { issueDate: 'DESC' }
-        });
-
-        const totalPages = Math.ceil(total / limit);
-
-        return {
-            data,
-            total,
-            page,
-            limit,
-            totalPages,
-            hasNext: page < totalPages,
-            hasPrev: page > 1
-        };
-    }
 };

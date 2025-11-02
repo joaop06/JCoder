@@ -12,7 +12,6 @@ import { UserComponentExperienceDto } from './dto/user-component-experience.dto'
 import { UserComponentCertificateDto } from './dto/user-component-certificate.dto';
 import { UserComponentEducation } from './entities/user-component-education.entity';
 import { UserComponentExperience } from './entities/user-component-experience.entity';
-import { PaginationDto, PaginatedResponseDto } from '../../@common/dto/pagination.dto';
 import { UserComponentCertificate } from './entities/user-component-certificate.entity';
 import { UpdateUserComponentAboutMeDto } from './dto/update-user-component-about-me.dto';
 import { UpdateUserComponentEducationDto } from './dto/update-user-component-education.dto';
@@ -189,6 +188,10 @@ export class UserComponentsService {
         await this.repository.deleteCertificate(id);
     }
 
+    async linkCertificateToEducation(certificateId: number, educationIds: number[]) {
+        await this.repository.setCertificateEducations(certificateId, educationIds);
+    }
+
     // Validation helpers
     private validateEducationDates(dto: UserComponentEducationDto): void {
         if (dto.isCurrentlyStudying) {
@@ -222,16 +225,4 @@ export class UserComponentsService {
         }
     }
 
-    // Paginated methods
-    async getEducationsPaginated(userId: number, pagination: PaginationDto): Promise<PaginatedResponseDto<UserComponentEducation>> {
-        return await this.repository.findEducationsByUserIdPaginated(userId, pagination);
-    }
-
-    async getExperiencesPaginated(userId: number, pagination: PaginationDto): Promise<PaginatedResponseDto<UserComponentExperience>> {
-        return await this.repository.findExperiencesByUserIdPaginated(userId, pagination);
-    }
-
-    async getCertificatesPaginated(userId: number, pagination: PaginationDto): Promise<PaginatedResponseDto<UserComponentCertificate>> {
-        return await this.repository.findCertificatesByUserIdPaginated(userId, pagination);
-    }
 };

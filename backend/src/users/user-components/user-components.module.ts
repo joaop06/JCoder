@@ -33,10 +33,11 @@ import { UserComponentAboutMe } from './entities/user-component-about-me.entity'
 import { UserComponentEducation } from './entities/user-component-education.entity';
 import { UserComponentExperience } from './entities/user-component-experience.entity';
 import { UserComponentCertificate } from './entities/user-component-certificate.entity';
-import { GetEducationsPaginatedUseCase } from './use-cases/get-educations-paginated.use-case';
-import { GetExperiencesPaginatedUseCase } from './use-cases/get-experiences-paginated.use-case';
-import { GetCertificatesPaginatedUseCase } from './use-cases/get-certificates-paginated.use-case';
 import { UserComponentAboutMeHighlight } from './entities/user-component-about-me-highlight.entity';
+import {
+    LinkCertificateToEducationUseCase,
+    UnlinkCertificateFromEducationUseCase,
+} from './use-cases/link-certificate-education.use-case';
 import { UserComponentExperiencePosition } from './entities/user-component-experience-position.entity';
 
 @Module({
@@ -81,10 +82,9 @@ import { UserComponentExperiencePosition } from './entities/user-component-exper
         DeleteCertificateUseCase,
         UpdateCertificateUseCase,
 
-        /** Paginated */
-        GetEducationsPaginatedUseCase,
-        GetExperiencesPaginatedUseCase,
-        GetCertificatesPaginatedUseCase,
+        /** Certificate-Education Link */
+        LinkCertificateToEducationUseCase,
+        UnlinkCertificateFromEducationUseCase,
     ],
     providers: [
         UserComponentsService,
@@ -116,10 +116,9 @@ import { UserComponentExperiencePosition } from './entities/user-component-exper
         DeleteCertificateUseCase,
         UpdateCertificateUseCase,
 
-        /** Paginated */
-        GetEducationsPaginatedUseCase,
-        GetExperiencesPaginatedUseCase,
-        GetCertificatesPaginatedUseCase,
+        /** Certificate-Education Link */
+        LinkCertificateToEducationUseCase,
+        UnlinkCertificateFromEducationUseCase,
     ],
 })
 export class UserComponentsModule { };

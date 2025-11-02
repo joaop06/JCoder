@@ -6,6 +6,19 @@ import { UserComponentCertificate } from '../entities/user-component-certificate
 import { UpdateUserComponentCertificateDto } from '../dto/update-user-component-certificate.dto';
 
 @Injectable()
+export class GetCertificatesUseCase {
+    constructor(
+        private readonly usersService: UsersService,
+        private readonly userComponentsService: UserComponentsService,
+    ) { }
+
+    async execute(username: string): Promise<UserComponentCertificate[]> {
+        const userId = await this.usersService.findUserIdByUsername(username);
+        return await this.userComponentsService.getCertificates(userId);
+    }
+};
+
+@Injectable()
 export class CreateCertificateUseCase {
     constructor(
         private readonly usersService: UsersService,
@@ -26,30 +39,6 @@ export class UpdateCertificateUseCase {
 
     async execute(id: number, dto: UpdateUserComponentCertificateDto): Promise<UserComponentCertificate> {
         return await this.userComponentsService.updateCertificate(id, dto);
-    }
-};
-
-@Injectable()
-export class GetCertificateUseCase {
-    constructor(
-        private readonly userComponentsService: UserComponentsService,
-    ) { }
-
-    async execute(id: number): Promise<UserComponentCertificate | null> {
-        return await this.userComponentsService.getCertificate(id);
-    }
-};
-
-@Injectable()
-export class GetCertificatesUseCase {
-    constructor(
-        private readonly usersService: UsersService,
-        private readonly userComponentsService: UserComponentsService,
-    ) { }
-
-    async execute(username: string): Promise<UserComponentCertificate[]> {
-        const userId = await this.usersService.findUserIdByUsername(username);
-        return await this.userComponentsService.getCertificates(userId);
     }
 };
 
