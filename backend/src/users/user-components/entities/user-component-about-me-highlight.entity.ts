@@ -3,9 +3,10 @@ import {
     Entity,
     ManyToOne,
     JoinColumn,
-    PrimaryGeneratedColumn,
+    PrimaryColumn,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
+import { User } from '../../entities/user.entity';
 import { UserComponentAboutMe } from './user-component-about-me.entity';
 
 @Entity('users_components_about_me_highlights')
@@ -14,10 +15,16 @@ export class UserComponentAboutMeHighlight {
         example: 1,
         type: 'number',
         nullable: false,
-        description: 'ID',
+        description: 'Linked user ID',
     })
-    @PrimaryGeneratedColumn()
-    id: number;
+    @PrimaryColumn()
+    userId: number;
+
+    @ManyToOne(() => User, {
+        onDelete: 'CASCADE',
+    })
+    @JoinColumn({ name: 'userId' })
+    user: User;
 
     @ApiProperty({
         example: 1,
@@ -25,7 +32,7 @@ export class UserComponentAboutMeHighlight {
         nullable: false,
         description: 'Linked About Me component user ID',
     })
-    @Column()
+    @PrimaryColumn()
     aboutMeId: number;
 
     @ManyToOne(() => UserComponentAboutMe, (aboutMe) => aboutMe.highlights, {
