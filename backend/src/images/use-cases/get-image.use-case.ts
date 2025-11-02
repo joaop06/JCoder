@@ -1,19 +1,54 @@
 import { Injectable } from '@nestjs/common';
-import { ImagesService } from '../images.service';
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Application } from '../../applications/entities/application.entity';
 import { ApplicationNotFoundException } from '../../applications/exceptions/application-not-found.exception';
+import { CacheService } from '../../@common/services/cache.service';
+import { ImageStorageService } from '../services/image-storage.service';
+import { ResourceType } from '../enums/resource-type.enum';
 
 @Injectable()
 export class GetImageUseCase {
     constructor(
-        private readonly imagesService: ImagesService,
+        @InjectRepository(Application)
+        private readonly applicationRepository: Repository<Application>,
+        private readonly imageStorageService: ImageStorageService,
+        private readonly cacheService: CacheService,
     ) { }
 
     async execute(id: number, filename: string): Promise<string> {
-        // Check if application exists
-        const application = await this.imagesService.findApplicationById(id);
-        if (!application) throw new ApplicationNotFoundException();
+        const application = await this.findApplicationById(id);
 
-        // Get the image path
-        return await this.imagesService.getImagePath(id, filename);
+        if (!application.images || !application.images.includes(filename)) {
+            throw new ApplicationNotFoundException();
+        }
+
+        return await this.imageStorageService.getImagePath(
+            ResourceType.Application,
+            id,
+            filename,
+        );
+    }
+
+    private async findApplicationById(id: number): Promise<Application> {
+        const cacheKey = this.cacheService.applicationKey(id, 'full');
+
+        return await this.cacheService.getOrSet(
+            cacheKey,
+            async () => {
+                const application = await this.applicationRepository.findOne({
+                    where: { id },
+                    relations: {
+                        applicationComponentApi: true,
+                        applicationComponentMobile: true,
+                        applicationComponentLibrary: true,
+                        applicationComponentFrontend: true,
+                    },
+                });
+                if (!application) throw new ApplicationNotFoundException();
+                return application;
+            },
+            600,
+        );
     }
 }

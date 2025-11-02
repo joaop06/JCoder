@@ -5,9 +5,9 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { HealthModule } from './health/health.module';
+import { ImagesModule } from './images/images.module';
 import { loggerConfig } from './@common/config/logger.config';
 import { ApplicationsModule } from './applications/applications.module';
-import { ImagesModule } from './images/images.module';
 import { TechnologiesModule } from './technologies/technologies.module';
 import { TypeormMysqlModule } from './@common/database/typeorm-mysql-module';
 

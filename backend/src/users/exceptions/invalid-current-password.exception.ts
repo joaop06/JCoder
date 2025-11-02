@@ -5,4 +5,3 @@ export class InvalidCurrentPasswordException extends BadRequestException {
         super('Current password is invalid');
     }
 };
-

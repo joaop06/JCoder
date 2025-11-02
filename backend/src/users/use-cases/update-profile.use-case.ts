@@ -3,8 +3,8 @@ import { Injectable } from "@nestjs/common";
 import { User } from "../entities/user.entity";
 import { UsersService } from "../users.service";
 import { UpdateProfileDto } from "../dto/update-profile.dto";
-import { InvalidCurrentPasswordException } from "../exceptions/invalid-current-password.exception";
 import { EmailAlreadyExistsException } from "../exceptions/email-already-exists.exception";
+import { InvalidCurrentPasswordException } from "../exceptions/invalid-current-password.exception";
 
 @Injectable()
 export class UpdateProfileUseCase {
@@ -41,11 +41,26 @@ export class UpdateProfileUseCase {
         }
 
         // Update other fields
-        if (updateProfileDto.name !== undefined) {
-            user.name = updateProfileDto.name;
+        if (updateProfileDto.firstName !== undefined) {
+            user.firstName = updateProfileDto.firstName;
+        }
+
+        if (updateProfileDto.fullName !== undefined) {
+            user.fullName = updateProfileDto.fullName;
+        }
+
+        if (updateProfileDto.githubUrl !== undefined) {
+            user.githubUrl = updateProfileDto.githubUrl;
+        }
+
+        if (updateProfileDto.linkedinUrl !== undefined) {
+            user.linkedinUrl = updateProfileDto.linkedinUrl;
+        }
+
+        if (updateProfileDto.profileImage !== undefined) {
+            user.profileImage = updateProfileDto.profileImage;
         }
 
         return await this.usersService.update(user);
     }
 };
-

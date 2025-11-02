@@ -1,7 +1,17 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsOptional, IsString, MinLength } from 'class-validator';
+import { IsEmail, IsOptional, IsString, MinLength, IsUrl } from 'class-validator';
 
 export class UpdateProfileDto {
+    @ApiProperty({
+        type: 'string',
+        required: false,
+        example: 'John',
+        description: 'User first name',
+    })
+    @IsOptional()
+    @IsString()
+    declare firstName?: string;
+
     @ApiProperty({
         type: 'string',
         required: false,
@@ -10,7 +20,7 @@ export class UpdateProfileDto {
     })
     @IsOptional()
     @IsString()
-    declare name?: string;
+    declare fullName?: string;
 
     @ApiProperty({
         type: 'string',
@@ -22,6 +32,28 @@ export class UpdateProfileDto {
     @IsString()
     @IsEmail()
     declare email?: string;
+
+    @ApiProperty({
+        type: 'string',
+        required: false,
+        example: 'https://github.com/johndoe',
+        description: 'GitHub profile URL',
+    })
+    @IsOptional()
+    @IsString()
+    @IsUrl()
+    declare githubUrl?: string;
+
+    @ApiProperty({
+        type: 'string',
+        required: false,
+        example: 'https://linkedin.com/in/johndoe',
+        description: 'LinkedIn profile URL',
+    })
+    @IsOptional()
+    @IsString()
+    @IsUrl()
+    declare linkedinUrl?: string;
 
     @ApiProperty({
         type: 'string',
@@ -43,5 +75,14 @@ export class UpdateProfileDto {
     @IsString()
     @MinLength(6)
     declare newPassword?: string;
-};
 
+    @ApiProperty({
+        type: 'string',
+        required: false,
+        example: 'profile-123e4567-e89b-12d3-a456-426614174000.jpg',
+        description: 'User profile image filename',
+    })
+    @IsOptional()
+    @IsString()
+    declare profileImage?: string;
+};

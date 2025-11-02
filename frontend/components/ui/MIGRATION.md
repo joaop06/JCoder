@@ -236,8 +236,8 @@ export function UsersList({ users }: { users: User[] }) {
     <div>
       {users.map(user => (
         <div key={user.id}>
-          <img src={user.avatar} alt={user.name} />
-          <span>{user.name}</span>
+          <img src={user.avatar} alt={user.fullName || user.firstName} />
+          <span>{user.fullName || user.firstName}</span>
         </div>
       ))}
     </div>
@@ -262,11 +262,11 @@ export function UsersList({ users }: { users: User[] }) {
         <div key={user.id}>
           <LazyImage
             src={user.avatar}
-            alt={user.name}
-            fallback={user.name}
+            alt={user.fullName || user.firstName}
+            fallback={user.fullName || user.firstName}
             size="small"
           />
-          <span>{user.name}</span>
+          <span>{user.fullName || user.firstName}</span>
         </div>
       ))}
     </div>

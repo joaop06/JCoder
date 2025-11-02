@@ -1,19 +1,25 @@
-import { Module } from "@nestjs/common";
 import { User } from "./entities/user.entity";
 import { UsersService } from "./users.service";
 import { TypeOrmModule } from "@nestjs/typeorm";
+import { Module, forwardRef } from "@nestjs/common";
 import { UsersController } from "./users.controller";
 import { GetProfileUseCase } from "./use-cases/get-profile.use-case";
 import { UpdateProfileUseCase } from "./use-cases/update-profile.use-case";
+import { UserComponentsModule } from "./user-components/user-components.module";
+import { ImagesModule } from "../images/images.module";
 
 @Module({
-    controllers: [UsersController],
-    exports: [UsersService],
     providers: [
         UsersService,
         GetProfileUseCase,
         UpdateProfileUseCase,
     ],
-    imports: [TypeOrmModule.forFeature([User])],
+    exports: [UsersService],
+    controllers: [UsersController],
+    imports: [
+        TypeOrmModule.forFeature([User]),
+        forwardRef(() => UserComponentsModule),
+        ImagesModule,
+    ],
 })
-export class UsersModule { };
+export class UsersModule { }

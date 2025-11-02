@@ -1,4 +1,7 @@
 .env
 .vscode
 
-backend/uploads/*
+# Backend uploads - ignore all files except .gitkeep
+backend/uploads/**/*
+!backend/uploads/**/.gitkeep
+!backend/uploads/.gitkeep

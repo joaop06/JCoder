@@ -49,7 +49,8 @@ import { LazyImage } from '@/components/ui';
 
 interface User {
   id: number;
-  name: string;
+  firstName?: string;
+  fullName?: string;
   avatarUrl?: string;
   role: string;
 }
@@ -61,13 +62,13 @@ export function UserList({ users }: { users: User[] }) {
         <li key={user.id} className="flex items-center gap-4 p-4 bg-jcoder-card rounded-lg">
           <LazyImage
             src={user.avatarUrl || '/default-avatar.png'}
-            alt={user.name}
-            fallback={user.name}
+            alt={user.fullName || user.firstName}
+            fallback={user.fullName || user.firstName}
             size="medium"
             className="ring-2 ring-jcoder-primary"
           />
           <div>
-            <p className="font-semibold text-jcoder-foreground">{user.name}</p>
+            <p className="font-semibold text-jcoder-foreground">{user.fullName || user.firstName}</p>
             <p className="text-sm text-jcoder-muted">{user.role}</p>
           </div>
         </li>

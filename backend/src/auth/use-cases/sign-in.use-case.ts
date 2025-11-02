@@ -15,7 +15,7 @@ export class SignInUseCase {
     ) { }
 
     async execute(signInDto: SignInDto): Promise<SignInResponseDto> {
-        const user = await this.usersService.findByEmail(signInDto.email);
+        const user = await this.usersService.findByUsername(signInDto.username);
 
         const isValidPassword = await bcrypt.compare(signInDto.password, user.password);
         if (!isValidPassword) throw new PasswordDoesNotMatchException();
