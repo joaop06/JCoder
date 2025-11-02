@@ -12,8 +12,8 @@ export class CreateEducationUseCase {
         private readonly userComponentsService: UserComponentsService,
     ) { }
 
-    async execute(userId: number, dto: UserComponentEducationDto): Promise<UserComponentEducation> {
-        const user = await this.usersService.findById(userId);
+    async execute(username: string, dto: UserComponentEducationDto): Promise<UserComponentEducation> {
+        const user = await this.usersService.findByUsername(username);
         return await this.userComponentsService.createEducation(user, dto);
     }
 };
@@ -43,10 +43,12 @@ export class GetEducationUseCase {
 @Injectable()
 export class GetEducationsUseCase {
     constructor(
+        private readonly usersService: UsersService,
         private readonly userComponentsService: UserComponentsService,
     ) { }
 
-    async execute(userId: number): Promise<UserComponentEducation[]> {
+    async execute(username: string): Promise<UserComponentEducation[]> {
+        const userId = await this.usersService.findUserIdByUsername(username);
         return await this.userComponentsService.getEducations(userId);
     }
 };

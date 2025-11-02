@@ -12,8 +12,8 @@ export class CreateExperienceUseCase {
         private readonly userComponentsService: UserComponentsService,
     ) { }
 
-    async execute(userId: number, dto: UserComponentExperienceDto): Promise<UserComponentExperience> {
-        const user = await this.usersService.findById(userId);
+    async execute(username: string, dto: UserComponentExperienceDto): Promise<UserComponentExperience> {
+        const user = await this.usersService.findByUsername(username);
         return await this.userComponentsService.createExperience(user, dto);
     }
 };
@@ -43,10 +43,12 @@ export class GetExperienceUseCase {
 @Injectable()
 export class GetExperiencesUseCase {
     constructor(
+        private readonly usersService: UsersService,
         private readonly userComponentsService: UserComponentsService,
     ) { }
 
-    async execute(userId: number): Promise<UserComponentExperience[]> {
+    async execute(username: string): Promise<UserComponentExperience[]> {
+        const userId = await this.usersService.findUserIdByUsername(username);
         return await this.userComponentsService.getExperiences(userId);
     }
 };

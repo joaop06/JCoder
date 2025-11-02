@@ -76,7 +76,7 @@ export class User {
     example: 'your@email.com',
     description: 'User contact email',
   })
-  @Column({ nullable: true })
+  @Column({ unique: true, nullable: true })
   email?: string;
 
   @ApiPropertyOptional({

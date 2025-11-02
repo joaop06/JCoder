@@ -92,4 +92,40 @@ export class UsersService {
         });
         return admin?.id || null;
     }
+
+    async findUserIdByUsername(username: string): Promise<number> {
+        const user = await this.findByUsername(username);
+        return user.id;
+    }
+
+    async findByUsernameWithComponents(username: string, includeComponents: boolean = false): Promise<User> {
+        const queryBuilder = this.repository.createQueryBuilder('user')
+            .where('user.username = :username', { username });
+
+        if (includeComponents) {
+            queryBuilder
+                .leftJoinAndSelect('user.userComponentAboutMe', 'aboutMe')
+                .leftJoinAndSelect('aboutMe.highlights', 'highlights')
+                .leftJoinAndSelect('user.userComponentEducation', 'education')
+                .leftJoinAndSelect('education.certificates', 'certificates')
+                .leftJoinAndSelect('user.userComponentExperience', 'experience')
+                .leftJoinAndSelect('experience.positions', 'positions')
+                .leftJoinAndSelect('user.userComponentCertificate', 'certificate')
+                .leftJoinAndSelect('certificate.educations', 'certificateEducations');
+        }
+
+        const user = await queryBuilder.getOne();
+        if (!user) throw new UserNotFoundException();
+
+        return user;
+    }
+
+    async findBasicProfileByUsername(username: string): Promise<Partial<User>> {
+        const user = await this.repository.findOne({
+            where: { username },
+            select: ['id', 'username', 'firstName', 'fullName', 'email', 'githubUrl', 'linkedinUrl', 'role', 'createdAt', 'updatedAt']
+        });
+        if (!user) throw new UserNotFoundException();
+        return user;
+    }
 };

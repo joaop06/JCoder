@@ -12,8 +12,8 @@ export class CreateOrUpdateAboutMeUseCase {
         private readonly userComponentsService: UserComponentsService,
     ) { }
 
-    async execute(userId: number, dto: UserComponentAboutMeDto): Promise<UserComponentAboutMe> {
-        const user = await this.usersService.findById(userId);
+    async execute(username: string, dto: UserComponentAboutMeDto): Promise<UserComponentAboutMe> {
+        const user = await this.usersService.findByUsername(username);
         return await this.userComponentsService.createOrUpdateAboutMe(user, dto);
     }
 };
@@ -21,10 +21,12 @@ export class CreateOrUpdateAboutMeUseCase {
 @Injectable()
 export class UpdateAboutMeUseCase {
     constructor(
+        private readonly usersService: UsersService,
         private readonly userComponentsService: UserComponentsService,
     ) { }
 
-    async execute(userId: number, dto: UpdateUserComponentAboutMeDto): Promise<UserComponentAboutMe> {
+    async execute(username: string, dto: UpdateUserComponentAboutMeDto): Promise<UserComponentAboutMe> {
+        const userId = await this.usersService.findUserIdByUsername(username);
         return await this.userComponentsService.updateAboutMe(userId, dto);
     }
 };
@@ -32,10 +34,12 @@ export class UpdateAboutMeUseCase {
 @Injectable()
 export class GetAboutMeUseCase {
     constructor(
+        private readonly usersService: UsersService,
         private readonly userComponentsService: UserComponentsService,
     ) { }
 
-    async execute(userId: number): Promise<UserComponentAboutMe | null> {
+    async execute(username: string): Promise<UserComponentAboutMe | null> {
+        const userId = await this.usersService.findUserIdByUsername(username);
         return await this.userComponentsService.getAboutMe(userId);
     }
 };

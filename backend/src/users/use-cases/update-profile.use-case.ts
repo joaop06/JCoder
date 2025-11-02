@@ -12,8 +12,8 @@ export class UpdateProfileUseCase {
         private readonly usersService: UsersService,
     ) { }
 
-    async execute(userId: number, updateProfileDto: UpdateProfileDto): Promise<User> {
-        const user = await this.usersService.findById(userId);
+    async execute(username: string, updateProfileDto: UpdateProfileDto): Promise<User> {
+        const user = await this.usersService.findByUsername(username);
 
         // Check if trying to change password
         if (updateProfileDto.newPassword) {

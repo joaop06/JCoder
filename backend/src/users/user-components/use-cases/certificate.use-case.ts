@@ -12,8 +12,8 @@ export class CreateCertificateUseCase {
         private readonly userComponentsService: UserComponentsService,
     ) { }
 
-    async execute(userId: number, dto: UserComponentCertificateDto): Promise<UserComponentCertificate> {
-        const user = await this.usersService.findById(userId);
+    async execute(username: string, dto: UserComponentCertificateDto): Promise<UserComponentCertificate> {
+        const user = await this.usersService.findByUsername(username);
         return await this.userComponentsService.createCertificate(user, dto);
     }
 };
@@ -43,10 +43,12 @@ export class GetCertificateUseCase {
 @Injectable()
 export class GetCertificatesUseCase {
     constructor(
+        private readonly usersService: UsersService,
         private readonly userComponentsService: UserComponentsService,
     ) { }
 
-    async execute(userId: number): Promise<UserComponentCertificate[]> {
+    async execute(username: string): Promise<UserComponentCertificate[]> {
+        const userId = await this.usersService.findUserIdByUsername(username);
         return await this.userComponentsService.getCertificates(userId);
     }
 };
