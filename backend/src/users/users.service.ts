@@ -3,6 +3,7 @@ import { Injectable } from "@nestjs/common";
 import { User } from "./entities/user.entity";
 import { InjectRepository } from "@nestjs/typeorm";
 import { UserNotFoundException } from "./exceptions/user-not-found.exception";
+import { RoleEnum } from "src/@common/enums/role.enum";
 
 @Injectable()
 export class UsersService {
@@ -82,5 +83,13 @@ export class UsersService {
         });
         if (!user) throw new UserNotFoundException();
         return user;
+    }
+
+    async findAdminUserId(): Promise<number | null> {
+        const admin = await this.repository.findOne({
+            where: { role: RoleEnum.Admin },
+            select: ['id'],
+        });
+        return admin?.id || null;
     }
 };

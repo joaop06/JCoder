@@ -50,6 +50,8 @@ import { UpdateProfileUseCase } from './use-cases/update-profile.use-case';
 import { UserNotFoundException } from './exceptions/user-not-found.exception';
 import { CurrentUser } from '../@common/decorators/current-user/current-user.decorator';
 import { EmailAlreadyExistsException } from './exceptions/email-already-exists.exception';
+import { UsersService } from './users.service';
+import { RoleEnum } from '../@common/enums/role.enum';
 import { UserComponentAboutMeDto } from './user-components/dto/user-component-about-me.dto';
 import { UserComponentEducationDto } from './user-components/dto/user-component-education.dto';
 import { UserComponentExperienceDto } from './user-components/dto/user-component-experience.dto';
@@ -91,7 +93,20 @@ export class UsersController {
         private readonly getEducationsPaginatedUseCase: GetEducationsPaginatedUseCase,
         private readonly getExperiencesPaginatedUseCase: GetExperiencesPaginatedUseCase,
         private readonly getCertificatesPaginatedUseCase: GetCertificatesPaginatedUseCase,
+        private readonly usersService: UsersService,
     ) { }
+
+    // Helper method to get admin user ID (provisório)
+    private async getAdminUserId(): Promise<number> {
+        const adminUserId = await this.usersService.findAdminUserId();
+
+        if (!adminUserId) {
+            // Fallback to userId = 1 if no admin found
+            return 1;
+        }
+
+        return adminUserId;
+    }
 
     @Get('profile')
     @UseGuards(JwtAuthGuard)
@@ -139,6 +154,43 @@ export class UsersController {
         @Body() dto: UpdateUserComponentAboutMeDto,
     ) {
         return await this.updateAboutMeUseCase.execute(user.id, dto);
+    }
+
+    // Public endpoints (for homepage)
+    @Get('public/about-me')
+    @HttpCode(HttpStatus.OK)
+    @ApiOkResponse()
+    async getPublicAboutMe() {
+        // Buscar usuário admin primeiro e usar o ID
+        const adminUserId = await this.getAdminUserId();
+        return await this.getAboutMeUseCase.execute(adminUserId);
+    }
+
+    @Get('public/educations')
+    @HttpCode(HttpStatus.OK)
+    @ApiOkResponse()
+    async getPublicEducations() {
+        // Buscar usuário admin primeiro e usar o ID
+        const adminUserId = await this.getAdminUserId();
+        return await this.getEducationsUseCase.execute(adminUserId);
+    }
+
+    @Get('public/experiences')
+    @HttpCode(HttpStatus.OK)
+    @ApiOkResponse()
+    async getPublicExperiences() {
+        // Buscar usuário admin primeiro e usar o ID
+        const adminUserId = await this.getAdminUserId();
+        return await this.getExperiencesUseCase.execute(adminUserId);
+    }
+
+    @Get('public/certificates')
+    @HttpCode(HttpStatus.OK)
+    @ApiOkResponse()
+    async getPublicCertificates() {
+        // Buscar usuário admin primeiro e usar o ID
+        const adminUserId = await this.getAdminUserId();
+        return await this.getCertificatesUseCase.execute(adminUserId);
     }
 
     @Get('profile/about-me')

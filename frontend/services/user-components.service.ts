@@ -9,10 +9,17 @@ export const UserComponentsService = {
 
     async getAboutMe(): Promise<UserComponentAboutMe | null> {
         try {
-            const response = await ApiService.get('/users/profile/about-me');
+            // Try public endpoint first (for homepage)
+            const response = await ApiService.get('/users/public/about-me');
             return response.data.data || response.data;
         } catch (error) {
-            return null;
+            // Fallback to authenticated endpoint if public fails
+            try {
+                const response = await ApiService.get('/users/profile/about-me');
+                return response.data.data || response.data;
+            } catch {
+                return null;
+            }
         }
     },
 
@@ -30,12 +37,20 @@ export const UserComponentsService = {
 
     async getEducations(): Promise<UserComponentEducation[]> {
         try {
-            const response = await ApiService.get('/users/profile/educations');
+            // Try public endpoint first (for homepage)
+            const response = await ApiService.get('/users/public/educations');
             const data = response.data.data || response.data;
             return Array.isArray(data) ? data : [];
         } catch (error) {
-            console.error('Error fetching educations:', error);
-            return [];
+            // Fallback to authenticated endpoint if public fails
+            try {
+                const response = await ApiService.get('/users/profile/educations');
+                const data = response.data.data || response.data;
+                return Array.isArray(data) ? data : [];
+            } catch {
+                console.error('Error fetching educations:', error);
+                return [];
+            }
         }
     },
 
@@ -62,12 +77,20 @@ export const UserComponentsService = {
 
     async getExperiences(): Promise<UserComponentExperience[]> {
         try {
-            const response = await ApiService.get('/users/profile/experiences');
+            // Try public endpoint first (for homepage)
+            const response = await ApiService.get('/users/public/experiences');
             const data = response.data.data || response.data;
             return Array.isArray(data) ? data : [];
         } catch (error) {
-            console.error('Error fetching experiences:', error);
-            return [];
+            // Fallback to authenticated endpoint if public fails
+            try {
+                const response = await ApiService.get('/users/profile/experiences');
+                const data = response.data.data || response.data;
+                return Array.isArray(data) ? data : [];
+            } catch {
+                console.error('Error fetching experiences:', error);
+                return [];
+            }
         }
     },
 
@@ -94,12 +117,20 @@ export const UserComponentsService = {
 
     async getCertificates(): Promise<UserComponentCertificate[]> {
         try {
-            const response = await ApiService.get('/users/profile/certificates');
+            // Try public endpoint first (for homepage)
+            const response = await ApiService.get('/users/public/certificates');
             const data = response.data.data || response.data;
             return Array.isArray(data) ? data : [];
         } catch (error) {
-            console.error('Error fetching certificates:', error);
-            return [];
+            // Fallback to authenticated endpoint if public fails
+            try {
+                const response = await ApiService.get('/users/profile/certificates');
+                const data = response.data.data || response.data;
+                return Array.isArray(data) ? data : [];
+            } catch {
+                console.error('Error fetching certificates:', error);
+                return [];
+            }
         }
     },
 
