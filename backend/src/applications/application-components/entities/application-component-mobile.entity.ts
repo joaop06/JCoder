@@ -6,6 +6,7 @@ import {
     JoinColumn,
     PrimaryColumn,
 } from "typeorm";
+import { User } from "../../../users/entities/user.entity";
 import { Application } from "../../entities/application.entity";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { MobilePlatformEnum } from "../../enums/mobile-platform.enum";
@@ -21,11 +22,24 @@ export class ApplicationComponentMobile {
     @PrimaryColumn()
     applicationId: number;
 
-    @OneToOne(() => Application, (application) => application.applicationComponentApi, {
+    @OneToOne(() => Application, (application) => application.applicationComponentMobile, {
         onDelete: 'CASCADE',
     })
     @JoinColumn({ name: 'applicationId' })
     application: Application;
+
+    @ApiProperty({
+        example: 1,
+        type: 'number',
+        nullable: false,
+        description: 'User ID that owns this component',
+    })
+    @PrimaryColumn()
+    userId: number;
+
+    @ManyToOne(() => User, { nullable: false, onDelete: 'CASCADE' })
+    @JoinColumn({ name: 'userId' })
+    user: User;
 
     @ApiProperty({
         nullable: false,

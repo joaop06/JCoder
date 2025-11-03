@@ -1,42 +1,42 @@
-
+import { In, Repository } from 'typeorm';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { UsersService } from '../users/users.service';
 import { Application } from './entities/application.entity';
-import { Technology } from '../technologies/entities/technology.entity';
 import { CacheService } from '../@common/services/cache.service';
 import { CreateApplicationDto } from './dto/create-application.dto';
 import { UpdateApplicationDto } from './dto/update-application.dto';
-import { QueryApplicationDto } from './dto/query-application.dto';
+import { Technology } from '../technologies/entities/technology.entity';
 import { ImageUploadService } from '../images/services/image-upload.service';
-import { FindManyOptions, FindOptionsWhere, In, Repository } from 'typeorm';
 import { PaginationDto, PaginatedResponseDto } from '../@common/dto/pagination.dto';
 import { ApplicationNotFoundException } from './exceptions/application-not-found.exception';
 
 @Injectable()
 export class ApplicationsService {
   constructor(
+    private readonly cacheService: CacheService,
+    private readonly usersService: UsersService,
+    private readonly imageUploadService: ImageUploadService,
+
     @InjectRepository(Application)
     private readonly repository: Repository<Application>,
+
     @InjectRepository(Technology)
     private readonly technologyRepository: Repository<Technology>,
-    private readonly cacheService: CacheService,
-    private readonly imageUploadService: ImageUploadService,
   ) { }
 
-  async findAll(options?: FindManyOptions<Application>): Promise<Application[]> {
-    return await this.repository.find(options);
-  }
-
-  async findAllPaginated(paginationDto: PaginationDto): Promise<PaginatedResponseDto<Application>> {
+  async findAll(username: string, paginationDto: PaginationDto): Promise<PaginatedResponseDto<Application>> {
+    const userId = await this.usersService.findUserIdByUsername(username);
     const { page = 1, limit = 10, sortBy = 'displayOrder', sortOrder = 'ASC' } = paginationDto;
     const skip = (page - 1) * limit;
 
-    const cacheKey = this.cacheService.generateKey('applications', 'paginated', page, limit, sortBy, sortOrder);
+    const cacheKey = this.cacheService.generateKey('applications', 'paginated', username, page, limit, sortBy, sortOrder);
 
     return await this.cacheService.getOrSet(
       cacheKey,
       async () => {
         const [data, total] = await this.repository.findAndCount({
+          where: { userId },
           skip,
           take: limit,
           order: { [sortBy]: sortOrder },
@@ -60,65 +60,15 @@ export class ApplicationsService {
     );
   }
 
-  async findAllByQuery(queryDto: QueryApplicationDto): Promise<PaginatedResponseDto<Application>> {
-    const {
-      page = 1,
-      isActive,
-      limit = 10,
-      sortOrder = 'ASC',
-      sortBy = 'displayOrder',
-    } = queryDto;
-    const skip = (page - 1) * limit;
-
-    const cacheKey = this.cacheService.generateKey(
-      'applications',
-      'query',
-      page,
-      limit,
-      sortBy,
-      sortOrder,
-      isActive !== undefined ? String(isActive) : undefined,
-    );
-
-    return await this.cacheService.getOrSet(
-      cacheKey,
-      async () => {
-        const where: FindOptionsWhere<Application> = {};
-        if (isActive !== undefined) where.isActive = isActive;
-
-        const [data, total] = await this.repository.findAndCount({
-          where,
-          skip,
-          take: limit,
-          order: { [sortBy]: sortOrder },
-        });
-
-        const totalPages = Math.ceil(total / limit);
-
-        return {
-          data,
-          meta: {
-            page,
-            limit,
-            total,
-            totalPages,
-            hasNextPage: page < totalPages,
-            hasPreviousPage: page > 1,
-          },
-        };
-      },
-      300, // 5 minutes cache
-    );
-  }
-
-  async findById(id: number): Promise<Application> {
-    const cacheKey = this.cacheService.applicationKey(id, 'full');
+  async findById(id: number, username: string): Promise<Application> {
+    const userId = await this.usersService.findUserIdByUsername(username);
+    const cacheKey = this.cacheService.applicationKey(id, 'full', username);
 
     return await this.cacheService.getOrSet(
       cacheKey,
       async () => {
         const application = await this.repository.findOne({
-          where: { id },
+          where: { id, userId },
           relations: {
             technologies: true,
             applicationComponentApi: true,
@@ -134,8 +84,9 @@ export class ApplicationsService {
     );
   }
 
-  async findOneBy(options?: FindOptionsWhere<Application>): Promise<Application | null> {
-    return await this.repository.findOneBy(options || {});
+  async existsByApplicationNameAndUsername(username: string, name: string): Promise<Application | null> {
+    const userId = await this.usersService.findUserIdByUsername(username);
+    return await this.repository.findOneBy({ userId, name });
   }
 
   async create(createApplicationDto: CreateApplicationDto): Promise<Application> {
@@ -151,7 +102,8 @@ export class ApplicationsService {
   }
 
   async update(id: number, updateApplicationDto: UpdateApplicationDto & { displayOrder?: number }): Promise<Application> {
-    const application = await this.findById(id);
+    const application = await this.repository.findOneBy({ id });
+
     this.repository.merge(application, updateApplicationDto);
     const updatedApplication = await this.repository.save(application);
 
@@ -166,7 +118,7 @@ export class ApplicationsService {
 
   async delete(id: number): Promise<void> {
     // Get application to access images before deletion
-    const application = await this.findById(id);
+    const application = await this.repository.findOneBy({ id });
 
     // Delete all associated images
     if (application.images && application.images.length > 0) {
@@ -186,12 +138,13 @@ export class ApplicationsService {
    * Increments displayOrder of all applications that have displayOrder >= startPosition
    * Used when inserting a new application at a specific position
    */
-  async incrementDisplayOrderFrom(startPosition: number): Promise<void> {
+  async incrementDisplayOrderFrom(startPosition: number, userId: number): Promise<void> {
     await this.repository
       .createQueryBuilder()
       .update(Application)
       .set({ displayOrder: () => 'displayOrder + 1' })
       .where('displayOrder >= :startPosition', { startPosition })
+      .andWhere('userId = :userId', { userId })
       .execute();
   }
 
@@ -200,11 +153,13 @@ export class ApplicationsService {
    * @param id - ID of the application being updated
    * @param oldPosition - Current displayOrder position
    * @param newPosition - New displayOrder position
+   * @param userId - User ID to scope the reordering
    */
   async reorderOnUpdate(
     id: number,
     oldPosition: number,
     newPosition: number,
+    userId: number,
   ): Promise<void> {
     if (oldPosition === newPosition) {
       return; // No reordering needed
@@ -219,6 +174,7 @@ export class ApplicationsService {
         .where('displayOrder >= :newPosition', { newPosition })
         .andWhere('displayOrder < :oldPosition', { oldPosition })
         .andWhere('id != :id', { id })
+        .andWhere('userId = :userId', { userId })
         .execute();
     } else {
       // Moving down: decrement displayOrder of applications between old and new position
@@ -229,6 +185,7 @@ export class ApplicationsService {
         .where('displayOrder > :oldPosition', { oldPosition })
         .andWhere('displayOrder <= :newPosition', { newPosition })
         .andWhere('id != :id', { id })
+        .andWhere('userId = :userId', { userId })
         .execute();
     }
   }
@@ -237,13 +194,15 @@ export class ApplicationsService {
    * Decrements displayOrder of all applications that have displayOrder > deletedPosition
    * Used when deleting an application to adjust the order of remaining applications
    * @param deletedPosition - The displayOrder of the deleted application
+   * @param userId - User ID to scope the reordering
    */
-  async decrementDisplayOrderAfter(deletedPosition: number): Promise<void> {
+  async decrementDisplayOrderAfter(deletedPosition: number, userId: number): Promise<void> {
     await this.repository
       .createQueryBuilder()
       .update(Application)
       .set({ displayOrder: () => 'displayOrder - 1' })
       .where('displayOrder > :deletedPosition', { deletedPosition })
+      .andWhere('userId = :userId', { userId })
       .execute();
   }
 
@@ -300,18 +259,19 @@ export class ApplicationsService {
   }
 
   /**
-   * Get applications statistics (active and inactive counts)
+   * Get applications statistics by username (active and inactive counts)
    */
-  async getStats(): Promise<{ active: number; inactive: number; total: number }> {
-    const cacheKey = this.cacheService.generateKey('applications', 'stats');
+  async getStats(username: string): Promise<{ active: number; inactive: number; total: number }> {
+    const userId = await this.usersService.findUserIdByUsername(username);
+    const cacheKey = this.cacheService.generateKey('applications', 'stats', username);
 
     return await this.cacheService.getOrSet(
       cacheKey,
       async () => {
         const [active, inactive, total] = await Promise.all([
-          this.repository.count({ where: { isActive: true } }),
-          this.repository.count({ where: { isActive: false } }),
-          this.repository.count(),
+          this.repository.count({ where: { userId, isActive: true } }),
+          this.repository.count({ where: { userId, isActive: false } }),
+          this.repository.count({ where: { userId } }),
         ]);
 
         return { active, inactive, total };

@@ -2,13 +2,16 @@ import {
   Column,
   Entity,
   OneToOne,
+  ManyToOne,
   JoinTable,
+  JoinColumn,
   ManyToMany,
   CreateDateColumn,
   DeleteDateColumn,
   UpdateDateColumn,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { User } from '../../users/entities/user.entity';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { ApplicationTypeEnum } from '../enums/application-type.enum';
 import { Technology } from '../../technologies/entities/technology.entity';
@@ -28,11 +31,24 @@ export class Application {
   id: number;
 
   @ApiProperty({
+    example: 1,
+    type: 'number',
+    nullable: false,
+    description: 'User ID that owns this application',
+  })
+  @Column({ nullable: false })
+  userId: number;
+
+  @ManyToOne(() => User, { nullable: false, onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'userId' })
+  user: User;
+
+  @ApiProperty({
     type: 'string',
     nullable: false,
     example: 'Any Name',
   })
-  @Column({ unique: true })
+  @Column({ unique: false })
   name: string;
 
   @ApiProperty({

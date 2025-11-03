@@ -1,4 +1,5 @@
 import { Injectable } from "@nestjs/common";
+import { UsersService } from "../../users/users.service";
 import { Application } from "../entities/application.entity";
 import { ApplicationsService } from "../applications.service";
 import { ApplicationTypeEnum } from "../enums/application-type.enum";
@@ -16,25 +17,30 @@ export class CreateApplicationUseCase {
     constructor(
         private readonly applicationsService: ApplicationsService,
         private readonly applicationComponentsService: ApplicationComponentsService,
+        private readonly usersService: UsersService,
     ) { }
 
-    async execute(createApplicationDto: CreateApplicationDto): Promise<Application> {
+    async execute(username: string, createApplicationDto: CreateApplicationDto): Promise<Application> {
         // Validate whether components are present based on type
         this.validateDetailsForType(createApplicationDto);
 
-        // Verify if alread exists the Application name
-        const exists = await this.applicationsService.findOneBy({ name: createApplicationDto.name });
+        // Get userId from username
+        const userId = await this.usersService.findUserIdByUsername(username);
+
+        // Verify if already exists the Application name for this user
+        const exists = await this.applicationsService.existsByApplicationNameAndUsername(username, createApplicationDto.name);
         if (exists) throw new AlreadyExistsApplicationException();
 
-        // Increment displayOrder of all existing applications
+        // Increment displayOrder of all existing applications for this user
         // New application will always be inserted at position 1
-        await this.applicationsService.incrementDisplayOrderFrom(1);
+        await this.applicationsService.incrementDisplayOrderFrom(1, userId);
 
         // Create the application with displayOrder = 1
         const applicationData = {
             ...createApplicationDto,
+            userId,
             displayOrder: 1,
-        } as CreateApplicationDto & { displayOrder: number };
+        } as CreateApplicationDto & { displayOrder: number; userId: number };
 
         // Create the application with the respective components
         const application = await this.applicationsService.create(applicationData);
@@ -44,6 +50,7 @@ export class CreateApplicationUseCase {
          */
         await this.applicationComponentsService.saveComponentsForType({
             application,
+            userId,
             applicationType: createApplicationDto.applicationType,
             dtos: {
                 applicationComponentApi: createApplicationDto.applicationComponentApi,
@@ -63,7 +70,7 @@ export class CreateApplicationUseCase {
             );
         }
 
-        return await this.applicationsService.findById(application.id);
+        return await this.applicationsService.findById(application.id, username);
     }
 
     private validateDetailsForType(dto: CreateApplicationDto): void {

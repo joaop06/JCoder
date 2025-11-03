@@ -5,14 +5,13 @@ import {
 } from './exceptions/user-component.exceptions';
 import { Injectable } from '@nestjs/common';
 import { User } from '../entities/user.entity';
+import { CacheService } from '../../@common/services/cache.service';
 import { UserComponentsRepository } from './user-components.repository';
 import { UserComponentAboutMeDto } from './dto/user-component-about-me.dto';
 import { UserComponentEducationDto } from './dto/user-component-education.dto';
 import { UserComponentExperienceDto } from './dto/user-component-experience.dto';
 import { UserComponentCertificateDto } from './dto/user-component-certificate.dto';
-import { UserComponentEducation } from './entities/user-component-education.entity';
-import { UserComponentExperience } from './entities/user-component-experience.entity';
-import { UserComponentCertificate } from './entities/user-component-certificate.entity';
+import { PaginatedResponseDto, PaginationDto } from '../../@common/dto/pagination.dto';
 import { UpdateUserComponentAboutMeDto } from './dto/update-user-component-about-me.dto';
 import { UpdateUserComponentEducationDto } from './dto/update-user-component-education.dto';
 import { UpdateUserComponentExperienceDto } from './dto/update-user-component-experience.dto';
@@ -21,8 +20,43 @@ import { UpdateUserComponentCertificateDto } from './dto/update-user-component-c
 @Injectable()
 export class UserComponentsService {
     constructor(
+        private readonly cacheService: CacheService,
         private readonly repository: UserComponentsRepository,
     ) { }
+
+    async findAll(userId: number, paginationDto: PaginationDto): Promise<PaginatedResponseDto<Application>> {
+        const { page = 1, limit = 10, sortBy = 'displayOrder', sortOrder = 'ASC' } = paginationDto;
+        const skip = (page - 1) * limit;
+
+        const cacheKey = this.cacheService.generateKey('applications', 'paginated', username, page, limit, sortBy, sortOrder);
+
+        return await this.cacheService.getOrSet(
+            cacheKey,
+            async () => {
+                const [data, total] = await this.repository.findAndCount({
+                    where: { userId },
+                    skip,
+                    take: limit,
+                    order: { [sortBy]: sortOrder },
+                });
+
+                const totalPages = Math.ceil(total / limit);
+
+                return {
+                    data,
+                    meta: {
+                        page,
+                        limit,
+                        total,
+                        totalPages,
+                        hasNextPage: page < totalPages,
+                        hasPreviousPage: page > 1,
+                    },
+                };
+            },
+            300, // 5 minutes cache
+        );
+    }
 
     // About Me
     async createOrUpdateAboutMe(user: User, dto: UserComponentAboutMeDto) {

@@ -1,4 +1,5 @@
 import { Injectable } from "@nestjs/common";
+import { UsersService } from "../../users/users.service";
 import { Application } from "../entities/application.entity";
 import { ApplicationsService } from "../applications.service";
 import { UpdateApplicationDto } from "../dto/update-application.dto";
@@ -9,16 +10,16 @@ import { ApplicationComponentsService } from "../application-components/applicat
 export class UpdateApplicationUseCase {
     constructor(
         private readonly applicationsService: ApplicationsService,
-
         private readonly applicationComponentsService: ApplicationComponentsService,
+        private readonly usersService: UsersService,
     ) { }
 
-    async execute(id: Application['id'], updateApplicationDto: UpdateApplicationDto): Promise<Application> {
-        // Verify if exists the application
-        await this.applicationsService.findById(id);
+    async execute(username: string, id: Application['id'], updateApplicationDto: UpdateApplicationDto): Promise<Application> {
+        // Verify if exists the application for this user
+        await this.applicationsService.findById(id, username);
 
-        // Verify if alread exists the Application name
-        await this.existsApplicationName(id, updateApplicationDto.name);
+        // Verify if already exists the Application name for this user
+        await this.existsApplicationName(username, id, updateApplicationDto.name);
 
         // Update application
         const application = await this.applicationsService.update(id, updateApplicationDto);
@@ -26,8 +27,10 @@ export class UpdateApplicationUseCase {
         /**
          * Update the components from application
          */
+        const userId = await this.usersService.findUserIdByUsername(username);
         await this.applicationComponentsService.saveComponentsForType({
             application,
+            userId,
             applicationType: updateApplicationDto.applicationType,
             dtos: {
                 applicationComponentApi: updateApplicationDto.applicationComponentApi,
@@ -47,13 +50,13 @@ export class UpdateApplicationUseCase {
             );
         }
 
-        return await this.applicationsService.findById(id);
+        return await this.applicationsService.findById(id, username);
     }
 
-    private async existsApplicationName(id: number, name: string): Promise<void> {
+    private async existsApplicationName(username: string, id: number, name: string): Promise<void> {
         if (!name) return;
 
-        const exists = await this.applicationsService.findOneBy({ name });
+        const exists = await this.applicationsService.existsByApplicationNameAndUsername(username, name);
         if (exists && exists.id !== id) throw new AlreadyExistsApplicationException();
     }
 };

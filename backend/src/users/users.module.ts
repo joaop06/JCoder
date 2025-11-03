@@ -3,11 +3,11 @@ import { UsersService } from "./users.service";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { Module, forwardRef } from "@nestjs/common";
 import { UsersController } from "./users.controller";
+import { ImagesModule } from "../images/images.module";
+import { OwnerGuard } from "../@common/guards/owner.guard";
 import { GetProfileUseCase } from "./use-cases/get-profile.use-case";
 import { UpdateProfileUseCase } from "./use-cases/update-profile.use-case";
 import { UserComponentsModule } from "./user-components/user-components.module";
-import { ImagesModule } from "../images/images.module";
-import { OwnerGuard } from "../@common/guards/owner.guard";
 
 @Module({
     providers: [

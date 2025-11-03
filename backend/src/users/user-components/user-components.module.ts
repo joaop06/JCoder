@@ -1,24 +1,20 @@
 import {
     GetAboutMeUseCase,
     UpdateAboutMeUseCase,
-    CreateOrUpdateAboutMeUseCase,
 } from './use-cases/about-me.use-case';
 import {
-    GetCertificateUseCase,
     GetCertificatesUseCase,
     CreateCertificateUseCase,
     DeleteCertificateUseCase,
     UpdateCertificateUseCase,
 } from './use-cases/certificate.use-case';
 import {
-    GetEducationUseCase,
     GetEducationsUseCase,
     CreateEducationUseCase,
     DeleteEducationUseCase,
     UpdateEducationUseCase,
 } from './use-cases/education.use-case';
 import {
-    GetExperienceUseCase,
     GetExperiencesUseCase,
     CreateExperienceUseCase,
     DeleteExperienceUseCase,
@@ -34,11 +30,9 @@ import { UserComponentEducation } from './entities/user-component-education.enti
 import { UserComponentExperience } from './entities/user-component-experience.entity';
 import { UserComponentCertificate } from './entities/user-component-certificate.entity';
 import { UserComponentAboutMeHighlight } from './entities/user-component-about-me-highlight.entity';
-import {
-    LinkCertificateToEducationUseCase,
-    UnlinkCertificateFromEducationUseCase,
-} from './use-cases/link-certificate-education.use-case';
+import { LinkCertificateToEducationUseCase } from './use-cases/link-certificate-education.use-case';
 import { UserComponentExperiencePosition } from './entities/user-component-experience-position.entity';
+import { UnlinkCertificateFromEducationUseCase } from './use-cases/unlink-certificate-education.use-case';
 
 @Module({
     imports: [
@@ -59,24 +53,20 @@ import { UserComponentExperiencePosition } from './entities/user-component-exper
         /** About Me */
         GetAboutMeUseCase,
         UpdateAboutMeUseCase,
-        CreateOrUpdateAboutMeUseCase,
 
         /** Education */
-        GetEducationUseCase,
         GetEducationsUseCase,
         CreateEducationUseCase,
         DeleteEducationUseCase,
         UpdateEducationUseCase,
 
         /** Experience */
-        GetExperienceUseCase,
         GetExperiencesUseCase,
         CreateExperienceUseCase,
         DeleteExperienceUseCase,
         UpdateExperienceUseCase,
 
         /** Certificate */
-        GetCertificateUseCase,
         GetCertificatesUseCase,
         CreateCertificateUseCase,
         DeleteCertificateUseCase,
@@ -93,24 +83,20 @@ import { UserComponentExperiencePosition } from './entities/user-component-exper
         /** About Me */
         GetAboutMeUseCase,
         UpdateAboutMeUseCase,
-        CreateOrUpdateAboutMeUseCase,
 
         /** Education */
-        GetEducationUseCase,
         GetEducationsUseCase,
         CreateEducationUseCase,
         DeleteEducationUseCase,
         UpdateEducationUseCase,
 
         /** Experience */
-        GetExperienceUseCase,
         GetExperiencesUseCase,
         CreateExperienceUseCase,
         DeleteExperienceUseCase,
         UpdateExperienceUseCase,
 
         /** Certificate */
-        GetCertificateUseCase,
         GetCertificatesUseCase,
         CreateCertificateUseCase,
         DeleteCertificateUseCase,

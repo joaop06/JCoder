@@ -13,11 +13,13 @@ export class ApplicationComponentsService {
         dtos,
         application,
         applicationType,
-    }: CreateComponentsForTypeDto) {
+        userId,
+    }: CreateComponentsForTypeDto & { userId: number }) {
         switch (applicationType) {
             case ApplicationTypeEnum.API:
                 await this.applicationComponentsRepository.createApi({
                     application,
+                    userId,
                     ...dtos.applicationComponentApi,
                 });
                 break;
@@ -25,6 +27,7 @@ export class ApplicationComponentsService {
             case ApplicationTypeEnum.FRONTEND:
                 await this.applicationComponentsRepository.createFrontend({
                     application,
+                    userId,
                     ...dtos.applicationComponentFrontend,
                 });
                 break;
@@ -32,10 +35,12 @@ export class ApplicationComponentsService {
             case ApplicationTypeEnum.FULLSTACK:
                 await this.applicationComponentsRepository.createApi({
                     application,
+                    userId,
                     ...dtos.applicationComponentApi,
                 });
                 await this.applicationComponentsRepository.createFrontend({
                     application,
+                    userId,
                     ...dtos.applicationComponentFrontend,
                 });
                 break;
@@ -43,6 +48,7 @@ export class ApplicationComponentsService {
             case ApplicationTypeEnum.MOBILE:
                 await this.applicationComponentsRepository.createMobile({
                     application,
+                    userId,
                     ...dtos.applicationComponentMobile,
                 });
                 break;
@@ -50,6 +56,7 @@ export class ApplicationComponentsService {
             case ApplicationTypeEnum.LIBRARY:
                 await this.applicationComponentsRepository.createLibrary({
                     application,
+                    userId,
                     ...dtos.applicationComponentLibrary,
                 });
                 break;

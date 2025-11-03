@@ -1,4 +1,5 @@
 import { Injectable } from "@nestjs/common";
+import { UsersService } from "../../users/users.service";
 import { Application } from "../entities/application.entity";
 import { ApplicationsService } from "../applications.service";
 import { AlreadyDeletedApplicationException } from "../exceptions/already-deleted-application.exception";
@@ -7,15 +8,19 @@ import { AlreadyDeletedApplicationException } from "../exceptions/already-delete
 export class DeleteApplicationUseCase {
     constructor(
         private readonly applicationsService: ApplicationsService,
+        private readonly usersService: UsersService,
     ) { }
 
-    async execute(id: Application['id']): Promise<void> {
+    async execute(username: string, id: Application['id']): Promise<void> {
         let application: Application;
         try {
-            application = await this.applicationsService.findById(id);
+            application = await this.applicationsService.findById(id, username);
         } catch {
             throw new AlreadyDeletedApplicationException();
         }
+
+        // Get userId for reordering
+        const userId = await this.usersService.findUserIdByUsername(username);
 
         // Store the displayOrder before deleting
         const deletedDisplayOrder = application.displayOrder;
@@ -24,6 +29,6 @@ export class DeleteApplicationUseCase {
         await this.applicationsService.delete(id);
 
         // Reorder remaining applications (decrement displayOrder of applications after the deleted one)
-        await this.applicationsService.decrementDisplayOrderAfter(deletedDisplayOrder);
+        await this.applicationsService.decrementDisplayOrderAfter(deletedDisplayOrder, userId);
     }
 };

@@ -44,11 +44,11 @@ import { OwnerGuard } from '../@common/guards/owner.guard';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { JwtAuthGuard } from '../@common/guards/jwt-auth.guard';
 import { GetProfileUseCase } from './use-cases/get-profile.use-case';
-import { ApiOkResponse, ApiNoContentResponse } from '@nestjs/swagger';
 import { UpdateProfileUseCase } from './use-cases/update-profile.use-case';
 import { UserNotFoundException } from './exceptions/user-not-found.exception';
 import { UnauthorizedAccessException } from './exceptions/unauthorized-access.exception';
 import { EmailAlreadyExistsException } from './exceptions/email-already-exists.exception';
+import { ApiTags, ApiOkResponse, ApiNoContentResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { UserComponentEducationDto } from './user-components/dto/user-component-education.dto';
 import { UserComponentExperienceDto } from './user-components/dto/user-component-experience.dto';
 import { InvalidCurrentPasswordException } from './exceptions/invalid-current-password.exception';
@@ -60,7 +60,9 @@ import { UpdateUserComponentEducationDto } from './user-components/dto/update-us
 import { UpdateUserComponentExperienceDto } from './user-components/dto/update-user-component-experience.dto';
 import { UpdateUserComponentCertificateDto } from './user-components/dto/update-user-component-certificate.dto';
 
-@Controller('users')
+@ApiBearerAuth()
+@Controller(':username/users')
+@ApiTags('Administration Users')
 export class UsersController {
     constructor(
         private readonly getAboutMeUseCase: GetAboutMeUseCase,
@@ -85,7 +87,7 @@ export class UsersController {
 
     // ==================== PROFILE ENDPOINTS ====================
 
-    @Get(':username/profile')
+    @Get('profile')
     @UseGuards(JwtAuthGuard, OwnerGuard)
     @HttpCode(HttpStatus.OK)
     @ApiOkResponse({ type: () => User })
@@ -94,7 +96,7 @@ export class UsersController {
         return await this.getProfileUseCase.execute(username);
     }
 
-    @Patch(':username/profile')
+    @Patch('profile')
     @UseGuards(JwtAuthGuard, OwnerGuard)
     @HttpCode(HttpStatus.OK)
     @ApiOkResponse({ type: () => User })
@@ -108,7 +110,7 @@ export class UsersController {
 
     // ==================== ABOUT ME ENDPOINTS ====================
 
-    @Get(':username/about-me')
+    @Get('about-me')
     @UseGuards(JwtAuthGuard, OwnerGuard)
     @HttpCode(HttpStatus.OK)
     @ApiOkResponse()
@@ -117,7 +119,7 @@ export class UsersController {
         return await this.getAboutMeUseCase.execute(username);
     }
 
-    @Patch(':username/about-me')
+    @Patch('about-me')
     @UseGuards(JwtAuthGuard, OwnerGuard)
     @HttpCode(HttpStatus.OK)
     @ApiOkResponse()
@@ -131,7 +133,7 @@ export class UsersController {
 
     // ==================== EDUCATION ENDPOINTS ====================
 
-    @Get(':username/educations')
+    @Get('educations')
     @UseGuards(JwtAuthGuard, OwnerGuard)
     @HttpCode(HttpStatus.OK)
     @ApiOkResponse()
@@ -140,7 +142,7 @@ export class UsersController {
         return await this.getEducationsUseCase.execute(username);
     }
 
-    @Post(':username/educations')
+    @Post('educations')
     @UseGuards(JwtAuthGuard, OwnerGuard)
     @HttpCode(HttpStatus.CREATED)
     @ApiOkResponse()
@@ -152,7 +154,7 @@ export class UsersController {
         return await this.createEducationUseCase.execute(username, dto);
     }
 
-    @Put(':username/educations/:id')
+    @Put('educations/:id')
     @UseGuards(JwtAuthGuard, OwnerGuard)
     @HttpCode(HttpStatus.OK)
     @ApiOkResponse()
@@ -165,7 +167,7 @@ export class UsersController {
         return await this.updateEducationUseCase.execute(id, dto);
     }
 
-    @Delete(':username/educations/:id')
+    @Delete('educations/:id')
     @UseGuards(JwtAuthGuard, OwnerGuard)
     @HttpCode(HttpStatus.NO_CONTENT)
     @ApiNoContentResponse()
@@ -179,7 +181,7 @@ export class UsersController {
 
     // ==================== EXPERIENCE ENDPOINTS ====================
 
-    @Get(':username/experiences')
+    @Get('experiences')
     @UseGuards(JwtAuthGuard, OwnerGuard)
     @HttpCode(HttpStatus.OK)
     @ApiOkResponse()
@@ -188,7 +190,7 @@ export class UsersController {
         return await this.getExperiencesUseCase.execute(username);
     }
 
-    @Post(':username/experiences')
+    @Post('experiences')
     @UseGuards(JwtAuthGuard, OwnerGuard)
     @HttpCode(HttpStatus.CREATED)
     @ApiOkResponse()
@@ -200,7 +202,7 @@ export class UsersController {
         return await this.createExperienceUseCase.execute(username, dto);
     }
 
-    @Put(':username/experiences/:id')
+    @Put('experiences/:id')
     @UseGuards(JwtAuthGuard, OwnerGuard)
     @HttpCode(HttpStatus.OK)
     @ApiOkResponse()
@@ -213,7 +215,7 @@ export class UsersController {
         return await this.updateExperienceUseCase.execute(id, dto);
     }
 
-    @Delete(':username/experiences/:id')
+    @Delete('experiences/:id')
     @UseGuards(JwtAuthGuard, OwnerGuard)
     @HttpCode(HttpStatus.NO_CONTENT)
     @ApiNoContentResponse()
@@ -227,7 +229,7 @@ export class UsersController {
 
     // ==================== CERTIFICATE ENDPOINTS ====================
 
-    @Get(':username/certificates')
+    @Get('certificates')
     @UseGuards(JwtAuthGuard, OwnerGuard)
     @HttpCode(HttpStatus.OK)
     @ApiOkResponse()
@@ -236,7 +238,7 @@ export class UsersController {
         return await this.getCertificatesUseCase.execute(username);
     }
 
-    @Post(':username/certificates')
+    @Post('certificates')
     @UseGuards(JwtAuthGuard, OwnerGuard)
     @HttpCode(HttpStatus.CREATED)
     @ApiOkResponse()
@@ -248,7 +250,7 @@ export class UsersController {
         return await this.createCertificateUseCase.execute(username, dto);
     }
 
-    @Put(':username/certificates/:id')
+    @Put('certificates/:id')
     @UseGuards(JwtAuthGuard, OwnerGuard)
     @HttpCode(HttpStatus.OK)
     @ApiOkResponse()
@@ -261,7 +263,7 @@ export class UsersController {
         return await this.updateCertificateUseCase.execute(id, dto);
     }
 
-    @Delete(':username/certificates/:id')
+    @Delete('certificates/:id')
     @UseGuards(JwtAuthGuard, OwnerGuard)
     @HttpCode(HttpStatus.NO_CONTENT)
     @ApiNoContentResponse()
@@ -275,7 +277,7 @@ export class UsersController {
 
     // ==================== CERTIFICATE-EDUCATION LINK ENDPOINTS ====================
 
-    @Post(':username/certificates/:certificateId/link-education/:educationId')
+    @Post('certificates/:certificateId/link-education/:educationId')
     @UseGuards(JwtAuthGuard, OwnerGuard)
     @HttpCode(HttpStatus.OK)
     @ApiOkResponse()
@@ -288,7 +290,7 @@ export class UsersController {
         await this.linkCertificateToEducationUseCase.execute(username, certificateId, educationId);
     }
 
-    @Delete(':username/certificates/:certificateId/unlink-education/:educationId')
+    @Delete('certificates/:certificateId/unlink-education/:educationId')
     @UseGuards(JwtAuthGuard, OwnerGuard)
     @HttpCode(HttpStatus.NO_CONTENT)
     @ApiNoContentResponse()
@@ -300,4 +302,4 @@ export class UsersController {
     ) {
         await this.unlinkCertificateFromEducationUseCase.execute(username, certificateId, educationId);
     }
-}
+};

@@ -4,7 +4,7 @@ import { UserComponentsService } from '../user-components.service';
 import { ComponentNotFoundException } from '../exceptions/user-component.exceptions';
 
 @Injectable()
-export class LinkCertificateToEducationUseCase {
+export class UnlinkCertificateFromEducationUseCase {
     constructor(
         private readonly usersService: UsersService,
         private readonly userComponentsService: UserComponentsService,
@@ -19,18 +19,11 @@ export class LinkCertificateToEducationUseCase {
             throw new ComponentNotFoundException('Certificate');
         }
 
-        // Verify education belongs to user
-        const education = await this.userComponentsService.getEducation(educationUserId);
-        if (!education || education.userId !== user.id) {
-            throw new ComponentNotFoundException('Education');
-        }
-
         // Get current education IDs linked to certificate
         const currentEducationIds = certificate.educations?.map(e => e.userId) || [];
 
-        // Add new education ID if not already linked
-        if (!currentEducationIds.includes(educationUserId)) {
-            await this.userComponentsService.linkCertificateToEducation(certificateUserId, [...currentEducationIds, educationUserId]);
-        }
+        // Remove education ID from links
+        const updatedEducationIds = currentEducationIds.filter(id => id !== educationUserId);
+        await this.userComponentsService.linkCertificateToEducation(certificateUserId, updatedEducationIds);
     }
 };
