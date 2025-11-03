@@ -6,11 +6,45 @@ import {
     IsString,
     IsNotEmpty,
     IsOptional,
+    ValidateNested,
 } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Expose, Type } from 'class-transformer';
+import { User } from '../../../users/entities/user.entity';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { UserComponentEducationDto } from './user-component-education.dto';
 
 export class UserComponentCertificateDto {
+    @ApiProperty({
+        example: 1,
+        type: 'number',
+        nullable: false,
+        description: 'ID',
+    })
+    @IsNotEmpty()
+    @IsNumber()
+    id: number;
+
+    @ApiProperty({
+        type: 'string',
+        nullable: false,
+        example: 'johndoe',
+        description: 'Unique username used for login',
+    })
+    @IsNotEmpty()
+    @IsString()
+    username: string;
+
+    @ApiPropertyOptional({
+        nullable: true,
+        type: () => User,
+        description: 'User',
+    })
+    @IsOptional()
+    @ValidateNested()
+    @Type(() => User)
+    @Expose()
+    user?: User;
+
     @ApiProperty({
         type: 'string',
         required: true,
@@ -77,14 +111,15 @@ export class UserComponentCertificateDto {
     profileImage?: string;
 
     @ApiPropertyOptional({
+        isArray: true,
         nullable: true,
-        type: [Number],
-        example: [1, 2],
-        description: 'Array of education IDs to associate with this certificate',
+        type: () => UserComponentEducationDto,
+        description: 'Related education records (ManyToMany relationship)',
     })
     @IsOptional()
     @IsArray()
-    @IsNumber({}, { each: true })
-    educationIds?: number[];
+    @ValidateNested({ each: true })
+    @Type(() => UserComponentEducationDto)
+    @Expose()
+    educations?: UserComponentEducationDto[];
 };
-

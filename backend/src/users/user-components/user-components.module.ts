@@ -23,14 +23,19 @@ import {
 import { UsersModule } from '../users.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Module, forwardRef } from '@nestjs/common';
-import { UserComponentsService } from './user-components.service';
-import { UserComponentsRepository } from './user-components.repository';
+import { CacheModule } from '@nestjs/cache-manager';
+import { CacheService } from '../../@common/services/cache.service';
+import { AboutMeRepository } from './repositories/about-me.repository';
+import { EducationRepository } from './repositories/education.repository';
+import { ExperienceRepository } from './repositories/experience.repository';
+import { CertificateRepository } from './repositories/certificate.repository';
 import { UserComponentAboutMe } from './entities/user-component-about-me.entity';
 import { UserComponentEducation } from './entities/user-component-education.entity';
+import { UserComponentsRepository } from './repositories/user-components.repository';
 import { UserComponentExperience } from './entities/user-component-experience.entity';
 import { UserComponentCertificate } from './entities/user-component-certificate.entity';
-import { UserComponentAboutMeHighlight } from './entities/user-component-about-me-highlight.entity';
 import { LinkCertificateToEducationUseCase } from './use-cases/link-certificate-education.use-case';
+import { UserComponentAboutMeHighlight } from './entities/user-component-about-me-highlight.entity';
 import { UserComponentExperiencePosition } from './entities/user-component-experience-position.entity';
 import { UnlinkCertificateFromEducationUseCase } from './use-cases/unlink-certificate-education.use-case';
 
@@ -44,12 +49,13 @@ import { UnlinkCertificateFromEducationUseCase } from './use-cases/unlink-certif
             UserComponentAboutMeHighlight,
             UserComponentExperiencePosition,
         ]),
+        CacheModule.register({
+            ttl: 300, // 5 minutes default
+            max: 100, // maximum number of items in cache
+        }),
         forwardRef(() => UsersModule),
     ],
     exports: [
-        UserComponentsService,
-        UserComponentsRepository,
-
         /** About Me */
         GetAboutMeUseCase,
         UpdateAboutMeUseCase,
@@ -77,7 +83,11 @@ import { UnlinkCertificateFromEducationUseCase } from './use-cases/unlink-certif
         UnlinkCertificateFromEducationUseCase,
     ],
     providers: [
-        UserComponentsService,
+        CacheService,
+        AboutMeRepository,
+        EducationRepository,
+        ExperienceRepository,
+        CertificateRepository,
         UserComponentsRepository,
 
         /** About Me */

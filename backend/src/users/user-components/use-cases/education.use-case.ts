@@ -1,20 +1,22 @@
 import { Injectable } from '@nestjs/common';
 import { UsersService } from '../../users.service';
-import { UserComponentsService } from '../user-components.service';
+import { UserComponentsRepository } from '../repositories';
 import { UserComponentEducationDto } from '../dto/user-component-education.dto';
 import { UserComponentEducation } from '../entities/user-component-education.entity';
+import { PaginatedResponseDto, PaginationDto } from '../../../@common/dto/pagination.dto';
 import { UpdateUserComponentEducationDto } from '../dto/update-user-component-education.dto';
 
 @Injectable()
 export class GetEducationsUseCase {
     constructor(
-        private readonly usersService: UsersService,
-        private readonly userComponentsService: UserComponentsService,
+        private readonly userComponentsRepository: UserComponentsRepository,
     ) { }
 
-    async execute(username: string): Promise<UserComponentEducation[]> {
-        const userId = await this.usersService.findUserIdByUsername(username);
-        return await this.userComponentsService.getEducations(userId);
+    async execute(
+        username: string,
+        paginationDto: PaginationDto,
+    ): Promise<PaginatedResponseDto<UserComponentEducation>> {
+        return await this.userComponentsRepository.educationRepository.findAll(username, paginationDto);
     }
 };
 
@@ -22,33 +24,33 @@ export class GetEducationsUseCase {
 export class CreateEducationUseCase {
     constructor(
         private readonly usersService: UsersService,
-        private readonly userComponentsService: UserComponentsService,
+        private readonly userComponentsRepository: UserComponentsRepository,
     ) { }
 
     async execute(username: string, dto: UserComponentEducationDto): Promise<UserComponentEducation> {
-        const user = await this.usersService.findByUsername(username);
-        return await this.userComponentsService.createEducation(user, dto);
+        const user = await this.usersService.findOneBy({ username });
+        return await this.userComponentsRepository.educationRepository.create(user, dto);
     }
 };
 
 @Injectable()
 export class UpdateEducationUseCase {
     constructor(
-        private readonly userComponentsService: UserComponentsService,
+        private readonly userComponentsRepository: UserComponentsRepository,
     ) { }
 
     async execute(id: number, dto: UpdateUserComponentEducationDto): Promise<UserComponentEducation> {
-        return await this.userComponentsService.updateEducation(id, dto);
+        return await this.userComponentsRepository.educationRepository.update(id, dto);
     }
 };
 
 @Injectable()
 export class DeleteEducationUseCase {
     constructor(
-        private readonly userComponentsService: UserComponentsService,
+        private readonly userComponentsRepository: UserComponentsRepository,
     ) { }
 
     async execute(id: number): Promise<void> {
-        await this.userComponentsService.deleteEducation(id);
+        await this.userComponentsRepository.educationRepository.delete(id);
     }
 };

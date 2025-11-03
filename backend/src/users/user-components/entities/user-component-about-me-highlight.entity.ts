@@ -3,10 +3,9 @@ import {
     Entity,
     ManyToOne,
     JoinColumn,
-    PrimaryColumn,
+    PrimaryGeneratedColumn,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
-import { User } from '../../entities/user.entity';
 import { UserComponentAboutMe } from './user-component-about-me.entity';
 
 @Entity('users_components_about_me_highlights')
@@ -15,16 +14,10 @@ export class UserComponentAboutMeHighlight {
         example: 1,
         type: 'number',
         nullable: false,
-        description: 'Linked user ID',
+        description: 'ID',
     })
-    @PrimaryColumn()
-    userId: number;
-
-    @ManyToOne(() => User, {
-        onDelete: 'CASCADE',
-    })
-    @JoinColumn({ name: 'userId' })
-    user: User;
+    @PrimaryGeneratedColumn()
+    id: number;
 
     @ApiProperty({
         example: 1,
@@ -32,14 +25,14 @@ export class UserComponentAboutMeHighlight {
         nullable: false,
         description: 'Linked About Me component user ID',
     })
-    @PrimaryColumn()
+    @Column({ nullable: false })
     aboutMeId: number;
 
     @ManyToOne(() => UserComponentAboutMe, (aboutMe) => aboutMe.highlights, {
         onDelete: 'CASCADE',
     })
-    @JoinColumn({ name: 'aboutMeId', referencedColumnName: 'userId' })
-    aboutMe: UserComponentAboutMe;
+    @JoinColumn({ name: 'aboutMeId' })
+    aboutMe?: UserComponentAboutMe;
 
     @ApiProperty({
         type: 'string',
@@ -60,9 +53,9 @@ export class UserComponentAboutMeHighlight {
     subtitle?: string;
 
     @ApiProperty({
+        example: '🚀',
         type: 'string',
         nullable: true,
-        example: '🚀',
         description: 'Emoji icon for the highlight',
     })
     @Column({ nullable: true })

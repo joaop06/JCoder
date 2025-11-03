@@ -1,36 +1,36 @@
 import { Injectable } from '@nestjs/common';
 import { UsersService } from '../../users.service';
-import { UserComponentsService } from '../user-components.service';
-import { ComponentNotFoundException } from '../exceptions/user-component.exceptions';
+import { UserComponentsRepository } from '../repositories';
+import { ComponentNotFoundException } from '../exceptions/component-not-found.exceptions';
 
 @Injectable()
 export class LinkCertificateToEducationUseCase {
     constructor(
         private readonly usersService: UsersService,
-        private readonly userComponentsService: UserComponentsService,
+        private readonly userComponentsRepository: UserComponentsRepository,
     ) { }
 
     async execute(username: string, certificateUserId: number, educationUserId: number): Promise<void> {
-        const user = await this.usersService.findByUsername(username);
+        const user = await this.usersService.findOneBy({ username });
 
         // Verify certificate belongs to user
-        const certificate = await this.userComponentsService.getCertificate(certificateUserId);
-        if (!certificate || certificate.userId !== user.id) {
+        const certificate = await this.userComponentsRepository.certificateRepository.findOneBy({ id: certificateUserId });
+        if (!certificate || certificate.username !== user.username) {
             throw new ComponentNotFoundException('Certificate');
         }
 
         // Verify education belongs to user
-        const education = await this.userComponentsService.getEducation(educationUserId);
-        if (!education || education.userId !== user.id) {
+        const education = await this.userComponentsRepository.educationRepository.findOneBy({ id: educationUserId });
+        if (!education || education.username !== user.username) {
             throw new ComponentNotFoundException('Education');
         }
 
         // Get current education IDs linked to certificate
-        const currentEducationIds = certificate.educations?.map(e => e.userId) || [];
+        const currentEducationIds = certificate.educations?.map(e => e.id) || [];
 
         // Add new education ID if not already linked
         if (!currentEducationIds.includes(educationUserId)) {
-            await this.userComponentsService.linkCertificateToEducation(certificateUserId, [...currentEducationIds, educationUserId]);
+            await this.userComponentsRepository.certificateRepository.setEducations(certificate.certificateName, [...currentEducationIds, educationUserId]);
         }
     }
 };

@@ -5,7 +5,7 @@ import {
     JoinTable,
     JoinColumn,
     ManyToMany,
-    PrimaryColumn,
+    PrimaryGeneratedColumn,
 } from 'typeorm';
 import { User } from '../../entities/user.entity';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
@@ -17,16 +17,25 @@ export class UserComponentCertificate {
         example: 1,
         type: 'number',
         nullable: false,
-        description: 'Linked user ID',
+        description: 'ID',
     })
-    @PrimaryColumn()
-    userId: number;
+    @PrimaryGeneratedColumn()
+    id: number;
+
+    @ApiProperty({
+        type: 'string',
+        nullable: false,
+        example: 'johndoe',
+        description: 'Unique username used for login',
+    })
+    @Column({ nullable: false })
+    username: string;
 
     @ManyToOne(() => User, (user) => user.userComponentCertificate, {
         onDelete: 'CASCADE',
     })
-    @JoinColumn({ name: 'userId' })
-    user: User;
+    @JoinColumn({ name: 'username' })
+    user?: User;
 
     @ApiProperty({
         type: 'string',

@@ -9,6 +9,6 @@ export class GetProfileUseCase {
     ) { }
 
     async execute(username: string, includeComponents: boolean = true): Promise<User> {
-        return await this.usersService.findByUsernameWithComponents(username, includeComponents);
+        return await this.usersService.findOneBy({ username }, includeComponents);
     }
 };

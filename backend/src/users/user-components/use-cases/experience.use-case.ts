@@ -1,20 +1,19 @@
 import { Injectable } from '@nestjs/common';
-import { UsersService } from '../../users.service';
-import { UserComponentsService } from '../user-components.service';
+import { UserComponentsRepository } from '../repositories';
+import { UsersService } from '../../../users/users.service';
 import { UserComponentExperienceDto } from '../dto/user-component-experience.dto';
 import { UserComponentExperience } from '../entities/user-component-experience.entity';
+import { PaginatedResponseDto, PaginationDto } from '../../../@common/dto/pagination.dto';
 import { UpdateUserComponentExperienceDto } from '../dto/update-user-component-experience.dto';
 
 @Injectable()
 export class GetExperiencesUseCase {
     constructor(
-        private readonly usersService: UsersService,
-        private readonly userComponentsService: UserComponentsService,
+        private readonly userComponentsRepository: UserComponentsRepository,
     ) { }
 
-    async execute(username: string): Promise<UserComponentExperience[]> {
-        const userId = await this.usersService.findUserIdByUsername(username);
-        return await this.userComponentsService.getExperiences(userId);
+    async execute(username: string, paginationDto: PaginationDto): Promise<PaginatedResponseDto<UserComponentExperience>> {
+        return await this.userComponentsRepository.experienceRepository.findAll(username, paginationDto);
     }
 };
 
@@ -22,33 +21,33 @@ export class GetExperiencesUseCase {
 export class CreateExperienceUseCase {
     constructor(
         private readonly usersService: UsersService,
-        private readonly userComponentsService: UserComponentsService,
+        private readonly userComponentsRepository: UserComponentsRepository,
     ) { }
 
     async execute(username: string, dto: UserComponentExperienceDto): Promise<UserComponentExperience> {
-        const user = await this.usersService.findByUsername(username);
-        return await this.userComponentsService.createExperience(user, dto);
+        const user = await this.usersService.findOneBy({ username });
+        return await this.userComponentsRepository.experienceRepository.create(user, dto);
     }
 };
 
 @Injectable()
 export class UpdateExperienceUseCase {
     constructor(
-        private readonly userComponentsService: UserComponentsService,
+        private readonly userComponentsRepository: UserComponentsRepository,
     ) { }
 
     async execute(id: number, dto: UpdateUserComponentExperienceDto): Promise<UserComponentExperience> {
-        return await this.userComponentsService.updateExperience(id, dto);
+        return await this.userComponentsRepository.experienceRepository.update(id, dto);
     }
 };
 
 @Injectable()
 export class DeleteExperienceUseCase {
     constructor(
-        private readonly userComponentsService: UserComponentsService,
+        private readonly userComponentsRepository: UserComponentsRepository,
     ) { }
 
     async execute(id: number): Promise<void> {
-        await this.userComponentsService.deleteExperience(id);
+        await this.userComponentsRepository.experienceRepository.delete(id);
     }
 };

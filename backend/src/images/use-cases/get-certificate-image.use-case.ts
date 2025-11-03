@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserComponentCertificate } from '../../users/user-components/entities/user-component-certificate.entity';
-import { ComponentNotFoundException } from '../../users/user-components/exceptions/user-component.exceptions';
+import { ComponentNotFoundException } from '../../users/user-components/exceptions/component-not-found.exceptions';
 import { ImageStorageService } from '../services/image-storage.service';
 import { ResourceType } from '../enums/resource-type.enum';
 

@@ -3,10 +3,9 @@ import {
     Entity,
     ManyToOne,
     JoinColumn,
-    PrimaryColumn,
+    PrimaryGeneratedColumn,
 } from 'typeorm';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { User } from '../../entities/user.entity';
 import { WorkLocationTypeEnum } from '../../enums/work-location-type.enum';
 import { UserComponentExperience } from './user-component-experience.entity';
 
@@ -16,16 +15,10 @@ export class UserComponentExperiencePosition {
         example: 1,
         type: 'number',
         nullable: false,
-        description: 'Linked user ID',
+        description: 'ID',
     })
-    @PrimaryColumn()
-    userId: number;
-
-    @ManyToOne(() => User, {
-        onDelete: 'CASCADE',
-    })
-    @JoinColumn({ name: 'userId' })
-    user: User;
+    @PrimaryGeneratedColumn()
+    id: number;
 
     @ApiProperty({
         example: 1,
@@ -33,14 +26,14 @@ export class UserComponentExperiencePosition {
         nullable: false,
         description: 'Linked experience component ID',
     })
-    @PrimaryColumn()
+    @Column({ nullable: false })
     experienceId: number;
 
     @ManyToOne(() => UserComponentExperience, (experience) => experience.positions, {
         onDelete: 'CASCADE',
     })
-    @JoinColumn({ name: 'experienceId', referencedColumnName: 'userId' })
-    experience: UserComponentExperience;
+    @JoinColumn({ name: 'experienceId' })
+    experience?: UserComponentExperience;
 
     @ApiProperty({
         type: 'string',

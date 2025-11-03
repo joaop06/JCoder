@@ -11,17 +11,17 @@ import { UserComponentsModule } from "./user-components/user-components.module";
 
 @Module({
     providers: [
+        OwnerGuard,
         UsersService,
         GetProfileUseCase,
         UpdateProfileUseCase,
-        OwnerGuard,
     ],
     exports: [UsersService],
     controllers: [UsersController],
     imports: [
+        ImagesModule,
         TypeOrmModule.forFeature([User]),
         forwardRef(() => UserComponentsModule),
-        ImagesModule,
     ],
 })
-export class UsersModule { }
+export class UsersModule { };

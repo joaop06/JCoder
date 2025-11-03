@@ -5,6 +5,7 @@ import {
     Post,
     Param,
     Patch,
+    Query,
     Delete,
     HttpCode,
     UseGuards,
@@ -30,15 +31,6 @@ import {
     DeleteCertificateUseCase,
     UpdateCertificateUseCase,
 } from './user-components/use-cases/certificate.use-case';
-import {
-    ComponentNotFoundException,
-    InvalidEducationDatesException,
-    InvalidExperiencePositionDatesException,
-} from './user-components/exceptions/user-component.exceptions';
-import {
-    LinkCertificateToEducationUseCase,
-    UnlinkCertificateFromEducationUseCase,
-} from './user-components/use-cases/link-certificate-education.use-case';
 import { User } from './entities/user.entity';
 import { OwnerGuard } from '../@common/guards/owner.guard';
 import { UpdateProfileDto } from './dto/update-profile.dto';
@@ -46,6 +38,7 @@ import { JwtAuthGuard } from '../@common/guards/jwt-auth.guard';
 import { GetProfileUseCase } from './use-cases/get-profile.use-case';
 import { UpdateProfileUseCase } from './use-cases/update-profile.use-case';
 import { UserNotFoundException } from './exceptions/user-not-found.exception';
+import { PaginatedResponseDto, PaginationDto } from 'src/@common/dto/pagination.dto';
 import { UnauthorizedAccessException } from './exceptions/unauthorized-access.exception';
 import { EmailAlreadyExistsException } from './exceptions/email-already-exists.exception';
 import { ApiTags, ApiOkResponse, ApiNoContentResponse, ApiBearerAuth } from '@nestjs/swagger';
@@ -53,12 +46,20 @@ import { UserComponentEducationDto } from './user-components/dto/user-component-
 import { UserComponentExperienceDto } from './user-components/dto/user-component-experience.dto';
 import { InvalidCurrentPasswordException } from './exceptions/invalid-current-password.exception';
 import { UserComponentCertificateDto } from './user-components/dto/user-component-certificate.dto';
+import { UserComponentEducation } from './user-components/entities/user-component-education.entity';
+import { UserComponentExperience } from './user-components/entities/user-component-experience.entity';
 import { UpdateAboutMeUseCase, GetAboutMeUseCase } from './user-components/use-cases/about-me.use-case';
+import { UserComponentCertificate } from './user-components/entities/user-component-certificate.entity';
+import { ComponentNotFoundException } from './user-components/exceptions/component-not-found.exceptions';
 import { UpdateUserComponentAboutMeDto } from './user-components/dto/update-user-component-about-me.dto';
 import { ApiExceptionResponse } from '../@common/decorators/documentation/api-exception-response.decorator';
 import { UpdateUserComponentEducationDto } from './user-components/dto/update-user-component-education.dto';
 import { UpdateUserComponentExperienceDto } from './user-components/dto/update-user-component-experience.dto';
+import { InvalidEducationDatesException } from './user-components/exceptions/invalid-education-dates.exception';
 import { UpdateUserComponentCertificateDto } from './user-components/dto/update-user-component-certificate.dto';
+import { LinkCertificateToEducationUseCase } from './user-components/use-cases/link-certificate-education.use-case';
+import { UnlinkCertificateFromEducationUseCase } from './user-components/use-cases/unlink-certificate-education.use-case';
+import { InvalidExperiencePositionDatesException } from './user-components/exceptions/invalid-experience-position-dates.exception';
 
 @ApiBearerAuth()
 @Controller(':username/users')
@@ -138,8 +139,11 @@ export class UsersController {
     @HttpCode(HttpStatus.OK)
     @ApiOkResponse()
     @ApiExceptionResponse(() => [UserNotFoundException, UnauthorizedAccessException])
-    async getEducations(@Param('username') username: string) {
-        return await this.getEducationsUseCase.execute(username);
+    async getEducations(
+        @Param('username') username: string,
+        @Query() paginationDto: PaginationDto,
+    ): Promise<PaginatedResponseDto<UserComponentEducation>> {
+        return await this.getEducationsUseCase.execute(username, paginationDto);
     }
 
     @Post('educations')
@@ -150,7 +154,7 @@ export class UsersController {
     async createEducation(
         @Param('username') username: string,
         @Body() dto: UserComponentEducationDto,
-    ) {
+    ): Promise<UserComponentEducation> {
         return await this.createEducationUseCase.execute(username, dto);
     }
 
@@ -163,7 +167,7 @@ export class UsersController {
         @Param('username') username: string,
         @Param('id', ParseIntPipe) id: number,
         @Body() dto: UpdateUserComponentEducationDto,
-    ) {
+    ): Promise<UserComponentEducation> {
         return await this.updateEducationUseCase.execute(id, dto);
     }
 
@@ -175,7 +179,7 @@ export class UsersController {
     async deleteEducation(
         @Param('username') username: string,
         @Param('id', ParseIntPipe) id: number,
-    ) {
+    ): Promise<void> {
         await this.deleteEducationUseCase.execute(id);
     }
 
@@ -186,8 +190,11 @@ export class UsersController {
     @HttpCode(HttpStatus.OK)
     @ApiOkResponse()
     @ApiExceptionResponse(() => [UserNotFoundException, UnauthorizedAccessException])
-    async getExperiences(@Param('username') username: string) {
-        return await this.getExperiencesUseCase.execute(username);
+    async getExperiences(
+        @Param('username') username: string,
+        @Query() paginationDto: PaginationDto,
+    ): Promise<PaginatedResponseDto<UserComponentExperience>> {
+        return await this.getExperiencesUseCase.execute(username, paginationDto);
     }
 
     @Post('experiences')
@@ -198,7 +205,7 @@ export class UsersController {
     async createExperience(
         @Param('username') username: string,
         @Body() dto: UserComponentExperienceDto,
-    ) {
+    ): Promise<UserComponentExperience> {
         return await this.createExperienceUseCase.execute(username, dto);
     }
 
@@ -211,7 +218,7 @@ export class UsersController {
         @Param('username') username: string,
         @Param('id', ParseIntPipe) id: number,
         @Body() dto: UpdateUserComponentExperienceDto,
-    ) {
+    ): Promise<UserComponentExperience> {
         return await this.updateExperienceUseCase.execute(id, dto);
     }
 
@@ -223,7 +230,7 @@ export class UsersController {
     async deleteExperience(
         @Param('username') username: string,
         @Param('id', ParseIntPipe) id: number,
-    ) {
+    ): Promise<void> {
         await this.deleteExperienceUseCase.execute(id);
     }
 
@@ -234,8 +241,11 @@ export class UsersController {
     @HttpCode(HttpStatus.OK)
     @ApiOkResponse()
     @ApiExceptionResponse(() => [UserNotFoundException, UnauthorizedAccessException])
-    async getCertificates(@Param('username') username: string) {
-        return await this.getCertificatesUseCase.execute(username);
+    async getCertificates(
+        @Param('username') username: string,
+        @Query() paginationDto: PaginationDto,
+    ): Promise<PaginatedResponseDto<UserComponentCertificate>> {
+        return await this.getCertificatesUseCase.execute(username, paginationDto);
     }
 
     @Post('certificates')
@@ -246,7 +256,7 @@ export class UsersController {
     async createCertificate(
         @Param('username') username: string,
         @Body() dto: UserComponentCertificateDto,
-    ) {
+    ): Promise<UserComponentCertificate> {
         return await this.createCertificateUseCase.execute(username, dto);
     }
 
@@ -259,7 +269,7 @@ export class UsersController {
         @Param('username') username: string,
         @Param('id', ParseIntPipe) id: number,
         @Body() dto: UpdateUserComponentCertificateDto,
-    ) {
+    ): Promise<UserComponentCertificate> {
         return await this.updateCertificateUseCase.execute(id, dto);
     }
 
@@ -271,7 +281,7 @@ export class UsersController {
     async deleteCertificate(
         @Param('username') username: string,
         @Param('id', ParseIntPipe) id: number,
-    ) {
+    ): Promise<void> {
         await this.deleteCertificateUseCase.execute(id);
     }
 
@@ -286,7 +296,7 @@ export class UsersController {
         @Param('username') username: string,
         @Param('certificateId', ParseIntPipe) certificateId: number,
         @Param('educationId', ParseIntPipe) educationId: number,
-    ) {
+    ): Promise<void> {
         await this.linkCertificateToEducationUseCase.execute(username, certificateId, educationId);
     }
 
@@ -299,7 +309,7 @@ export class UsersController {
         @Param('username') username: string,
         @Param('certificateId', ParseIntPipe) certificateId: number,
         @Param('educationId', ParseIntPipe) educationId: number,
-    ) {
+    ): Promise<void> {
         await this.unlinkCertificateFromEducationUseCase.execute(username, certificateId, educationId);
     }
 };

@@ -4,7 +4,7 @@ import {
     OneToOne,
     OneToMany,
     JoinColumn,
-    PrimaryColumn,
+    PrimaryGeneratedColumn,
 } from 'typeorm';
 import { User } from '../../entities/user.entity';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
@@ -16,16 +16,25 @@ export class UserComponentAboutMe {
         example: 1,
         type: 'number',
         nullable: false,
-        description: 'Linked user ID',
+        description: 'ID',
     })
-    @PrimaryColumn()
-    userId: number;
+    @PrimaryGeneratedColumn()
+    id: number;
+
+    @ApiProperty({
+        type: 'string',
+        nullable: false,
+        example: 'johndoe',
+        description: 'Unique username used for login',
+    })
+    @Column({ nullable: false })
+    username: string;
 
     @OneToOne(() => User, (user) => user.userComponentAboutMe, {
         onDelete: 'CASCADE',
     })
-    @JoinColumn({ name: 'userId' })
-    user: User;
+    @JoinColumn({ name: 'username' })
+    user?: User;
 
     @ApiProperty({
         type: 'string',

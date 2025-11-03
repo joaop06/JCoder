@@ -13,7 +13,7 @@ export class UpdateProfileUseCase {
     ) { }
 
     async execute(username: string, updateProfileDto: UpdateProfileDto): Promise<User> {
-        const user = await this.usersService.findByUsername(username);
+        const user = await this.usersService.findOneBy({ username });
 
         // Check if trying to change password
         if (updateProfileDto.newPassword) {
@@ -33,7 +33,7 @@ export class UpdateProfileUseCase {
 
         // Check if email is being changed and if it's already in use
         if (updateProfileDto.email && updateProfileDto.email !== user.email) {
-            const emailExists = await this.usersService.emailExists(updateProfileDto.email);
+            const emailExists = await this.usersService.existsBy({ email: updateProfileDto.email });
             if (emailExists) {
                 throw new EmailAlreadyExistsException();
             }
