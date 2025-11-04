@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useState, useCallback } from 'react';
 import { AuthService } from '@/services/auth.service';
 import { useToast } from '@/components/toast/ToastContext';
-import type { LoginResponse } from '@/types/api/login.type';
+import type { LoginResponse } from '@/types/api/sign-in.dto';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -29,7 +29,7 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const data: LoginResponse = await AuthService.login({ username, password });
+      const data: LoginResponse = await AuthService.signIn({ username, password });
 
       const user = data.user;
       const accessToken = data.accessToken;

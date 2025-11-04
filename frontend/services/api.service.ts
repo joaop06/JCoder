@@ -20,14 +20,14 @@ const DEFAULT_RETRY_CONFIG: RetryConfig = {
 };
 
 // Base configuration from API
-const ApiService = axios.create({
+const AxiosInstance = axios.create({
     timeout: 10000,
     headers: { 'Content-Type': 'application/json' },
     baseURL: `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/api/v1`,
 });
 
 // Interceptor for add the JWT on requests
-ApiService.interceptors.request.use(
+AxiosInstance.interceptors.request.use(
     (config) => {
         const token = localStorage.getItem('accessToken');
         if (token) {
@@ -49,7 +49,7 @@ const retryRequest = async (
 
     for (let attempt = 0; attempt <= retryConfig.retries; attempt++) {
         try {
-            const response = await ApiService(config);
+            const response = await AxiosInstance(config);
             if (attempt > 0 && process.env.NODE_ENV === 'development') {
                 console.log(`🔄 Retry successful on attempt ${attempt + 1} for ${config.method?.toUpperCase()} ${config.url}`);
             }
@@ -85,7 +85,7 @@ const retryRequest = async (
 };
 
 // Interceptor for handling responses and errors
-ApiService.interceptors.response.use(
+AxiosInstance.interceptors.response.use(
     (response) => response,
     (error) => {
         // Log errors in development
@@ -98,7 +98,7 @@ ApiService.interceptors.response.use(
             // Only redirect to login if it's NOT a public route
             const url = error.config?.url || '';
             const isPublicRoute = url.includes('/public/');
-            
+
             if (!isPublicRoute) {
                 localStorage.removeItem('accessToken');
                 localStorage.removeItem('user');
@@ -116,7 +116,7 @@ ApiService.interceptors.response.use(
 );
 
 // Enhanced API service with retry capability
-export const ApiServiceWithRetry = {
+export const ApiService = {
     get: (url: string, config?: AxiosRequestConfig, retryConfig?: RetryConfig) =>
         retryRequest({ ...config, method: 'GET', url }, retryConfig),
 
@@ -132,5 +132,3 @@ export const ApiServiceWithRetry = {
     delete: (url: string, config?: AxiosRequestConfig, retryConfig?: RetryConfig) =>
         retryRequest({ ...config, method: 'DELETE', url }, retryConfig),
 };
-
-export default ApiService;
