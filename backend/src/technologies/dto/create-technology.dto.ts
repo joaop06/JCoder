@@ -1,13 +1,24 @@
 import {
+    IsEnum,
     IsString,
     IsNotEmpty,
-    IsEnum,
     IsOptional,
 } from 'class-validator';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { ExpertiseLevel } from '../enums/expertise-level.enum';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateTechnologyDto {
+    @ApiPropertyOptional({
+        type: 'string',
+        required: false,
+        nullable: false,
+        example: 'username',
+        description: 'Username of the user',
+    })
+    @IsOptional()
+    @IsString()
+    username?: string;
+
     @ApiProperty({
         type: 'string',
         required: true,

@@ -54,4 +54,9 @@ export class CacheService {
     applicationKey(applicationId: number, suffix: string, username?: string): string {
         return this.generateKey('application', applicationId, suffix, username);
     }
+
+    // Technology-specific cache keys
+    technologyKey(technologyId: number, suffix: string, username?: string): string {
+        return this.generateKey('technology', technologyId, suffix, username);
+    }
 };

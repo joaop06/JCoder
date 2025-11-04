@@ -1,28 +1,29 @@
 import { Injectable } from '@nestjs/common';
+import { Technology } from '../entities/technology.entity';
 import { TechnologiesService } from '../technologies.service';
-import { TechnologyAlreadyDeletedException } from '../exceptions/technology-already-deleted.exception';
+import { TechnologyNotFoundException } from '../exceptions/technology-not-found.exception';
 
 @Injectable()
 export class DeleteTechnologyUseCase {
-    constructor(private readonly technologiesService: TechnologiesService) { }
+    constructor(
+        private readonly technologiesService: TechnologiesService,
+    ) { }
 
-    async execute(id: number): Promise<void> {
-        // Find technology and verify if it exists
-        const technology = await this.technologiesService.findById(id);
-
-        // Verify if already deleted
-        if (technology.deletedAt) {
-            throw new TechnologyAlreadyDeletedException();
+    async execute(username: string, id: number): Promise<void> {
+        let technology: Technology;
+        try {
+            technology = await this.technologiesService.findById(id, username);
+        } catch {
+            throw new TechnologyNotFoundException();
         }
 
         // Store the displayOrder before deleting
         const deletedDisplayOrder = technology.displayOrder;
 
         // Soft delete the technology
-        await this.technologiesService.softDelete(id);
+        await this.technologiesService.delete(id);
 
         // Reorder remaining technologies (decrement displayOrder of technologies after the deleted one)
-        await this.technologiesService.decrementDisplayOrderAfter(deletedDisplayOrder);
+        await this.technologiesService.decrementDisplayOrderAfter(deletedDisplayOrder, username);
     }
-}
-
+};

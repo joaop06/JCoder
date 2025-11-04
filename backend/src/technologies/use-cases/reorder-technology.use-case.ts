@@ -8,11 +8,12 @@ export class ReorderTechnologyUseCase {
     constructor(private readonly technologiesService: TechnologiesService) { }
 
     async execute(
+        username: string,
         id: number,
         reorderTechnologyDto: ReorderTechnologyDto,
     ): Promise<Technology> {
         // Ensure technology exists
-        const existingTechnology = await this.technologiesService.findById(id);
+        const existingTechnology = await this.technologiesService.findById(id, username);
 
         // Check if displayOrder is actually changing
         if (reorderTechnologyDto.displayOrder === existingTechnology.displayOrder) {
@@ -24,11 +25,14 @@ export class ReorderTechnologyUseCase {
             id,
             existingTechnology.displayOrder,
             reorderTechnologyDto.displayOrder,
+            username,
         );
 
         // Update the technology's displayOrder
-        return await this.technologiesService.update(id, {
+        await this.technologiesService.update(id, {
             displayOrder: reorderTechnologyDto.displayOrder,
         });
+
+        return await this.technologiesService.findById(id, username);
     }
 };

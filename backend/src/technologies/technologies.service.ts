@@ -1,16 +1,13 @@
+import { Repository } from 'typeorm';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Technology } from './entities/technology.entity';
 import { CacheService } from '../@common/services/cache.service';
 import { CreateTechnologyDto } from './dto/create-technology.dto';
 import { UpdateTechnologyDto } from './dto/update-technology.dto';
-import { QueryTechnologyDto } from './dto/query-technology.dto';
+import { TechnologiesStatsDto } from './dto/technologies-stats.dto';
 import { ImageUploadService } from '../images/services/image-upload.service';
-import { FindManyOptions, FindOptionsWhere, Repository } from 'typeorm';
-import {
-    PaginationDto,
-    PaginatedResponseDto,
-} from '../@common/dto/pagination.dto';
+import { PaginationDto, PaginatedResponseDto } from '../@common/dto/pagination.dto';
 import { TechnologyNotFoundException } from './exceptions/technology-not-found.exception';
 
 @Injectable()
@@ -18,17 +15,13 @@ export class TechnologiesService {
     constructor(
         @InjectRepository(Technology)
         private readonly repository: Repository<Technology>,
+
         private readonly cacheService: CacheService,
         private readonly imageUploadService: ImageUploadService,
     ) { }
 
     async findAll(
-        options?: FindManyOptions<Technology>,
-    ): Promise<Technology[]> {
-        return await this.repository.find(options);
-    }
-
-    async findAllPaginated(
+        username: string,
         paginationDto: PaginationDto,
     ): Promise<PaginatedResponseDto<Technology>> {
         const {
@@ -42,6 +35,7 @@ export class TechnologiesService {
         const cacheKey = this.cacheService.generateKey(
             'technologies',
             'paginated',
+            username,
             page,
             limit,
             sortBy,
@@ -54,6 +48,7 @@ export class TechnologiesService {
                 const [data, total] = await this.repository.findAndCount({
                     skip,
                     take: limit,
+                    where: { username },
                     order: { [sortBy]: sortOrder },
                 });
 
@@ -66,8 +61,8 @@ export class TechnologiesService {
                         limit,
                         total,
                         totalPages,
-                        hasNextPage: page < totalPages,
                         hasPreviousPage: page > 1,
+                        hasNextPage: page < totalPages,
                     },
                 };
             },
@@ -75,79 +70,20 @@ export class TechnologiesService {
         );
     }
 
-    async findAllByQuery(
-        queryDto: QueryTechnologyDto,
-    ): Promise<PaginatedResponseDto<Technology>> {
-        const {
-            page = 1,
-            isActive,
-            limit = 10,
-            sortOrder = 'ASC',
-            sortBy = 'displayOrder',
-        } = queryDto;
-        const skip = (page - 1) * limit;
-
-        const cacheKey = this.cacheService.generateKey(
-            'technologies',
-            'query',
-            page,
-            limit,
-            sortBy,
-            sortOrder,
-            isActive !== undefined ? String(isActive) : undefined,
-        );
-
-        return await this.cacheService.getOrSet(
-            cacheKey,
-            async () => {
-                const where: FindOptionsWhere<Technology> = {};
-                if (isActive !== undefined) where.isActive = isActive;
-
-                const [data, total] = await this.repository.findAndCount({
-                    where,
-                    skip,
-                    take: limit,
-                    order: { [sortBy]: sortOrder },
-                });
-
-                const totalPages = Math.ceil(total / limit);
-
-                return {
-                    data,
-                    meta: {
-                        page,
-                        limit,
-                        total,
-                        totalPages,
-                        hasNextPage: page < totalPages,
-                        hasPreviousPage: page > 1,
-                    },
-                };
-            },
-            300, // 5 minutes cache
-        );
-    }
-
-    async findById(id: number): Promise<Technology> {
-        const cacheKey = this.cacheService.generateKey('technology', id);
+    async findById(id: number, username: string): Promise<Technology> {
+        const cacheKey = this.cacheService.technologyKey(id, 'full', username);
 
         return await this.cacheService.getOrSet(
             cacheKey,
             async () => {
                 const technology = await this.repository.findOne({
-                    where: { id },
+                    where: { id, username },
                 });
                 if (!technology) throw new TechnologyNotFoundException();
                 return technology;
             },
             600, // 10 minutes cache
         );
-    }
-
-    async findOneBy(
-        options?: FindOptionsWhere<Technology>,
-    ): Promise<Technology | null> {
-        return await this.repository.findOneBy(options || {});
     }
 
     async create(
@@ -157,15 +93,9 @@ export class TechnologiesService {
         const savedTechnology = await this.repository.save(technology);
 
         // Invalidate cache
-        await this.cacheService.del(
-            this.cacheService.generateKey('technologies', 'paginated'),
-        );
-        await this.cacheService.del(
-            this.cacheService.generateKey('technologies', 'query'),
-        );
-        await this.cacheService.del(
-            this.cacheService.generateKey('technologies', 'stats'),
-        );
+        await this.cacheService.del(this.cacheService.generateKey('technologies', 'paginated'));
+        await this.cacheService.del(this.cacheService.generateKey('technologies', 'query'));
+        await this.cacheService.del(this.cacheService.generateKey('technologies', 'stats'));
 
         return savedTechnology;
     }
@@ -174,27 +104,22 @@ export class TechnologiesService {
         id: number,
         updateTechnologyDto: UpdateTechnologyDto & { displayOrder?: number },
     ): Promise<Technology> {
-        const technology = await this.findById(id);
+        const technology = await this.repository.findOneBy({ id });
+
         this.repository.merge(technology, updateTechnologyDto);
         const updatedTechnology = await this.repository.save(technology);
 
         // Invalidate cache
-        await this.cacheService.del(this.cacheService.generateKey('technology', id));
-        await this.cacheService.del(
-            this.cacheService.generateKey('technologies', 'paginated'),
-        );
-        await this.cacheService.del(
-            this.cacheService.generateKey('technologies', 'query'),
-        );
-        await this.cacheService.del(
-            this.cacheService.generateKey('technologies', 'stats'),
-        );
+        await this.cacheService.del(this.cacheService.technologyKey(id, 'full'));
+        await this.cacheService.del(this.cacheService.generateKey('technologies', 'paginated'));
+        await this.cacheService.del(this.cacheService.generateKey('technologies', 'query'));
+        await this.cacheService.del(this.cacheService.generateKey('technologies', 'stats'));
 
         return updatedTechnology;
     }
 
-    async softDelete(id: number): Promise<void> {
-        const technology = await this.findById(id);
+    async delete(id: number): Promise<void> {
+        const technology = await this.repository.findOneBy({ id });
 
         // Delete profile image if exists
         if (technology.profileImage) {
@@ -204,49 +129,26 @@ export class TechnologiesService {
             );
         }
 
-        await this.repository.softDelete(id);
+        await this.repository.delete(id);
 
         // Invalidate cache
-        await this.cacheService.del(this.cacheService.generateKey('technology', id));
-        await this.cacheService.del(
-            this.cacheService.generateKey('technologies', 'paginated'),
-        );
-        await this.cacheService.del(
-            this.cacheService.generateKey('technologies', 'query'),
-        );
-        await this.cacheService.del(
-            this.cacheService.generateKey('technologies', 'stats'),
-        );
-    }
-
-    async restore(id: number): Promise<Technology> {
-        await this.repository.restore(id);
-
-        // Invalidate cache
-        await this.cacheService.del(this.cacheService.generateKey('technology', id));
-        await this.cacheService.del(
-            this.cacheService.generateKey('technologies', 'paginated'),
-        );
-        await this.cacheService.del(
-            this.cacheService.generateKey('technologies', 'query'),
-        );
-        await this.cacheService.del(
-            this.cacheService.generateKey('technologies', 'stats'),
-        );
-
-        return await this.findById(id);
+        await this.cacheService.del(this.cacheService.technologyKey(id, 'full'));
+        await this.cacheService.del(this.cacheService.generateKey('technologies', 'paginated'));
+        await this.cacheService.del(this.cacheService.generateKey('technologies', 'query'));
+        await this.cacheService.del(this.cacheService.generateKey('technologies', 'stats'));
     }
 
     /**
      * Increments displayOrder of all technologies that have displayOrder >= startPosition
      * Used when inserting a new technology at a specific position
      */
-    async incrementDisplayOrderFrom(startPosition: number): Promise<void> {
+    async incrementDisplayOrderFrom(startPosition: number, username: string): Promise<void> {
         await this.repository
             .createQueryBuilder()
             .update(Technology)
             .set({ displayOrder: () => 'displayOrder + 1' })
             .where('displayOrder >= :startPosition', { startPosition })
+            .andWhere('username = :username', { username })
             .execute();
     }
 
@@ -260,6 +162,7 @@ export class TechnologiesService {
         id: number,
         oldPosition: number,
         newPosition: number,
+        username: string,
     ): Promise<void> {
         if (oldPosition === newPosition) {
             return; // No reordering needed
@@ -274,6 +177,7 @@ export class TechnologiesService {
                 .where('displayOrder >= :newPosition', { newPosition })
                 .andWhere('displayOrder < :oldPosition', { oldPosition })
                 .andWhere('id != :id', { id })
+                .andWhere('username = :username', { username })
                 .execute();
         } else {
             // Moving down: decrement displayOrder of technologies between old and new position
@@ -284,6 +188,7 @@ export class TechnologiesService {
                 .where('displayOrder > :oldPosition', { oldPosition })
                 .andWhere('displayOrder <= :newPosition', { newPosition })
                 .andWhere('id != :id', { id })
+                .andWhere('username = :username', { username })
                 .execute();
         }
     }
@@ -293,28 +198,29 @@ export class TechnologiesService {
      * Used when deleting a technology to adjust the order of remaining technologies
      * @param deletedPosition - The displayOrder of the deleted technology
      */
-    async decrementDisplayOrderAfter(deletedPosition: number): Promise<void> {
+    async decrementDisplayOrderAfter(deletedPosition: number, username: string): Promise<void> {
         await this.repository
             .createQueryBuilder()
             .update(Technology)
             .set({ displayOrder: () => 'displayOrder - 1' })
             .where('displayOrder > :deletedPosition', { deletedPosition })
+            .andWhere('username = :username', { username })
             .execute();
     }
 
     /**
      * Get technologies statistics (active and inactive counts)
      */
-    async getStats(): Promise<{ active: number; inactive: number; total: number }> {
-        const cacheKey = this.cacheService.generateKey('technologies', 'stats');
+    async getStats(username: string): Promise<TechnologiesStatsDto> {
+        const cacheKey = this.cacheService.generateKey('technologies', 'stats', username);
 
         return await this.cacheService.getOrSet(
             cacheKey,
             async () => {
-                const [active, inactive, total] = await Promise.all([
-                    this.repository.count({ where: { isActive: true } }),
-                    this.repository.count({ where: { isActive: false } }),
-                    this.repository.count(),
+                const [total, active, inactive] = await Promise.all([
+                    this.repository.count({ where: { username } }),
+                    this.repository.count({ where: { username, isActive: true } }),
+                    this.repository.count({ where: { username, isActive: false } }),
                 ]);
 
                 return { active, inactive, total };
@@ -322,5 +228,8 @@ export class TechnologiesService {
             300, // 5 minutes cache
         );
     }
-}
 
+    async existsByTechnologyNameAndUsername(username: string, name: string): Promise<Technology | null> {
+        return await this.repository.findOneBy({ username, name });
+    }
+};

@@ -1,12 +1,15 @@
 import {
     Column,
     Entity,
+    ManyToOne,
+    JoinColumn,
     ManyToMany,
     CreateDateColumn,
     DeleteDateColumn,
     UpdateDateColumn,
     PrimaryGeneratedColumn,
 } from 'typeorm';
+import { User } from '../../users/entities/user.entity';
 import { ExpertiseLevel } from '../enums/expertise-level.enum';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Application } from '../../applications/entities/application.entity';
@@ -71,6 +74,21 @@ export class Technology {
     })
     @Column({ default: true })
     isActive: boolean;
+
+    @ApiProperty({
+        type: 'string',
+        nullable: false,
+        example: 'johndoe',
+        description: 'Unique username used for login',
+    })
+    @Column({ nullable: false })
+    username: string;
+
+    @ManyToOne(() => User, (user) => user.technologies, {
+        onDelete: 'CASCADE',
+    })
+    @JoinColumn({ name: 'username' })
+    user?: User;
 
     @ApiPropertyOptional({
         nullable: true,

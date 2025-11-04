@@ -1,5 +1,4 @@
 import { Injectable } from "@nestjs/common";
-import { UsersService } from "../../users/users.service";
 import { Application } from "../entities/application.entity";
 import { ApplicationsService } from "../applications.service";
 import { AlreadyDeletedApplicationException } from "../exceptions/already-deleted-application.exception";
@@ -8,10 +7,9 @@ import { AlreadyDeletedApplicationException } from "../exceptions/already-delete
 export class DeleteApplicationUseCase {
     constructor(
         private readonly applicationsService: ApplicationsService,
-        private readonly usersService: UsersService,
     ) { }
 
-    async execute(username: string, id: Application['id']): Promise<void> {
+    async execute(username: string, id: number): Promise<void> {
         let application: Application;
         try {
             application = await this.applicationsService.findById(id, username);

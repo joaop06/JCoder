@@ -10,23 +10,23 @@ export class UpdateTechnologyUseCase {
 
     async execute(
         id: number,
+        username: string,
         updateTechnologyDto: UpdateTechnologyDto,
     ): Promise<Technology> {
-        // Ensure technology exists
-        const existingTechnology = await this.technologiesService.findById(id);
+        // Verify if exists the technology for this user
+        await this.technologiesService.findById(id, username);
 
-        // If updating name, verify uniqueness
-        if (updateTechnologyDto.name) {
-            const exists = await this.technologiesService.findOneBy({
-                name: updateTechnologyDto.name,
-            });
-            if (exists && exists.id !== id) {
-                throw new TechnologyAlreadyExistsException(updateTechnologyDto.name);
-            }
-        }
+        // Verify if already exists the Application name for this user
+        await this.existsTechnologyName(username, id, updateTechnologyDto.name);
 
         // Update the technology
         return await this.technologiesService.update(id, updateTechnologyDto);
     }
-}
 
+    private async existsTechnologyName(username: string, id: number, name: string): Promise<void> {
+        if (!name) return;
+
+        const exists = await this.technologiesService.existsByTechnologyNameAndUsername(username, name);
+        if (exists && exists.id !== id) throw new TechnologyAlreadyExistsException();
+    }
+};

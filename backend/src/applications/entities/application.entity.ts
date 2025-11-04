@@ -155,8 +155,9 @@ export class Application {
   applicationComponentFrontend?: ApplicationComponentFrontend;
 
   @ApiPropertyOptional({
+    isArray: true,
     nullable: true,
-    type: () => [Technology],
+    type: () => Technology,
     description: 'Technologies associated with this application',
   })
   @ManyToMany(() => Technology, (technology) => technology.applications, { eager: false })

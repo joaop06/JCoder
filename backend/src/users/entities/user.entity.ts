@@ -10,11 +10,16 @@ import {
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Technology } from '../../technologies/entities/technology.entity';
+import { Application } from '../../applications/entities/application.entity';
 import { UserComponentAboutMe } from '../user-components/entities/user-component-about-me.entity';
 import { UserComponentEducation } from '../user-components/entities/user-component-education.entity';
 import { UserComponentExperience } from '../user-components/entities/user-component-experience.entity';
 import { UserComponentCertificate } from '../user-components/entities/user-component-certificate.entity';
-import { Application } from 'src/applications/entities/application.entity';
+import { ApplicationComponentApi } from '../../applications/application-components/entities/application-component-api.entity';
+import { ApplicationComponentMobile } from '../../applications/application-components/entities/application-component-mobile.entity';
+import { ApplicationComponentLibrary } from '../../applications/application-components/entities/application-component-library.entity';
+import { ApplicationComponentFrontend } from '../../applications/application-components/entities/application-component-frontend.entity';
 
 @Entity('users')
 export class User {
@@ -93,6 +98,33 @@ export class User {
   @Column({ nullable: true })
   profileImage?: string;
 
+  @ApiProperty({
+    nullable: false,
+    type: () => Date,
+    example: new Date(),
+  })
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @ApiProperty({
+    nullable: false,
+    type: () => Date,
+    example: new Date(),
+  })
+  @UpdateDateColumn()
+  updatedAt: Date;
+
+  @ApiProperty({
+    example: null,
+    nullable: true,
+    required: false,
+    type: () => Date,
+  })
+  @DeleteDateColumn()
+  deletedAt?: Date;
+
+  // =============== RELATIONS ==================
+
   @ApiPropertyOptional({
     nullable: true,
     type: () => UserComponentAboutMe,
@@ -131,34 +163,54 @@ export class User {
   @ApiPropertyOptional({
     isArray: true,
     nullable: true,
+    type: () => Technology,
+    description: 'Technologies',
+  })
+  @OneToMany(() => Technology, (technology) => technology.user)
+  technologies?: Technology[];
+
+  @ApiPropertyOptional({
+    isArray: true,
+    nullable: true,
     type: () => Application,
     description: 'Applications',
   })
   @OneToMany(() => Application, (application) => application.user)
   applications?: Application[];
 
-  @ApiProperty({
-    nullable: false,
-    type: () => Date,
-    example: new Date(),
-  })
-  @CreateDateColumn()
-  createdAt: Date;
-
-  @ApiProperty({
-    nullable: false,
-    type: () => Date,
-    example: new Date(),
-  })
-  @UpdateDateColumn()
-  updatedAt: Date;
-
-  @ApiProperty({
-    example: null,
+  @ApiPropertyOptional({
+    isArray: true,
     nullable: true,
-    required: false,
-    type: () => Date,
+    type: () => ApplicationComponentApi,
+    description: 'Application components api',
   })
-  @DeleteDateColumn()
-  deletedAt?: Date;
+  @OneToMany(() => ApplicationComponentApi, (applicationComponentApi) => applicationComponentApi.user)
+  applicationsComponentsApis?: ApplicationComponentApi[];
+
+  @ApiPropertyOptional({
+    isArray: true,
+    nullable: true,
+    type: () => ApplicationComponentMobile,
+    description: 'Application components mobile',
+  })
+  @OneToMany(() => ApplicationComponentMobile, (applicationComponentMobile) => applicationComponentMobile.user)
+  applicationsComponentsMobiles?: ApplicationComponentMobile[];
+
+  @ApiPropertyOptional({
+    isArray: true,
+    nullable: true,
+    type: () => ApplicationComponentLibrary,
+    description: 'Application components library',
+  })
+  @OneToMany(() => ApplicationComponentLibrary, (applicationComponentLibrary) => applicationComponentLibrary.user)
+  applicationsComponentsLibraries?: ApplicationComponentLibrary[];
+
+  @ApiPropertyOptional({
+    isArray: true,
+    nullable: true,
+    type: () => ApplicationComponentFrontend,
+    description: 'Application components frontend',
+  })
+  @OneToMany(() => ApplicationComponentFrontend, (applicationComponentFrontend) => applicationComponentFrontend.user)
+  applicationsComponentsFrontends?: ApplicationComponentFrontend[];
 };

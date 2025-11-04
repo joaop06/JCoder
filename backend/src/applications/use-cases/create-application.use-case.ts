@@ -1,5 +1,4 @@
 import { Injectable } from "@nestjs/common";
-import { UsersService } from "../../users/users.service";
 import { Application } from "../entities/application.entity";
 import { ApplicationsService } from "../applications.service";
 import { ApplicationTypeEnum } from "../enums/application-type.enum";
@@ -17,7 +16,6 @@ export class CreateApplicationUseCase {
     constructor(
         private readonly applicationsService: ApplicationsService,
         private readonly applicationComponentsService: ApplicationComponentsService,
-        private readonly usersService: UsersService,
     ) { }
 
     async execute(username: string, createApplicationDto: CreateApplicationDto): Promise<Application> {

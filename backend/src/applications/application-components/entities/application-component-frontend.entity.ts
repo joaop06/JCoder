@@ -36,7 +36,7 @@ export class ApplicationComponentFrontend {
     @Column({ nullable: false })
     username: string;
 
-    @ManyToOne(() => User, (user) => user.applications, {
+    @ManyToOne(() => User, (user) => user.applicationsComponentsFrontends, {
         onDelete: 'CASCADE',
     })
     @JoinColumn({ name: 'username' })

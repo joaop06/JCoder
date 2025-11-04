@@ -4,6 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { UsersService } from '../users/users.service';
 import { Application } from './entities/application.entity';
 import { CacheService } from '../@common/services/cache.service';
+import { ApplicationsStatsDto } from './dto/applications-stats.dto';
 import { CreateApplicationDto } from './dto/create-application.dto';
 import { UpdateApplicationDto } from './dto/update-application.dto';
 import { Technology } from '../technologies/entities/technology.entity';
@@ -82,10 +83,6 @@ export class ApplicationsService {
     );
   }
 
-  async existsByApplicationNameAndUsername(username: string, name: string): Promise<Application | null> {
-    return await this.repository.findOneBy({ username, name });
-  }
-
   async create(createApplicationDto: CreateApplicationDto): Promise<Application> {
     const application = this.repository.create(createApplicationDto);
     const savedApplication = await this.repository.save(application);
@@ -98,7 +95,10 @@ export class ApplicationsService {
     return savedApplication;
   }
 
-  async update(id: number, updateApplicationDto: UpdateApplicationDto & { displayOrder?: number }): Promise<Application> {
+  async update(
+    id: number,
+    updateApplicationDto: UpdateApplicationDto & { displayOrder?: number },
+  ): Promise<Application> {
     const application = await this.repository.findOneBy({ id });
 
     this.repository.merge(application, updateApplicationDto);
@@ -258,7 +258,7 @@ export class ApplicationsService {
   /**
    * Get applications statistics by username (active and inactive counts)
    */
-  async getStats(username: string): Promise<{ active: number; inactive: number; total: number }> {
+  async getStats(username: string): Promise<ApplicationsStatsDto> {
     const cacheKey = this.cacheService.generateKey('applications', 'stats', username);
 
     return await this.cacheService.getOrSet(
@@ -274,5 +274,9 @@ export class ApplicationsService {
       },
       300, // 5 minutes cache
     );
+  }
+
+  async existsByApplicationNameAndUsername(username: string, name: string): Promise<Application | null> {
+    return await this.repository.findOneBy({ username, name });
   }
 };
