@@ -72,7 +72,7 @@ describe('DeleteUserProfileImageUseCase', () => {
             const userId = 1;
             const updatedUser = {
                 ...mockUser1,
-                profileImage: null,
+                profileImage: null as any,
             };
 
             userRepository.findOne.mockResolvedValue(mockUser1 as User);

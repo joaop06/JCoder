@@ -93,7 +93,7 @@ describe('GetCertificateImageUseCase', () => {
             const certificateId = 1;
             const certificateWithoutImage = {
                 ...mockCertificate1,
-                profileImage: null,
+                profileImage: null as any,
             };
 
             certificateRepository.findOne.mockResolvedValue(

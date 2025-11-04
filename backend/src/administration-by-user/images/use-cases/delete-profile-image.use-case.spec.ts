@@ -78,7 +78,7 @@ describe('DeleteProfileImageUseCase', () => {
             const applicationId = 1;
             const updatedApplication = {
                 ...mockApplication1,
-                profileImage: null,
+                profileImage: null as any,
             };
 
             cacheService.getOrSet.mockResolvedValue(mockApplication1 as Application);
@@ -109,7 +109,7 @@ describe('DeleteProfileImageUseCase', () => {
             const applicationId = 1;
             const applicationWithoutImage = {
                 ...mockApplication1,
-                profileImage: null,
+                profileImage: null as any,
             };
 
             cacheService.getOrSet.mockResolvedValue(applicationWithoutImage as Application);

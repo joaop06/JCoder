@@ -104,7 +104,7 @@ describe('GetProfileImageUseCase', () => {
             const applicationId = 1;
             const applicationWithoutImage = {
                 ...mockApplication1,
-                profileImage: null,
+                profileImage: null as any,
             };
 
             cacheService.getOrSet.mockResolvedValue(applicationWithoutImage as Application);

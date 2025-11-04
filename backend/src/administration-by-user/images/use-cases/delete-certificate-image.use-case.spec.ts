@@ -73,7 +73,7 @@ describe('DeleteCertificateImageUseCase', () => {
             const certificateId = 1;
             const updatedCertificate = {
                 ...mockCertificate1,
-                profileImage: null,
+                profileImage: null as any,
             };
 
             certificateRepository.findOne.mockResolvedValue(

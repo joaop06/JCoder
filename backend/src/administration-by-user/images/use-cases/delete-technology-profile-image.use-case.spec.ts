@@ -74,7 +74,7 @@ describe('DeleteTechnologyProfileImageUseCase', () => {
             const technologyId = 1;
             const updatedTechnology = {
                 ...mockTechnology1,
-                profileImage: null,
+                profileImage: null as any,
             };
 
             technologyRepository.findOne.mockResolvedValue(mockTechnology1 as Technology);

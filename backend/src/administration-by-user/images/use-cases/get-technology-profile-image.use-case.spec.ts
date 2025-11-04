@@ -86,7 +86,7 @@ describe('GetTechnologyProfileImageUseCase', () => {
             const technologyId = 1;
             const technologyWithoutImage = {
                 ...mockTechnology1,
-                profileImage: null,
+                profileImage: null as any,
             };
 
             technologyRepository.findOne.mockResolvedValue(

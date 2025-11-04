@@ -86,7 +86,7 @@ describe('GetUserProfileImageUseCase', () => {
             const userId = 1;
             const userWithoutImage = {
                 ...mockUser1,
-                profileImage: null,
+                profileImage: null as any,
             };
 
             userRepository.findOne.mockResolvedValue(userWithoutImage as User);

@@ -115,7 +115,7 @@ describe('GetImageUseCase', () => {
             const filename = 'image1.jpg';
             const applicationWithoutImages = {
                 ...mockApplication1,
-                images: null,
+                images: null as any,
             };
 
             cacheService.getOrSet.mockResolvedValue(applicationWithoutImages as Application);
