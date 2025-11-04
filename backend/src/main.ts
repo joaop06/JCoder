@@ -4,7 +4,6 @@ import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
-import { createInitialUserAdmin } from 'scripts/create-initial-user-admin';
 import { PayloadSizeValidationPipe } from './@common/pipes/payload-size.pipe';
 import { DocumentBuilder, OpenAPIObject, SwaggerModule } from '@nestjs/swagger';
 import { LoggingInterceptor } from './@common/interceptors/logging.interceptor';
@@ -66,7 +65,6 @@ async function bootstrap() {
 	app.setGlobalPrefix('api/v1');
 
 	await setupSwagger(app);
-	await createInitialUserAdmin();
 
 	const port = configService.get("BACKEND_PORT") || 3001;
 	await app.listen(parseInt(port, 10));
