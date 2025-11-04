@@ -1,81 +1,71 @@
-import { ApplicationTypeEnum } from '../../applications/enums/application-type.enum';
+import { Test, TestingModule } from '@nestjs/testing';
+import { getRepositoryToken } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { DeleteImageUseCase } from './delete-image.use-case';
+import { Application } from '../../applications/entities/application.entity';
 import { ApplicationNotFoundException } from '../../applications/exceptions/application-not-found.exception';
-
-// Mock Application entity to avoid circular dependency
-interface Application {
-    id: number;
-    userId: number;
-    name: string;
-    description: string;
-    applicationType: ApplicationTypeEnum;
-    githubUrl?: string;
-    isActive: boolean;
-    createdAt: Date;
-    updatedAt: Date;
-    images?: string[];
-    profileImage?: string;
-}
-
-// Mock services to avoid circular dependencies
-const mockImagesService = {
-    findApplicationById: jest.fn(),
-    deleteImage: jest.fn(),
-};
-
-// Create a mock use case class that implements the same logic
-class MockDeleteImageUseCase {
-    constructor(
-        private readonly imagesService: typeof mockImagesService,
-    ) { }
-
-    async execute(id: number, filename: string): Promise<void> {
-        // Check if application exists
-        const application = await this.imagesService.findApplicationById(id);
-        if (!application) throw new ApplicationNotFoundException();
-
-        // Delete the image
-        await this.imagesService.deleteImage(id, filename);
-    }
-}
+import { CacheService } from '../../../@common/services/cache.service';
+import { ImageStorageService } from '../services/image-storage.service';
+import { ResourceType } from '../enums/resource-type.enum';
 
 describe('DeleteImageUseCase', () => {
-    let useCase: MockDeleteImageUseCase;
-    let imagesService: typeof mockImagesService;
+    let useCase: DeleteImageUseCase;
+    let applicationRepository: jest.Mocked<Repository<Application>>;
+    let imageStorageService: jest.Mocked<ImageStorageService>;
+    let cacheService: jest.Mocked<CacheService>;
 
-    const mockApplication: Application = {
+    const mockApplication1: Partial<Application> = {
         id: 1,
-        userId: 1,
-        name: 'Test Application',
-        description: 'Test Description',
-        applicationType: ApplicationTypeEnum.API,
-        githubUrl: 'https://github.com/test/app',
-        isActive: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        images: ['image1.jpg', 'image2.png', 'image3.gif'],
-        profileImage: 'profile.jpg',
+        username: 'user1',
+        name: 'Application 1',
+        images: ['image1.jpg', 'image2.jpg', 'image3.jpg'],
     };
 
-    const mockApplicationWithoutImages: Application = {
+    const mockApplication2: Partial<Application> = {
         id: 2,
-        userId: 1,
-        name: 'Test Application Without Images',
-        description: 'Test Description',
-        applicationType: ApplicationTypeEnum.Frontend,
-        isActive: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        images: [],
+        username: 'user2',
+        name: 'Application 2',
+        images: ['image4.jpg', 'image5.jpg'],
     };
 
-    beforeEach(() => {
-        // Reset all mocks
-        jest.clearAllMocks();
+    beforeEach(async () => {
+        const mockApplicationRepository = {
+            findOne: jest.fn(),
+            save: jest.fn(),
+        };
 
-        // Create use case instance manually with mocked dependencies
-        useCase = new MockDeleteImageUseCase(mockImagesService);
+        const mockImageStorageService = {
+            deleteImage: jest.fn(),
+        };
 
-        imagesService = mockImagesService;
+        const mockCacheService = {
+            applicationKey: jest.fn((id: number, type: string) => `app:${id}:${type}`),
+            getOrSet: jest.fn(),
+            del: jest.fn(),
+        };
+
+        const module: TestingModule = await Test.createTestingModule({
+            providers: [
+                DeleteImageUseCase,
+                {
+                    provide: getRepositoryToken(Application),
+                    useValue: mockApplicationRepository,
+                },
+                {
+                    provide: ImageStorageService,
+                    useValue: mockImageStorageService,
+                },
+                {
+                    provide: CacheService,
+                    useValue: mockCacheService,
+                },
+            ],
+        }).compile();
+
+        useCase = module.get<DeleteImageUseCase>(DeleteImageUseCase);
+        applicationRepository = module.get(getRepositoryToken(Application));
+        imageStorageService = module.get(ImageStorageService);
+        cacheService = module.get(CacheService);
     });
 
     afterEach(() => {
@@ -83,379 +73,212 @@ describe('DeleteImageUseCase', () => {
     });
 
     describe('execute', () => {
-        it('should delete an image successfully when application exists', async () => {
+        it('deve deletar imagem com sucesso', async () => {
             // Arrange
             const applicationId = 1;
-            const filename = 'image1.jpg';
+            const filename = 'image2.jpg';
+            const updatedApplication = {
+                ...mockApplication1,
+                images: ['image1.jpg', 'image3.jpg'],
+            };
 
-            imagesService.findApplicationById.mockResolvedValue(mockApplication);
-            imagesService.deleteImage.mockResolvedValue(undefined);
+            cacheService.getOrSet.mockResolvedValue(mockApplication1 as Application);
+            imageStorageService.deleteImage.mockResolvedValue();
+            applicationRepository.save.mockResolvedValue(updatedApplication as Application);
 
             // Act
             await useCase.execute(applicationId, filename);
 
             // Assert
-            expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-            expect(imagesService.deleteImage).toHaveBeenCalledWith(applicationId, filename);
+            expect(imageStorageService.deleteImage).toHaveBeenCalledWith(
+                ResourceType.Application,
+                applicationId,
+                filename,
+                undefined,
+                'user1',
+            );
+            expect(applicationRepository.save).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    images: ['image1.jpg', 'image3.jpg'],
+                }),
+            );
+            expect(cacheService.del).toHaveBeenCalledWith(`app:${applicationId}:full`);
         });
 
-        it('should throw ApplicationNotFoundException when application is not found', async () => {
-            // Arrange
-            const applicationId = 999;
-            const filename = 'image1.jpg';
-
-            imagesService.findApplicationById.mockResolvedValue(null);
-
-            // Act & Assert
-            await expect(useCase.execute(applicationId, filename)).rejects.toThrow(ApplicationNotFoundException);
-            expect(imagesService.deleteImage).not.toHaveBeenCalled();
-        });
-
-        it('should throw ApplicationNotFoundException when application is undefined', async () => {
-            // Arrange
-            const applicationId = 1;
-            const filename = 'image1.jpg';
-
-            imagesService.findApplicationById.mockResolvedValue(undefined);
-
-            // Act & Assert
-            await expect(useCase.execute(applicationId, filename)).rejects.toThrow(ApplicationNotFoundException);
-            expect(imagesService.deleteImage).not.toHaveBeenCalled();
-        });
-
-        it('should propagate deleteImage service errors', async () => {
-            // Arrange
-            const applicationId = 1;
-            const filename = 'image1.jpg';
-
-            imagesService.findApplicationById.mockResolvedValue(mockApplication);
-            const deleteError = new Error('Delete operation failed');
-            imagesService.deleteImage.mockRejectedValue(deleteError);
-
-            // Act & Assert
-            await expect(useCase.execute(applicationId, filename)).rejects.toThrow('Delete operation failed');
-            expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-            expect(imagesService.deleteImage).toHaveBeenCalledWith(applicationId, filename);
-        });
-
-        it('should handle database constraint errors during delete', async () => {
-            // Arrange
-            const applicationId = 1;
-            const filename = 'image1.jpg';
-
-            imagesService.findApplicationById.mockResolvedValue(mockApplication);
-            const constraintError = new Error('Foreign key constraint violation');
-            imagesService.deleteImage.mockRejectedValue(constraintError);
-
-            // Act & Assert
-            await expect(useCase.execute(applicationId, filename)).rejects.toThrow('Foreign key constraint violation');
-            expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-            expect(imagesService.deleteImage).toHaveBeenCalledWith(applicationId, filename);
-        });
-
-        it('should handle network errors during delete', async () => {
-            // Arrange
-            const applicationId = 1;
-            const filename = 'image1.jpg';
-
-            imagesService.findApplicationById.mockResolvedValue(mockApplication);
-            const networkError = new Error('Network timeout');
-            imagesService.deleteImage.mockRejectedValue(networkError);
-
-            // Act & Assert
-            await expect(useCase.execute(applicationId, filename)).rejects.toThrow('Network timeout');
-            expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-            expect(imagesService.deleteImage).toHaveBeenCalledWith(applicationId, filename);
-        });
-
-        it('should work with different application IDs', async () => {
-            // Arrange
-            const applicationIds = [1, 2, 3, 100, 999];
-            const filename = 'test.jpg';
-
-            for (const applicationId of applicationIds) {
-                imagesService.findApplicationById.mockResolvedValue({
-                    ...mockApplication,
-                    id: applicationId,
-                });
-                imagesService.deleteImage.mockResolvedValue(undefined);
-
-                // Act
-                await useCase.execute(applicationId, filename);
-
-                // Assert
-                expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-                expect(imagesService.deleteImage).toHaveBeenCalledWith(applicationId, filename);
-
-                // Clear mocks for next iteration
-                jest.clearAllMocks();
-            }
-        });
-
-        it('should work with different image filenames', async () => {
-            // Arrange
-            const applicationId = 1;
-            const filenames = [
-                'image1.jpg',
-                'image2.png',
-                'image3.gif',
-                'document.pdf',
-                'video.mp4',
-                'file-with-dashes.jpg',
-                'file_with_underscores.png',
-                'file.with.dots.jpg',
-                'UPPERCASE.JPG',
-                'mixedCase.PnG',
-            ];
-
-            for (const filename of filenames) {
-                imagesService.findApplicationById.mockResolvedValue(mockApplication);
-                imagesService.deleteImage.mockResolvedValue(undefined);
-
-                // Act
-                await useCase.execute(applicationId, filename);
-
-                // Assert
-                expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-                expect(imagesService.deleteImage).toHaveBeenCalledWith(applicationId, filename);
-
-                // Clear mocks for next iteration
-                jest.clearAllMocks();
-            }
-        });
-
-        it('should handle concurrent delete operations', async () => {
-            // Arrange
-            const applicationId = 1;
-            const filename = 'image1.jpg';
-
-            imagesService.findApplicationById.mockResolvedValue(mockApplication);
-            imagesService.deleteImage.mockResolvedValue(undefined);
-
-            // Act - Execute multiple concurrent delete operations
-            const promises = [
-                useCase.execute(applicationId, filename),
-                useCase.execute(applicationId, filename),
-                useCase.execute(applicationId, filename),
-            ];
-
-            await Promise.all(promises);
-
-            // Assert
-            expect(imagesService.findApplicationById).toHaveBeenCalledTimes(3);
-            expect(imagesService.deleteImage).toHaveBeenCalledTimes(3);
-        });
-
-        it('should handle undefined application ID gracefully', async () => {
-            // Arrange
-            const applicationId = undefined as any;
-            const filename = 'image1.jpg';
-
-            imagesService.findApplicationById.mockResolvedValue(null);
-
-            // Act & Assert
-            await expect(useCase.execute(applicationId, filename)).rejects.toThrow(ApplicationNotFoundException);
-            expect(imagesService.deleteImage).not.toHaveBeenCalled();
-        });
-
-        it('should handle null application ID gracefully', async () => {
-            // Arrange
-            const applicationId = null as any;
-            const filename = 'image1.jpg';
-
-            imagesService.findApplicationById.mockResolvedValue(null);
-
-            // Act & Assert
-            await expect(useCase.execute(applicationId, filename)).rejects.toThrow(ApplicationNotFoundException);
-            expect(imagesService.deleteImage).not.toHaveBeenCalled();
-        });
-
-        it('should handle zero application ID', async () => {
-            // Arrange
-            const applicationId = 0;
-            const filename = 'image1.jpg';
-
-            imagesService.findApplicationById.mockResolvedValue(null);
-
-            // Act & Assert
-            await expect(useCase.execute(applicationId, filename)).rejects.toThrow(ApplicationNotFoundException);
-            expect(imagesService.deleteImage).not.toHaveBeenCalled();
-        });
-
-        it('should handle negative application ID', async () => {
-            // Arrange
-            const applicationId = -1;
-            const filename = 'image1.jpg';
-
-            imagesService.findApplicationById.mockResolvedValue(null);
-
-            // Act & Assert
-            await expect(useCase.execute(applicationId, filename)).rejects.toThrow(ApplicationNotFoundException);
-            expect(imagesService.deleteImage).not.toHaveBeenCalled();
-        });
-
-        it('should handle empty filename', async () => {
-            // Arrange
-            const applicationId = 1;
-            const filename = '';
-
-            imagesService.findApplicationById.mockResolvedValue(mockApplication);
-            imagesService.deleteImage.mockResolvedValue(undefined);
-
-            // Act
-            await useCase.execute(applicationId, filename);
-
-            // Assert
-            expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-            expect(imagesService.deleteImage).toHaveBeenCalledWith(applicationId, filename);
-        });
-
-        it('should handle undefined filename', async () => {
-            // Arrange
-            const applicationId = 1;
-            const filename = undefined as any;
-
-            imagesService.findApplicationById.mockResolvedValue(mockApplication);
-            imagesService.deleteImage.mockResolvedValue(undefined);
-
-            // Act
-            await useCase.execute(applicationId, filename);
-
-            // Assert
-            expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-            expect(imagesService.deleteImage).toHaveBeenCalledWith(applicationId, filename);
-        });
-
-        it('should handle null filename', async () => {
-            // Arrange
-            const applicationId = 1;
-            const filename = null as any;
-
-            imagesService.findApplicationById.mockResolvedValue(mockApplication);
-            imagesService.deleteImage.mockResolvedValue(undefined);
-
-            // Act
-            await useCase.execute(applicationId, filename);
-
-            // Assert
-            expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-            expect(imagesService.deleteImage).toHaveBeenCalledWith(applicationId, filename);
-        });
-
-        it('should handle very long filenames', async () => {
-            // Arrange
-            const applicationId = 1;
-            const filename = 'a'.repeat(1000) + '.jpg';
-
-            imagesService.findApplicationById.mockResolvedValue(mockApplication);
-            imagesService.deleteImage.mockResolvedValue(undefined);
-
-            // Act
-            await useCase.execute(applicationId, filename);
-
-            // Assert
-            expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-            expect(imagesService.deleteImage).toHaveBeenCalledWith(applicationId, filename);
-        });
-
-        it('should handle filenames with special characters', async () => {
-            // Arrange
-            const applicationId = 1;
-            const filenames = [
-                'file with spaces.jpg',
-                'file-with-special-chars!@#$%^&*().jpg',
-                'file-with-unicode-ñáéíóú.jpg',
-                'file-with-emoji-🚀.jpg',
-                'file-with-quotes-"test".jpg',
-                "file-with-single-quotes-'test'.jpg",
-            ];
-
-            for (const filename of filenames) {
-                imagesService.findApplicationById.mockResolvedValue(mockApplication);
-                imagesService.deleteImage.mockResolvedValue(undefined);
-
-                // Act
-                await useCase.execute(applicationId, filename);
-
-                // Assert
-                expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-                expect(imagesService.deleteImage).toHaveBeenCalledWith(applicationId, filename);
-
-                // Clear mocks for next iteration
-                jest.clearAllMocks();
-            }
-        });
-
-        it('should handle application without images array', async () => {
-            // Arrange
-            const applicationId = 2;
-            const filename = 'image1.jpg';
-
-            imagesService.findApplicationById.mockResolvedValue(mockApplicationWithoutImages);
-            imagesService.deleteImage.mockResolvedValue(undefined);
-
-            // Act
-            await useCase.execute(applicationId, filename);
-
-            // Assert
-            expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-            expect(imagesService.deleteImage).toHaveBeenCalledWith(applicationId, filename);
-        });
-
-        it('should handle findApplicationById service errors', async () => {
-            // Arrange
-            const applicationId = 1;
-            const filename = 'image1.jpg';
-
-            const serviceError = new Error('Database connection error');
-            imagesService.findApplicationById.mockRejectedValue(serviceError);
-
-            // Act & Assert
-            await expect(useCase.execute(applicationId, filename)).rejects.toThrow('Database connection error');
-            expect(imagesService.deleteImage).not.toHaveBeenCalled();
-        });
-
-        it('should handle timeout errors from findApplicationById', async () => {
-            // Arrange
-            const applicationId = 1;
-            const filename = 'image1.jpg';
-
-            const timeoutError = new Error('Request timeout');
-            imagesService.findApplicationById.mockRejectedValue(timeoutError);
-
-            // Act & Assert
-            await expect(useCase.execute(applicationId, filename)).rejects.toThrow('Request timeout');
-            expect(imagesService.deleteImage).not.toHaveBeenCalled();
-        });
-
-        it('should handle permission errors from deleteImage', async () => {
-            // Arrange
-            const applicationId = 1;
-            const filename = 'image1.jpg';
-
-            imagesService.findApplicationById.mockResolvedValue(mockApplication);
-            const permissionError = new Error('Permission denied');
-            imagesService.deleteImage.mockRejectedValue(permissionError);
-
-            // Act & Assert
-            await expect(useCase.execute(applicationId, filename)).rejects.toThrow('Permission denied');
-            expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-            expect(imagesService.deleteImage).toHaveBeenCalledWith(applicationId, filename);
-        });
-
-        it('should handle file not found errors from deleteImage', async () => {
+        it('deve lançar ApplicationNotFoundException quando a imagem não existe no array', async () => {
             // Arrange
             const applicationId = 1;
             const filename = 'nonexistent.jpg';
 
-            imagesService.findApplicationById.mockResolvedValue(mockApplication);
-            const fileNotFoundError = new Error('File not found');
-            imagesService.deleteImage.mockRejectedValue(fileNotFoundError);
+            cacheService.getOrSet.mockResolvedValue(mockApplication1 as Application);
 
             // Act & Assert
-            await expect(useCase.execute(applicationId, filename)).rejects.toThrow('File not found');
-            expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-            expect(imagesService.deleteImage).toHaveBeenCalledWith(applicationId, filename);
+            await expect(useCase.execute(applicationId, filename)).rejects.toThrow(
+                ApplicationNotFoundException,
+            );
+            expect(imageStorageService.deleteImage).not.toHaveBeenCalled();
+        });
+
+        it('deve lançar ApplicationNotFoundException quando a aplicação não tem imagens', async () => {
+            // Arrange
+            const applicationId = 1;
+            const filename = 'image1.jpg';
+            const applicationWithoutImages = {
+                ...mockApplication1,
+                images: null as any,
+            };
+
+            cacheService.getOrSet.mockResolvedValue(applicationWithoutImages as Application);
+
+            // Act & Assert
+            await expect(useCase.execute(applicationId, filename)).rejects.toThrow(
+                ApplicationNotFoundException,
+            );
+        });
+
+        it('deve lançar ApplicationNotFoundException quando a aplicação não existe', async () => {
+            // Arrange
+            const applicationId = 999;
+            const filename = 'image1.jpg';
+
+            cacheService.getOrSet.mockImplementation(async (key, fn) => {
+                if (typeof fn === 'function') {
+                    const result = await fn();
+                    return result;
+                }
+                return null;
+            });
+
+            applicationRepository.findOne.mockResolvedValue(null);
+
+            // Act & Assert
+            await expect(useCase.execute(applicationId, filename)).rejects.toThrow(
+                ApplicationNotFoundException,
+            );
+        });
+
+        it('deve garantir segmentação por usuário - múltiplos usuários deletando imagens simultaneamente', async () => {
+            // Arrange
+            const user1ApplicationId = 1;
+            const user2ApplicationId = 2;
+            const user1Filename = 'image2.jpg';
+            const user2Filename = 'image4.jpg';
+
+            cacheService.getOrSet
+                .mockResolvedValueOnce(mockApplication1 as Application)
+                .mockResolvedValueOnce(mockApplication2 as Application);
+
+            imageStorageService.deleteImage.mockResolvedValue();
+            applicationRepository.save
+                .mockResolvedValueOnce({
+                    ...mockApplication1,
+                    images: ['image1.jpg', 'image3.jpg'],
+                } as Application)
+                .mockResolvedValueOnce({
+                    ...mockApplication2,
+                    images: ['image5.jpg'],
+                } as Application);
+
+            // Act
+            await useCase.execute(user1ApplicationId, user1Filename);
+            await useCase.execute(user2ApplicationId, user2Filename);
+
+            // Assert
+            expect(imageStorageService.deleteImage).toHaveBeenNthCalledWith(
+                1,
+                ResourceType.Application,
+                user1ApplicationId,
+                user1Filename,
+                undefined,
+                'user1',
+            );
+            expect(imageStorageService.deleteImage).toHaveBeenNthCalledWith(
+                2,
+                ResourceType.Application,
+                user2ApplicationId,
+                user2Filename,
+                undefined,
+                'user2',
+            );
+        });
+
+        it('deve garantir que apenas a imagem do usuário correto é deletada', async () => {
+            // Arrange
+            const user1ApplicationId = 1;
+            const user1Filename = 'image2.jpg';
+
+            cacheService.getOrSet.mockResolvedValue(mockApplication1 as Application);
+            imageStorageService.deleteImage.mockResolvedValue();
+            applicationRepository.save.mockResolvedValue({
+                ...mockApplication1,
+                images: ['image1.jpg', 'image3.jpg'],
+            } as Application);
+
+            // Act
+            await useCase.execute(user1ApplicationId, user1Filename);
+
+            // Assert
+            expect(imageStorageService.deleteImage).toHaveBeenCalledWith(
+                ResourceType.Application,
+                user1ApplicationId,
+                user1Filename,
+                undefined,
+                'user1',
+            );
+            // Verifica que não foi chamado com os dados do user2
+            expect(imageStorageService.deleteImage).not.toHaveBeenCalledWith(
+                ResourceType.Application,
+                2,
+                expect.any(String),
+                undefined,
+                'user2',
+            );
+        });
+
+        it('deve remover apenas a imagem especificada do array', async () => {
+            // Arrange
+            const applicationId = 1;
+            const filename = 'image2.jpg';
+
+            cacheService.getOrSet.mockResolvedValue(mockApplication1 as Application);
+            imageStorageService.deleteImage.mockResolvedValue();
+            applicationRepository.save.mockResolvedValue({
+                ...mockApplication1,
+                images: ['image1.jpg', 'image3.jpg'],
+            } as Application);
+
+            // Act
+            await useCase.execute(applicationId, filename);
+
+            // Assert
+            expect(applicationRepository.save).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    images: expect.arrayContaining(['image1.jpg', 'image3.jpg']),
+                }),
+            );
+            const savedApplication = (applicationRepository.save as jest.Mock).mock.calls[0][0];
+            expect(savedApplication.images).not.toContain('image2.jpg');
+            expect(savedApplication.images).toHaveLength(2);
+        });
+
+        it('deve invalidar cache após deletar imagem', async () => {
+            // Arrange
+            const applicationId = 1;
+            const filename = 'image2.jpg';
+
+            cacheService.getOrSet.mockResolvedValue(mockApplication1 as Application);
+            imageStorageService.deleteImage.mockResolvedValue();
+            applicationRepository.save.mockResolvedValue({
+                ...mockApplication1,
+                images: ['image1.jpg', 'image3.jpg'],
+            } as Application);
+
+            // Act
+            await useCase.execute(applicationId, filename);
+
+            // Assert
+            expect(cacheService.del).toHaveBeenCalledWith(`app:${applicationId}:full`);
         });
     });
 });
+

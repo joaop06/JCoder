@@ -1,83 +1,70 @@
-import { ApplicationTypeEnum } from '../../applications/enums/application-type.enum';
+import { Test, TestingModule } from '@nestjs/testing';
+import { getRepositoryToken } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { GetImageUseCase } from './get-image.use-case';
+import { Application } from '../../applications/entities/application.entity';
 import { ApplicationNotFoundException } from '../../applications/exceptions/application-not-found.exception';
-
-// Mock Application entity to avoid circular dependency
-interface Application {
-    id: number;
-    userId: number;
-    name: string;
-    description: string;
-    applicationType: ApplicationTypeEnum;
-    githubUrl?: string;
-    isActive: boolean;
-    createdAt: Date;
-    updatedAt: Date;
-    images?: string[];
-    profileImage?: string;
-}
-
-// Mock services to avoid circular dependencies
-const mockImagesService = {
-    findApplicationById: jest.fn(),
-    getImagePath: jest.fn(),
-};
-
-// Create a mock use case class that implements the same logic
-class MockGetImageUseCase {
-    constructor(
-        private readonly imagesService: typeof mockImagesService,
-    ) { }
-
-    async execute(id: number, filename: string): Promise<string> {
-        // Check if application exists
-        const application = await this.imagesService.findApplicationById(id);
-        if (!application) throw new ApplicationNotFoundException();
-
-        // Get the image path
-        return await this.imagesService.getImagePath(id, filename);
-    }
-}
+import { CacheService } from '../../../@common/services/cache.service';
+import { ImageStorageService } from '../services/image-storage.service';
+import { ResourceType } from '../enums/resource-type.enum';
 
 describe('GetImageUseCase', () => {
-    let useCase: MockGetImageUseCase;
-    let imagesService: typeof mockImagesService;
+    let useCase: GetImageUseCase;
+    let applicationRepository: jest.Mocked<Repository<Application>>;
+    let imageStorageService: jest.Mocked<ImageStorageService>;
+    let cacheService: jest.Mocked<CacheService>;
 
-    const mockApplication: Application = {
+    const mockApplication1: Partial<Application> = {
         id: 1,
-        userId: 1,
-        name: 'Test Application',
-        description: 'Test Description',
-        applicationType: ApplicationTypeEnum.API,
-        githubUrl: 'https://github.com/test/app',
-        isActive: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        images: ['image1.jpg', 'image2.png', 'image3.gif'],
-        profileImage: 'profile.jpg',
+        username: 'user1',
+        name: 'Application 1',
+        images: ['image1.jpg', 'image2.jpg'],
     };
 
-    const mockApplicationWithoutImages: Application = {
+    const mockApplication2: Partial<Application> = {
         id: 2,
-        userId: 1,
-        name: 'Test Application Without Images',
-        description: 'Test Description',
-        applicationType: ApplicationTypeEnum.Frontend,
-        isActive: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        images: [],
+        username: 'user2',
+        name: 'Application 2',
+        images: ['image3.jpg', 'image4.jpg'],
     };
 
-    const mockImagePath = '/uploads/applications/1/image1.jpg';
+    beforeEach(async () => {
+        const mockApplicationRepository = {
+            findOne: jest.fn(),
+        };
 
-    beforeEach(() => {
-        // Reset all mocks
-        jest.clearAllMocks();
+        const mockImageStorageService = {
+            getImagePath: jest.fn(),
+        };
 
-        // Create use case instance manually with mocked dependencies
-        useCase = new MockGetImageUseCase(mockImagesService);
+        const mockCacheService = {
+            applicationKey: jest.fn((id: number, type: string) => `app:${id}:${type}`),
+            getOrSet: jest.fn(),
+            del: jest.fn(),
+        };
 
-        imagesService = mockImagesService;
+        const module: TestingModule = await Test.createTestingModule({
+            providers: [
+                GetImageUseCase,
+                {
+                    provide: getRepositoryToken(Application),
+                    useValue: mockApplicationRepository,
+                },
+                {
+                    provide: ImageStorageService,
+                    useValue: mockImageStorageService,
+                },
+                {
+                    provide: CacheService,
+                    useValue: mockCacheService,
+                },
+            ],
+        }).compile();
+
+        useCase = module.get<GetImageUseCase>(GetImageUseCase);
+        applicationRepository = module.get(getRepositoryToken(Application));
+        imageStorageService = module.get(ImageStorageService);
+        cacheService = module.get(CacheService);
     });
 
     afterEach(() => {
@@ -85,578 +72,154 @@ describe('GetImageUseCase', () => {
     });
 
     describe('execute', () => {
-        it('should get image path successfully when application exists', async () => {
+        it('deve retornar o caminho da imagem com sucesso', async () => {
             // Arrange
             const applicationId = 1;
             const filename = 'image1.jpg';
+            const expectedImagePath = '/path/to/user1/applications/1/image1.jpg';
 
-            imagesService.findApplicationById.mockResolvedValue(mockApplication);
-            imagesService.getImagePath.mockResolvedValue(mockImagePath);
+            cacheService.getOrSet.mockResolvedValue(mockApplication1 as Application);
+            imageStorageService.getImagePath.mockResolvedValue(expectedImagePath);
 
             // Act
             const result = await useCase.execute(applicationId, filename);
 
             // Assert
-            expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-            expect(imagesService.getImagePath).toHaveBeenCalledWith(applicationId, filename);
-            expect(result).toBe(mockImagePath);
+            expect(imageStorageService.getImagePath).toHaveBeenCalledWith(
+                ResourceType.Application,
+                applicationId,
+                filename,
+                undefined,
+                'user1',
+            );
+            expect(result).toBe(expectedImagePath);
         });
 
-        it('should throw ApplicationNotFoundException when application is not found', async () => {
-            // Arrange
-            const applicationId = 999;
-            const filename = 'image1.jpg';
-
-            imagesService.findApplicationById.mockResolvedValue(null);
-
-            // Act & Assert
-            await expect(useCase.execute(applicationId, filename)).rejects.toThrow(ApplicationNotFoundException);
-            expect(imagesService.getImagePath).not.toHaveBeenCalled();
-        });
-
-        it('should throw ApplicationNotFoundException when application is undefined', async () => {
-            // Arrange
-            const applicationId = 1;
-            const filename = 'image1.jpg';
-
-            imagesService.findApplicationById.mockResolvedValue(undefined);
-
-            // Act & Assert
-            await expect(useCase.execute(applicationId, filename)).rejects.toThrow(ApplicationNotFoundException);
-            expect(imagesService.getImagePath).not.toHaveBeenCalled();
-        });
-
-        it('should propagate getImagePath service errors', async () => {
-            // Arrange
-            const applicationId = 1;
-            const filename = 'image1.jpg';
-
-            imagesService.findApplicationById.mockResolvedValue(mockApplication);
-            const getImageError = new Error('Get image path operation failed');
-            imagesService.getImagePath.mockRejectedValue(getImageError);
-
-            // Act & Assert
-            await expect(useCase.execute(applicationId, filename)).rejects.toThrow('Get image path operation failed');
-            expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-            expect(imagesService.getImagePath).toHaveBeenCalledWith(applicationId, filename);
-        });
-
-        it('should handle database constraint errors during get image path', async () => {
-            // Arrange
-            const applicationId = 1;
-            const filename = 'image1.jpg';
-
-            imagesService.findApplicationById.mockResolvedValue(mockApplication);
-            const constraintError = new Error('Foreign key constraint violation');
-            imagesService.getImagePath.mockRejectedValue(constraintError);
-
-            // Act & Assert
-            await expect(useCase.execute(applicationId, filename)).rejects.toThrow('Foreign key constraint violation');
-            expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-            expect(imagesService.getImagePath).toHaveBeenCalledWith(applicationId, filename);
-        });
-
-        it('should handle network errors during get image path', async () => {
-            // Arrange
-            const applicationId = 1;
-            const filename = 'image1.jpg';
-
-            imagesService.findApplicationById.mockResolvedValue(mockApplication);
-            const networkError = new Error('Network timeout');
-            imagesService.getImagePath.mockRejectedValue(networkError);
-
-            // Act & Assert
-            await expect(useCase.execute(applicationId, filename)).rejects.toThrow('Network timeout');
-            expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-            expect(imagesService.getImagePath).toHaveBeenCalledWith(applicationId, filename);
-        });
-
-        it('should work with different application IDs', async () => {
-            // Arrange
-            const applicationIds = [1, 2, 3, 100, 999];
-            const filename = 'test.jpg';
-
-            for (const applicationId of applicationIds) {
-                const expectedPath = `/uploads/applications/${applicationId}/${filename}`;
-
-                imagesService.findApplicationById.mockResolvedValue({
-                    ...mockApplication,
-                    id: applicationId,
-                });
-                imagesService.getImagePath.mockResolvedValue(expectedPath);
-
-                // Act
-                const result = await useCase.execute(applicationId, filename);
-
-                // Assert
-                expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-                expect(imagesService.getImagePath).toHaveBeenCalledWith(applicationId, filename);
-                expect(result).toBe(expectedPath);
-
-                // Clear mocks for next iteration
-                jest.clearAllMocks();
-            }
-        });
-
-        it('should work with different image filenames', async () => {
-            // Arrange
-            const applicationId = 1;
-            const filenames = [
-                'image1.jpg',
-                'image2.png',
-                'image3.gif',
-                'document.pdf',
-                'video.mp4',
-                'file-with-dashes.jpg',
-                'file_with_underscores.png',
-                'file.with.dots.jpg',
-                'UPPERCASE.JPG',
-                'mixedCase.PnG',
-            ];
-
-            for (const filename of filenames) {
-                const expectedPath = `/uploads/applications/${applicationId}/${filename}`;
-
-                imagesService.findApplicationById.mockResolvedValue(mockApplication);
-                imagesService.getImagePath.mockResolvedValue(expectedPath);
-
-                // Act
-                const result = await useCase.execute(applicationId, filename);
-
-                // Assert
-                expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-                expect(imagesService.getImagePath).toHaveBeenCalledWith(applicationId, filename);
-                expect(result).toBe(expectedPath);
-
-                // Clear mocks for next iteration
-                jest.clearAllMocks();
-            }
-        });
-
-        it('should handle concurrent get image operations', async () => {
-            // Arrange
-            const applicationId = 1;
-            const filename = 'image1.jpg';
-
-            imagesService.findApplicationById.mockResolvedValue(mockApplication);
-            imagesService.getImagePath.mockResolvedValue(mockImagePath);
-
-            // Act - Execute multiple concurrent get image operations
-            const promises = [
-                useCase.execute(applicationId, filename),
-                useCase.execute(applicationId, filename),
-                useCase.execute(applicationId, filename),
-            ];
-
-            const results = await Promise.all(promises);
-
-            // Assert
-            expect(imagesService.findApplicationById).toHaveBeenCalledTimes(3);
-            expect(imagesService.getImagePath).toHaveBeenCalledTimes(3);
-            expect(results).toEqual([mockImagePath, mockImagePath, mockImagePath]);
-        });
-
-        it('should handle undefined application ID gracefully', async () => {
-            // Arrange
-            const applicationId = undefined as any;
-            const filename = 'image1.jpg';
-
-            imagesService.findApplicationById.mockResolvedValue(null);
-
-            // Act & Assert
-            await expect(useCase.execute(applicationId, filename)).rejects.toThrow(ApplicationNotFoundException);
-            expect(imagesService.getImagePath).not.toHaveBeenCalled();
-        });
-
-        it('should handle null application ID gracefully', async () => {
-            // Arrange
-            const applicationId = null as any;
-            const filename = 'image1.jpg';
-
-            imagesService.findApplicationById.mockResolvedValue(null);
-
-            // Act & Assert
-            await expect(useCase.execute(applicationId, filename)).rejects.toThrow(ApplicationNotFoundException);
-            expect(imagesService.getImagePath).not.toHaveBeenCalled();
-        });
-
-        it('should handle zero application ID', async () => {
-            // Arrange
-            const applicationId = 0;
-            const filename = 'image1.jpg';
-
-            imagesService.findApplicationById.mockResolvedValue(null);
-
-            // Act & Assert
-            await expect(useCase.execute(applicationId, filename)).rejects.toThrow(ApplicationNotFoundException);
-            expect(imagesService.getImagePath).not.toHaveBeenCalled();
-        });
-
-        it('should handle negative application ID', async () => {
-            // Arrange
-            const applicationId = -1;
-            const filename = 'image1.jpg';
-
-            imagesService.findApplicationById.mockResolvedValue(null);
-
-            // Act & Assert
-            await expect(useCase.execute(applicationId, filename)).rejects.toThrow(ApplicationNotFoundException);
-            expect(imagesService.getImagePath).not.toHaveBeenCalled();
-        });
-
-        it('should handle empty filename', async () => {
-            // Arrange
-            const applicationId = 1;
-            const filename = '';
-
-            imagesService.findApplicationById.mockResolvedValue(mockApplication);
-            imagesService.getImagePath.mockResolvedValue('/uploads/applications/1/');
-
-            // Act
-            const result = await useCase.execute(applicationId, filename);
-
-            // Assert
-            expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-            expect(imagesService.getImagePath).toHaveBeenCalledWith(applicationId, filename);
-            expect(result).toBe('/uploads/applications/1/');
-        });
-
-        it('should handle undefined filename', async () => {
-            // Arrange
-            const applicationId = 1;
-            const filename = undefined as any;
-
-            imagesService.findApplicationById.mockResolvedValue(mockApplication);
-            imagesService.getImagePath.mockResolvedValue('/uploads/applications/1/undefined');
-
-            // Act
-            const result = await useCase.execute(applicationId, filename);
-
-            // Assert
-            expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-            expect(imagesService.getImagePath).toHaveBeenCalledWith(applicationId, filename);
-            expect(result).toBe('/uploads/applications/1/undefined');
-        });
-
-        it('should handle null filename', async () => {
-            // Arrange
-            const applicationId = 1;
-            const filename = null as any;
-
-            imagesService.findApplicationById.mockResolvedValue(mockApplication);
-            imagesService.getImagePath.mockResolvedValue('/uploads/applications/1/null');
-
-            // Act
-            const result = await useCase.execute(applicationId, filename);
-
-            // Assert
-            expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-            expect(imagesService.getImagePath).toHaveBeenCalledWith(applicationId, filename);
-            expect(result).toBe('/uploads/applications/1/null');
-        });
-
-        it('should handle very long filenames', async () => {
-            // Arrange
-            const applicationId = 1;
-            const filename = 'a'.repeat(1000) + '.jpg';
-
-            imagesService.findApplicationById.mockResolvedValue(mockApplication);
-            imagesService.getImagePath.mockResolvedValue(`/uploads/applications/${applicationId}/${filename}`);
-
-            // Act
-            const result = await useCase.execute(applicationId, filename);
-
-            // Assert
-            expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-            expect(imagesService.getImagePath).toHaveBeenCalledWith(applicationId, filename);
-            expect(result).toBe(`/uploads/applications/${applicationId}/${filename}`);
-        });
-
-        it('should handle filenames with special characters', async () => {
-            // Arrange
-            const applicationId = 1;
-            const filenames = [
-                'file with spaces.jpg',
-                'file-with-special-chars!@#$%^&*().jpg',
-                'file-with-unicode-ñáéíóú.jpg',
-                'file-with-emoji-🚀.jpg',
-                'file-with-quotes-"test".jpg',
-                "file-with-single-quotes-'test'.jpg",
-            ];
-
-            for (const filename of filenames) {
-                const expectedPath = `/uploads/applications/${applicationId}/${filename}`;
-
-                imagesService.findApplicationById.mockResolvedValue(mockApplication);
-                imagesService.getImagePath.mockResolvedValue(expectedPath);
-
-                // Act
-                const result = await useCase.execute(applicationId, filename);
-
-                // Assert
-                expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-                expect(imagesService.getImagePath).toHaveBeenCalledWith(applicationId, filename);
-                expect(result).toBe(expectedPath);
-
-                // Clear mocks for next iteration
-                jest.clearAllMocks();
-            }
-        });
-
-        it('should handle application without images array', async () => {
-            // Arrange
-            const applicationId = 2;
-            const filename = 'image1.jpg';
-
-            imagesService.findApplicationById.mockResolvedValue(mockApplicationWithoutImages);
-            imagesService.getImagePath.mockResolvedValue('/uploads/applications/2/image1.jpg');
-
-            // Act
-            const result = await useCase.execute(applicationId, filename);
-
-            // Assert
-            expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-            expect(imagesService.getImagePath).toHaveBeenCalledWith(applicationId, filename);
-            expect(result).toBe('/uploads/applications/2/image1.jpg');
-        });
-
-        it('should handle findApplicationById service errors', async () => {
-            // Arrange
-            const applicationId = 1;
-            const filename = 'image1.jpg';
-
-            const serviceError = new Error('Database connection error');
-            imagesService.findApplicationById.mockRejectedValue(serviceError);
-
-            // Act & Assert
-            await expect(useCase.execute(applicationId, filename)).rejects.toThrow('Database connection error');
-            expect(imagesService.getImagePath).not.toHaveBeenCalled();
-        });
-
-        it('should handle timeout errors from findApplicationById', async () => {
-            // Arrange
-            const applicationId = 1;
-            const filename = 'image1.jpg';
-
-            const timeoutError = new Error('Request timeout');
-            imagesService.findApplicationById.mockRejectedValue(timeoutError);
-
-            // Act & Assert
-            await expect(useCase.execute(applicationId, filename)).rejects.toThrow('Request timeout');
-            expect(imagesService.getImagePath).not.toHaveBeenCalled();
-        });
-
-        it('should handle permission errors from getImagePath', async () => {
-            // Arrange
-            const applicationId = 1;
-            const filename = 'image1.jpg';
-
-            imagesService.findApplicationById.mockResolvedValue(mockApplication);
-            const permissionError = new Error('Permission denied');
-            imagesService.getImagePath.mockRejectedValue(permissionError);
-
-            // Act & Assert
-            await expect(useCase.execute(applicationId, filename)).rejects.toThrow('Permission denied');
-            expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-            expect(imagesService.getImagePath).toHaveBeenCalledWith(applicationId, filename);
-        });
-
-        it('should handle file not found errors from getImagePath', async () => {
+        it('deve lançar ApplicationNotFoundException quando a imagem não existe no array de imagens', async () => {
             // Arrange
             const applicationId = 1;
             const filename = 'nonexistent.jpg';
 
-            imagesService.findApplicationById.mockResolvedValue(mockApplication);
-            const fileNotFoundError = new Error('File not found');
-            imagesService.getImagePath.mockRejectedValue(fileNotFoundError);
+            cacheService.getOrSet.mockResolvedValue(mockApplication1 as Application);
 
             // Act & Assert
-            await expect(useCase.execute(applicationId, filename)).rejects.toThrow('File not found');
-            expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-            expect(imagesService.getImagePath).toHaveBeenCalledWith(applicationId, filename);
+            await expect(useCase.execute(applicationId, filename)).rejects.toThrow(
+                ApplicationNotFoundException,
+            );
+            expect(imageStorageService.getImagePath).not.toHaveBeenCalled();
         });
 
-        it('should handle different application types', async () => {
-            // Arrange
-            const applicationTypes = [
-                ApplicationTypeEnum.API,
-                ApplicationTypeEnum.Mobile,
-                ApplicationTypeEnum.Frontend,
-                ApplicationTypeEnum.Library,
-                ApplicationTypeEnum.Fullstack,
-            ];
-
-            for (const applicationType of applicationTypes) {
-                const applicationId = 1;
-                const filename = 'image1.jpg';
-                const applicationWithType = {
-                    ...mockApplication,
-                    applicationType,
-                };
-
-                imagesService.findApplicationById.mockResolvedValue(applicationWithType);
-                imagesService.getImagePath.mockResolvedValue(`/uploads/applications/${applicationId}/${filename}`);
-
-                // Act
-                const result = await useCase.execute(applicationId, filename);
-
-                // Assert
-                expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-                expect(imagesService.getImagePath).toHaveBeenCalledWith(applicationId, filename);
-                expect(result).toBe(`/uploads/applications/${applicationId}/${filename}`);
-
-                // Clear mocks for next iteration
-                jest.clearAllMocks();
-            }
-        });
-
-        it('should handle different image path formats', async () => {
+        it('deve lançar ApplicationNotFoundException quando a aplicação não tem imagens', async () => {
             // Arrange
             const applicationId = 1;
             const filename = 'image1.jpg';
-            const pathFormats = [
-                '/uploads/applications/1/image1.jpg',
-                'uploads/applications/1/image1.jpg',
-                'C:\\uploads\\applications\\1\\image1.jpg',
-                '/var/www/uploads/applications/1/image1.jpg',
-                'https://cdn.example.com/applications/1/image1.jpg',
-                's3://bucket/applications/1/image1.jpg',
-            ];
+            const applicationWithoutImages = {
+                ...mockApplication1,
+                images: null,
+            };
 
-            for (const pathFormat of pathFormats) {
-                imagesService.findApplicationById.mockResolvedValue(mockApplication);
-                imagesService.getImagePath.mockResolvedValue(pathFormat);
+            cacheService.getOrSet.mockResolvedValue(applicationWithoutImages as Application);
 
-                // Act
-                const result = await useCase.execute(applicationId, filename);
-
-                // Assert
-                expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-                expect(imagesService.getImagePath).toHaveBeenCalledWith(applicationId, filename);
-                expect(result).toBe(pathFormat);
-
-                // Clear mocks for next iteration
-                jest.clearAllMocks();
-            }
+            // Act & Assert
+            await expect(useCase.execute(applicationId, filename)).rejects.toThrow(
+                ApplicationNotFoundException,
+            );
         });
 
-        it('should handle very large application IDs', async () => {
+        it('deve lançar ApplicationNotFoundException quando a aplicação não existe', async () => {
             // Arrange
-            const applicationIds = [999999, 1000000, 2147483647]; // Max int32
-
-            for (const applicationId of applicationIds) {
-                const filename = 'image1.jpg';
-
-                imagesService.findApplicationById.mockResolvedValue({
-                    ...mockApplication,
-                    id: applicationId,
-                });
-                imagesService.getImagePath.mockResolvedValue(`/uploads/applications/${applicationId}/${filename}`);
-
-                // Act
-                const result = await useCase.execute(applicationId, filename);
-
-                // Assert
-                expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-                expect(imagesService.getImagePath).toHaveBeenCalledWith(applicationId, filename);
-                expect(result).toBe(`/uploads/applications/${applicationId}/${filename}`);
-
-                // Clear mocks for next iteration
-                jest.clearAllMocks();
-            }
-        });
-
-        it('should handle floating point application IDs', async () => {
-            // Arrange
-            const applicationId = 1.5;
+            const applicationId = 999;
             const filename = 'image1.jpg';
 
-            imagesService.findApplicationById.mockResolvedValue({
-                ...mockApplication,
-                id: applicationId,
+            cacheService.getOrSet.mockImplementation(async (key, fn) => {
+                if (typeof fn === 'function') {
+                    const result = await fn();
+                    return result;
+                }
+                return null;
             });
-            imagesService.getImagePath.mockResolvedValue(`/uploads/applications/${applicationId}/${filename}`);
+
+            applicationRepository.findOne.mockResolvedValue(null);
+
+            // Act & Assert
+            await expect(useCase.execute(applicationId, filename)).rejects.toThrow(
+                ApplicationNotFoundException,
+            );
+        });
+
+        it('deve garantir segmentação por usuário - múltiplos usuários buscando imagens', async () => {
+            // Arrange
+            const user1ApplicationId = 1;
+            const user2ApplicationId = 2;
+            const user1Filename = 'image1.jpg';
+            const user2Filename = 'image3.jpg';
+            const user1ImagePath = '/path/to/user1/applications/1/image1.jpg';
+            const user2ImagePath = '/path/to/user2/applications/2/image3.jpg';
+
+            cacheService.getOrSet
+                .mockResolvedValueOnce(mockApplication1 as Application)
+                .mockResolvedValueOnce(mockApplication2 as Application);
+
+            imageStorageService.getImagePath
+                .mockResolvedValueOnce(user1ImagePath)
+                .mockResolvedValueOnce(user2ImagePath);
 
             // Act
-            const result = await useCase.execute(applicationId, filename);
+            const result1 = await useCase.execute(user1ApplicationId, user1Filename);
+            const result2 = await useCase.execute(user2ApplicationId, user2Filename);
 
             // Assert
-            expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-            expect(imagesService.getImagePath).toHaveBeenCalledWith(applicationId, filename);
-            expect(result).toBe(`/uploads/applications/${applicationId}/${filename}`);
+            expect(imageStorageService.getImagePath).toHaveBeenNthCalledWith(
+                1,
+                ResourceType.Application,
+                user1ApplicationId,
+                user1Filename,
+                undefined,
+                'user1',
+            );
+            expect(imageStorageService.getImagePath).toHaveBeenNthCalledWith(
+                2,
+                ResourceType.Application,
+                user2ApplicationId,
+                user2Filename,
+                undefined,
+                'user2',
+            );
+            expect(result1).toBe(user1ImagePath);
+            expect(result2).toBe(user2ImagePath);
+            expect(result1).not.toBe(result2);
         });
 
-        it('should handle database connection errors during get image path', async () => {
+        it('deve garantir que usuário não pode acessar imagem de outro usuário', async () => {
+            // Arrange
+            const user1ApplicationId = 1;
+            const user2Filename = 'image3.jpg'; // Imagem do user2
+
+            cacheService.getOrSet.mockResolvedValue(mockApplication1 as Application);
+
+            // Act & Assert
+            await expect(useCase.execute(user1ApplicationId, user2Filename)).rejects.toThrow(
+                ApplicationNotFoundException,
+            );
+        });
+
+        it('deve usar cache quando a aplicação está em cache', async () => {
             // Arrange
             const applicationId = 1;
             const filename = 'image1.jpg';
+            const expectedImagePath = '/path/to/user1/applications/1/image1.jpg';
 
-            imagesService.findApplicationById.mockResolvedValue(mockApplication);
-            const dbError = new Error('Database connection lost');
-            imagesService.getImagePath.mockRejectedValue(dbError);
+            cacheService.getOrSet.mockResolvedValue(mockApplication1 as Application);
+            imageStorageService.getImagePath.mockResolvedValue(expectedImagePath);
 
-            // Act & Assert
-            await expect(useCase.execute(applicationId, filename)).rejects.toThrow('Database connection lost');
-            expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-            expect(imagesService.getImagePath).toHaveBeenCalledWith(applicationId, filename);
-        });
+            // Act
+            await useCase.execute(applicationId, filename);
+            await useCase.execute(applicationId, filename);
 
-        it('should handle disk access errors during get image path', async () => {
-            // Arrange
-            const applicationId = 1;
-            const filename = 'image1.jpg';
-
-            imagesService.findApplicationById.mockResolvedValue(mockApplication);
-            const diskError = new Error('Disk I/O error');
-            imagesService.getImagePath.mockRejectedValue(diskError);
-
-            // Act & Assert
-            await expect(useCase.execute(applicationId, filename)).rejects.toThrow('Disk I/O error');
-            expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-            expect(imagesService.getImagePath).toHaveBeenCalledWith(applicationId, filename);
-        });
-
-        it('should handle path resolution errors', async () => {
-            // Arrange
-            const applicationId = 1;
-            const filename = 'image1.jpg';
-
-            imagesService.findApplicationById.mockResolvedValue(mockApplication);
-            const pathError = new Error('Path resolution failed');
-            imagesService.getImagePath.mockRejectedValue(pathError);
-
-            // Act & Assert
-            await expect(useCase.execute(applicationId, filename)).rejects.toThrow('Path resolution failed');
-            expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-            expect(imagesService.getImagePath).toHaveBeenCalledWith(applicationId, filename);
-        });
-
-        it('should return correct path for different file extensions', async () => {
-            // Arrange
-            const applicationId = 1;
-            const fileExtensions = [
-                '.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg',
-                '.pdf', '.doc', '.docx', '.txt', '.mp4', '.avi'
-            ];
-
-            for (const extension of fileExtensions) {
-                const filename = `file${extension}`;
-                const expectedPath = `/uploads/applications/${applicationId}/${filename}`;
-
-                imagesService.findApplicationById.mockResolvedValue(mockApplication);
-                imagesService.getImagePath.mockResolvedValue(expectedPath);
-
-                // Act
-                const result = await useCase.execute(applicationId, filename);
-
-                // Assert
-                expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-                expect(imagesService.getImagePath).toHaveBeenCalledWith(applicationId, filename);
-                expect(result).toBe(expectedPath);
-
-                // Clear mocks for next iteration
-                jest.clearAllMocks();
-            }
+            // Assert
+            expect(cacheService.getOrSet).toHaveBeenCalledTimes(2);
+            expect(applicationRepository.findOne).not.toHaveBeenCalled();
         });
     });
 });
+

@@ -1,84 +1,70 @@
-import { ApplicationTypeEnum } from '../../applications/enums/application-type.enum';
+import { Test, TestingModule } from '@nestjs/testing';
+import { getRepositoryToken } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { GetProfileImageUseCase } from './get-profile-image.use-case';
+import { Application } from '../../applications/entities/application.entity';
 import { ApplicationNotFoundException } from '../../applications/exceptions/application-not-found.exception';
-
-// Mock Application entity to avoid circular dependency
-interface Application {
-    id: number;
-    userId: number;
-    name: string;
-    description: string;
-    applicationType: ApplicationTypeEnum;
-    githubUrl?: string;
-    isActive: boolean;
-    createdAt: Date;
-    updatedAt: Date;
-    images?: string[];
-    profileImage?: string;
-}
-
-// Mock services to avoid circular dependencies
-const mockImagesService = {
-    findApplicationById: jest.fn(),
-    getProfileImagePath: jest.fn(),
-};
-
-// Create a mock use case class that implements the same logic
-class MockGetProfileImageUseCase {
-    constructor(
-        private readonly imagesService: typeof mockImagesService,
-    ) { }
-
-    async execute(id: number): Promise<string> {
-        // Check if application exists
-        const application = await this.imagesService.findApplicationById(id);
-        if (!application) throw new ApplicationNotFoundException();
-
-        // Get the profile image path
-        return await this.imagesService.getProfileImagePath(id);
-    }
-}
+import { CacheService } from '../../../@common/services/cache.service';
+import { ImageStorageService } from '../services/image-storage.service';
+import { ResourceType } from '../enums/resource-type.enum';
 
 describe('GetProfileImageUseCase', () => {
-    let useCase: MockGetProfileImageUseCase;
-    let imagesService: typeof mockImagesService;
+    let useCase: GetProfileImageUseCase;
+    let applicationRepository: jest.Mocked<Repository<Application>>;
+    let imageStorageService: jest.Mocked<ImageStorageService>;
+    let cacheService: jest.Mocked<CacheService>;
 
-    const mockApplication: Application = {
+    const mockApplication1: Partial<Application> = {
         id: 1,
-        userId: 1,
-        name: 'Test Application',
-        description: 'Test Description',
-        applicationType: ApplicationTypeEnum.API,
-        githubUrl: 'https://github.com/test/app',
-        isActive: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        images: ['image1.jpg', 'image2.png', 'image3.gif'],
-        profileImage: 'profile.jpg',
+        username: 'user1',
+        name: 'Application 1',
+        profileImage: 'profile-image-1.jpg',
     };
 
-    const mockApplicationWithoutProfileImage: Application = {
+    const mockApplication2: Partial<Application> = {
         id: 2,
-        userId: 1,
-        name: 'Test Application Without Profile Image',
-        description: 'Test Description',
-        applicationType: ApplicationTypeEnum.Frontend,
-        isActive: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        images: ['image1.jpg'],
-        profileImage: null,
+        username: 'user2',
+        name: 'Application 2',
+        profileImage: 'profile-image-2.jpg',
     };
 
-    const mockProfileImagePath = '/uploads/applications/1/profile.jpg';
+    beforeEach(async () => {
+        const mockApplicationRepository = {
+            findOne: jest.fn(),
+        };
 
-    beforeEach(() => {
-        // Reset all mocks
-        jest.clearAllMocks();
+        const mockImageStorageService = {
+            getImagePath: jest.fn(),
+        };
 
-        // Create use case instance manually with mocked dependencies
-        useCase = new MockGetProfileImageUseCase(mockImagesService);
+        const mockCacheService = {
+            applicationKey: jest.fn((id: number, type: string) => `app:${id}:${type}`),
+            getOrSet: jest.fn(),
+            del: jest.fn(),
+        };
 
-        imagesService = mockImagesService;
+        const module: TestingModule = await Test.createTestingModule({
+            providers: [
+                GetProfileImageUseCase,
+                {
+                    provide: getRepositoryToken(Application),
+                    useValue: mockApplicationRepository,
+                },
+                {
+                    provide: ImageStorageService,
+                    useValue: mockImageStorageService,
+                },
+                {
+                    provide: CacheService,
+                    useValue: mockCacheService,
+                },
+            ],
+        }).compile();
+
+        useCase = module.get<GetProfileImageUseCase>(GetProfileImageUseCase);
+        applicationRepository = module.get(getRepositoryToken(Application));
+        imageStorageService = module.get(ImageStorageService);
+        cacheService = module.get(CacheService);
     });
 
     afterEach(() => {
@@ -86,579 +72,158 @@ describe('GetProfileImageUseCase', () => {
     });
 
     describe('execute', () => {
-        it('should get profile image path successfully when application exists', async () => {
+        it('deve retornar o caminho da imagem de perfil com sucesso', async () => {
             // Arrange
             const applicationId = 1;
+            const expectedImagePath = '/path/to/user1/applications/1/profile-image-1.jpg';
 
-            imagesService.findApplicationById.mockResolvedValue(mockApplication);
-            imagesService.getProfileImagePath.mockResolvedValue(mockProfileImagePath);
+            cacheService.getOrSet.mockResolvedValue(mockApplication1 as Application);
+            imageStorageService.getImagePath.mockResolvedValue(expectedImagePath);
 
             // Act
             const result = await useCase.execute(applicationId);
 
             // Assert
-            expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-            expect(imagesService.getProfileImagePath).toHaveBeenCalledWith(applicationId);
-            expect(result).toBe(mockProfileImagePath);
+            expect(cacheService.getOrSet).toHaveBeenCalledWith(
+                `app:${applicationId}:full`,
+                expect.any(Function),
+                600,
+            );
+            expect(imageStorageService.getImagePath).toHaveBeenCalledWith(
+                ResourceType.Application,
+                applicationId,
+                'profile-image-1.jpg',
+                undefined,
+                'user1',
+            );
+            expect(result).toBe(expectedImagePath);
         });
 
-        it('should throw ApplicationNotFoundException when application is not found', async () => {
+        it('deve lançar ApplicationNotFoundException quando a aplicação não tem imagem de perfil', async () => {
+            // Arrange
+            const applicationId = 1;
+            const applicationWithoutImage = {
+                ...mockApplication1,
+                profileImage: null,
+            };
+
+            cacheService.getOrSet.mockResolvedValue(applicationWithoutImage as Application);
+
+            // Act & Assert
+            await expect(useCase.execute(applicationId)).rejects.toThrow(
+                ApplicationNotFoundException,
+            );
+            expect(imageStorageService.getImagePath).not.toHaveBeenCalled();
+        });
+
+        it('deve lançar ApplicationNotFoundException quando a aplicação não existe', async () => {
             // Arrange
             const applicationId = 999;
 
-            imagesService.findApplicationById.mockResolvedValue(null);
-
-            // Act & Assert
-            await expect(useCase.execute(applicationId)).rejects.toThrow(ApplicationNotFoundException);
-            expect(imagesService.getProfileImagePath).not.toHaveBeenCalled();
-        });
-
-        it('should throw ApplicationNotFoundException when application is undefined', async () => {
-            // Arrange
-            const applicationId = 1;
-
-            imagesService.findApplicationById.mockResolvedValue(undefined);
-
-            // Act & Assert
-            await expect(useCase.execute(applicationId)).rejects.toThrow(ApplicationNotFoundException);
-            expect(imagesService.getProfileImagePath).not.toHaveBeenCalled();
-        });
-
-        it('should propagate getProfileImagePath service errors', async () => {
-            // Arrange
-            const applicationId = 1;
-
-            imagesService.findApplicationById.mockResolvedValue(mockApplication);
-            const getProfileImageError = new Error('Get profile image path operation failed');
-            imagesService.getProfileImagePath.mockRejectedValue(getProfileImageError);
-
-            // Act & Assert
-            await expect(useCase.execute(applicationId)).rejects.toThrow('Get profile image path operation failed');
-            expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-            expect(imagesService.getProfileImagePath).toHaveBeenCalledWith(applicationId);
-        });
-
-        it('should handle database constraint errors during get profile image path', async () => {
-            // Arrange
-            const applicationId = 1;
-
-            imagesService.findApplicationById.mockResolvedValue(mockApplication);
-            const constraintError = new Error('Foreign key constraint violation');
-            imagesService.getProfileImagePath.mockRejectedValue(constraintError);
-
-            // Act & Assert
-            await expect(useCase.execute(applicationId)).rejects.toThrow('Foreign key constraint violation');
-            expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-            expect(imagesService.getProfileImagePath).toHaveBeenCalledWith(applicationId);
-        });
-
-        it('should handle network errors during get profile image path', async () => {
-            // Arrange
-            const applicationId = 1;
-
-            imagesService.findApplicationById.mockResolvedValue(mockApplication);
-            const networkError = new Error('Network timeout');
-            imagesService.getProfileImagePath.mockRejectedValue(networkError);
-
-            // Act & Assert
-            await expect(useCase.execute(applicationId)).rejects.toThrow('Network timeout');
-            expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-            expect(imagesService.getProfileImagePath).toHaveBeenCalledWith(applicationId);
-        });
-
-        it('should work with different application IDs', async () => {
-            // Arrange
-            const applicationIds = [1, 2, 3, 100, 999];
-
-            for (const applicationId of applicationIds) {
-                const expectedPath = `/uploads/applications/${applicationId}/profile.jpg`;
-
-                imagesService.findApplicationById.mockResolvedValue({
-                    ...mockApplication,
-                    id: applicationId,
-                });
-                imagesService.getProfileImagePath.mockResolvedValue(expectedPath);
-
-                // Act
-                const result = await useCase.execute(applicationId);
-
-                // Assert
-                expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-                expect(imagesService.getProfileImagePath).toHaveBeenCalledWith(applicationId);
-                expect(result).toBe(expectedPath);
-
-                // Clear mocks for next iteration
-                jest.clearAllMocks();
-            }
-        });
-
-        it('should handle concurrent get profile image operations', async () => {
-            // Arrange
-            const applicationId = 1;
-
-            imagesService.findApplicationById.mockResolvedValue(mockApplication);
-            imagesService.getProfileImagePath.mockResolvedValue(mockProfileImagePath);
-
-            // Act - Execute multiple concurrent get profile image operations
-            const promises = [
-                useCase.execute(applicationId),
-                useCase.execute(applicationId),
-                useCase.execute(applicationId),
-            ];
-
-            const results = await Promise.all(promises);
-
-            // Assert
-            expect(imagesService.findApplicationById).toHaveBeenCalledTimes(3);
-            expect(imagesService.getProfileImagePath).toHaveBeenCalledTimes(3);
-            expect(results).toEqual([mockProfileImagePath, mockProfileImagePath, mockProfileImagePath]);
-        });
-
-        it('should handle undefined application ID gracefully', async () => {
-            // Arrange
-            const applicationId = undefined as any;
-
-            imagesService.findApplicationById.mockResolvedValue(null);
-
-            // Act & Assert
-            await expect(useCase.execute(applicationId)).rejects.toThrow(ApplicationNotFoundException);
-            expect(imagesService.getProfileImagePath).not.toHaveBeenCalled();
-        });
-
-        it('should handle null application ID gracefully', async () => {
-            // Arrange
-            const applicationId = null as any;
-
-            imagesService.findApplicationById.mockResolvedValue(null);
-
-            // Act & Assert
-            await expect(useCase.execute(applicationId)).rejects.toThrow(ApplicationNotFoundException);
-            expect(imagesService.getProfileImagePath).not.toHaveBeenCalled();
-        });
-
-        it('should handle zero application ID', async () => {
-            // Arrange
-            const applicationId = 0;
-
-            imagesService.findApplicationById.mockResolvedValue(null);
-
-            // Act & Assert
-            await expect(useCase.execute(applicationId)).rejects.toThrow(ApplicationNotFoundException);
-            expect(imagesService.getProfileImagePath).not.toHaveBeenCalled();
-        });
-
-        it('should handle negative application ID', async () => {
-            // Arrange
-            const applicationId = -1;
-
-            imagesService.findApplicationById.mockResolvedValue(null);
-
-            // Act & Assert
-            await expect(useCase.execute(applicationId)).rejects.toThrow(ApplicationNotFoundException);
-            expect(imagesService.getProfileImagePath).not.toHaveBeenCalled();
-        });
-
-        it('should handle findApplicationById service errors', async () => {
-            // Arrange
-            const applicationId = 1;
-
-            const serviceError = new Error('Database connection error');
-            imagesService.findApplicationById.mockRejectedValue(serviceError);
-
-            // Act & Assert
-            await expect(useCase.execute(applicationId)).rejects.toThrow('Database connection error');
-            expect(imagesService.getProfileImagePath).not.toHaveBeenCalled();
-        });
-
-        it('should handle timeout errors from findApplicationById', async () => {
-            // Arrange
-            const applicationId = 1;
-
-            const timeoutError = new Error('Request timeout');
-            imagesService.findApplicationById.mockRejectedValue(timeoutError);
-
-            // Act & Assert
-            await expect(useCase.execute(applicationId)).rejects.toThrow('Request timeout');
-            expect(imagesService.getProfileImagePath).not.toHaveBeenCalled();
-        });
-
-        it('should handle permission errors from getProfileImagePath', async () => {
-            // Arrange
-            const applicationId = 1;
-
-            imagesService.findApplicationById.mockResolvedValue(mockApplication);
-            const permissionError = new Error('Permission denied');
-            imagesService.getProfileImagePath.mockRejectedValue(permissionError);
-
-            // Act & Assert
-            await expect(useCase.execute(applicationId)).rejects.toThrow('Permission denied');
-            expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-            expect(imagesService.getProfileImagePath).toHaveBeenCalledWith(applicationId);
-        });
-
-        it('should handle file not found errors from getProfileImagePath', async () => {
-            // Arrange
-            const applicationId = 1;
-
-            imagesService.findApplicationById.mockResolvedValue(mockApplication);
-            const fileNotFoundError = new Error('Profile image file not found');
-            imagesService.getProfileImagePath.mockRejectedValue(fileNotFoundError);
-
-            // Act & Assert
-            await expect(useCase.execute(applicationId)).rejects.toThrow('Profile image file not found');
-            expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-            expect(imagesService.getProfileImagePath).toHaveBeenCalledWith(applicationId);
-        });
-
-        it('should handle different application types', async () => {
-            // Arrange
-            const applicationTypes = [
-                ApplicationTypeEnum.API,
-                ApplicationTypeEnum.Mobile,
-                ApplicationTypeEnum.Frontend,
-                ApplicationTypeEnum.Library,
-                ApplicationTypeEnum.Fullstack,
-            ];
-
-            for (const applicationType of applicationTypes) {
-                const applicationId = 1;
-                const applicationWithType = {
-                    ...mockApplication,
-                    applicationType,
-                };
-
-                imagesService.findApplicationById.mockResolvedValue(applicationWithType);
-                imagesService.getProfileImagePath.mockResolvedValue(`/uploads/applications/${applicationId}/profile.jpg`);
-
-                // Act
-                const result = await useCase.execute(applicationId);
-
-                // Assert
-                expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-                expect(imagesService.getProfileImagePath).toHaveBeenCalledWith(applicationId);
-                expect(result).toBe(`/uploads/applications/${applicationId}/profile.jpg`);
-
-                // Clear mocks for next iteration
-                jest.clearAllMocks();
-            }
-        });
-
-        it('should handle different profile image path formats', async () => {
-            // Arrange
-            const applicationId = 1;
-            const pathFormats = [
-                '/uploads/applications/1/profile.jpg',
-                'uploads/applications/1/profile.jpg',
-                'C:\\uploads\\applications\\1\\profile.jpg',
-                '/var/www/uploads/applications/1/profile.jpg',
-                'https://cdn.example.com/applications/1/profile.jpg',
-                's3://bucket/applications/1/profile.jpg',
-            ];
-
-            for (const pathFormat of pathFormats) {
-                imagesService.findApplicationById.mockResolvedValue(mockApplication);
-                imagesService.getProfileImagePath.mockResolvedValue(pathFormat);
-
-                // Act
-                const result = await useCase.execute(applicationId);
-
-                // Assert
-                expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-                expect(imagesService.getProfileImagePath).toHaveBeenCalledWith(applicationId);
-                expect(result).toBe(pathFormat);
-
-                // Clear mocks for next iteration
-                jest.clearAllMocks();
-            }
-        });
-
-        it('should handle very large application IDs', async () => {
-            // Arrange
-            const applicationIds = [999999, 1000000, 2147483647]; // Max int32
-
-            for (const applicationId of applicationIds) {
-                imagesService.findApplicationById.mockResolvedValue({
-                    ...mockApplication,
-                    id: applicationId,
-                });
-                imagesService.getProfileImagePath.mockResolvedValue(`/uploads/applications/${applicationId}/profile.jpg`);
-
-                // Act
-                const result = await useCase.execute(applicationId);
-
-                // Assert
-                expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-                expect(imagesService.getProfileImagePath).toHaveBeenCalledWith(applicationId);
-                expect(result).toBe(`/uploads/applications/${applicationId}/profile.jpg`);
-
-                // Clear mocks for next iteration
-                jest.clearAllMocks();
-            }
-        });
-
-        it('should handle floating point application IDs', async () => {
-            // Arrange
-            const applicationId = 1.5;
-
-            imagesService.findApplicationById.mockResolvedValue({
-                ...mockApplication,
-                id: applicationId,
+            cacheService.getOrSet.mockImplementation(async (key, fn) => {
+                if (typeof fn === 'function') {
+                    const result = await fn();
+                    return result;
+                }
+                return null;
             });
-            imagesService.getProfileImagePath.mockResolvedValue(`/uploads/applications/${applicationId}/profile.jpg`);
 
-            // Act
-            const result = await useCase.execute(applicationId);
-
-            // Assert
-            expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-            expect(imagesService.getProfileImagePath).toHaveBeenCalledWith(applicationId);
-            expect(result).toBe(`/uploads/applications/${applicationId}/profile.jpg`);
-        });
-
-        it('should handle database connection errors during get profile image path', async () => {
-            // Arrange
-            const applicationId = 1;
-
-            imagesService.findApplicationById.mockResolvedValue(mockApplication);
-            const dbError = new Error('Database connection lost');
-            imagesService.getProfileImagePath.mockRejectedValue(dbError);
+            applicationRepository.findOne.mockResolvedValue(null);
 
             // Act & Assert
-            await expect(useCase.execute(applicationId)).rejects.toThrow('Database connection lost');
-            expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-            expect(imagesService.getProfileImagePath).toHaveBeenCalledWith(applicationId);
+            await expect(useCase.execute(applicationId)).rejects.toThrow(
+                ApplicationNotFoundException,
+            );
         });
 
-        it('should handle disk access errors during get profile image path', async () => {
+        it('deve garantir segmentação por usuário - múltiplos usuários com aplicações diferentes', async () => {
             // Arrange
-            const applicationId = 1;
+            const user1ApplicationId = 1;
+            const user2ApplicationId = 2;
+            const user1ImagePath = '/path/to/user1/applications/1/profile-image-1.jpg';
+            const user2ImagePath = '/path/to/user2/applications/2/profile-image-2.jpg';
 
-            imagesService.findApplicationById.mockResolvedValue(mockApplication);
-            const diskError = new Error('Disk I/O error');
-            imagesService.getProfileImagePath.mockRejectedValue(diskError);
+            cacheService.getOrSet
+                .mockResolvedValueOnce(mockApplication1 as Application)
+                .mockResolvedValueOnce(mockApplication2 as Application);
 
-            // Act & Assert
-            await expect(useCase.execute(applicationId)).rejects.toThrow('Disk I/O error');
-            expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-            expect(imagesService.getProfileImagePath).toHaveBeenCalledWith(applicationId);
-        });
-
-        it('should handle path resolution errors', async () => {
-            // Arrange
-            const applicationId = 1;
-
-            imagesService.findApplicationById.mockResolvedValue(mockApplication);
-            const pathError = new Error('Path resolution failed');
-            imagesService.getProfileImagePath.mockRejectedValue(pathError);
-
-            // Act & Assert
-            await expect(useCase.execute(applicationId)).rejects.toThrow('Path resolution failed');
-            expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-            expect(imagesService.getProfileImagePath).toHaveBeenCalledWith(applicationId);
-        });
-
-        it('should return correct path for different profile image file extensions', async () => {
-            // Arrange
-            const applicationId = 1;
-            const fileExtensions = [
-                '.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'
-            ];
-
-            for (const extension of fileExtensions) {
-                const filename = `profile${extension}`;
-                const expectedPath = `/uploads/applications/${applicationId}/${filename}`;
-
-                imagesService.findApplicationById.mockResolvedValue({
-                    ...mockApplication,
-                    profileImage: filename,
-                });
-                imagesService.getProfileImagePath.mockResolvedValue(expectedPath);
-
-                // Act
-                const result = await useCase.execute(applicationId);
-
-                // Assert
-                expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-                expect(imagesService.getProfileImagePath).toHaveBeenCalledWith(applicationId);
-                expect(result).toBe(expectedPath);
-
-                // Clear mocks for next iteration
-                jest.clearAllMocks();
-            }
-        });
-
-        it('should handle application without profile image', async () => {
-            // Arrange
-            const applicationId = 2;
-
-            imagesService.findApplicationById.mockResolvedValue(mockApplicationWithoutProfileImage);
-            // The service should handle the case where profileImage is null
-            imagesService.getProfileImagePath.mockResolvedValue('/uploads/applications/2/default-profile.jpg');
+            imageStorageService.getImagePath
+                .mockResolvedValueOnce(user1ImagePath)
+                .mockResolvedValueOnce(user2ImagePath);
 
             // Act
-            const result = await useCase.execute(applicationId);
+            const result1 = await useCase.execute(user1ApplicationId);
+            const result2 = await useCase.execute(user2ApplicationId);
 
             // Assert
-            expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-            expect(imagesService.getProfileImagePath).toHaveBeenCalledWith(applicationId);
-            expect(result).toBe('/uploads/applications/2/default-profile.jpg');
+            expect(imageStorageService.getImagePath).toHaveBeenNthCalledWith(
+                1,
+                ResourceType.Application,
+                user1ApplicationId,
+                'profile-image-1.jpg',
+                undefined,
+                'user1',
+            );
+            expect(imageStorageService.getImagePath).toHaveBeenNthCalledWith(
+                2,
+                ResourceType.Application,
+                user2ApplicationId,
+                'profile-image-2.jpg',
+                undefined,
+                'user2',
+            );
+            expect(result1).toBe(user1ImagePath);
+            expect(result2).toBe(user2ImagePath);
+            expect(result1).not.toBe(result2);
         });
 
-        it('should handle application with empty profile image string', async () => {
+        it('deve usar cache quando a aplicação está em cache', async () => {
             // Arrange
             const applicationId = 1;
-            const applicationWithEmptyProfileImage = {
-                ...mockApplication,
-                profileImage: '',
-            };
+            const expectedImagePath = '/path/to/user1/applications/1/profile-image-1.jpg';
 
-            imagesService.findApplicationById.mockResolvedValue(applicationWithEmptyProfileImage);
-            imagesService.getProfileImagePath.mockResolvedValue('/uploads/applications/1/default-profile.jpg');
+            cacheService.getOrSet.mockResolvedValue(mockApplication1 as Application);
+            imageStorageService.getImagePath.mockResolvedValue(expectedImagePath);
 
             // Act
-            const result = await useCase.execute(applicationId);
+            await useCase.execute(applicationId);
+            await useCase.execute(applicationId);
 
             // Assert
-            expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-            expect(imagesService.getProfileImagePath).toHaveBeenCalledWith(applicationId);
-            expect(result).toBe('/uploads/applications/1/default-profile.jpg');
+            expect(cacheService.getOrSet).toHaveBeenCalledTimes(2);
+            expect(applicationRepository.findOne).not.toHaveBeenCalled();
         });
 
-        it('should handle profile image filenames with special characters', async () => {
+        it('deve buscar do banco quando não está em cache', async () => {
             // Arrange
             const applicationId = 1;
-            const specialFilenames = [
-                'profile with spaces.jpg',
-                'profile-with-special-chars!@#$%^&*().jpg',
-                'profile-with-unicode-ñáéíóú.jpg',
-                'profile-with-emoji-🚀.jpg',
-                'profile-with-quotes-"test".jpg',
-                "profile-with-single-quotes-'test'.jpg",
-            ];
+            const expectedImagePath = '/path/to/user1/applications/1/profile-image-1.jpg';
 
-            for (const filename of specialFilenames) {
-                const expectedPath = `/uploads/applications/${applicationId}/${filename}`;
-
-                imagesService.findApplicationById.mockResolvedValue({
-                    ...mockApplication,
-                    profileImage: filename,
-                });
-                imagesService.getProfileImagePath.mockResolvedValue(expectedPath);
-
-                // Act
-                const result = await useCase.execute(applicationId);
-
-                // Assert
-                expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-                expect(imagesService.getProfileImagePath).toHaveBeenCalledWith(applicationId);
-                expect(result).toBe(expectedPath);
-
-                // Clear mocks for next iteration
-                jest.clearAllMocks();
-            }
-        });
-
-        it('should handle very long profile image filenames', async () => {
-            // Arrange
-            const applicationId = 1;
-            const filename = 'a'.repeat(1000) + '.jpg';
-
-            imagesService.findApplicationById.mockResolvedValue({
-                ...mockApplication,
-                profileImage: filename,
+            cacheService.getOrSet.mockImplementation(async (key, fn) => {
+                if (typeof fn === 'function') {
+                    return await fn();
+                }
+                return null;
             });
-            imagesService.getProfileImagePath.mockResolvedValue(`/uploads/applications/${applicationId}/${filename}`);
+
+            applicationRepository.findOne.mockResolvedValue(mockApplication1 as Application);
+            imageStorageService.getImagePath.mockResolvedValue(expectedImagePath);
 
             // Act
             const result = await useCase.execute(applicationId);
 
             // Assert
-            expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-            expect(imagesService.getProfileImagePath).toHaveBeenCalledWith(applicationId);
-            expect(result).toBe(`/uploads/applications/${applicationId}/${filename}`);
-        });
-
-        it('should handle multiple applications with different profile images', async () => {
-            // Arrange
-            const applications = [
-                { id: 1, profileImage: 'profile1.jpg' },
-                { id: 2, profileImage: 'profile2.png' },
-                { id: 3, profileImage: 'profile3.gif' },
-                { id: 4, profileImage: 'profile4.webp' },
-            ];
-
-            for (const app of applications) {
-                const expectedPath = `/uploads/applications/${app.id}/${app.profileImage}`;
-
-                imagesService.findApplicationById.mockResolvedValue({
-                    ...mockApplication,
-                    id: app.id,
-                    profileImage: app.profileImage,
-                });
-                imagesService.getProfileImagePath.mockResolvedValue(expectedPath);
-
-                // Act
-                const result = await useCase.execute(app.id);
-
-                // Assert
-                expect(imagesService.findApplicationById).toHaveBeenCalledWith(app.id);
-                expect(imagesService.getProfileImagePath).toHaveBeenCalledWith(app.id);
-                expect(result).toBe(expectedPath);
-
-                // Clear mocks for next iteration
-                jest.clearAllMocks();
-            }
-        });
-
-        it('should handle service method call order correctly', async () => {
-            // Arrange
-            const applicationId = 1;
-
-            imagesService.findApplicationById.mockResolvedValue(mockApplication);
-            imagesService.getProfileImagePath.mockResolvedValue(mockProfileImagePath);
-
-            // Act
-            await useCase.execute(applicationId);
-
-            // Assert - Verify that findApplicationById is called before getProfileImagePath
-            expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-            expect(imagesService.getProfileImagePath).toHaveBeenCalledWith(applicationId);
-
-            // Verify call order
-            const findApplicationByIdCallOrder = (imagesService.findApplicationById as jest.Mock).mock.invocationCallOrder[0];
-            const getProfileImagePathCallOrder = (imagesService.getProfileImagePath as jest.Mock).mock.invocationCallOrder[0];
-            expect(findApplicationByIdCallOrder).toBeLessThan(getProfileImagePathCallOrder);
-        });
-
-        it('should handle service method call count correctly', async () => {
-            // Arrange
-            const applicationId = 1;
-
-            imagesService.findApplicationById.mockResolvedValue(mockApplication);
-            imagesService.getProfileImagePath.mockResolvedValue(mockProfileImagePath);
-
-            // Act
-            await useCase.execute(applicationId);
-
-            // Assert
-            expect(imagesService.findApplicationById).toHaveBeenCalledTimes(1);
-            expect(imagesService.getProfileImagePath).toHaveBeenCalledTimes(1);
-        });
-
-        it('should handle service method call arguments correctly', async () => {
-            // Arrange
-            const applicationId = 1;
-
-            imagesService.findApplicationById.mockResolvedValue(mockApplication);
-            imagesService.getProfileImagePath.mockResolvedValue(mockProfileImagePath);
-
-            // Act
-            await useCase.execute(applicationId);
-
-            // Assert
-            expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-            expect(imagesService.getProfileImagePath).toHaveBeenCalledWith(applicationId);
-            expect(imagesService.getProfileImagePath).not.toHaveBeenCalledWith(applicationId, mockApplication.profileImage);
+            expect(applicationRepository.findOne).toHaveBeenCalledWith({
+                where: { id: applicationId },
+                relations: {
+                    applicationComponentApi: true,
+                    applicationComponentMobile: true,
+                    applicationComponentLibrary: true,
+                    applicationComponentFrontend: true,
+                },
+            });
+            expect(result).toBe(expectedImagePath);
         });
     });
 });
+

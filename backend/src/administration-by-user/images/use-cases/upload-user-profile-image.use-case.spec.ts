@@ -1,19 +1,17 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { UploadProfileImageUseCase } from './upload-profile-image.use-case';
-import { Application } from '../../applications/entities/application.entity';
-import { ApplicationNotFoundException } from '../../applications/exceptions/application-not-found.exception';
-import { CacheService } from '../../../@common/services/cache.service';
+import { UploadUserProfileImageUseCase } from './upload-user-profile-image.use-case';
+import { User } from '../../users/entities/user.entity';
+import { UserNotFoundException } from '../../users/exceptions/user-not-found.exception';
 import { ImageStorageService } from '../services/image-storage.service';
 import { ResourceType } from '../enums/resource-type.enum';
 import { ImageType } from '../enums/image-type.enum';
 
-describe('UploadProfileImageUseCase', () => {
-    let useCase: UploadProfileImageUseCase;
-    let applicationRepository: jest.Mocked<Repository<Application>>;
+describe('UploadUserProfileImageUseCase', () => {
+    let useCase: UploadUserProfileImageUseCase;
+    let userRepository: jest.Mocked<Repository<User>>;
     let imageStorageService: jest.Mocked<ImageStorageService>;
-    let cacheService: jest.Mocked<CacheService>;
 
     const mockFile: Express.Multer.File = {
         fieldname: 'profileImage',
@@ -28,22 +26,22 @@ describe('UploadProfileImageUseCase', () => {
         stream: null as any,
     };
 
-    const mockApplication1: Partial<Application> = {
+    const mockUser1: Partial<User> = {
         id: 1,
         username: 'user1',
-        name: 'Application 1',
+        email: 'user1@example.com',
         profileImage: 'old-profile.jpg',
     };
 
-    const mockApplication2: Partial<Application> = {
+    const mockUser2: Partial<User> = {
         id: 2,
         username: 'user2',
-        name: 'Application 2',
+        email: 'user2@example.com',
         profileImage: null,
     };
 
     beforeEach(async () => {
-        const mockApplicationRepository = {
+        const mockUserRepository = {
             findOne: jest.fn(),
             save: jest.fn(),
         };
@@ -53,34 +51,23 @@ describe('UploadProfileImageUseCase', () => {
             deleteImage: jest.fn(),
         };
 
-        const mockCacheService = {
-            applicationKey: jest.fn((id: number, type: string) => `app:${id}:${type}`),
-            getOrSet: jest.fn(),
-            del: jest.fn(),
-        };
-
         const module: TestingModule = await Test.createTestingModule({
             providers: [
-                UploadProfileImageUseCase,
+                UploadUserProfileImageUseCase,
                 {
-                    provide: getRepositoryToken(Application),
-                    useValue: mockApplicationRepository,
+                    provide: getRepositoryToken(User),
+                    useValue: mockUserRepository,
                 },
                 {
                     provide: ImageStorageService,
                     useValue: mockImageStorageService,
                 },
-                {
-                    provide: CacheService,
-                    useValue: mockCacheService,
-                },
             ],
         }).compile();
 
-        useCase = module.get<UploadProfileImageUseCase>(UploadProfileImageUseCase);
-        applicationRepository = module.get(getRepositoryToken(Application));
+        useCase = module.get<UploadUserProfileImageUseCase>(UploadUserProfileImageUseCase);
+        userRepository = module.get(getRepositoryToken(User));
         imageStorageService = module.get(ImageStorageService);
-        cacheService = module.get(CacheService);
     });
 
     afterEach(() => {
@@ -90,26 +77,26 @@ describe('UploadProfileImageUseCase', () => {
     describe('execute', () => {
         it('deve fazer upload de imagem de perfil com sucesso quando não existe imagem anterior', async () => {
             // Arrange
-            const applicationId = 2;
+            const userId = 2;
             const newFilename = 'new-profile.jpg';
-            const updatedApplication = {
-                ...mockApplication2,
+            const updatedUser = {
+                ...mockUser2,
                 profileImage: newFilename,
             };
 
-            cacheService.getOrSet.mockResolvedValue(mockApplication2 as Application);
+            userRepository.findOne.mockResolvedValue(mockUser2 as User);
             imageStorageService.uploadImage.mockResolvedValue(newFilename);
-            applicationRepository.save.mockResolvedValue(updatedApplication as Application);
+            userRepository.save.mockResolvedValue(updatedUser as User);
 
             // Act
-            const result = await useCase.execute(applicationId, mockFile);
+            const result = await useCase.execute(userId, mockFile);
 
             // Assert
             expect(imageStorageService.deleteImage).not.toHaveBeenCalled();
             expect(imageStorageService.uploadImage).toHaveBeenCalledWith(
                 mockFile,
-                ResourceType.Application,
-                applicationId,
+                ResourceType.User,
+                userId,
                 ImageType.Profile,
                 undefined,
                 'user2',
@@ -119,33 +106,33 @@ describe('UploadProfileImageUseCase', () => {
 
         it('deve deletar imagem anterior antes de fazer upload de nova imagem', async () => {
             // Arrange
-            const applicationId = 1;
+            const userId = 1;
             const newFilename = 'new-profile.jpg';
-            const updatedApplication = {
-                ...mockApplication1,
+            const updatedUser = {
+                ...mockUser1,
                 profileImage: newFilename,
             };
 
-            cacheService.getOrSet.mockResolvedValue(mockApplication1 as Application);
+            userRepository.findOne.mockResolvedValue(mockUser1 as User);
             imageStorageService.deleteImage.mockResolvedValue();
             imageStorageService.uploadImage.mockResolvedValue(newFilename);
-            applicationRepository.save.mockResolvedValue(updatedApplication as Application);
+            userRepository.save.mockResolvedValue(updatedUser as User);
 
             // Act
-            const result = await useCase.execute(applicationId, mockFile);
+            const result = await useCase.execute(userId, mockFile);
 
             // Assert
             expect(imageStorageService.deleteImage).toHaveBeenCalledWith(
-                ResourceType.Application,
-                applicationId,
+                ResourceType.User,
+                userId,
                 'old-profile.jpg',
                 undefined,
                 'user1',
             );
             expect(imageStorageService.uploadImage).toHaveBeenCalledWith(
                 mockFile,
-                ResourceType.Application,
-                applicationId,
+                ResourceType.User,
+                userId,
                 ImageType.Profile,
                 undefined,
                 'user1',
@@ -153,63 +140,55 @@ describe('UploadProfileImageUseCase', () => {
             expect(result.profileImage).toBe(newFilename);
         });
 
-        it('deve lançar ApplicationNotFoundException quando a aplicação não existe', async () => {
+        it('deve lançar UserNotFoundException quando o usuário não existe', async () => {
             // Arrange
-            const applicationId = 999;
+            const userId = 999;
 
-            cacheService.getOrSet.mockImplementation(async (key, fn) => {
-                if (typeof fn === 'function') {
-                    const result = await fn();
-                    return result;
-                }
-                return null;
-            });
-
-            applicationRepository.findOne.mockResolvedValue(null);
+            userRepository.findOne.mockResolvedValue(null);
 
             // Act & Assert
-            await expect(useCase.execute(applicationId, mockFile)).rejects.toThrow(
-                ApplicationNotFoundException,
+            await expect(useCase.execute(userId, mockFile)).rejects.toThrow(
+                UserNotFoundException,
             );
             expect(imageStorageService.uploadImage).not.toHaveBeenCalled();
         });
 
         it('deve garantir segmentação por usuário - múltiplos usuários fazendo upload simultaneamente', async () => {
             // Arrange
-            const user1ApplicationId = 1;
-            const user2ApplicationId = 2;
+            const user1Id = 1;
+            const user2Id = 2;
             const user1NewFilename = 'user1-profile.jpg';
             const user2NewFilename = 'user2-profile.jpg';
 
-            cacheService.getOrSet
-                .mockResolvedValueOnce(mockApplication1 as Application)
-                .mockResolvedValueOnce(mockApplication2 as Application);
+            userRepository.findOne
+                .mockResolvedValueOnce(mockUser1 as User)
+                .mockResolvedValueOnce(mockUser2 as User);
 
             imageStorageService.deleteImage.mockResolvedValue();
             imageStorageService.uploadImage
                 .mockResolvedValueOnce(user1NewFilename)
                 .mockResolvedValueOnce(user2NewFilename);
 
-            applicationRepository.save
+            userRepository.save
                 .mockResolvedValueOnce({
-                    ...mockApplication1,
+                    ...mockUser1,
                     profileImage: user1NewFilename,
-                } as Application)
+                } as User)
                 .mockResolvedValueOnce({
-                    ...mockApplication2,
+                    ...mockUser2,
                     profileImage: user2NewFilename,
-                } as Application);
+                } as User);
 
             // Act
-            const result1 = await useCase.execute(user1ApplicationId, mockFile);
-            const result2 = await useCase.execute(user2ApplicationId, mockFile);
+            const result1 = await useCase.execute(user1Id, mockFile);
+            const result2 = await useCase.execute(user2Id, mockFile);
 
             // Assert
             expect(imageStorageService.uploadImage).toHaveBeenNthCalledWith(
                 1,
                 mockFile,
-                ResourceType.Application,
-                user1ApplicationId,
+                ResourceType.User,
+                user1Id,
                 ImageType.Profile,
                 undefined,
                 'user1',
@@ -217,8 +196,8 @@ describe('UploadProfileImageUseCase', () => {
             expect(imageStorageService.uploadImage).toHaveBeenNthCalledWith(
                 2,
                 mockFile,
-                ResourceType.Application,
-                user2ApplicationId,
+                ResourceType.User,
+                user2Id,
                 ImageType.Profile,
                 undefined,
                 'user2',
@@ -227,54 +206,35 @@ describe('UploadProfileImageUseCase', () => {
             expect(result2.profileImage).toBe(user2NewFilename);
         });
 
-        it('deve invalidar cache após fazer upload', async () => {
-            // Arrange
-            const applicationId = 2;
-            const newFilename = 'new-profile.jpg';
-
-            cacheService.getOrSet.mockResolvedValue(mockApplication2 as Application);
-            imageStorageService.uploadImage.mockResolvedValue(newFilename);
-            applicationRepository.save.mockResolvedValue({
-                ...mockApplication2,
-                profileImage: newFilename,
-            } as Application);
-
-            // Act
-            await useCase.execute(applicationId, mockFile);
-
-            // Assert
-            expect(cacheService.del).toHaveBeenCalledWith(`app:${applicationId}:full`);
-        });
-
         it('deve garantir que imagens de diferentes usuários são armazenadas em diretórios separados', async () => {
             // Arrange
-            const user1ApplicationId = 1;
-            const user2ApplicationId = 2;
+            const user1Id = 1;
+            const user2Id = 2;
             const user1NewFilename = 'user1-profile.jpg';
             const user2NewFilename = 'user2-profile.jpg';
 
-            cacheService.getOrSet
-                .mockResolvedValueOnce(mockApplication1 as Application)
-                .mockResolvedValueOnce(mockApplication2 as Application);
+            userRepository.findOne
+                .mockResolvedValueOnce(mockUser1 as User)
+                .mockResolvedValueOnce(mockUser2 as User);
 
             imageStorageService.deleteImage.mockResolvedValue();
             imageStorageService.uploadImage
                 .mockResolvedValueOnce(user1NewFilename)
                 .mockResolvedValueOnce(user2NewFilename);
 
-            applicationRepository.save
+            userRepository.save
                 .mockResolvedValueOnce({
-                    ...mockApplication1,
+                    ...mockUser1,
                     profileImage: user1NewFilename,
-                } as Application)
+                } as User)
                 .mockResolvedValueOnce({
-                    ...mockApplication2,
+                    ...mockUser2,
                     profileImage: user2NewFilename,
-                } as Application);
+                } as User);
 
             // Act
-            await useCase.execute(user1ApplicationId, mockFile);
-            await useCase.execute(user2ApplicationId, mockFile);
+            await useCase.execute(user1Id, mockFile);
+            await useCase.execute(user2Id, mockFile);
 
             // Assert - Verifica que o username foi passado corretamente para cada usuário
             const user1Call = imageStorageService.uploadImage.mock.calls[0];

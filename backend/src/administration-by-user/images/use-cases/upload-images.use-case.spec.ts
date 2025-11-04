@@ -1,111 +1,98 @@
-import { ApplicationTypeEnum } from '../../applications/enums/application-type.enum';
+import { Test, TestingModule } from '@nestjs/testing';
+import { getRepositoryToken } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { UploadImagesUseCase } from './upload-images.use-case';
+import { Application } from '../../applications/entities/application.entity';
 import { ApplicationNotFoundException } from '../../applications/exceptions/application-not-found.exception';
-
-// Mock Application entity to avoid circular dependency
-interface Application {
-    id: number;
-    userId: number;
-    name: string;
-    description: string;
-    applicationType: ApplicationTypeEnum;
-    githubUrl?: string;
-    isActive: boolean;
-    createdAt: Date;
-    updatedAt: Date;
-    images?: string[];
-    profileImage?: string;
-}
-
-// Mock Express.Multer.File interface
-interface MockFile {
-    fieldname: string;
-    originalname: string;
-    encoding: string;
-    mimetype: string;
-    size: number;
-    buffer: Buffer;
-    destination?: string;
-    filename?: string;
-    path?: string;
-}
-
-// Mock services to avoid circular dependencies
-const mockImagesService = {
-    findApplicationById: jest.fn(),
-    uploadImages: jest.fn(),
-};
-
-// Create a mock use case class that implements the same logic
-class MockUploadImagesUseCase {
-    constructor(
-        private readonly imagesService: typeof mockImagesService,
-    ) { }
-
-    async execute(id: number, files: Express.Multer.File[]): Promise<Application> {
-        // Check if application exists
-        const application = await this.imagesService.findApplicationById(id);
-        if (!application) throw new ApplicationNotFoundException();
-
-        // Upload the images
-        return await this.imagesService.uploadImages(id, files);
-    }
-}
+import { CacheService } from '../../../@common/services/cache.service';
+import { ImageStorageService } from '../services/image-storage.service';
+import { ResourceType } from '../enums/resource-type.enum';
+import { ImageType } from '../enums/image-type.enum';
 
 describe('UploadImagesUseCase', () => {
-    let useCase: MockUploadImagesUseCase;
-    let imagesService: typeof mockImagesService;
+    let useCase: UploadImagesUseCase;
+    let applicationRepository: jest.Mocked<Repository<Application>>;
+    let imageStorageService: jest.Mocked<ImageStorageService>;
+    let cacheService: jest.Mocked<CacheService>;
 
-    const mockApplication: Application = {
-        id: 1,
-        userId: 1,
-        name: 'Test Application',
-        description: 'Test Description',
-        applicationType: ApplicationTypeEnum.API,
-        githubUrl: 'https://github.com/test/app',
-        isActive: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        images: ['image1.jpg', 'image2.png'],
-        profileImage: 'profile.jpg',
-    };
-
-    const mockApplicationWithoutImages: Application = {
-        id: 2,
-        userId: 1,
-        name: 'Test Application Without Images',
-        description: 'Test Description',
-        applicationType: ApplicationTypeEnum.Frontend,
-        isActive: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        images: [],
-    };
-
-    const mockFile: MockFile = {
+    const mockFile1: Express.Multer.File = {
         fieldname: 'images',
-        originalname: 'test-image.jpg',
+        originalname: 'image1.jpg',
         encoding: '7bit',
         mimetype: 'image/jpeg',
         size: 1024,
-        buffer: Buffer.from('fake-image-data'),
-        destination: '/uploads',
-        filename: 'test-image.jpg',
-        path: '/uploads/test-image.jpg',
+        buffer: Buffer.from('fake-image-data-1'),
+        destination: '',
+        filename: '',
+        path: '',
+        stream: null as any,
     };
 
-    const mockUpdatedApplication: Application = {
-        ...mockApplication,
-        images: [...(mockApplication.images || []), 'new-image1.jpg', 'new-image2.jpg'],
+    const mockFile2: Express.Multer.File = {
+        fieldname: 'images',
+        originalname: 'image2.jpg',
+        encoding: '7bit',
+        mimetype: 'image/jpeg',
+        size: 2048,
+        buffer: Buffer.from('fake-image-data-2'),
+        destination: '',
+        filename: '',
+        path: '',
+        stream: null as any,
     };
 
-    beforeEach(() => {
-        // Reset all mocks
-        jest.clearAllMocks();
+    const mockApplication1: Partial<Application> = {
+        id: 1,
+        username: 'user1',
+        name: 'Application 1',
+        images: ['existing-image.jpg'],
+    };
 
-        // Create use case instance manually with mocked dependencies
-        useCase = new MockUploadImagesUseCase(mockImagesService);
+    const mockApplication2: Partial<Application> = {
+        id: 2,
+        username: 'user2',
+        name: 'Application 2',
+        images: [],
+    };
 
-        imagesService = mockImagesService;
+    beforeEach(async () => {
+        const mockApplicationRepository = {
+            findOne: jest.fn(),
+            save: jest.fn(),
+        };
+
+        const mockImageStorageService = {
+            uploadImages: jest.fn(),
+        };
+
+        const mockCacheService = {
+            applicationKey: jest.fn((id: number, type: string) => `app:${id}:${type}`),
+            getOrSet: jest.fn(),
+            del: jest.fn(),
+        };
+
+        const module: TestingModule = await Test.createTestingModule({
+            providers: [
+                UploadImagesUseCase,
+                {
+                    provide: getRepositoryToken(Application),
+                    useValue: mockApplicationRepository,
+                },
+                {
+                    provide: ImageStorageService,
+                    useValue: mockImageStorageService,
+                },
+                {
+                    provide: CacheService,
+                    useValue: mockCacheService,
+                },
+            ],
+        }).compile();
+
+        useCase = module.get<UploadImagesUseCase>(UploadImagesUseCase);
+        applicationRepository = module.get(getRepositoryToken(Application));
+        imageStorageService = module.get(ImageStorageService);
+        cacheService = module.get(CacheService);
     });
 
     afterEach(() => {
@@ -113,738 +100,188 @@ describe('UploadImagesUseCase', () => {
     });
 
     describe('execute', () => {
-        it('should upload images successfully when application exists', async () => {
+        it('deve fazer upload de múltiplas imagens com sucesso', async () => {
             // Arrange
             const applicationId = 1;
-            const files = [mockFile as Express.Multer.File];
-
-            imagesService.findApplicationById.mockResolvedValue(mockApplication);
-            imagesService.uploadImages.mockResolvedValue(mockUpdatedApplication);
-
-            // Act
-            const result = await useCase.execute(applicationId, files);
-
-            // Assert
-            expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-            expect(imagesService.uploadImages).toHaveBeenCalledWith(applicationId, files);
-            expect(result).toBe(mockUpdatedApplication);
-        });
-
-        it('should upload multiple images successfully', async () => {
-            // Arrange
-            const applicationId = 1;
-            const files = [
-                { ...mockFile, originalname: 'image1.jpg' } as Express.Multer.File,
-                { ...mockFile, originalname: 'image2.png' } as Express.Multer.File,
-                { ...mockFile, originalname: 'image3.gif' } as Express.Multer.File,
-            ];
-
-            imagesService.findApplicationById.mockResolvedValue(mockApplication);
-            imagesService.uploadImages.mockResolvedValue(mockUpdatedApplication);
-
-            // Act
-            const result = await useCase.execute(applicationId, files);
-
-            // Assert
-            expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-            expect(imagesService.uploadImages).toHaveBeenCalledWith(applicationId, files);
-            expect(result).toBe(mockUpdatedApplication);
-        });
-
-        it('should throw ApplicationNotFoundException when application is not found', async () => {
-            // Arrange
-            const applicationId = 999;
-            const files = [mockFile as Express.Multer.File];
-
-            imagesService.findApplicationById.mockResolvedValue(null);
-
-            // Act & Assert
-            await expect(useCase.execute(applicationId, files)).rejects.toThrow(ApplicationNotFoundException);
-            expect(imagesService.uploadImages).not.toHaveBeenCalled();
-        });
-
-        it('should throw ApplicationNotFoundException when application is undefined', async () => {
-            // Arrange
-            const applicationId = 1;
-            const files = [mockFile as Express.Multer.File];
-
-            imagesService.findApplicationById.mockResolvedValue(undefined);
-
-            // Act & Assert
-            await expect(useCase.execute(applicationId, files)).rejects.toThrow(ApplicationNotFoundException);
-            expect(imagesService.uploadImages).not.toHaveBeenCalled();
-        });
-
-        it('should propagate uploadImages service errors', async () => {
-            // Arrange
-            const applicationId = 1;
-            const files = [mockFile as Express.Multer.File];
-
-            imagesService.findApplicationById.mockResolvedValue(mockApplication);
-            const uploadError = new Error('Upload operation failed');
-            imagesService.uploadImages.mockRejectedValue(uploadError);
-
-            // Act & Assert
-            await expect(useCase.execute(applicationId, files)).rejects.toThrow('Upload operation failed');
-            expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-            expect(imagesService.uploadImages).toHaveBeenCalledWith(applicationId, files);
-        });
-
-        it('should handle database constraint errors during upload', async () => {
-            // Arrange
-            const applicationId = 1;
-            const files = [mockFile as Express.Multer.File];
-
-            imagesService.findApplicationById.mockResolvedValue(mockApplication);
-            const constraintError = new Error('Foreign key constraint violation');
-            imagesService.uploadImages.mockRejectedValue(constraintError);
-
-            // Act & Assert
-            await expect(useCase.execute(applicationId, files)).rejects.toThrow('Foreign key constraint violation');
-            expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-            expect(imagesService.uploadImages).toHaveBeenCalledWith(applicationId, files);
-        });
-
-        it('should handle network errors during upload', async () => {
-            // Arrange
-            const applicationId = 1;
-            const files = [mockFile as Express.Multer.File];
-
-            imagesService.findApplicationById.mockResolvedValue(mockApplication);
-            const networkError = new Error('Network timeout');
-            imagesService.uploadImages.mockRejectedValue(networkError);
-
-            // Act & Assert
-            await expect(useCase.execute(applicationId, files)).rejects.toThrow('Network timeout');
-            expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-            expect(imagesService.uploadImages).toHaveBeenCalledWith(applicationId, files);
-        });
-
-        it('should work with different application IDs', async () => {
-            // Arrange
-            const applicationIds = [1, 2, 3, 100, 999];
-            const files = [mockFile as Express.Multer.File];
-
-            for (const applicationId of applicationIds) {
-                const applicationWithId = {
-                    ...mockApplication,
-                    id: applicationId,
-                };
-                const updatedApplicationWithId = {
-                    ...mockUpdatedApplication,
-                    id: applicationId,
-                };
-
-                imagesService.findApplicationById.mockResolvedValue(applicationWithId);
-                imagesService.uploadImages.mockResolvedValue(updatedApplicationWithId);
-
-                // Act
-                const result = await useCase.execute(applicationId, files);
-
-                // Assert
-                expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-                expect(imagesService.uploadImages).toHaveBeenCalledWith(applicationId, files);
-                expect(result).toBe(updatedApplicationWithId);
-
-                // Clear mocks for next iteration
-                jest.clearAllMocks();
-            }
-        });
-
-        it('should handle concurrent upload operations', async () => {
-            // Arrange
-            const applicationId = 1;
-            const files = [mockFile as Express.Multer.File];
-
-            imagesService.findApplicationById.mockResolvedValue(mockApplication);
-            imagesService.uploadImages.mockResolvedValue(mockUpdatedApplication);
-
-            // Act - Execute multiple concurrent upload operations
-            const promises = [
-                useCase.execute(applicationId, files),
-                useCase.execute(applicationId, files),
-                useCase.execute(applicationId, files),
-            ];
-
-            const results = await Promise.all(promises);
-
-            // Assert
-            expect(imagesService.findApplicationById).toHaveBeenCalledTimes(3);
-            expect(imagesService.uploadImages).toHaveBeenCalledTimes(3);
-            expect(results).toEqual([mockUpdatedApplication, mockUpdatedApplication, mockUpdatedApplication]);
-        });
-
-        it('should handle undefined application ID gracefully', async () => {
-            // Arrange
-            const applicationId = undefined as any;
-            const files = [mockFile as Express.Multer.File];
-
-            imagesService.findApplicationById.mockResolvedValue(null);
-
-            // Act & Assert
-            await expect(useCase.execute(applicationId, files)).rejects.toThrow(ApplicationNotFoundException);
-            expect(imagesService.uploadImages).not.toHaveBeenCalled();
-        });
-
-        it('should handle null application ID gracefully', async () => {
-            // Arrange
-            const applicationId = null as any;
-            const files = [mockFile as Express.Multer.File];
-
-            imagesService.findApplicationById.mockResolvedValue(null);
-
-            // Act & Assert
-            await expect(useCase.execute(applicationId, files)).rejects.toThrow(ApplicationNotFoundException);
-            expect(imagesService.uploadImages).not.toHaveBeenCalled();
-        });
-
-        it('should handle zero application ID', async () => {
-            // Arrange
-            const applicationId = 0;
-            const files = [mockFile as Express.Multer.File];
-
-            imagesService.findApplicationById.mockResolvedValue(null);
-
-            // Act & Assert
-            await expect(useCase.execute(applicationId, files)).rejects.toThrow(ApplicationNotFoundException);
-            expect(imagesService.uploadImages).not.toHaveBeenCalled();
-        });
-
-        it('should handle negative application ID', async () => {
-            // Arrange
-            const applicationId = -1;
-            const files = [mockFile as Express.Multer.File];
-
-            imagesService.findApplicationById.mockResolvedValue(null);
-
-            // Act & Assert
-            await expect(useCase.execute(applicationId, files)).rejects.toThrow(ApplicationNotFoundException);
-            expect(imagesService.uploadImages).not.toHaveBeenCalled();
-        });
-
-        it('should handle empty files array', async () => {
-            // Arrange
-            const applicationId = 1;
-            const files: Express.Multer.File[] = [];
-
-            imagesService.findApplicationById.mockResolvedValue(mockApplication);
-            imagesService.uploadImages.mockResolvedValue(mockApplication);
-
-            // Act
-            const result = await useCase.execute(applicationId, files);
-
-            // Assert
-            expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-            expect(imagesService.uploadImages).toHaveBeenCalledWith(applicationId, files);
-            expect(result).toBe(mockApplication);
-        });
-
-        it('should handle null files array', async () => {
-            // Arrange
-            const applicationId = 1;
-            const files = null as any;
-
-            imagesService.findApplicationById.mockResolvedValue(mockApplication);
-            imagesService.uploadImages.mockResolvedValue(mockApplication);
-
-            // Act
-            const result = await useCase.execute(applicationId, files);
-
-            // Assert
-            expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-            expect(imagesService.uploadImages).toHaveBeenCalledWith(applicationId, files);
-            expect(result).toBe(mockApplication);
-        });
-
-        it('should handle undefined files array', async () => {
-            // Arrange
-            const applicationId = 1;
-            const files = undefined as any;
-
-            imagesService.findApplicationById.mockResolvedValue(mockApplication);
-            imagesService.uploadImages.mockResolvedValue(mockApplication);
-
-            // Act
-            const result = await useCase.execute(applicationId, files);
-
-            // Assert
-            expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-            expect(imagesService.uploadImages).toHaveBeenCalledWith(applicationId, files);
-            expect(result).toBe(mockApplication);
-        });
-
-        it('should handle findApplicationById service errors', async () => {
-            // Arrange
-            const applicationId = 1;
-            const files = [mockFile as Express.Multer.File];
-
-            const serviceError = new Error('Database connection error');
-            imagesService.findApplicationById.mockRejectedValue(serviceError);
-
-            // Act & Assert
-            await expect(useCase.execute(applicationId, files)).rejects.toThrow('Database connection error');
-            expect(imagesService.uploadImages).not.toHaveBeenCalled();
-        });
-
-        it('should handle timeout errors from findApplicationById', async () => {
-            // Arrange
-            const applicationId = 1;
-            const files = [mockFile as Express.Multer.File];
-
-            const timeoutError = new Error('Request timeout');
-            imagesService.findApplicationById.mockRejectedValue(timeoutError);
-
-            // Act & Assert
-            await expect(useCase.execute(applicationId, files)).rejects.toThrow('Request timeout');
-            expect(imagesService.uploadImages).not.toHaveBeenCalled();
-        });
-
-        it('should handle permission errors from uploadImages', async () => {
-            // Arrange
-            const applicationId = 1;
-            const files = [mockFile as Express.Multer.File];
-
-            imagesService.findApplicationById.mockResolvedValue(mockApplication);
-            const permissionError = new Error('Permission denied');
-            imagesService.uploadImages.mockRejectedValue(permissionError);
-
-            // Act & Assert
-            await expect(useCase.execute(applicationId, files)).rejects.toThrow('Permission denied');
-            expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-            expect(imagesService.uploadImages).toHaveBeenCalledWith(applicationId, files);
-        });
-
-        it('should handle file system errors from uploadImages', async () => {
-            // Arrange
-            const applicationId = 1;
-            const files = [mockFile as Express.Multer.File];
-
-            imagesService.findApplicationById.mockResolvedValue(mockApplication);
-            const fileSystemError = new Error('File system error');
-            imagesService.uploadImages.mockRejectedValue(fileSystemError);
-
-            // Act & Assert
-            await expect(useCase.execute(applicationId, files)).rejects.toThrow('File system error');
-            expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-            expect(imagesService.uploadImages).toHaveBeenCalledWith(applicationId, files);
-        });
-
-        it('should handle different application types', async () => {
-            // Arrange
-            const applicationTypes = [
-                ApplicationTypeEnum.API,
-                ApplicationTypeEnum.Mobile,
-                ApplicationTypeEnum.Frontend,
-                ApplicationTypeEnum.Library,
-                ApplicationTypeEnum.Fullstack,
-            ];
-            const files = [mockFile as Express.Multer.File];
-
-            for (const applicationType of applicationTypes) {
-                const applicationId = 1;
-                const applicationWithType = {
-                    ...mockApplication,
-                    applicationType,
-                };
-                const updatedApplicationWithType = {
-                    ...mockUpdatedApplication,
-                    applicationType,
-                };
-
-                imagesService.findApplicationById.mockResolvedValue(applicationWithType);
-                imagesService.uploadImages.mockResolvedValue(updatedApplicationWithType);
-
-                // Act
-                const result = await useCase.execute(applicationId, files);
-
-                // Assert
-                expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-                expect(imagesService.uploadImages).toHaveBeenCalledWith(applicationId, files);
-                expect(result).toBe(updatedApplicationWithType);
-
-                // Clear mocks for next iteration
-                jest.clearAllMocks();
-            }
-        });
-
-        it('should handle very large application IDs', async () => {
-            // Arrange
-            const applicationIds = [999999, 1000000, 2147483647]; // Max int32
-            const files = [mockFile as Express.Multer.File];
-
-            for (const applicationId of applicationIds) {
-                const applicationWithId = {
-                    ...mockApplication,
-                    id: applicationId,
-                };
-                const updatedApplicationWithId = {
-                    ...mockUpdatedApplication,
-                    id: applicationId,
-                };
-
-                imagesService.findApplicationById.mockResolvedValue(applicationWithId);
-                imagesService.uploadImages.mockResolvedValue(updatedApplicationWithId);
-
-                // Act
-                const result = await useCase.execute(applicationId, files);
-
-                // Assert
-                expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-                expect(imagesService.uploadImages).toHaveBeenCalledWith(applicationId, files);
-                expect(result).toBe(updatedApplicationWithId);
-
-                // Clear mocks for next iteration
-                jest.clearAllMocks();
-            }
-        });
-
-        it('should handle floating point application IDs', async () => {
-            // Arrange
-            const applicationId = 1.5;
-            const files = [mockFile as Express.Multer.File];
-
-            imagesService.findApplicationById.mockResolvedValue({
-                ...mockApplication,
-                id: applicationId,
-            });
-            imagesService.uploadImages.mockResolvedValue({
-                ...mockUpdatedApplication,
-                id: applicationId,
-            });
-
-            // Act
-            const result = await useCase.execute(applicationId, files);
-
-            // Assert
-            expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-            expect(imagesService.uploadImages).toHaveBeenCalledWith(applicationId, files);
-            expect(result.id).toBe(applicationId);
-        });
-
-        it('should handle database connection errors during upload', async () => {
-            // Arrange
-            const applicationId = 1;
-            const files = [mockFile as Express.Multer.File];
-
-            imagesService.findApplicationById.mockResolvedValue(mockApplication);
-            const dbError = new Error('Database connection lost');
-            imagesService.uploadImages.mockRejectedValue(dbError);
-
-            // Act & Assert
-            await expect(useCase.execute(applicationId, files)).rejects.toThrow('Database connection lost');
-            expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-            expect(imagesService.uploadImages).toHaveBeenCalledWith(applicationId, files);
-        });
-
-        it('should handle disk space errors during upload', async () => {
-            // Arrange
-            const applicationId = 1;
-            const files = [mockFile as Express.Multer.File];
-
-            imagesService.findApplicationById.mockResolvedValue(mockApplication);
-            const diskError = new Error('Insufficient disk space');
-            imagesService.uploadImages.mockRejectedValue(diskError);
-
-            // Act & Assert
-            await expect(useCase.execute(applicationId, files)).rejects.toThrow('Insufficient disk space');
-            expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-            expect(imagesService.uploadImages).toHaveBeenCalledWith(applicationId, files);
-        });
-
-        it('should handle file size limit errors', async () => {
-            // Arrange
-            const applicationId = 1;
-            const files = [mockFile as Express.Multer.File];
-
-            imagesService.findApplicationById.mockResolvedValue(mockApplication);
-            const sizeError = new Error('File size exceeds limit');
-            imagesService.uploadImages.mockRejectedValue(sizeError);
-
-            // Act & Assert
-            await expect(useCase.execute(applicationId, files)).rejects.toThrow('File size exceeds limit');
-            expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-            expect(imagesService.uploadImages).toHaveBeenCalledWith(applicationId, files);
-        });
-
-        it('should handle invalid file format errors', async () => {
-            // Arrange
-            const applicationId = 1;
-            const files = [mockFile as Express.Multer.File];
-
-            imagesService.findApplicationById.mockResolvedValue(mockApplication);
-            const formatError = new Error('Invalid file format');
-            imagesService.uploadImages.mockRejectedValue(formatError);
-
-            // Act & Assert
-            await expect(useCase.execute(applicationId, files)).rejects.toThrow('Invalid file format');
-            expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-            expect(imagesService.uploadImages).toHaveBeenCalledWith(applicationId, files);
-        });
-
-        it('should handle files with different MIME types', async () => {
-            // Arrange
-            const applicationId = 1;
-            const files = [
-                { ...mockFile, mimetype: 'image/jpeg', originalname: 'image1.jpg' } as Express.Multer.File,
-                { ...mockFile, mimetype: 'image/png', originalname: 'image2.png' } as Express.Multer.File,
-                { ...mockFile, mimetype: 'image/gif', originalname: 'image3.gif' } as Express.Multer.File,
-                { ...mockFile, mimetype: 'image/webp', originalname: 'image4.webp' } as Express.Multer.File,
-            ];
-
-            imagesService.findApplicationById.mockResolvedValue(mockApplication);
-            imagesService.uploadImages.mockResolvedValue(mockUpdatedApplication);
-
-            // Act
-            const result = await useCase.execute(applicationId, files);
-
-            // Assert
-            expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-            expect(imagesService.uploadImages).toHaveBeenCalledWith(applicationId, files);
-            expect(result).toBe(mockUpdatedApplication);
-        });
-
-        it('should handle files with different sizes', async () => {
-            // Arrange
-            const applicationId = 1;
-            const files = [
-                { ...mockFile, size: 1024, originalname: 'small.jpg' } as Express.Multer.File,
-                { ...mockFile, size: 1024 * 1024, originalname: 'medium.jpg' } as Express.Multer.File,
-                { ...mockFile, size: 10 * 1024 * 1024, originalname: 'large.jpg' } as Express.Multer.File,
-            ];
-
-            imagesService.findApplicationById.mockResolvedValue(mockApplication);
-            imagesService.uploadImages.mockResolvedValue(mockUpdatedApplication);
-
-            // Act
-            const result = await useCase.execute(applicationId, files);
-
-            // Assert
-            expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-            expect(imagesService.uploadImages).toHaveBeenCalledWith(applicationId, files);
-            expect(result).toBe(mockUpdatedApplication);
-        });
-
-        it('should handle files with special characters in names', async () => {
-            // Arrange
-            const applicationId = 1;
-            const files = [
-                { ...mockFile, originalname: 'file with spaces.jpg' } as Express.Multer.File,
-                { ...mockFile, originalname: 'file-with-special-chars!@#$%^&*().jpg' } as Express.Multer.File,
-                { ...mockFile, originalname: 'file-with-unicode-ñáéíóú.jpg' } as Express.Multer.File,
-                { ...mockFile, originalname: 'file-with-emoji-🚀.jpg' } as Express.Multer.File,
-            ];
-
-            imagesService.findApplicationById.mockResolvedValue(mockApplication);
-            imagesService.uploadImages.mockResolvedValue(mockUpdatedApplication);
-
-            // Act
-            const result = await useCase.execute(applicationId, files);
-
-            // Assert
-            expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-            expect(imagesService.uploadImages).toHaveBeenCalledWith(applicationId, files);
-            expect(result).toBe(mockUpdatedApplication);
-        });
-
-        it('should handle application without existing images', async () => {
-            // Arrange
-            const applicationId = 2;
-            const files = [mockFile as Express.Multer.File];
-            const updatedApplicationWithoutImages = {
-                ...mockApplicationWithoutImages,
-                images: ['new-image.jpg'],
+            const files = [mockFile1, mockFile2];
+            const newFilenames = ['new-image-1.jpg', 'new-image-2.jpg'];
+            const updatedApplication = {
+                ...mockApplication1,
+                images: ['existing-image.jpg', ...newFilenames],
             };
 
-            imagesService.findApplicationById.mockResolvedValue(mockApplicationWithoutImages);
-            imagesService.uploadImages.mockResolvedValue(updatedApplicationWithoutImages);
+            cacheService.getOrSet.mockResolvedValue(mockApplication1 as Application);
+            imageStorageService.uploadImages.mockResolvedValue(newFilenames);
+            applicationRepository.save.mockResolvedValue(updatedApplication as Application);
 
             // Act
             const result = await useCase.execute(applicationId, files);
 
             // Assert
-            expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-            expect(imagesService.uploadImages).toHaveBeenCalledWith(applicationId, files);
-            expect(result).toBe(updatedApplicationWithoutImages);
+            expect(imageStorageService.uploadImages).toHaveBeenCalledWith(
+                files,
+                ResourceType.Application,
+                applicationId,
+                ImageType.Gallery,
+                undefined,
+                'user1',
+            );
+            expect(applicationRepository.save).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    images: ['existing-image.jpg', ...newFilenames],
+                }),
+            );
+            expect(cacheService.del).toHaveBeenCalledWith(`app:${applicationId}:full`);
+            expect(result.images).toEqual(['existing-image.jpg', ...newFilenames]);
         });
 
-        it('should handle very large number of files', async () => {
+        it('deve fazer upload de imagens em aplicação sem imagens existentes', async () => {
             // Arrange
-            const applicationId = 1;
-            const files = Array.from({ length: 100 }, (_, index) => ({
-                ...mockFile,
-                originalname: `image${index}.jpg`,
-            })) as Express.Multer.File[];
+            const applicationId = 2;
+            const files = [mockFile1];
+            const newFilenames = ['first-image.jpg'];
+            const updatedApplication = {
+                ...mockApplication2,
+                images: newFilenames,
+            };
 
-            imagesService.findApplicationById.mockResolvedValue(mockApplication);
-            imagesService.uploadImages.mockResolvedValue(mockUpdatedApplication);
+            cacheService.getOrSet.mockResolvedValue(mockApplication2 as Application);
+            imageStorageService.uploadImages.mockResolvedValue(newFilenames);
+            applicationRepository.save.mockResolvedValue(updatedApplication as Application);
 
             // Act
             const result = await useCase.execute(applicationId, files);
 
             // Assert
-            expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-            expect(imagesService.uploadImages).toHaveBeenCalledWith(applicationId, files);
-            expect(result).toBe(mockUpdatedApplication);
+            expect(result.images).toEqual(newFilenames);
         });
 
-        it('should handle service method call order correctly', async () => {
+        it('deve lançar ApplicationNotFoundException quando a aplicação não existe', async () => {
+            // Arrange
+            const applicationId = 999;
+            const files = [mockFile1];
+
+            cacheService.getOrSet.mockImplementation(async (key, fn) => {
+                if (typeof fn === 'function') {
+                    const result = await fn();
+                    return result;
+                }
+                return null;
+            });
+
+            applicationRepository.findOne.mockResolvedValue(null);
+
+            // Act & Assert
+            await expect(useCase.execute(applicationId, files)).rejects.toThrow(
+                ApplicationNotFoundException,
+            );
+            expect(imageStorageService.uploadImages).not.toHaveBeenCalled();
+        });
+
+        it('deve garantir segmentação por usuário - múltiplos usuários fazendo upload simultaneamente', async () => {
+            // Arrange
+            const user1ApplicationId = 1;
+            const user2ApplicationId = 2;
+            const user1Files = [mockFile1];
+            const user2Files = [mockFile2];
+            const user1Filenames = ['user1-image.jpg'];
+            const user2Filenames = ['user2-image.jpg'];
+
+            cacheService.getOrSet
+                .mockResolvedValueOnce(mockApplication1 as Application)
+                .mockResolvedValueOnce(mockApplication2 as Application);
+
+            imageStorageService.uploadImages
+                .mockResolvedValueOnce(user1Filenames)
+                .mockResolvedValueOnce(user2Filenames);
+
+            applicationRepository.save
+                .mockResolvedValueOnce({
+                    ...mockApplication1,
+                    images: [...(mockApplication1.images || []), ...user1Filenames],
+                } as Application)
+                .mockResolvedValueOnce({
+                    ...mockApplication2,
+                    images: user2Filenames,
+                } as Application);
+
+            // Act
+            const result1 = await useCase.execute(user1ApplicationId, user1Files);
+            const result2 = await useCase.execute(user2ApplicationId, user2Files);
+
+            // Assert
+            expect(imageStorageService.uploadImages).toHaveBeenNthCalledWith(
+                1,
+                user1Files,
+                ResourceType.Application,
+                user1ApplicationId,
+                ImageType.Gallery,
+                undefined,
+                'user1',
+            );
+            expect(imageStorageService.uploadImages).toHaveBeenNthCalledWith(
+                2,
+                user2Files,
+                ResourceType.Application,
+                user2ApplicationId,
+                ImageType.Gallery,
+                undefined,
+                'user2',
+            );
+            expect(result1.images).toContain('user1-image.jpg');
+            expect(result2.images).toContain('user2-image.jpg');
+            expect(result1.images).not.toContain('user2-image.jpg');
+            expect(result2.images).not.toContain('user1-image.jpg');
+        });
+
+        it('deve manter imagens existentes ao adicionar novas', async () => {
             // Arrange
             const applicationId = 1;
-            const files = [mockFile as Express.Multer.File];
+            const files = [mockFile1];
+            const newFilenames = ['new-image.jpg'];
+            const existingImages = ['existing-1.jpg', 'existing-2.jpg'];
+            const applicationWithImages = {
+                ...mockApplication1,
+                images: existingImages,
+            };
+            const updatedApplication = {
+                ...applicationWithImages,
+                images: [...existingImages, ...newFilenames],
+            };
 
-            imagesService.findApplicationById.mockResolvedValue(mockApplication);
-            imagesService.uploadImages.mockResolvedValue(mockUpdatedApplication);
+            cacheService.getOrSet.mockResolvedValue(applicationWithImages as Application);
+            imageStorageService.uploadImages.mockResolvedValue(newFilenames);
+            applicationRepository.save.mockResolvedValue(updatedApplication as Application);
+
+            // Act
+            const result = await useCase.execute(applicationId, files);
+
+            // Assert
+            expect(result.images).toHaveLength(3);
+            expect(result.images).toContain('existing-1.jpg');
+            expect(result.images).toContain('existing-2.jpg');
+            expect(result.images).toContain('new-image.jpg');
+        });
+
+        it('deve invalidar cache após fazer upload', async () => {
+            // Arrange
+            const applicationId = 1;
+            const files = [mockFile1];
+            const newFilenames = ['new-image.jpg'];
+
+            cacheService.getOrSet.mockResolvedValue(mockApplication1 as Application);
+            imageStorageService.uploadImages.mockResolvedValue(newFilenames);
+            applicationRepository.save.mockResolvedValue({
+                ...mockApplication1,
+                images: [...(mockApplication1.images || []), ...newFilenames],
+            } as Application);
 
             // Act
             await useCase.execute(applicationId, files);
 
-            // Assert - Verify that findApplicationById is called before uploadImages
-            expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-            expect(imagesService.uploadImages).toHaveBeenCalledWith(applicationId, files);
-
-            // Verify call order
-            const findApplicationByIdCallOrder = (imagesService.findApplicationById as jest.Mock).mock.invocationCallOrder[0];
-            const uploadImagesCallOrder = (imagesService.uploadImages as jest.Mock).mock.invocationCallOrder[0];
-            expect(findApplicationByIdCallOrder).toBeLessThan(uploadImagesCallOrder);
-        });
-
-        it('should handle service method call count correctly', async () => {
-            // Arrange
-            const applicationId = 1;
-            const files = [mockFile as Express.Multer.File];
-
-            imagesService.findApplicationById.mockResolvedValue(mockApplication);
-            imagesService.uploadImages.mockResolvedValue(mockUpdatedApplication);
-
-            // Act
-            await useCase.execute(applicationId, files);
-
             // Assert
-            expect(imagesService.findApplicationById).toHaveBeenCalledTimes(1);
-            expect(imagesService.uploadImages).toHaveBeenCalledTimes(1);
-        });
-
-        it('should handle service method call arguments correctly', async () => {
-            // Arrange
-            const applicationId = 1;
-            const files = [mockFile as Express.Multer.File];
-
-            imagesService.findApplicationById.mockResolvedValue(mockApplication);
-            imagesService.uploadImages.mockResolvedValue(mockUpdatedApplication);
-
-            // Act
-            await useCase.execute(applicationId, files);
-
-            // Assert
-            expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-            expect(imagesService.uploadImages).toHaveBeenCalledWith(applicationId, files);
-            expect(imagesService.uploadImages).toHaveBeenCalledWith(applicationId, files);
-        });
-
-        it('should handle files with different encodings', async () => {
-            // Arrange
-            const applicationId = 1;
-            const files = [
-                { ...mockFile, encoding: '7bit', originalname: 'image1.jpg' } as Express.Multer.File,
-                { ...mockFile, encoding: 'base64', originalname: 'image2.jpg' } as Express.Multer.File,
-                { ...mockFile, encoding: 'binary', originalname: 'image3.jpg' } as Express.Multer.File,
-            ];
-
-            imagesService.findApplicationById.mockResolvedValue(mockApplication);
-            imagesService.uploadImages.mockResolvedValue(mockUpdatedApplication);
-
-            // Act
-            const result = await useCase.execute(applicationId, files);
-
-            // Assert
-            expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-            expect(imagesService.uploadImages).toHaveBeenCalledWith(applicationId, files);
-            expect(result).toBe(mockUpdatedApplication);
-        });
-
-        it('should handle files with different fieldnames', async () => {
-            // Arrange
-            const applicationId = 1;
-            const files = [
-                { ...mockFile, fieldname: 'images', originalname: 'image1.jpg' } as Express.Multer.File,
-                { ...mockFile, fieldname: 'photos', originalname: 'image2.jpg' } as Express.Multer.File,
-                { ...mockFile, fieldname: 'pictures', originalname: 'image3.jpg' } as Express.Multer.File,
-            ];
-
-            imagesService.findApplicationById.mockResolvedValue(mockApplication);
-            imagesService.uploadImages.mockResolvedValue(mockUpdatedApplication);
-
-            // Act
-            const result = await useCase.execute(applicationId, files);
-
-            // Assert
-            expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-            expect(imagesService.uploadImages).toHaveBeenCalledWith(applicationId, files);
-            expect(result).toBe(mockUpdatedApplication);
-        });
-
-        it('should handle files with missing optional properties', async () => {
-            // Arrange
-            const applicationId = 1;
-            const files = [
-                {
-                    fieldname: 'images',
-                    originalname: 'image1.jpg',
-                    encoding: '7bit',
-                    mimetype: 'image/jpeg',
-                    size: 1024,
-                    buffer: Buffer.from('fake-image-data'),
-                } as Express.Multer.File,
-            ];
-
-            imagesService.findApplicationById.mockResolvedValue(mockApplication);
-            imagesService.uploadImages.mockResolvedValue(mockUpdatedApplication);
-
-            // Act
-            const result = await useCase.execute(applicationId, files);
-
-            // Assert
-            expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-            expect(imagesService.uploadImages).toHaveBeenCalledWith(applicationId, files);
-            expect(result).toBe(mockUpdatedApplication);
-        });
-
-        it('should handle files with zero size', async () => {
-            // Arrange
-            const applicationId = 1;
-            const files = [
-                { ...mockFile, size: 0, originalname: 'empty.jpg' } as Express.Multer.File,
-            ];
-
-            imagesService.findApplicationById.mockResolvedValue(mockApplication);
-            imagesService.uploadImages.mockResolvedValue(mockUpdatedApplication);
-
-            // Act
-            const result = await useCase.execute(applicationId, files);
-
-            // Assert
-            expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-            expect(imagesService.uploadImages).toHaveBeenCalledWith(applicationId, files);
-            expect(result).toBe(mockUpdatedApplication);
-        });
-
-        it('should handle files with very large size', async () => {
-            // Arrange
-            const applicationId = 1;
-            const files = [
-                { ...mockFile, size: 100 * 1024 * 1024, originalname: 'huge.jpg' } as Express.Multer.File,
-            ];
-
-            imagesService.findApplicationById.mockResolvedValue(mockApplication);
-            imagesService.uploadImages.mockResolvedValue(mockUpdatedApplication);
-
-            // Act
-            const result = await useCase.execute(applicationId, files);
-
-            // Assert
-            expect(imagesService.findApplicationById).toHaveBeenCalledWith(applicationId);
-            expect(imagesService.uploadImages).toHaveBeenCalledWith(applicationId, files);
-            expect(result).toBe(mockUpdatedApplication);
+            expect(cacheService.del).toHaveBeenCalledWith(`app:${applicationId}:full`);
         });
     });
 });
+
