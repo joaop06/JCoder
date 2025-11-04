@@ -1,8 +1,6 @@
 {
   "include": [
     "src/**/*.ts",
-    "test/**/*.ts",
-    "scripts/seed-admin.ts"
   ],
   "compilerOptions": {
     "strict": true,
