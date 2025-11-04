@@ -31,18 +31,18 @@ export class Application {
   id: number;
 
   @ApiProperty({
+    example: 1,
     type: 'string',
     nullable: false,
-    example: 'johndoe',
-    description: 'Unique username used for login',
+    description: 'User ID',
   })
   @Column({ nullable: false })
-  username: string;
+  userId: number;
 
   @ManyToOne(() => User, (user) => user.applications, {
     onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: 'username' })
+  @JoinColumn({ name: 'userId' })
   user?: User;
 
   @ApiProperty({

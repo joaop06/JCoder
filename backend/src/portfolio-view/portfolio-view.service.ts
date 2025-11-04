@@ -8,14 +8,16 @@ import { Technology } from '../administration-by-user/technologies/entities/tech
 import { Application } from '../administration-by-user/applications/entities/application.entity';
 import { UserNotFoundException } from '../administration-by-user/users/exceptions/user-not-found.exception';
 import { UserComponentAboutMe } from '../administration-by-user/users/user-components/entities/user-component-about-me.entity';
+import { ApplicationNotFoundException } from '../administration-by-user/applications/exceptions/application-not-found.exception';
 import { UserComponentEducation } from '../administration-by-user/users/user-components/entities/user-component-education.entity';
 import { UserComponentExperience } from '../administration-by-user/users/user-components/entities/user-component-experience.entity';
 import { UserComponentCertificate } from '../administration-by-user/users/user-components/entities/user-component-certificate.entity';
-import { ApplicationNotFoundException } from '../administration-by-user/applications/exceptions/application-not-found.exception';
 
 @Injectable()
 export class PortfolioViewService {
   constructor(
+    private readonly cacheService: CacheService,
+
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
 
@@ -25,9 +27,6 @@ export class PortfolioViewService {
     @InjectRepository(Technology)
     private readonly technologyRepository: Repository<Technology>,
 
-    @InjectRepository(UserComponentAboutMe)
-    private readonly aboutMeRepository: Repository<UserComponentAboutMe>,
-
     @InjectRepository(UserComponentEducation)
     private readonly educationRepository: Repository<UserComponentEducation>,
 
@@ -36,9 +35,14 @@ export class PortfolioViewService {
 
     @InjectRepository(UserComponentCertificate)
     private readonly certificateRepository: Repository<UserComponentCertificate>,
-
-    private readonly cacheService: CacheService,
   ) { }
+
+  private async getUser(username: string): Promise<User> {
+    const user = await this.userRepository.findOneBy({ username });
+    if (!user) throw new UserNotFoundException();
+
+    return user;
+  }
 
   /**
    * Busca dados básicos do perfil do usuário com About Me
@@ -89,11 +93,10 @@ export class PortfolioViewService {
       cacheKey,
       async () => {
         // Verificar se usuário existe
-        const userExists = await this.userRepository.findOneBy({ username });
-        if (!userExists) throw new UserNotFoundException();
+        const user = await this.getUser(username);
 
         const [data, total] = await this.educationRepository.findAndCount({
-          where: { username },
+          where: { userId: user.id },
           relations: ['certificates'],
           skip,
           take: limit,
@@ -141,11 +144,10 @@ export class PortfolioViewService {
     return await this.cacheService.getOrSet(
       cacheKey,
       async () => {
-        const userExists = await this.userRepository.findOneBy({ username });
-        if (!userExists) throw new UserNotFoundException();
+        const user = await this.getUser(username);
 
         const [data, total] = await this.experienceRepository.findAndCount({
-          where: { username },
+          where: { userId: user.id },
           relations: ['positions'],
           skip,
           take: limit,
@@ -193,11 +195,10 @@ export class PortfolioViewService {
     return await this.cacheService.getOrSet(
       cacheKey,
       async () => {
-        const userExists = await this.userRepository.findOneBy({ username });
-        if (!userExists) throw new UserNotFoundException();
+        const user = await this.getUser(username);
 
         const [data, total] = await this.certificateRepository.findAndCount({
-          where: { username },
+          where: { userId: user.id },
           relations: ['educations'],
           skip,
           take: limit,
@@ -246,11 +247,10 @@ export class PortfolioViewService {
     return await this.cacheService.getOrSet(
       cacheKey,
       async () => {
-        const userExists = await this.userRepository.findOneBy({ username });
-        if (!userExists) throw new UserNotFoundException();
+        const user = await this.getUser(username);
 
         const [data, total] = await this.applicationRepository.findAndCount({
-          where: { username, isActive: true },
+          where: { userId: user.id, isActive: true },
           relations: ['technologies'],
           skip,
           take: limit,
@@ -282,11 +282,13 @@ export class PortfolioViewService {
   async getApplicationDetails(id: number, username: string): Promise<Application> {
     const cacheKey = this.cacheService.generateKey('portfolio', 'application', id, username);
 
+    const user = await this.getUser(username);
+
     return await this.cacheService.getOrSet(
       cacheKey,
       async () => {
         const application = await this.applicationRepository.findOne({
-          where: { id, username, isActive: true },
+          where: { id, userId: user.id, isActive: true },
           relations: {
             technologies: true,
             applicationComponentApi: true,
@@ -324,14 +326,14 @@ export class PortfolioViewService {
       sortOrder,
     );
 
+    const user = await this.getUser(username);
+
     return await this.cacheService.getOrSet(
       cacheKey,
       async () => {
-        const userExists = await this.userRepository.findOneBy({ username });
-        if (!userExists) throw new UserNotFoundException();
 
         const [data, total] = await this.technologyRepository.findAndCount({
-          where: { username, isActive: true },
+          where: { userId: user.id, isActive: true },
           skip,
           take: limit,
           order: { [sortBy]: sortOrder },

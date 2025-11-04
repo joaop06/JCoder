@@ -2,6 +2,7 @@ import { Repository } from 'typeorm';
 import { Injectable } from '@nestjs/common';
 import { User } from '../../entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
+import { UsersService } from '../../users.service';
 import { CacheService } from '../../../../@common/services/cache.service';
 import { UserComponentAboutMe } from '../entities/user-component-about-me.entity';
 import { UserComponentAboutMeHighlight } from '../entities/user-component-about-me-highlight.entity';
@@ -10,6 +11,8 @@ import { UserComponentAboutMeHighlight } from '../entities/user-component-about-
 export class AboutMeRepository {
     constructor(
         private readonly cacheService: CacheService,
+
+        private readonly usersService: UsersService,
 
         @InjectRepository(UserComponentAboutMe)
         private readonly aboutMeRepository: Repository<UserComponentAboutMe>,
@@ -23,11 +26,13 @@ export class AboutMeRepository {
     ): Promise<UserComponentAboutMe> {
         const cacheKey = this.cacheService.generateKey('about-me', 'paginated', username);
 
+        const user = await this.usersService.findOneBy({ username });
+
         return await this.cacheService.getOrSet(
             cacheKey,
             async () => {
                 const aboutMe = await this.aboutMeRepository.findOne({
-                    where: { username },
+                    where: { userId: user.id },
                     relations: ['highlights'],
                 });
 
@@ -40,15 +45,17 @@ export class AboutMeRepository {
     async create(user: User, data: Partial<UserComponentAboutMe>): Promise<UserComponentAboutMe> {
         const aboutMe = this.aboutMeRepository.create({
             ...data,
-            username: user.username,
+            userId: user.id,
             user,
         });
         return await this.aboutMeRepository.save(aboutMe);
     }
 
     async update(username: string, data: Partial<UserComponentAboutMe>): Promise<UserComponentAboutMe> {
-        await this.aboutMeRepository.update({ username }, data);
-        return await this.aboutMeRepository.findOne({ where: { username } });
+        const user = await this.usersService.findOneBy({ username });
+
+        await this.aboutMeRepository.update({ userId: user.id }, data);
+        return await this.aboutMeRepository.findOne({ where: { userId: user.id } });
     }
 
     async createHighlight(aboutMeId: number, data: Partial<UserComponentAboutMeHighlight>): Promise<UserComponentAboutMeHighlight> {

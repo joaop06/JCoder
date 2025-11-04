@@ -1,7 +1,8 @@
-import { Repository, In, FindOptionsWhere } from 'typeorm';
 import { Injectable } from '@nestjs/common';
 import { User } from '../../entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
+import { UsersService } from '../../users.service';
+import { Repository, In, FindOptionsWhere } from 'typeorm';
 import { EducationRepository } from './education.repository';
 import { CacheService } from '../../../../@common/services/cache.service';
 import { UserComponentCertificate } from '../entities/user-component-certificate.entity';
@@ -12,6 +13,9 @@ import { CertificateNotFoundException } from '../exceptions/certificate-not-foun
 export class CertificateRepository {
     constructor(
         private readonly cacheService: CacheService,
+
+        private readonly usersService: UsersService,
+
         private readonly educationRepository: EducationRepository,
 
         @InjectRepository(UserComponentCertificate)
@@ -58,7 +62,17 @@ export class CertificateRepository {
         const { page = 1, limit = 10, sortBy = 'issueDate', sortOrder = 'DESC' } = paginationDto;
         const skip = (page - 1) * limit;
 
-        const cacheKey = this.cacheService.generateKey('certificates', 'paginated', username, page, limit, sortBy, sortOrder);
+        const cacheKey = this.cacheService.generateKey(
+            'certificates',
+            'paginated',
+            username,
+            page,
+            limit,
+            sortBy,
+            sortOrder,
+        );
+
+        const user = await this.usersService.findOneBy({ username });
 
         return await this.cacheService.getOrSet(
             cacheKey,
@@ -66,8 +80,8 @@ export class CertificateRepository {
                 const [data, total] = await this.certificateRepository.findAndCount({
                     skip,
                     take: limit,
-                    where: { username },
                     relations: ['educations'],
+                    where: { userId: user.id },
                     order: { [sortBy]: sortOrder },
                 });
 
@@ -92,7 +106,7 @@ export class CertificateRepository {
     async create(user: User, data: Partial<UserComponentCertificate>): Promise<UserComponentCertificate> {
         const certificate = this.certificateRepository.create({
             ...data,
-            username: user.username,
+            userId: user.id,
             user,
         });
         return await this.certificateRepository.save(certificate);

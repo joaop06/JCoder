@@ -15,7 +15,7 @@ export class UnlinkCertificateFromEducationUseCase {
 
         // Verify certificate belongs to user
         const certificate = await this.userComponentsRepository.certificateRepository.findOneBy({ id: certificateUserId });
-        if (!certificate || certificate.username !== user.username) {
+        if (!certificate || certificate.userId !== user.id) {
             throw new ComponentNotFoundException('Certificate');
         }
 
