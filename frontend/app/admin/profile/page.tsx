@@ -4,20 +4,15 @@ import Footer from '@/components/Footer';
 import Header from '@/components/Header';
 import { useRouter } from 'next/navigation';
 import { TableSkeleton } from '@/components/ui';
-import { User } from '@/types/entities/user.entity';
-import { UsersService } from '@/services/users.service';
 import { useState, useEffect, useCallback } from 'react';
 import { InfoField } from '@/components/profile/InfoField';
 import { StatsCard } from '@/components/profile/StatsCard';
 import { useToast } from '@/components/toast/ToastContext';
 import { SectionCard } from '@/components/profile/SectionCard';
 import { TimelineItem } from '@/components/profile/TimelineItem';
-import { UserComponentsService } from '@/services/user-components.service';
 import { ProfileImageUploader } from '@/components/profile/ProfileImageUploader';
-import { UserComponentAboutMe } from '@/types/entities/user-component-about-me.entity';
-import { UserComponentEducation } from '@/types/entities/user-component-education.entity';
-import { UserComponentExperience, UserComponentExperiencePosition, WorkLocationTypeEnum } from '@/types/entities/user-component-experience.entity';
-import { UserComponentCertificate } from '@/types/entities/user-component-certificate.entity';
+import { User, UserComponentAboutMe, UserComponentCertificate, UserComponentEducation, UserComponentExperience, WorkLocationTypeEnum } from '@/types';
+import { UsersService } from '@/services/administration-by-user/users.service';
 
 export default function ProfileManagementPage() {
     const toast = useToast();
@@ -116,19 +111,19 @@ export default function ProfileManagementPage() {
     const loadUserProfile = useCallback(async () => {
         setLoading(true);
         try {
-            const userData = UsersService.getUserStorage();
-            if (!userData) {
+            const userSession = UsersService.getUserSession();
+            if (!userSession) {
                 toast.error('Failed to load profile. Please try again.');
                 handleLogout();
                 return;
             }
-            setUser(userData);
+            setUser(userSession.user);
             setBasicInfoForm({
-                firstName: userData.firstName || '',
-                fullName: userData.fullName || '',
-                email: userData.email || '',
-                githubUrl: userData.githubUrl || '',
-                linkedinUrl: userData.linkedinUrl || '',
+                firstName: userSession.user.firstName || '',
+                fullName: userSession.user.fullName || '',
+                email: userSession.user.email || '',
+                githubUrl: userSession.user.githubUrl || '',
+                linkedinUrl: userSession.user.linkedinUrl || '',
                 currentPassword: '',
                 newPassword: '',
                 confirmPassword: '',
@@ -136,10 +131,10 @@ export default function ProfileManagementPage() {
 
             // Load components
             const [aboutMeData, educationsData, experiencesData, certificatesData] = await Promise.all([
-                UserComponentsService.getAboutMe(),
-                UserComponentsService.getEducations(),
-                UserComponentsService.getExperiences(),
-                UserComponentsService.getCertificates(),
+                UsersService.getAboutMe(userSession.user.username),
+                UsersService.getEducations(userSession.user.username),
+                UsersService.getExperiences(userSession.user.username),
+                UsersService.getCertificates(userSession.user.username),
             ]);
 
             setAboutMe(aboutMeData);
@@ -200,6 +195,12 @@ export default function ProfileManagementPage() {
 
         setIsSaving(true);
         try {
+            const userSession = UsersService.getUserSession();
+            if (!userSession) {
+                toast.error('Failed to load profile. Please try again.');
+                handleLogout();
+                return;
+            }
             const updateData: any = {
                 firstName: basicInfoForm.firstName,
                 fullName: basicInfoForm.fullName,
@@ -213,7 +214,7 @@ export default function ProfileManagementPage() {
                 updateData.newPassword = basicInfoForm.newPassword;
             }
 
-            const updatedUser = await UsersService.updateProfile(updateData);
+            const updatedUser = await UsersService.updateProfile(userSession?.user.username, updateData);
             setUser(updatedUser);
             setIsEditingBasicInfo(false);
 

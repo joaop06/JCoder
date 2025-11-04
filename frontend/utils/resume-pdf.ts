@@ -3,7 +3,7 @@ import html2canvas from 'html2canvas';
 
 export async function generateResumePDF(): Promise<void> {
   const resumeElement = document.getElementById('resume-content');
-  
+
   if (!resumeElement) {
     throw new Error('Resume content not found');
   }
@@ -102,5 +102,4 @@ export async function generateResumePDF(): Promise<void> {
     console.error('Error generating PDF:', error);
     throw error;
   }
-}
-
+};

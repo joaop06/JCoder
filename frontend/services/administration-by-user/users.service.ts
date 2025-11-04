@@ -1,33 +1,41 @@
-import { ApiService } from "./api.service";
-import { User } from "@/types/entities/user.entity";
-import { UserComponentAboutMe } from "@/types/entities/user-component-about-me.entity";
-import { UserComponentEducation } from "@/types/entities/user-component-education.entity";
-import { UserComponentExperience } from "@/types/entities/user-component-experience.entity";
-import { UserComponentCertificate } from "@/types/entities/user-component-certificate.entity";
-import { PaginationDto, PaginatedResponse } from "@/types/api/pagination.type";
+import {
+    User,
+    PaginationDto,
+    PaginatedResponseDto,
+    UserComponentAboutMe,
+    UserComponentEducation,
+    UserComponentExperience,
+    UserComponentCertificate,
+} from "@/types";
+import { ApiService } from "../api.service";
 
 export const UsersService = {
     // ==================== STORAGE HELPERS ====================
 
-    getUserStorage(): User | null {
+    getUserSession(): { user: User, accessToken: string } | null {
         const userStr = localStorage.getItem('user');
-        if (!userStr) return null;
+        const accessToken = localStorage.getItem('accessToken');
+
+        if (!userStr || !accessToken) return null;
 
         try {
-            const user = JSON.parse(userStr);
+            const user: User = JSON.parse(userStr);
 
             return {
-                id: user?.id,
-                fullName: user?.fullName,
-                firstName: user?.firstName,
-                role: user?.role,
-                email: user?.email,
-                profileImage: user?.profileImage,
-                githubUrl: user?.githubUrl,
-                linkedinUrl: user?.linkedinUrl,
-                createdAt: user?.createdAt,
-                updatedAt: user?.updatedAt,
-                deletedAt: user?.deletedAt,
+                accessToken,
+                user: {
+                    id: user?.id,
+                    email: user?.email,
+                    username: user?.username,
+                    fullName: user?.fullName,
+                    firstName: user?.firstName,
+                    githubUrl: user?.githubUrl,
+                    linkedinUrl: user?.linkedinUrl,
+                    profileImage: user?.profileImage,
+                    createdAt: user?.createdAt,
+                    updatedAt: user?.updatedAt,
+                    deletedAt: user?.deletedAt,
+                }
             };
         } catch {
             return null;
@@ -51,7 +59,7 @@ export const UsersService = {
         } catch (error) {
             // Fallback to localStorage if public endpoint fails
             console.warn('Public profile endpoint not available, using localStorage data:', error);
-            return this.getUserStorage();
+            return this.getUserSession()?.user || null;
         }
     },
 
@@ -65,10 +73,10 @@ export const UsersService = {
         try {
             const response = await ApiService.get(`/${username}/users/profile`);
             const updatedUser = response.data.data;
-            
+
             // Update local storage with new user data
             localStorage.setItem('user', JSON.stringify(updatedUser));
-            
+
             return updatedUser;
         } catch (error) {
             throw error;
@@ -127,7 +135,7 @@ export const UsersService = {
      * Get educations
      * GET /:username/users/educations
      */
-    async getEducations(username: string, pagination: PaginationDto = {}): Promise<PaginatedResponse<UserComponentEducation>> {
+    async getEducations(username: string, pagination: PaginationDto = {}): Promise<PaginatedResponseDto<UserComponentEducation>> {
         try {
             const params = new URLSearchParams();
             if (pagination.page) params.append('page', pagination.page.toString());
@@ -188,7 +196,7 @@ export const UsersService = {
      * Get experiences
      * GET /:username/users/experiences
      */
-    async getExperiences(username: string, pagination: PaginationDto = {}): Promise<PaginatedResponse<UserComponentExperience>> {
+    async getExperiences(username: string, pagination: PaginationDto = {}): Promise<PaginatedResponseDto<UserComponentExperience>> {
         try {
             const params = new URLSearchParams();
             if (pagination.page) params.append('page', pagination.page.toString());
@@ -249,7 +257,7 @@ export const UsersService = {
      * Get certificates
      * GET /:username/users/certificates
      */
-    async getCertificates(username: string, pagination: PaginationDto = {}): Promise<PaginatedResponse<UserComponentCertificate>> {
+    async getCertificates(username: string, pagination: PaginationDto = {}): Promise<PaginatedResponseDto<UserComponentCertificate>> {
         try {
             const params = new URLSearchParams();
             if (pagination.page) params.append('page', pagination.page.toString());

@@ -1,7 +1,9 @@
-import { ApiService } from './api.service';
-import { User } from '@/types/entities/user.entity';
-import { Application } from '@/types/entities/application.entity';
-import { Technology } from '@/types/entities/technology.entity';
+import {
+    User,
+    Technology,
+    Application,
+} from '@/types';
+import { ApiService } from '../api.service';
 
 /**
  * Centralized Images Service

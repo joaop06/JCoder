@@ -1,15 +1,18 @@
-import { ApiService } from "./api.service";
-import { Application } from "@/types/entities/application.entity";
-import { PaginationDto, PaginatedResponse } from "@/types/api/pagination.type";
-import { CreateApplicationDto } from "@/types/entities/dtos/create-application.dto";
-import { UpdateApplicationDto } from "@/types/entities/dtos/update-application.dto";
+import {
+    Application,
+    PaginationDto,
+    CreateApplicationDto,
+    PaginatedResponseDto,
+    UpdateApplicationDto,
+} from "@/types";
+import { ApiService } from "../api.service";
 
 export const ApplicationService = {
     /**
      * Get all applications with pagination
      * GET /:username/applications
      */
-    async findAll(username: string, pagination: PaginationDto = {}): Promise<PaginatedResponse<Application>> {
+    async findAll(username: string, pagination: PaginationDto = {}): Promise<PaginatedResponseDto<Application>> {
         try {
             const params = new URLSearchParams();
             if (pagination.page) params.append('page', pagination.page.toString());

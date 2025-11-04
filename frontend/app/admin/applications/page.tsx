@@ -4,7 +4,7 @@ import Footer from '@/components/Footer';
 import Header from '@/components/Header';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/toast/ToastContext';
-import { PaginationDto } from '@/types/api/pagination.type';
+import { PaginationDto } from '@/types/api/pagination.dto';
 import { useState, useEffect, useMemo, useCallback, memo } from 'react';
 import { Application } from '@/types/entities/application.entity';
 import { ApplicationService } from '@/services/applications.service';

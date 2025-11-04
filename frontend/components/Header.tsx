@@ -2,13 +2,11 @@
 
 import Link from 'next/link';
 import { ThemeToggle } from './theme';
-import { useRouter } from 'next/navigation';
-import { RoleEnum } from '@/types/enums/role.enum';
-import { UsersService } from '@/services/users.service';
-import { useEffect, useState, useCallback, useMemo, memo } from 'react';
-import { HealthStatusComponent } from './health/HealthStatus';
-import { useSmoothScroll } from '@/hooks/useSmoothScroll';
 import LazyImage from './ui/LazyImage';
+import { useRouter } from 'next/navigation';
+import { useSmoothScroll } from '@/hooks/useSmoothScroll';
+import { useEffect, useState, useCallback, useMemo, memo } from 'react';
+import { UsersService } from '@/services/administration-by-user/users.service';
 
 interface HeaderProps {
   isAdmin?: boolean;
@@ -33,11 +31,11 @@ export default function Header({
   useEffect(() => {
     setIsClient(true);
     try {
-      const user = UsersService.getUserStorage?.();
-      const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+      const userSession = UsersService.getUserSession?.();
+      const token = typeof window !== 'undefined' ? userSession?.accessToken : null;
 
-      setIsAdmin((user?.role === RoleEnum.Admin) || isAdminProp);
-      setIsLoggedIn(Boolean(user && token));
+      setIsAdmin((!!userSession?.user && !!token) || isAdminProp);
+      setIsLoggedIn(Boolean(userSession?.user && token));
     } catch {
       setIsLoggedIn(false);
       setIsAdmin(isAdminProp);

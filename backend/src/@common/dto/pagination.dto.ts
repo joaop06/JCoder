@@ -48,25 +48,7 @@ export class PaginationDto {
 
 export class PaginatedResponseDto<T> {
     @ApiPropertyOptional()
-    data: T[];
-
-    @ApiPropertyOptional()
-    total?: number;
-
-    @ApiPropertyOptional()
-    page?: number;
-
-    @ApiPropertyOptional()
-    limit?: number;
-
-    @ApiPropertyOptional()
-    totalPages?: number;
-
-    @ApiPropertyOptional()
-    hasNext?: boolean;
-
-    @ApiPropertyOptional()
-    hasPrev?: boolean;
+    data!: T[];
 
     @ApiPropertyOptional()
     meta?: {

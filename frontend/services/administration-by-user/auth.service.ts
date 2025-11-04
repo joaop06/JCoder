@@ -1,5 +1,5 @@
-import { ApiService } from "./api.service";
-import { SignInDto, SignInResponseDto } from "@/types/api/sign-in.dto";
+import { ApiService } from "../api.service";
+import { SignInDto, SignInResponseDto } from "@/types";
 
 export const AuthService = {
     /**

@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { PaginationMeta } from '@/types/api/pagination.type';
+import { PaginationMeta } from '@/types/api/pagination.dto';
 
 interface PaginationProps {
     meta: PaginationMeta;

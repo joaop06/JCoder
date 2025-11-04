@@ -1,16 +1,18 @@
-import { ApiService } from './api.service';
-import { Technology } from '@/types/entities/technology.entity';
-import { CreateTechnologyDto } from '@/types/entities/dtos/create-technology.dto';
-import { UpdateTechnologyDto } from '@/types/entities/dtos/update-technology.dto';
-import { ReorderTechnologyDto } from '@/types/entities/dtos/reorder-technology.dto';
-import { PaginationDto, PaginatedResponse } from '@/types/api/pagination.type';
+import {
+    Technology,
+    PaginationDto,
+    CreateTechnologyDto,
+    UpdateTechnologyDto,
+    PaginatedResponseDto,
+} from '@/types';
+import { ApiService } from '../api.service';
 
 export const TechnologiesService = {
     /**
      * Get all technologies with pagination
      * GET /:username/technologies
      */
-    async findAll(username: string, pagination: PaginationDto = {}): Promise<PaginatedResponse<Technology>> {
+    async findAll(username: string, pagination: PaginationDto = {}): Promise<PaginatedResponseDto<Technology>> {
         try {
             const params = new URLSearchParams();
             if (pagination.page) params.append('page', pagination.page.toString());
@@ -84,8 +86,9 @@ export const TechnologiesService = {
      */
     async reorder(username: string, id: number, displayOrder: number): Promise<Technology> {
         try {
-            const payload: ReorderTechnologyDto = { displayOrder };
-            const response = await ApiService.put(`/${username}/technologies/${id}/reorder`, payload);
+            const response = await ApiService.put(`/${username}/technologies/${id}/reorder`, {
+                displayOrder,
+            });
             return response.data.data;
         } catch (error) {
             throw error;

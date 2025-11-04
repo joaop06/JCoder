@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useState, useCallback } from 'react';
 import { AuthService } from '@/services/auth.service';
 import { useToast } from '@/components/toast/ToastContext';
-import type { LoginResponse } from '@/types/api/sign-in.dto';
+import type { LoginResponse } from '@/types/api/auth/sign-in.dto';
 
 export default function LoginPage() {
   const router = useRouter();

@@ -51,8 +51,8 @@ export class ApplicationsService {
             limit,
             total,
             totalPages,
-            hasNextPage: page < totalPages,
             hasPreviousPage: page > 1,
+            hasNextPage: page < totalPages,
           },
         };
       },

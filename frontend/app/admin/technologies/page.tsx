@@ -5,7 +5,7 @@ import Header from '@/components/Header';
 import { useRouter } from 'next/navigation';
 import { LazyImage, TableSkeleton, ManagementTable } from '@/components/ui';
 import { useToast } from '@/components/toast/ToastContext';
-import { PaginationDto } from '@/types/api/pagination.type';
+import { PaginationDto } from '@/types/api/pagination.dto';
 import { Technology } from '@/types/entities/technology.entity';
 import { ExpertiseLevel } from '@/types/enums/expertise-level.enum';
 import { TechnologiesService } from '@/services/technologies.service';
