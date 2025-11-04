@@ -2,7 +2,7 @@ import { Repository } from 'typeorm';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ResourceType } from '../enums/resource-type.enum';
-import { CacheService } from '../../@common/services/cache.service';
+import { CacheService } from '../../../@common/services/cache.service';
 import { ImageStorageService } from '../services/image-storage.service';
 import { Application } from '../../applications/entities/application.entity';
 import { ApplicationNotFoundException } from '../../applications/exceptions/application-not-found.exception';

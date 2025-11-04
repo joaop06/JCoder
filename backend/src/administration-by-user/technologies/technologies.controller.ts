@@ -14,7 +14,7 @@ import {
 } from '@nestjs/common';
 import { Technology } from './entities/technology.entity';
 import { TechnologiesService } from './technologies.service';
-import { JwtAuthGuard } from '../@common/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '../../@common/guards/jwt-auth.guard';
 import { CreateTechnologyDto } from './dto/create-technology.dto';
 import { UpdateTechnologyDto } from './dto/update-technology.dto';
 import { ReorderTechnologyDto } from './dto/reorder-technology.dto';
@@ -23,12 +23,12 @@ import { CreateTechnologyUseCase } from './use-cases/create-technology.use-case'
 import { DeleteTechnologyUseCase } from './use-cases/delete-technology.use-case';
 import { UpdateTechnologyUseCase } from './use-cases/update-technology.use-case';
 import { ReorderTechnologyUseCase } from './use-cases/reorder-technology.use-case';
-import { PaginationDto, PaginatedResponseDto } from '../@common/dto/pagination.dto';
+import { PaginationDto, PaginatedResponseDto } from '../../@common/dto/pagination.dto';
 import { TechnologyNotFoundException } from './exceptions/technology-not-found.exception';
 import { ApiBearerAuth, ApiNoContentResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { TechnologyAlreadyExistsException } from './exceptions/technology-already-exists.exception';
 import { TechnologyAlreadyDeletedException } from './exceptions/technology-already-deleted.exception';
-import { ApiExceptionResponse } from '../@common/decorators/documentation/api-exception-response.decorator';
+import { ApiExceptionResponse } from '../../@common/decorators/documentation/api-exception-response.decorator';
 
 @ApiBearerAuth()
 @Controller(':username/technologies')

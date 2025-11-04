@@ -5,7 +5,7 @@ import { CacheModule } from '@nestjs/cache-manager';
 import { ImagesModule } from '../images/images.module';
 import { Technology } from './entities/technology.entity';
 import { TechnologiesService } from './technologies.service';
-import { CacheService } from '../@common/services/cache.service';
+import { CacheService } from '../../@common/services/cache.service';
 import { TechnologiesController } from './technologies.controller';
 import { CreateTechnologyUseCase } from './use-cases/create-technology.use-case';
 import { UpdateTechnologyUseCase } from './use-cases/update-technology.use-case';

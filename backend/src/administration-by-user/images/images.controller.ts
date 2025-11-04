@@ -17,14 +17,14 @@ import * as fs from 'fs';
 import { Response } from 'express';
 import { User } from '../users/entities/user.entity';
 import { FilesInterceptor } from '@nestjs/platform-express';
-import { JwtAuthGuard } from '../@common/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '../../@common/guards/jwt-auth.guard';
 import { Technology } from '../technologies/entities/technology.entity';
 import { Application } from '../applications/entities/application.entity';
 import { UserNotFoundException } from '../users/exceptions/user-not-found.exception';
 import { ApiBearerAuth, ApiNoContentResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { TechnologyNotFoundException } from '../technologies/exceptions/technology-not-found.exception';
 import { ApplicationNotFoundException } from '../applications/exceptions/application-not-found.exception';
-import { ApiExceptionResponse } from '../@common/decorators/documentation/api-exception-response.decorator';
+import { ApiExceptionResponse } from '../../@common/decorators/documentation/api-exception-response.decorator';
 
 // Application use cases
 import { GetImageUseCase } from './use-cases/get-image.use-case';

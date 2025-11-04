@@ -6,7 +6,7 @@ import { PassportModule } from '@nestjs/passport';
 import { AuthController } from './auth.controller';
 import { UsersModule } from '../users/users.module';
 import { SignInUseCase } from './use-cases/sign-in.use-case';
-import { JwtStrategy } from '../@common/strategies/jwt.strategy';
+import { JwtStrategy } from '../../@common/strategies/jwt.strategy';
 
 config();
 const configService = new ConfigService();

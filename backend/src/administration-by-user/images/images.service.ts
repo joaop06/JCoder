@@ -1,7 +1,7 @@
 import { Repository } from 'typeorm';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CacheService } from '../@common/services/cache.service';
+import { CacheService } from '../../@common/services/cache.service';
 import { ImageUploadService } from './services/image-upload.service';
 import { Application } from '../applications/entities/application.entity';
 import { ApplicationNotFoundException } from '../applications/exceptions/application-not-found.exception';

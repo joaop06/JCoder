@@ -3,13 +3,13 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UsersService } from '../users/users.service';
 import { Application } from './entities/application.entity';
-import { CacheService } from '../@common/services/cache.service';
+import { CacheService } from '../../@common/services/cache.service';
 import { ApplicationsStatsDto } from './dto/applications-stats.dto';
 import { CreateApplicationDto } from './dto/create-application.dto';
 import { UpdateApplicationDto } from './dto/update-application.dto';
 import { Technology } from '../technologies/entities/technology.entity';
 import { ImageUploadService } from '../images/services/image-upload.service';
-import { PaginationDto, PaginatedResponseDto } from '../@common/dto/pagination.dto';
+import { PaginationDto, PaginatedResponseDto } from '../../@common/dto/pagination.dto';
 import { ApplicationNotFoundException } from './exceptions/application-not-found.exception';
 
 @Injectable()

@@ -1,6 +1,6 @@
-import { UsersService } from '../../users/users.service';
+import { UsersService } from '../../administration-by-user/users/users.service';
 import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
-import { UnauthorizedAccessException } from '../../users/exceptions/unauthorized-access.exception';
+import { UnauthorizedAccessException } from '../../administration-by-user/users/exceptions/unauthorized-access.exception';
 
 @Injectable()
 export class OwnerGuard implements CanActivate {

@@ -2,12 +2,12 @@ import { Repository } from 'typeorm';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Technology } from './entities/technology.entity';
-import { CacheService } from '../@common/services/cache.service';
+import { CacheService } from '../../@common/services/cache.service';
 import { CreateTechnologyDto } from './dto/create-technology.dto';
 import { UpdateTechnologyDto } from './dto/update-technology.dto';
 import { TechnologiesStatsDto } from './dto/technologies-stats.dto';
 import { ImageUploadService } from '../images/services/image-upload.service';
-import { PaginationDto, PaginatedResponseDto } from '../@common/dto/pagination.dto';
+import { PaginationDto, PaginatedResponseDto } from '../../@common/dto/pagination.dto';
 import { TechnologyNotFoundException } from './exceptions/technology-not-found.exception';
 
 @Injectable()

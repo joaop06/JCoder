@@ -6,7 +6,7 @@ import { Application } from '../applications/entities/application.entity';
 import { Technology } from '../technologies/entities/technology.entity';
 import { User } from '../users/entities/user.entity';
 import { ImagesService } from './images.service';
-import { CacheService } from '../@common/services/cache.service';
+import { CacheService } from '../../@common/services/cache.service';
 import { ImagesController } from './images.controller';
 import { ImageUploadService } from './services/image-upload.service';
 import { ImageStorageService } from './services/image-storage.service';

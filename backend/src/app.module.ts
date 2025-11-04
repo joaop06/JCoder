@@ -1,14 +1,14 @@
 import { Module } from '@nestjs/common';
 import { WinstonModule } from 'nest-winston';
 import { ConfigModule } from '@nestjs/config';
-import { AuthModule } from './auth/auth.module';
-import { UsersModule } from './users/users.module';
+import { AuthModule } from './administration-by-user/auth/auth.module';
+import { UsersModule } from './administration-by-user/users/users.module';
 import { ThrottlerModule } from '@nestjs/throttler';
-import { HealthModule } from './health/health.module';
-import { ImagesModule } from './images/images.module';
+import { HealthModule } from './administration-by-user/health/health.module';
+import { ImagesModule } from './administration-by-user/images/images.module';
 import { loggerConfig } from './@common/config/logger.config';
-import { ApplicationsModule } from './applications/applications.module';
-import { TechnologiesModule } from './technologies/technologies.module';
+import { ApplicationsModule } from './administration-by-user/applications/applications.module';
+import { TechnologiesModule } from './administration-by-user/technologies/technologies.module';
 import { TypeormMysqlModule } from './@common/database/typeorm-mysql-module';
 
 @Module({

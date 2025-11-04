@@ -3,7 +3,7 @@ import { UsersService } from '../../users.service';
 import { UserComponentsRepository } from '../repositories';
 import { UserComponentCertificateDto } from '../dto/user-component-certificate.dto';
 import { UserComponentCertificate } from '../entities/user-component-certificate.entity';
-import { PaginatedResponseDto, PaginationDto } from '../../../@common/dto/pagination.dto';
+import { PaginatedResponseDto, PaginationDto } from '../../../../@common/dto/pagination.dto';
 import { UpdateUserComponentCertificateDto } from '../dto/update-user-component-certificate.dto';
 
 @Injectable()

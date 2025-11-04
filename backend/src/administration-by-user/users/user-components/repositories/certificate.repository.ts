@@ -3,9 +3,9 @@ import { Injectable } from '@nestjs/common';
 import { User } from '../../entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EducationRepository } from './education.repository';
-import { CacheService } from '../../../@common/services/cache.service';
+import { CacheService } from '../../../../@common/services/cache.service';
 import { UserComponentCertificate } from '../entities/user-component-certificate.entity';
-import { PaginationDto, PaginatedResponseDto } from '../../../@common/dto/pagination.dto';
+import { PaginationDto, PaginatedResponseDto } from '../../../../@common/dto/pagination.dto';
 import { CertificateNotFoundException } from '../exceptions/certificate-not-found.exception';
 
 @Injectable()

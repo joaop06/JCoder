@@ -2,9 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { User } from '../../entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, Repository } from 'typeorm';
-import { CacheService } from '../../../@common/services/cache.service';
+import { CacheService } from '../../../../@common/services/cache.service';
 import { UserComponentExperience } from '../entities/user-component-experience.entity';
-import { PaginationDto, PaginatedResponseDto } from '../../../@common/dto/pagination.dto';
+import { PaginationDto, PaginatedResponseDto } from '../../../../@common/dto/pagination.dto';
 import { UserComponentExperiencePosition } from '../entities/user-component-experience-position.entity';
 
 @Injectable()

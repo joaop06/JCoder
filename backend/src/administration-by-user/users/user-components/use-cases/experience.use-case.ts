@@ -3,7 +3,7 @@ import { UserComponentsRepository } from '../repositories';
 import { UsersService } from '../../../users/users.service';
 import { UserComponentExperienceDto } from '../dto/user-component-experience.dto';
 import { UserComponentExperience } from '../entities/user-component-experience.entity';
-import { PaginatedResponseDto, PaginationDto } from '../../../@common/dto/pagination.dto';
+import { PaginatedResponseDto, PaginationDto } from '../../../../@common/dto/pagination.dto';
 import { UpdateUserComponentExperienceDto } from '../dto/update-user-component-experience.dto';
 
 @Injectable()

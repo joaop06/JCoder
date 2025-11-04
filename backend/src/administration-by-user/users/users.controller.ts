@@ -32,9 +32,9 @@ import {
     UpdateCertificateUseCase,
 } from './user-components/use-cases/certificate.use-case';
 import { User } from './entities/user.entity';
-import { OwnerGuard } from '../@common/guards/owner.guard';
+import { OwnerGuard } from '../../@common/guards/owner.guard';
 import { UpdateProfileDto } from './dto/update-profile.dto';
-import { JwtAuthGuard } from '../@common/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '../../@common/guards/jwt-auth.guard';
 import { GetProfileUseCase } from './use-cases/get-profile.use-case';
 import { UpdateProfileUseCase } from './use-cases/update-profile.use-case';
 import { UserNotFoundException } from './exceptions/user-not-found.exception';
@@ -52,7 +52,7 @@ import { UpdateAboutMeUseCase, GetAboutMeUseCase } from './user-components/use-c
 import { UserComponentCertificate } from './user-components/entities/user-component-certificate.entity';
 import { ComponentNotFoundException } from './user-components/exceptions/component-not-found.exceptions';
 import { UpdateUserComponentAboutMeDto } from './user-components/dto/update-user-component-about-me.dto';
-import { ApiExceptionResponse } from '../@common/decorators/documentation/api-exception-response.decorator';
+import { ApiExceptionResponse } from '../../@common/decorators/documentation/api-exception-response.decorator';
 import { UpdateUserComponentEducationDto } from './user-components/dto/update-user-component-education.dto';
 import { UpdateUserComponentExperienceDto } from './user-components/dto/update-user-component-experience.dto';
 import { InvalidEducationDatesException } from './user-components/exceptions/invalid-education-dates.exception';

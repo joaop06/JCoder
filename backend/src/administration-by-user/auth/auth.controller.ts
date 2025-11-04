@@ -11,7 +11,7 @@ import { ApiOkResponse } from '@nestjs/swagger';
 import { SignInUseCase } from './use-cases/sign-in.use-case';
 import { SignInResponseDto } from './dto/sign-in-response.dto';
 import { PasswordDoesNotMatchException } from './exceptions/password-does-not-match.exception';
-import { ApiExceptionResponse } from '../@common/decorators/documentation/api-exception-response.decorator';
+import { ApiExceptionResponse } from '../../@common/decorators/documentation/api-exception-response.decorator';
 
 @Controller('auth')
 export class AuthController {

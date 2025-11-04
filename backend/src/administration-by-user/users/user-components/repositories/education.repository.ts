@@ -2,9 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { User } from '../../entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, FindOptionsWhere, In } from 'typeorm';
-import { CacheService } from '../../../@common/services/cache.service';
+import { CacheService } from '../../../../@common/services/cache.service';
 import { UserComponentEducation } from '../entities/user-component-education.entity';
-import { PaginationDto, PaginatedResponseDto } from '../../../@common/dto/pagination.dto';
+import { PaginationDto, PaginatedResponseDto } from '../../../../@common/dto/pagination.dto';
 import { EducationNotFoundException } from '../exceptions/education-not-found.exception';
 
 @Injectable()

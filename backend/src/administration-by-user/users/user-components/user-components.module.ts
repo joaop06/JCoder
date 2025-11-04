@@ -24,7 +24,7 @@ import { UsersModule } from '../users.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Module, forwardRef } from '@nestjs/common';
 import { CacheModule } from '@nestjs/cache-manager';
-import { CacheService } from '../../@common/services/cache.service';
+import { CacheService } from '../../../@common/services/cache.service';
 import { AboutMeRepository } from './repositories/about-me.repository';
 import { EducationRepository } from './repositories/education.repository';
 import { ExperienceRepository } from './repositories/experience.repository';
