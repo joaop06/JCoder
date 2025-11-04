@@ -26,7 +26,6 @@ export class ApplicationsService {
   ) { }
 
   async findAll(username: string, paginationDto: PaginationDto): Promise<PaginatedResponseDto<Application>> {
-    const userId = await this.usersService.findUserIdByUsername(username);
     const { page = 1, limit = 10, sortBy = 'displayOrder', sortOrder = 'ASC' } = paginationDto;
     const skip = (page - 1) * limit;
 
@@ -36,9 +35,9 @@ export class ApplicationsService {
       cacheKey,
       async () => {
         const [data, total] = await this.repository.findAndCount({
-          where: { userId },
           skip,
           take: limit,
+          where: { username },
           order: { [sortBy]: sortOrder },
         });
 
@@ -61,14 +60,13 @@ export class ApplicationsService {
   }
 
   async findById(id: number, username: string): Promise<Application> {
-    const userId = await this.usersService.findUserIdByUsername(username);
     const cacheKey = this.cacheService.applicationKey(id, 'full', username);
 
     return await this.cacheService.getOrSet(
       cacheKey,
       async () => {
         const application = await this.repository.findOne({
-          where: { id, userId },
+          where: { id, username },
           relations: {
             technologies: true,
             applicationComponentApi: true,
@@ -85,8 +83,7 @@ export class ApplicationsService {
   }
 
   async existsByApplicationNameAndUsername(username: string, name: string): Promise<Application | null> {
-    const userId = await this.usersService.findUserIdByUsername(username);
-    return await this.repository.findOneBy({ userId, name });
+    return await this.repository.findOneBy({ username, name });
   }
 
   async create(createApplicationDto: CreateApplicationDto): Promise<Application> {
@@ -138,13 +135,13 @@ export class ApplicationsService {
    * Increments displayOrder of all applications that have displayOrder >= startPosition
    * Used when inserting a new application at a specific position
    */
-  async incrementDisplayOrderFrom(startPosition: number, userId: number): Promise<void> {
+  async incrementDisplayOrderFrom(startPosition: number, username: string): Promise<void> {
     await this.repository
       .createQueryBuilder()
       .update(Application)
       .set({ displayOrder: () => 'displayOrder + 1' })
       .where('displayOrder >= :startPosition', { startPosition })
-      .andWhere('userId = :userId', { userId })
+      .andWhere('username = :username', { username })
       .execute();
   }
 
@@ -159,7 +156,7 @@ export class ApplicationsService {
     id: number,
     oldPosition: number,
     newPosition: number,
-    userId: number,
+    username: string,
   ): Promise<void> {
     if (oldPosition === newPosition) {
       return; // No reordering needed
@@ -174,7 +171,7 @@ export class ApplicationsService {
         .where('displayOrder >= :newPosition', { newPosition })
         .andWhere('displayOrder < :oldPosition', { oldPosition })
         .andWhere('id != :id', { id })
-        .andWhere('userId = :userId', { userId })
+        .andWhere('username = :username', { username })
         .execute();
     } else {
       // Moving down: decrement displayOrder of applications between old and new position
@@ -185,7 +182,7 @@ export class ApplicationsService {
         .where('displayOrder > :oldPosition', { oldPosition })
         .andWhere('displayOrder <= :newPosition', { newPosition })
         .andWhere('id != :id', { id })
-        .andWhere('userId = :userId', { userId })
+        .andWhere('username = :username', { username })
         .execute();
     }
   }
@@ -194,15 +191,15 @@ export class ApplicationsService {
    * Decrements displayOrder of all applications that have displayOrder > deletedPosition
    * Used when deleting an application to adjust the order of remaining applications
    * @param deletedPosition - The displayOrder of the deleted application
-   * @param userId - User ID to scope the reordering
+   * @param username - User username to scope the reordering
    */
-  async decrementDisplayOrderAfter(deletedPosition: number, userId: number): Promise<void> {
+  async decrementDisplayOrderAfter(deletedPosition: number, username: string): Promise<void> {
     await this.repository
       .createQueryBuilder()
       .update(Application)
       .set({ displayOrder: () => 'displayOrder - 1' })
       .where('displayOrder > :deletedPosition', { deletedPosition })
-      .andWhere('userId = :userId', { userId })
+      .andWhere('username = :username', { username })
       .execute();
   }
 
@@ -262,16 +259,15 @@ export class ApplicationsService {
    * Get applications statistics by username (active and inactive counts)
    */
   async getStats(username: string): Promise<{ active: number; inactive: number; total: number }> {
-    const userId = await this.usersService.findUserIdByUsername(username);
     const cacheKey = this.cacheService.generateKey('applications', 'stats', username);
 
     return await this.cacheService.getOrSet(
       cacheKey,
       async () => {
-        const [active, inactive, total] = await Promise.all([
-          this.repository.count({ where: { userId, isActive: true } }),
-          this.repository.count({ where: { userId, isActive: false } }),
-          this.repository.count({ where: { userId } }),
+        const [total, active, inactive] = await Promise.all([
+          this.repository.count({ where: { username } }),
+          this.repository.count({ where: { username, isActive: true } }),
+          this.repository.count({ where: { username, isActive: false } }),
         ]);
 
         return { active, inactive, total };

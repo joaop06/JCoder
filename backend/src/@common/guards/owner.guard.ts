@@ -1,5 +1,5 @@
-import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { UsersService } from '../../users/users.service';
+import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { UnauthorizedAccessException } from '../../users/exceptions/unauthorized-access.exception';
 
 @Injectable()
@@ -22,7 +22,7 @@ export class OwnerGuard implements CanActivate {
 
         // Otherwise, verify by fetching user from database
         try {
-            const userFromDb = await this.usersService.findByUsername(username);
+            const userFromDb = await this.usersService.findOneBy({ username });
             if (userFromDb.id === user.id) {
                 return true;
             }

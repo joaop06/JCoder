@@ -15,66 +15,67 @@ import {
 } from '@nestjs/common';
 import * as fs from 'fs';
 import { Response } from 'express';
-import { Application } from '../applications/entities/application.entity';
-import { Technology } from '../technologies/entities/technology.entity';
 import { User } from '../users/entities/user.entity';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from '../@common/guards/jwt-auth.guard';
-import { CurrentUser } from '../@common/decorators/current-user/current-user.decorator';
-import { ApiNoContentResponse, ApiOkResponse } from '@nestjs/swagger';
-import { ApiExceptionResponse } from '../@common/decorators/documentation/api-exception-response.decorator';
-import { ApplicationNotFoundException } from '../applications/exceptions/application-not-found.exception';
-import { TechnologyNotFoundException } from '../technologies/exceptions/technology-not-found.exception';
+import { Technology } from '../technologies/entities/technology.entity';
+import { Application } from '../applications/entities/application.entity';
 import { UserNotFoundException } from '../users/exceptions/user-not-found.exception';
+import { ApiBearerAuth, ApiNoContentResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import { TechnologyNotFoundException } from '../technologies/exceptions/technology-not-found.exception';
+import { ApplicationNotFoundException } from '../applications/exceptions/application-not-found.exception';
+import { ApiExceptionResponse } from '../@common/decorators/documentation/api-exception-response.decorator';
 
 // Application use cases
-import { UploadImagesUseCase } from './use-cases/upload-images.use-case';
-import { DeleteImageUseCase } from './use-cases/delete-image.use-case';
 import { GetImageUseCase } from './use-cases/get-image.use-case';
-import { UploadProfileImageUseCase } from './use-cases/upload-profile-image.use-case';
-import { UpdateProfileImageUseCase } from './use-cases/update-profile-image.use-case';
-import { DeleteProfileImageUseCase } from './use-cases/delete-profile-image.use-case';
+import { DeleteImageUseCase } from './use-cases/delete-image.use-case';
+import { UploadImagesUseCase } from './use-cases/upload-images.use-case';
 import { GetProfileImageUseCase } from './use-cases/get-profile-image.use-case';
+import { DeleteProfileImageUseCase } from './use-cases/delete-profile-image.use-case';
+import { UpdateProfileImageUseCase } from './use-cases/update-profile-image.use-case';
+import { UploadProfileImageUseCase } from './use-cases/upload-profile-image.use-case';
 
 // Technology use cases
-import { UploadTechnologyProfileImageUseCase } from './use-cases/upload-technology-profile-image.use-case';
-import { DeleteTechnologyProfileImageUseCase } from './use-cases/delete-technology-profile-image.use-case';
 import { GetTechnologyProfileImageUseCase } from './use-cases/get-technology-profile-image.use-case';
+import { DeleteTechnologyProfileImageUseCase } from './use-cases/delete-technology-profile-image.use-case';
+import { UploadTechnologyProfileImageUseCase } from './use-cases/upload-technology-profile-image.use-case';
 
 // User use cases
-import { UploadUserProfileImageUseCase } from './use-cases/upload-user-profile-image.use-case';
-import { DeleteUserProfileImageUseCase } from './use-cases/delete-user-profile-image.use-case';
 import { GetUserProfileImageUseCase } from './use-cases/get-user-profile-image.use-case';
+import { DeleteUserProfileImageUseCase } from './use-cases/delete-user-profile-image.use-case';
+import { UploadUserProfileImageUseCase } from './use-cases/upload-user-profile-image.use-case';
 
 // Certificate use cases
-import { UploadCertificateImageUseCase } from './use-cases/upload-certificate-image.use-case';
-import { DeleteCertificateImageUseCase } from './use-cases/delete-certificate-image.use-case';
 import { GetCertificateImageUseCase } from './use-cases/get-certificate-image.use-case';
+import { DeleteCertificateImageUseCase } from './use-cases/delete-certificate-image.use-case';
+import { UploadCertificateImageUseCase } from './use-cases/upload-certificate-image.use-case';
 
-@Controller('images')
+@ApiBearerAuth()
+@Controller(':username/images')
+@ApiTags('Administration Images')
 export class ImagesController {
     constructor(
-        private readonly uploadImagesUseCase: UploadImagesUseCase,
-        private readonly deleteImageUseCase: DeleteImageUseCase,
         private readonly getImageUseCase: GetImageUseCase,
-        private readonly uploadProfileImageUseCase: UploadProfileImageUseCase,
-        private readonly updateProfileImageUseCase: UpdateProfileImageUseCase,
-        private readonly deleteProfileImageUseCase: DeleteProfileImageUseCase,
+        private readonly deleteImageUseCase: DeleteImageUseCase,
+        private readonly uploadImagesUseCase: UploadImagesUseCase,
         private readonly getProfileImageUseCase: GetProfileImageUseCase,
+        private readonly deleteProfileImageUseCase: DeleteProfileImageUseCase,
+        private readonly updateProfileImageUseCase: UpdateProfileImageUseCase,
+        private readonly uploadProfileImageUseCase: UploadProfileImageUseCase,
+        private readonly getCertificateImageUseCase: GetCertificateImageUseCase,
+        private readonly getUserProfileImageUseCase: GetUserProfileImageUseCase,
+        private readonly deleteCertificateImageUseCase: DeleteCertificateImageUseCase,
+        private readonly deleteUserProfileImageUseCase: DeleteUserProfileImageUseCase,
+        private readonly uploadCertificateImageUseCase: UploadCertificateImageUseCase,
+        private readonly uploadUserProfileImageUseCase: UploadUserProfileImageUseCase,
+        private readonly getTechnologyProfileImageUseCase: GetTechnologyProfileImageUseCase,
         private readonly uploadTechnologyProfileImageUseCase: UploadTechnologyProfileImageUseCase,
         private readonly deleteTechnologyProfileImageUseCase: DeleteTechnologyProfileImageUseCase,
-        private readonly getTechnologyProfileImageUseCase: GetTechnologyProfileImageUseCase,
-        private readonly uploadUserProfileImageUseCase: UploadUserProfileImageUseCase,
-        private readonly deleteUserProfileImageUseCase: DeleteUserProfileImageUseCase,
-        private readonly getUserProfileImageUseCase: GetUserProfileImageUseCase,
-        private readonly uploadCertificateImageUseCase: UploadCertificateImageUseCase,
-        private readonly deleteCertificateImageUseCase: DeleteCertificateImageUseCase,
-        private readonly getCertificateImageUseCase: GetCertificateImageUseCase,
     ) { }
 
     // ==================== APPLICATION ENDPOINTS ====================
 
-    @Post('applications/:id/images')
+    @Post('applications/:id')
     @UseGuards(JwtAuthGuard)
     @UseInterceptors(FilesInterceptor('images', 10, {
         limits: {
@@ -98,7 +99,7 @@ export class ImagesController {
         return await this.uploadImagesUseCase.execute(id, files);
     }
 
-    @Get('applications/:id/images/:filename')
+    @Get('applications/:id/:filename')
     @ApiOkResponse({ description: 'Image file' })
     @ApiExceptionResponse(() => ApplicationNotFoundException)
     async getImage(
@@ -117,7 +118,7 @@ export class ImagesController {
         fileStream.pipe(res);
     }
 
-    @Delete('applications/:id/images/:filename')
+    @Delete('applications/:id/:filename')
     @UseGuards(JwtAuthGuard)
     @HttpCode(HttpStatus.NO_CONTENT)
     @ApiNoContentResponse()
@@ -272,7 +273,7 @@ export class ImagesController {
 
     // ==================== USER ENDPOINTS ====================
 
-    @Post('users/profile-image')
+    @Post('users/:id/profile-image')
     @UseGuards(JwtAuthGuard)
     @HttpCode(HttpStatus.OK)
     @UseInterceptors(FilesInterceptor('profileImage', 1, {
@@ -291,21 +292,21 @@ export class ImagesController {
     @ApiOkResponse({ type: () => User })
     @ApiExceptionResponse(() => UserNotFoundException)
     async uploadUserProfileImage(
-        @CurrentUser() user: User,
+        @Param('id', ParseIntPipe) id: number,
         @UploadedFiles() files: Express.Multer.File[],
     ): Promise<User> {
         if (!files || files.length === 0) {
             throw new Error('No file uploaded');
         }
-        return await this.uploadUserProfileImageUseCase.execute(user.id, files[0]);
+        return await this.uploadUserProfileImageUseCase.execute(id, files[0]);
     }
 
     @Get('users/:id/profile-image')
     @ApiOkResponse({ description: 'User profile image file' })
     @ApiExceptionResponse(() => UserNotFoundException)
     async getUserProfileImage(
-        @Param('id', ParseIntPipe) id: number,
         @Res() res: Response,
+        @Param('id', ParseIntPipe) id: number,
     ): Promise<void> {
         const imagePath = await this.getUserProfileImageUseCase.execute(id);
 
@@ -318,15 +319,15 @@ export class ImagesController {
         fileStream.pipe(res);
     }
 
-    @Delete('users/profile-image')
+    @Delete('users/:id/profile-image')
     @UseGuards(JwtAuthGuard)
     @HttpCode(HttpStatus.NO_CONTENT)
     @ApiNoContentResponse()
     @ApiExceptionResponse(() => UserNotFoundException)
     async deleteUserProfileImage(
-        @CurrentUser() user: User,
+        @Param('id', ParseIntPipe) id: number,
     ): Promise<void> {
-        await this.deleteUserProfileImageUseCase.execute(user.id);
+        await this.deleteUserProfileImageUseCase.execute(id);
     }
 
     // ==================== USER CERTIFICATES ENDPOINTS ====================
@@ -350,23 +351,24 @@ export class ImagesController {
     @ApiOkResponse({ description: 'Certificate with uploaded image' })
     @ApiExceptionResponse(() => UserNotFoundException)
     async uploadCertificateImage(
-        @CurrentUser() user: User,
+        @Param('username') username: string,
         @Param('certificateId', ParseIntPipe) certificateId: number,
         @UploadedFiles() files: Express.Multer.File[],
     ) {
         if (!files || files.length === 0) {
             throw new Error('No file uploaded');
         }
-        return await this.uploadCertificateImageUseCase.execute(user.id, certificateId, files[0]);
+        return await this.uploadCertificateImageUseCase.execute(username, certificateId, files[0]);
     }
 
     @Get('users/certificates/:certificateId/image')
     @ApiOkResponse({ description: 'Certificate image file' })
     async getCertificateImage(
-        @Param('certificateId', ParseIntPipe) certificateId: number,
         @Res() res: Response,
+        @Param('username') username: string,
+        @Param('certificateId', ParseIntPipe) certificateId: number,
     ): Promise<void> {
-        const imagePath = await this.getCertificateImageUseCase.execute(certificateId);
+        const imagePath = await this.getCertificateImageUseCase.execute(username, certificateId);
 
         res.set({
             'Content-Type': 'image/jpeg',
@@ -382,9 +384,9 @@ export class ImagesController {
     @HttpCode(HttpStatus.NO_CONTENT)
     @ApiNoContentResponse()
     async deleteCertificateImage(
-        @CurrentUser() user: User,
+        @Param('username') username: string,
         @Param('certificateId', ParseIntPipe) certificateId: number,
     ): Promise<void> {
-        await this.deleteCertificateImageUseCase.execute(user.id, certificateId);
+        await this.deleteCertificateImageUseCase.execute(username, certificateId);
     }
-}
+};

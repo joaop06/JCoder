@@ -1,10 +1,10 @@
-import { Injectable } from '@nestjs/common';
 import { Repository } from 'typeorm';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { ResourceType } from '../enums/resource-type.enum';
 import { UserComponentCertificate } from '../../users/user-components/entities/user-component-certificate.entity';
 import { ComponentNotFoundException } from '../../users/user-components/exceptions/component-not-found.exceptions';
 import { ImageStorageService } from '../services/image-storage.service';
-import { ResourceType } from '../enums/resource-type.enum';
 
 /**
  * Use case for getting certificate image path
@@ -17,10 +17,10 @@ export class GetCertificateImageUseCase {
         private readonly imageStorageService: ImageStorageService,
     ) { }
 
-    async execute(certificateId: number): Promise<string> {
+    async execute(username: string, certificateId: number): Promise<string> {
         // Find the certificate
         const certificate = await this.certificateRepository.findOne({
-            where: { userId: certificateId },
+            where: { id: certificateId, username },
         });
 
         if (!certificate) {
@@ -33,7 +33,7 @@ export class GetCertificateImageUseCase {
 
         return await this.imageStorageService.getImagePath(
             ResourceType.User,
-            certificate.userId,
+            certificate.username,
             certificate.profileImage,
             'certificates',
         );

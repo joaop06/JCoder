@@ -1,10 +1,10 @@
-import { Injectable } from '@nestjs/common';
 import { Repository } from 'typeorm';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { ResourceType } from '../enums/resource-type.enum';
+import { ImageStorageService } from '../services/image-storage.service';
 import { UserComponentCertificate } from '../../users/user-components/entities/user-component-certificate.entity';
 import { ComponentNotFoundException } from '../../users/user-components/exceptions/component-not-found.exceptions';
-import { ImageStorageService } from '../services/image-storage.service';
-import { ResourceType } from '../enums/resource-type.enum';
 
 /**
  * Use case for deleting certificate images
@@ -17,10 +17,10 @@ export class DeleteCertificateImageUseCase {
         private readonly imageStorageService: ImageStorageService,
     ) { }
 
-    async execute(userId: number, certificateId: number): Promise<UserComponentCertificate> {
+    async execute(username: string, certificateId: number): Promise<UserComponentCertificate> {
         // Find the certificate
         const certificate = await this.certificateRepository.findOne({
-            where: { userId: certificateId },
+            where: { id: certificateId, username },
         });
 
         if (!certificate) {
@@ -28,7 +28,7 @@ export class DeleteCertificateImageUseCase {
         }
 
         // Verify ownership
-        if (certificate.userId !== userId) {
+        if (certificate.username !== username) {
             throw new ComponentNotFoundException('Certificate not found');
         }
 
@@ -39,7 +39,7 @@ export class DeleteCertificateImageUseCase {
         // Delete the image file
         await this.imageStorageService.deleteImage(
             ResourceType.User,
-            userId,
+            certificate.username,
             certificate.profileImage,
             'certificates',
         );
@@ -48,5 +48,4 @@ export class DeleteCertificateImageUseCase {
         certificate.profileImage = null;
         return await this.certificateRepository.save(certificate);
     }
-}
-
+};

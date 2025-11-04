@@ -14,6 +14,7 @@ import { UserComponentAboutMe } from '../user-components/entities/user-component
 import { UserComponentEducation } from '../user-components/entities/user-component-education.entity';
 import { UserComponentExperience } from '../user-components/entities/user-component-experience.entity';
 import { UserComponentCertificate } from '../user-components/entities/user-component-certificate.entity';
+import { Application } from 'src/applications/entities/application.entity';
 
 @Entity('users')
 export class User {
@@ -119,12 +120,22 @@ export class User {
   userComponentExperience?: UserComponentExperience[];
 
   @ApiPropertyOptional({
+    isArray: true,
     nullable: true,
     type: () => Array,
     description: 'Certificate components',
   })
   @OneToMany(() => UserComponentCertificate, (certificate) => certificate.user)
   userComponentCertificate?: UserComponentCertificate[];
+
+  @ApiPropertyOptional({
+    isArray: true,
+    nullable: true,
+    type: () => Application,
+    description: 'Applications',
+  })
+  @OneToMany(() => Application, (application) => application.user)
+  applications?: Application[];
 
   @ApiProperty({
     nullable: false,

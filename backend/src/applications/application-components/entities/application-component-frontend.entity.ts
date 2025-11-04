@@ -28,17 +28,19 @@ export class ApplicationComponentFrontend {
     application: Application;
 
     @ApiProperty({
-        example: 1,
-        type: 'number',
+        type: 'string',
         nullable: false,
-        description: 'User ID that owns this component',
+        example: 'johndoe',
+        description: 'Unique username used for login',
     })
-    @PrimaryColumn()
-    userId: number;
+    @Column({ nullable: false })
+    username: string;
 
-    @ManyToOne(() => User, { nullable: false, onDelete: 'CASCADE' })
-    @JoinColumn({ name: 'userId' })
-    user: User;
+    @ManyToOne(() => User, (user) => user.applications, {
+        onDelete: 'CASCADE',
+    })
+    @JoinColumn({ name: 'username' })
+    user?: User;
 
     @ApiProperty({
         nullable: false,

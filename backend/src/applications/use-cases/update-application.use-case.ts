@@ -1,5 +1,4 @@
 import { Injectable } from "@nestjs/common";
-import { UsersService } from "../../users/users.service";
 import { Application } from "../entities/application.entity";
 import { ApplicationsService } from "../applications.service";
 import { UpdateApplicationDto } from "../dto/update-application.dto";
@@ -11,7 +10,6 @@ export class UpdateApplicationUseCase {
     constructor(
         private readonly applicationsService: ApplicationsService,
         private readonly applicationComponentsService: ApplicationComponentsService,
-        private readonly usersService: UsersService,
     ) { }
 
     async execute(username: string, id: Application['id'], updateApplicationDto: UpdateApplicationDto): Promise<Application> {
@@ -27,10 +25,9 @@ export class UpdateApplicationUseCase {
         /**
          * Update the components from application
          */
-        const userId = await this.usersService.findUserIdByUsername(username);
         await this.applicationComponentsService.saveComponentsForType({
+            username,
             application,
-            userId,
             applicationType: updateApplicationDto.applicationType,
             dtos: {
                 applicationComponentApi: updateApplicationDto.applicationComponentApi,

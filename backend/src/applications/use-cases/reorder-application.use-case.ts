@@ -24,23 +24,19 @@ export class ReorderApplicationUseCase {
             return existingApplication;
         }
 
-        // Get userId for reordering
-        const userId = await this.usersService.findUserIdByUsername(username);
-
         // Reorder other applications
         await this.applicationsService.reorderOnUpdate(
             id,
             existingApplication.displayOrder,
             reorderApplicationDto.displayOrder,
-            userId,
+            username,
         );
 
         // Update the application's displayOrder
-        const updated = await this.applicationsService.update(id, {
+        await this.applicationsService.update(id, {
             displayOrder: reorderApplicationDto.displayOrder,
         });
 
         return await this.applicationsService.findById(id, username);
     }
-}
-
+};

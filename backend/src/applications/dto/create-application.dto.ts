@@ -26,8 +26,18 @@ export class CreateApplicationDto {
   })
   @IsNotEmpty()
   @IsString()
-  name!: string;
 
+  username!: string;
+  @ApiProperty({
+    type: 'string',
+    required: true,
+    nullable: false,
+    example: 'Any Name',
+    description: 'Your application name',
+  })
+  @IsNotEmpty()
+  @IsString()
+  name!: string;
 
   @ApiProperty({
     type: 'string',

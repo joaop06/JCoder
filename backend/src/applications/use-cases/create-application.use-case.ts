@@ -24,23 +24,20 @@ export class CreateApplicationUseCase {
         // Validate whether components are present based on type
         this.validateDetailsForType(createApplicationDto);
 
-        // Get userId from username
-        const userId = await this.usersService.findUserIdByUsername(username);
-
         // Verify if already exists the Application name for this user
         const exists = await this.applicationsService.existsByApplicationNameAndUsername(username, createApplicationDto.name);
         if (exists) throw new AlreadyExistsApplicationException();
 
         // Increment displayOrder of all existing applications for this user
         // New application will always be inserted at position 1
-        await this.applicationsService.incrementDisplayOrderFrom(1, userId);
+        await this.applicationsService.incrementDisplayOrderFrom(1, username);
 
         // Create the application with displayOrder = 1
         const applicationData = {
             ...createApplicationDto,
-            userId,
+            username,
             displayOrder: 1,
-        } as CreateApplicationDto & { displayOrder: number; userId: number };
+        };
 
         // Create the application with the respective components
         const application = await this.applicationsService.create(applicationData);
@@ -49,8 +46,8 @@ export class CreateApplicationUseCase {
          * Create the components from application
          */
         await this.applicationComponentsService.saveComponentsForType({
+            username,
             application,
-            userId,
             applicationType: createApplicationDto.applicationType,
             dtos: {
                 applicationComponentApi: createApplicationDto.applicationComponentApi,

@@ -1,11 +1,11 @@
-import { Injectable } from '@nestjs/common';
 import { Repository } from 'typeorm';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { ImageType } from '../enums/image-type.enum';
+import { ResourceType } from '../enums/resource-type.enum';
+import { ImageStorageService } from '../services/image-storage.service';
 import { UserComponentCertificate } from '../../users/user-components/entities/user-component-certificate.entity';
 import { ComponentNotFoundException } from '../../users/user-components/exceptions/component-not-found.exceptions';
-import { ImageStorageService } from '../services/image-storage.service';
-import { ResourceType } from '../enums/resource-type.enum';
-import { ImageType } from '../enums/image-type.enum';
 
 /**
  * Use case for uploading certificate images
@@ -19,13 +19,13 @@ export class UploadCertificateImageUseCase {
     ) { }
 
     async execute(
-        userId: number,
+        username: string,
         certificateId: number,
         file: Express.Multer.File,
     ): Promise<UserComponentCertificate> {
         // Find the certificate
         const certificate = await this.certificateRepository.findOne({
-            where: { userId: certificateId },
+            where: { id: certificateId, username },
         });
 
         if (!certificate) {
@@ -33,7 +33,7 @@ export class UploadCertificateImageUseCase {
         }
 
         // Verify ownership
-        if (certificate.userId !== userId) {
+        if (certificate.username !== username) {
             throw new ComponentNotFoundException('Certificate not found');
         }
 
@@ -41,7 +41,7 @@ export class UploadCertificateImageUseCase {
         if (certificate.profileImage) {
             await this.imageStorageService.deleteImage(
                 ResourceType.User,
-                userId,
+                certificate.username,
                 certificate.profileImage,
                 'certificates',
             );
@@ -51,7 +51,7 @@ export class UploadCertificateImageUseCase {
         const filename = await this.imageStorageService.uploadImage(
             file,
             ResourceType.User,
-            userId,
+            certificate.username,
             ImageType.Component,
             'certificates',
         );
@@ -60,5 +60,4 @@ export class UploadCertificateImageUseCase {
         certificate.profileImage = filename;
         return await this.certificateRepository.save(certificate);
     }
-}
-
+};

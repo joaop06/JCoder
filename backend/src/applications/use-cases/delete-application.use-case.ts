@@ -19,9 +19,6 @@ export class DeleteApplicationUseCase {
             throw new AlreadyDeletedApplicationException();
         }
 
-        // Get userId for reordering
-        const userId = await this.usersService.findUserIdByUsername(username);
-
         // Store the displayOrder before deleting
         const deletedDisplayOrder = application.displayOrder;
 
@@ -29,6 +26,6 @@ export class DeleteApplicationUseCase {
         await this.applicationsService.delete(id);
 
         // Reorder remaining applications (decrement displayOrder of applications after the deleted one)
-        await this.applicationsService.decrementDisplayOrderAfter(deletedDisplayOrder, userId);
+        await this.applicationsService.decrementDisplayOrderAfter(deletedDisplayOrder, username);
     }
 };
