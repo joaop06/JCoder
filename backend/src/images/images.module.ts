@@ -29,22 +29,12 @@ import { GetTechnologyProfileImageUseCase } from './use-cases/get-technology-pro
 import { UploadUserProfileImageUseCase } from './use-cases/upload-user-profile-image.use-case';
 import { DeleteUserProfileImageUseCase } from './use-cases/delete-user-profile-image.use-case';
 import { GetUserProfileImageUseCase } from './use-cases/get-user-profile-image.use-case';
-import { UploadUserComponentImageUseCase } from './use-cases/upload-user-component-image.use-case';
-import { DeleteUserComponentImageUseCase } from './use-cases/delete-user-component-image.use-case';
-import { GetUserComponentImageUseCase } from './use-cases/get-user-component-image.use-case';
 
 // Certificate use cases
 import { UploadCertificateImageUseCase } from './use-cases/upload-certificate-image.use-case';
 import { DeleteCertificateImageUseCase } from './use-cases/delete-certificate-image.use-case';
 import { GetCertificateImageUseCase } from './use-cases/get-certificate-image.use-case';
 import { UserComponentCertificate } from '../users/user-components/entities/user-component-certificate.entity';
-
-// Generic use cases
-import { UploadResourceImageUseCase } from './use-cases/upload-resource-image.use-case';
-import { UploadResourceImagesUseCase } from './use-cases/upload-resource-images.use-case';
-import { GetResourceImageUseCase } from './use-cases/get-resource-image.use-case';
-import { DeleteResourceImageUseCase } from './use-cases/delete-resource-image.use-case';
-import { DeleteResourceImagesUseCase } from './use-cases/delete-resource-images.use-case';
 
 @Module({
     providers: [
@@ -72,16 +62,6 @@ import { DeleteResourceImagesUseCase } from './use-cases/delete-resource-images.
         UploadUserProfileImageUseCase,
         DeleteUserProfileImageUseCase,
         GetUserProfileImageUseCase,
-        UploadUserComponentImageUseCase,
-        DeleteUserComponentImageUseCase,
-        GetUserComponentImageUseCase,
-
-        // Generic use cases
-        UploadResourceImageUseCase,
-        UploadResourceImagesUseCase,
-        GetResourceImageUseCase,
-        DeleteResourceImageUseCase,
-        DeleteResourceImagesUseCase,
 
         // Certificate use cases
         UploadCertificateImageUseCase,
@@ -102,17 +82,9 @@ import { DeleteResourceImagesUseCase } from './use-cases/delete-resource-images.
         ImageUploadService,
         ImageStorageService,
         // Export use cases that might be used by other modules
-        UploadResourceImageUseCase,
-        UploadResourceImagesUseCase,
-        GetResourceImageUseCase,
-        DeleteResourceImageUseCase,
-        DeleteResourceImagesUseCase,
         UploadUserProfileImageUseCase,
         DeleteUserProfileImageUseCase,
         GetUserProfileImageUseCase,
-        UploadUserComponentImageUseCase,
-        DeleteUserComponentImageUseCase,
-        GetUserComponentImageUseCase,
         UploadCertificateImageUseCase,
         DeleteCertificateImageUseCase,
         GetCertificateImageUseCase,
