@@ -24,14 +24,14 @@ export class LoggingInterceptor implements NestInterceptor {
 
         // Log request
         this.logger.log({
-            message: 'Incoming request',
-            method,
+            ip,
             url,
-            body: this.sanitizeBody(body),
             query,
+            method,
             params,
             userAgent,
-            ip,
+            message: 'Incoming request',
+            body: this.sanitizeBody(body),
             userId: (request as any).user?.userId,
         });
 

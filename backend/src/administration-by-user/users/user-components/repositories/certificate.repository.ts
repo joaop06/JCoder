@@ -121,12 +121,4 @@ export class CertificateRepository {
         certificate.educations = educations;
         await this.certificateRepository.save(certificate);
     }
-
-    async invalidateCache(userId?: number): Promise<void> {
-        if (userId) {
-            await this.cacheService.del(this.cacheService.generateKey('certificates', 'paginated', userId));
-        } else {
-            await this.cacheService.del(this.cacheService.generateKey('certificates', 'paginated'));
-        }
-    }
 };

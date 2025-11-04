@@ -83,12 +83,4 @@ export class AboutMeRepository {
             aboutMeId,
         });
     }
-
-    async invalidateCache(userId?: number): Promise<void> {
-        if (userId) {
-            await this.cacheService.del(this.cacheService.generateKey('about-me', 'paginated', userId));
-        } else {
-            await this.cacheService.del(this.cacheService.generateKey('about-me', 'paginated'));
-        }
-    }
 };

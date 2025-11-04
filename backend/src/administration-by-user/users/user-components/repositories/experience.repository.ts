@@ -99,12 +99,4 @@ export class ExperienceRepository {
     async deletePositions(where: FindOptionsWhere<UserComponentExperiencePosition>): Promise<void> {
         await this.experiencePositionRepository.delete(where);
     }
-
-    async invalidateCache(userId?: number): Promise<void> {
-        if (userId) {
-            await this.cacheService.del(this.cacheService.generateKey('experiences', 'paginated', userId));
-        } else {
-            await this.cacheService.del(this.cacheService.generateKey('experiences', 'paginated'));
-        }
-    }
 };

@@ -102,8 +102,8 @@ export class UserComponentCertificate {
     })
     @JoinTable({
         name: 'users_certificates_educations',
-        joinColumn: { name: 'certificateId', referencedColumnName: 'userId' },
-        inverseJoinColumn: { name: 'educationId', referencedColumnName: 'userId' },
+        joinColumn: { name: 'certificateId', referencedColumnName: 'username' },
+        inverseJoinColumn: { name: 'educationId', referencedColumnName: 'username' },
     })
     educations?: UserComponentEducation[];
 };
