@@ -7,12 +7,16 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 
 @Injectable()
 export class ImageUploadService {
+    // Path fixo relativo ao módulo de imagens
+    private static readonly STORAGE_BASE_PATH = path.resolve(__dirname, '../../storage');
+    private static readonly APPLICATIONS_PATH = path.join(ImageUploadService.STORAGE_BASE_PATH, 'applications');
+
     private readonly uploadPath: string;
     private readonly maxFileSize: number;
     private readonly allowedMimeTypes: string[];
 
     constructor(private readonly configService: ConfigService) {
-        this.uploadPath = this.configService.get<string>('UPLOAD_PATH', './uploads/applications');
+        this.uploadPath = ImageUploadService.APPLICATIONS_PATH;
         this.maxFileSize = this.configService.get<number>('MAX_FILE_SIZE', 5 * 1024 * 1024); // 5MB
         this.allowedMimeTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
     }
@@ -192,7 +196,7 @@ export class ImageUploadService {
         this.validateFiles([file]);
 
         // Build upload path
-        const uploadPath = path.join('./uploads', entityFolder);
+        const uploadPath = path.join(ImageUploadService.STORAGE_BASE_PATH, entityFolder);
 
         // Ensure upload directory exists
         try {
@@ -232,7 +236,7 @@ export class ImageUploadService {
      * @param filename The filename to delete
      */
     async deleteFile(entityFolder: string, filename: string): Promise<void> {
-        const filePath = path.join('./uploads', entityFolder, filename);
+        const filePath = path.join(ImageUploadService.STORAGE_BASE_PATH, entityFolder, filename);
 
         try {
             await fs.unlink(filePath);
@@ -247,7 +251,7 @@ export class ImageUploadService {
      * @param filename The filename to get path for
      */
     async getFilePath(entityFolder: string, filename: string): Promise<string> {
-        const filePath = path.join('./uploads', entityFolder, filename);
+        const filePath = path.join(ImageUploadService.STORAGE_BASE_PATH, entityFolder, filename);
 
         try {
             await fs.access(filePath);

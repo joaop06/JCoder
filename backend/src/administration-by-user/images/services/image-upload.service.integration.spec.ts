@@ -355,18 +355,17 @@ describe('ImageUploadService Integration', () => {
     });
 
     describe('Configuration Integration', () => {
-        it('should use custom upload path from configuration', () => {
-            const customPath = '/custom/upload/path';
+        it('should use fixed storage path from module', () => {
             const mockConfigService = {
                 get: jest.fn().mockImplementation((key: string, defaultValue?: any) => {
-                    if (key === 'UPLOAD_PATH') return customPath;
                     return defaultValue;
                 }),
             } as any;
 
-            // Create new service instance with custom config
-            const customService = new ImageUploadService(mockConfigService);
-            expect(customService['uploadPath']).toBe(customPath);
+            // Create new service instance
+            const service = new ImageUploadService(mockConfigService);
+            // Path should be fixed relative to the images module
+            expect(service['uploadPath']).toContain('administration-by-user/images/storage/applications');
         });
 
         it('should use custom max file size from configuration', () => {
@@ -393,7 +392,7 @@ describe('ImageUploadService Integration', () => {
 
             // Create new service instance with no config
             const defaultService = new ImageUploadService(mockConfigService);
-            expect(defaultService['uploadPath']).toBe('./uploads/applications');
+            expect(defaultService['uploadPath']).toContain('administration-by-user/images/storage/applications');
             expect(defaultService['maxFileSize']).toBe(5 * 1024 * 1024);
         });
     });

@@ -2,7 +2,6 @@ import sharp from 'sharp';
 import * as path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import * as fs from 'fs/promises';
-import { ConfigService } from '@nestjs/config';
 import { Injectable, BadRequestException } from '@nestjs/common';
 import {
     ImageProcessingConfig,
@@ -18,11 +17,14 @@ import { ImageType } from '../enums/image-type.enum';
  */
 @Injectable()
 export class ImageStorageService {
+    // Path fixo relativo ao módulo de imagens
+    private static readonly STORAGE_BASE_PATH = path.resolve(__dirname, '../../storage');
+
     private readonly uploadBasePath: string;
     private readonly resourceConfigs: Map<string, ResourceImageConfig>;
 
-    constructor(private readonly configService: ConfigService) {
-        this.uploadBasePath = this.configService.get<string>('UPLOAD_PATH', './uploads');
+    constructor() {
+        this.uploadBasePath = ImageStorageService.STORAGE_BASE_PATH;
         this.resourceConfigs = new Map(Object.entries(DEFAULT_IMAGE_CONFIGS));
     }
 
@@ -333,7 +335,7 @@ export class ImageStorageService {
 
     /**
      * Build directory path for resource images
-     * Structure: uploads/{username}/{resourceType}/{resourceId}/{subPath}
+     * Structure: {basePath}/{username}/{resourceType}/{resourceId}/{subPath}
      * If username is not provided, it will be omitted (for global resources like technologies)
      */
     private buildDirectoryPath(
