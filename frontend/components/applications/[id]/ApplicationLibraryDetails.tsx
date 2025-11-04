@@ -1,8 +1,7 @@
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
-import CopyToClipboardButton from '@/components/clipboard/CopyToClipboardButton';
 import LinkDisplayBlock from './LinkDisplayBlock';
-import { ApplicationComponentLibrary } from '@/types/entities/application-component-library.entity';
+import { ApplicationComponentLibrary } from '@/types';
 
 interface ApplicationLibraryDetailsProps {
   libraryDetails: ApplicationComponentLibrary;

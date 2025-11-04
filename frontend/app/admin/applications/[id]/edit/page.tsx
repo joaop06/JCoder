@@ -5,13 +5,15 @@ import Footer from '@/components/Footer';
 import Header from '@/components/Header';
 import { useRouter, useParams } from 'next/navigation';
 import { useState, useEffect, useCallback } from 'react';
+import { LazyImage, TableSkeleton } from '@/components/ui';
 import { useToast } from '@/components/toast/ToastContext';
 import ImageUpload from '@/components/applications/ImageUpload';
-import TechnologySelector from '@/components/applications/TechnologySelector';
-import { ApplicationService } from '@/services/applications.service';
 import { ApplicationTypeEnum } from '@/types/enums/application-type.enum';
-import { UpdateApplicationDto } from '@/types/entities/dtos/update-application.dto';
-import { LazyImage, TableSkeleton } from '@/components/ui';
+import TechnologySelector from '@/components/applications/TechnologySelector';
+import { UsersService } from '@/services/administration-by-user/users.service';
+import { ImagesService } from '@/services/administration-by-user/images.service';
+import { ApplicationService } from '@/services/administration-by-user/applications.service';
+import { UpdateApplicationDto } from '@/types/api/applications/dtos/update-application.dto';
 
 export default function EditApplicationPage() {
     const router = useRouter();
@@ -51,7 +53,11 @@ export default function EditApplicationPage() {
             setLoading(true);
             setFormError(null);
             try {
-                const data = await ApplicationService.getById(Number(applicationId));
+                const userSession = UsersService.getUserSession();
+                if (!userSession?.user?.username) {
+                    throw new Error('User session not found');
+                }
+                const data = await ApplicationService.getById(userSession.user.username, Number(applicationId));
 
                 const updateApplicationDto: UpdateApplicationDto = {
                     name: data.name,
@@ -60,24 +66,18 @@ export default function EditApplicationPage() {
                     applicationType: data.applicationType,
                     isActive: data.isActive ?? true,
                     technologyIds: data.technologies?.map(t => t.id) || [],
-                    applicationComponentMobile: {
-                        platform: data.applicationComponentMobile!?.platform,
-                        downloadUrl: data.applicationComponentMobile!?.downloadUrl,
-                    },
-                    applicationComponentFrontend: {
-                        frontendUrl: data.applicationComponentFrontend!?.frontendUrl,
-                        screenshotUrl: data.applicationComponentFrontend!?.screenshotUrl,
-                    },
-                    applicationComponentLibrary: {
-                        readmeContent: data.applicationComponentLibrary!?.readmeContent,
-                        packageManagerUrl: data.applicationComponentLibrary!?.packageManagerUrl,
-                    },
-                    applicationComponentApi: {
-                        apiUrl: data?.applicationComponentApi!?.apiUrl,
-                        domain: data?.applicationComponentApi!?.domain,
-                        documentationUrl: data?.applicationComponentApi!?.documentationUrl,
-                        healthCheckEndpoint: data?.applicationComponentApi!?.healthCheckEndpoint,
-                    },
+                    applicationComponentMobile: data.applicationComponentMobile ? {
+                        ...data.applicationComponentMobile,
+                    } : undefined,
+                    applicationComponentFrontend: data.applicationComponentFrontend ? {
+                        ...data.applicationComponentFrontend,
+                    } : undefined,
+                    applicationComponentLibrary: data.applicationComponentLibrary ? {
+                        ...data.applicationComponentLibrary,
+                    } : undefined,
+                    applicationComponentApi: data.applicationComponentApi ? {
+                        ...data.applicationComponentApi,
+                    } : undefined,
                 };
 
                 setFormData(updateApplicationDto);
@@ -157,7 +157,11 @@ export default function EditApplicationPage() {
                     break;
             }
 
-            await ApplicationService.update(Number(applicationId), payload);
+            const userSession = UsersService.getUserSession();
+            if (!userSession?.user?.username) {
+                throw new Error('User session not found');
+            }
+            await ApplicationService.update(userSession.user.username, Number(applicationId), payload);
             toast.success(`${payload.name} successfully updated!`);
 
             // Apply profile image changes only after successful application update
@@ -167,18 +171,18 @@ export default function EditApplicationPage() {
                     switch (pendingProfileImageAction) {
                         case 'upload':
                             if (pendingProfileImageFile) {
-                                await ApplicationService.uploadProfileImage(Number(applicationId), pendingProfileImageFile);
+                                await ImagesService.uploadApplicationProfileImage(userSession.user.username, Number(applicationId), pendingProfileImageFile);
                                 toast.success('Profile image uploaded successfully!');
                             }
                             break;
                         case 'update':
                             if (pendingProfileImageFile) {
-                                await ApplicationService.updateProfileImage(Number(applicationId), pendingProfileImageFile);
+                                await ImagesService.updateApplicationProfileImage(userSession.user.username, Number(applicationId), pendingProfileImageFile);
                                 toast.success('Profile image updated successfully!');
                             }
                             break;
                         case 'delete':
-                            await ApplicationService.deleteProfileImage(Number(applicationId));
+                            await ImagesService.deleteApplicationProfileImage(userSession.user.username, Number(applicationId));
                             toast.success('Profile image deleted successfully!');
                             break;
                     }
@@ -603,7 +607,11 @@ export default function EditApplicationPage() {
                                                 />
                                             ) : profileImage ? (
                                                 <LazyImage
-                                                    src={ApplicationService.getProfileImageUrl(Number(applicationId))}
+                                                    src={(() => {
+                                                        const userSession = UsersService.getUserSession();
+                                                        const username = userSession?.user?.username || '';
+                                                        return username ? ImagesService.getApplicationProfileImageUrl(username, Number(applicationId)) : '';
+                                                    })()}
                                                     alt="Current profile"
                                                     fallback={formData.name!}
                                                     className="border border-jcoder object-cover"

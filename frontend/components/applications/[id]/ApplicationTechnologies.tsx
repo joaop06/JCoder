@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, memo } from 'react';
-import { Technology } from '@/types/entities/technology.entity';
-import { TechnologiesService } from '@/services/technologies.service';
-import { ExpertiseLevel } from '@/types/enums/expertise-level.enum';
+import { memo } from 'react';
+import { Technology } from '@/types';
 import LazyImage from '@/components/ui/LazyImage';
+import { ExpertiseLevel } from '@/types/enums/expertise-level.enum';
+import { UsersService } from '@/services/administration-by-user/users.service';
+import { ImagesService } from '@/services/administration-by-user/images.service';
 
 interface ApplicationTechnologiesProps {
     technologies: Technology[];
@@ -61,7 +62,9 @@ interface TechnologyCardProps {
 }
 
 const TechnologyCard = memo(({ technology }: TechnologyCardProps) => {
-    const imageUrl = TechnologiesService.getProfileImageUrl(technology.id);
+    const userSession = UsersService.getUserSession();
+    const username = userSession?.user?.username || '';
+    const imageUrl = username ? ImagesService.getTechnologyProfileImageUrl(username, technology.id) : '';
 
     return (
         <div

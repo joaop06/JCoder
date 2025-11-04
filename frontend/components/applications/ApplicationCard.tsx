@@ -1,7 +1,9 @@
 import Link from 'next/link';
-import { Application } from '@/types/entities/application.entity';
-import { ApplicationService } from '@/services/applications.service';
 import LazyImage from '@/components/ui/LazyImage';
+import { Application } from '@/types/api/applications/application.entity';
+import { ApplicationService } from '@/services/administration-by-user/applications.service';
+import { UsersService } from '@/services/administration-by-user/users.service';
+import { ImagesService } from '@/services/administration-by-user/images.service';
 
 interface ApplicationCardProps {
   application: Application;
@@ -36,7 +38,11 @@ export default function ApplicationCard({ application }: ApplicationCardProps) {
         {/* Icon or Image */}
         {application.profileImage ? (
           <LazyImage
-            src={ApplicationService.getProfileImageUrl(application.id)}
+            src={(() => {
+              const userSession = UsersService.getUserSession();
+              const username = userSession?.user?.username || '';
+              return username ? ImagesService.getApplicationProfileImageUrl(username, application.id) : '';
+            })()}
             alt={application.name}
             fallback={getInitial(application.name)}
             size="custom"
@@ -48,7 +54,7 @@ export default function ApplicationCard({ application }: ApplicationCardProps) {
           />
         ) : application.images && application.images.length > 0 ? (
           <LazyImage
-            src={ApplicationService.getImageUrl(application.id, application.images[0])}
+            src={ImagesService.getApplicationImageUrl(application.username, application.id, application.images[0])}
             alt={application.name}
             fallback={getInitial(application.name)}
             size="custom"

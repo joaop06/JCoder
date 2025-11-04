@@ -1,6 +1,6 @@
 import React, { ReactNode } from 'react';
-import { Pagination } from '@/components/pagination/Pagination';
 import { TableSkeleton } from '@/components/ui';
+import { Pagination } from '@/components/pagination/Pagination';
 
 interface ManagementTableProps<T> {
     // Header Props

@@ -6,9 +6,11 @@ import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/toast/ToastContext';
 import { PaginationDto } from '@/types/api/pagination.dto';
 import { useState, useEffect, useMemo, useCallback, memo } from 'react';
-import { Application } from '@/types/entities/application.entity';
-import { ApplicationService } from '@/services/applications.service';
+import { Application } from '@/types/api/applications/application.entity';
 import { LazyImage, TableSkeleton, ManagementTable } from '@/components/ui';
+import { UsersService } from '@/services/administration-by-user/users.service';
+import { ImagesService } from '@/services/administration-by-user/images.service';
+import { ApplicationService } from '@/services/administration-by-user/applications.service';
 
 // Memoized Application Row Component (Desktop)
 interface ApplicationRowProps {
@@ -89,7 +91,11 @@ const ApplicationRow = memo(({
                 <div className="flex items-center gap-2">
                     {app.profileImage ? (
                         <LazyImage
-                            src={ApplicationService.getProfileImageUrl(app.id)}
+                            src={(() => {
+                                const userSession = UsersService.getUserSession();
+                                const username = userSession?.user?.username || '';
+                                return username ? ImagesService.getApplicationProfileImageUrl(username, app.id) : '';
+                            })()}
                             alt={app.name}
                             fallback={app.name}
                             className="bg-jcoder-secondary p-1 object-cover"
@@ -200,7 +206,11 @@ const ApplicationCard = memo(({
                 {/* Image/Avatar */}
                 {app.profileImage ? (
                     <LazyImage
-                        src={ApplicationService.getProfileImageUrl(app.id)}
+                        src={(() => {
+                            const userSession = UsersService.getUserSession();
+                            const username = userSession?.user?.username || '';
+                            return username ? ImagesService.getApplicationProfileImageUrl(username, app.id) : '';
+                        })()}
                         alt={app.name}
                         fallback={app.name}
                         className="bg-jcoder-secondary p-1 object-cover"
@@ -326,7 +336,11 @@ export default function ApplicationsManagementPage() {
 
     const fetchStats = useCallback(async () => {
         try {
-            const stats = await ApplicationService.getStats();
+            const userSession = UsersService.getUserSession();
+            if (!userSession?.user?.username) {
+                throw new Error('User session not found');
+            }
+            const stats = await ApplicationService.getStats(userSession.user.username);
             setTotalActive(stats.active);
             setTotalInactive(stats.inactive);
         } catch (err: any) {
@@ -339,7 +353,11 @@ export default function ApplicationsManagementPage() {
         setLoading(true);
         setFetchError(null);
         try {
-            const data = await ApplicationService.getAllPaginated(pagination);
+            const userSession = UsersService.getUserSession();
+            if (!userSession?.user?.username) {
+                throw new Error('User session not found');
+            }
+            const data = await ApplicationService.findAll(userSession.user.username, pagination);
             setApplications(Array.isArray(data.data) ? data.data : []);
             setPaginationMeta(data.meta);
         } catch (err: any) {
@@ -380,7 +398,11 @@ export default function ApplicationsManagementPage() {
             if (!confirmed) return;
 
             try {
-                await ApplicationService.delete(application.id);
+                const userSession = UsersService.getUserSession();
+                if (!userSession?.user?.username) {
+                    throw new Error('User session not found');
+                }
+                await ApplicationService.delete(userSession.user.username, application.id);
                 toast.success(`${application.name} successfully deleted!`);
                 fetchApplications();
                 fetchStats();
@@ -464,7 +486,11 @@ export default function ApplicationsManagementPage() {
         const targetApplication = applications[dropIndex];
 
         try {
-            await ApplicationService.reorder(draggedApplication.id, (targetApplication as any).displayOrder || 1);
+            const userSession = UsersService.getUserSession();
+            if (!userSession?.user?.username) {
+                throw new Error('User session not found');
+            }
+            await ApplicationService.reorder(userSession.user.username, draggedApplication.id, (targetApplication as any).displayOrder || 1);
             toast.success('Application reordered successfully!');
 
             // Update local state with the new order instead of reloading

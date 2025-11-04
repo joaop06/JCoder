@@ -3,15 +3,17 @@
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
 import { useRouter } from 'next/navigation';
-import { LazyImage, TableSkeleton, ManagementTable } from '@/components/ui';
 import { useToast } from '@/components/toast/ToastContext';
 import { PaginationDto } from '@/types/api/pagination.dto';
-import { Technology } from '@/types/entities/technology.entity';
 import { ExpertiseLevel } from '@/types/enums/expertise-level.enum';
-import { TechnologiesService } from '@/services/technologies.service';
+import { Technology } from '@/types/api/technologies/technology.entity';
 import { useState, useEffect, useMemo, useCallback, memo } from 'react';
-import { CreateTechnologyDto } from '@/types/entities/dtos/create-technology.dto';
-import { UpdateTechnologyDto } from '@/types/entities/dtos/update-technology.dto';
+import { LazyImage, TableSkeleton, ManagementTable } from '@/components/ui';
+import { UsersService } from '@/services/administration-by-user/users.service';
+import { ImagesService } from '@/services/administration-by-user/images.service';
+import { CreateTechnologyDto } from '@/types/api/technologies/dtos/create-technology.dto';
+import { UpdateTechnologyDto } from '@/types/api/technologies/dtos/update-technology.dto';
+import { TechnologiesService } from '@/services/administration-by-user/technologies.service';
 
 // Helper to get expertise level label
 const getExpertiseLevelLabel = (level: ExpertiseLevel): string => {
@@ -116,7 +118,11 @@ const TechnologyRow = memo(({
                 <div className="flex items-center gap-2">
                     {tech.profileImage ? (
                         <LazyImage
-                            src={TechnologiesService.getProfileImageUrl(tech.id)}
+                            src={(() => {
+                                const userSession = UsersService.getUserSession();
+                                const username = userSession?.user?.username || '';
+                                return username ? ImagesService.getTechnologyProfileImageUrl(username, tech.id) : '';
+                            })()}
                             alt={tech.name}
                             fallback={tech.name}
                             className="bg-jcoder-secondary p-1"
@@ -214,7 +220,11 @@ const TechnologyCard = memo(({
                 <div className="flex items-center gap-3 flex-1">
                     {tech.profileImage ? (
                         <LazyImage
-                            src={TechnologiesService.getProfileImageUrl(tech.id)}
+                            src={(() => {
+                                const userSession = UsersService.getUserSession();
+                                const username = userSession?.user?.username || '';
+                                return username ? ImagesService.getTechnologyProfileImageUrl(username, tech.id) : '';
+                            })()}
                             alt={tech.name}
                             fallback={tech.name}
                             className="bg-jcoder-secondary p-1"
@@ -331,7 +341,11 @@ export default function TechnologiesManagementPage() {
 
     const fetchStats = useCallback(async () => {
         try {
-            const stats = await TechnologiesService.getStats();
+            const userSession = UsersService.getUserSession();
+            if (!userSession?.user?.username) {
+                throw new Error('User session not found');
+            }
+            const stats = await TechnologiesService.getStats(userSession.user.username);
             setTotalActive(stats.active);
             setTotalInactive(stats.inactive);
         } catch (err: any) {
@@ -344,10 +358,14 @@ export default function TechnologiesManagementPage() {
         setLoading(true);
         setFetchError(null);
         try {
+            const userSession = UsersService.getUserSession();
+            if (!userSession?.user?.username) {
+                throw new Error('User session not found');
+            }
             const queryParams: any = { ...pagination };
             if (filterActive !== 'ALL') queryParams.isActive = filterActive;
 
-            const data = await TechnologiesService.query(queryParams);
+            const data = await TechnologiesService.findAll(userSession.user.username, queryParams);
             setTechnologies(Array.isArray(data.data) ? data.data : []);
             setPaginationMeta(data.meta);
         } catch (err: any) {
@@ -382,7 +400,11 @@ export default function TechnologiesManagementPage() {
     const handleCreate = useCallback(async (formData: CreateTechnologyDto | UpdateTechnologyDto, imageFile?: File | null) => {
         setSubmitting(true);
         try {
-            const createdTech = await TechnologiesService.create({
+            const userSession = UsersService.getUserSession();
+            if (!userSession?.user?.username) {
+                throw new Error('User session not found');
+            }
+            const createdTech = await TechnologiesService.create(userSession.user.username, {
                 name: formData.name,
                 expertiseLevel: formData.expertiseLevel,
             } as CreateTechnologyDto);
@@ -390,7 +412,7 @@ export default function TechnologiesManagementPage() {
             // Upload image if provided
             if (imageFile && createdTech.id) {
                 try {
-                    await TechnologiesService.uploadProfileImage(createdTech.id, imageFile);
+                    await ImagesService.uploadTechnologyProfileImage(userSession.user.username, createdTech.id, imageFile);
                 } catch (imgErr: any) {
                     toast.error('Technology created but image upload failed: ' + (imgErr?.response?.data?.message || 'Unknown error'));
                     fetchTechnologies();
@@ -414,12 +436,16 @@ export default function TechnologiesManagementPage() {
         setSubmitting(true);
         try {
             // Update technology data
-            await TechnologiesService.update(id, formData as UpdateTechnologyDto);
+            const userSession = UsersService.getUserSession();
+            if (!userSession?.user?.username) {
+                throw new Error('User session not found');
+            }
+            await TechnologiesService.update(userSession.user.username, id, formData as UpdateTechnologyDto);
 
             // Handle image deletion
             if (deleteImage) {
                 try {
-                    await TechnologiesService.deleteProfileImage(id);
+                    await ImagesService.deleteTechnologyProfileImage(userSession.user.username, id);
                 } catch (delErr: any) {
                     toast.error('Technology updated but image deletion failed: ' + (delErr?.response?.data?.message || 'Unknown error'));
                     fetchTechnologies();
@@ -433,7 +459,7 @@ export default function TechnologiesManagementPage() {
             // Handle image upload/replacement
             if (imageFile) {
                 try {
-                    await TechnologiesService.uploadProfileImage(id, imageFile);
+                    await ImagesService.uploadTechnologyProfileImage(userSession.user.username, id, imageFile);
                 } catch (imgErr: any) {
                     toast.error('Technology updated but image upload failed: ' + (imgErr?.response?.data?.message || 'Unknown error'));
                     fetchTechnologies();
@@ -465,7 +491,11 @@ export default function TechnologiesManagementPage() {
             if (!confirmed) return;
 
             try {
-                await TechnologiesService.delete(technology.id);
+                const userSession = UsersService.getUserSession();
+                if (!userSession?.user?.username) {
+                    throw new Error('User session not found');
+                }
+                await TechnologiesService.delete(userSession.user.username, technology.id);
                 toast.success(`${technology.name} successfully deleted!`);
                 fetchTechnologies();
                 fetchStats();
@@ -478,7 +508,11 @@ export default function TechnologiesManagementPage() {
 
     const handleToggleActive = useCallback(async (technology: Technology) => {
         try {
-            await TechnologiesService.update(technology.id, {
+            const userSession = UsersService.getUserSession();
+            if (!userSession?.user?.username) {
+                throw new Error('User session not found');
+            }
+            await TechnologiesService.update(userSession.user.username, technology.id, {
                 isActive: !technology.isActive,
             });
             toast.success(`Technology ${technology.isActive ? 'deactivated' : 'activated'} successfully!`);
@@ -562,7 +596,11 @@ export default function TechnologiesManagementPage() {
         const targetTechnology = technologies[dropIndex];
 
         try {
-            await TechnologiesService.reorder(draggedTechnology.id, targetTechnology.displayOrder);
+            const userSession = UsersService.getUserSession();
+            if (!userSession?.user?.username) {
+                throw new Error('User session not found');
+            }
+            await TechnologiesService.reorder(userSession.user.username, draggedTechnology.id, targetTechnology.displayOrder);
             toast.success('Technology reordered successfully!');
 
             // Update local state with the new order instead of reloading
@@ -1036,7 +1074,11 @@ function TechnologyFormModal({ title, technology, onClose, onSubmit, submitting 
                         {isEditMode && technology?.profileImage && !preview && !deleteImage && (
                             <div className="flex items-center gap-4 p-4 bg-jcoder-secondary rounded-lg border border-jcoder">
                                 <img
-                                    src={TechnologiesService.getProfileImageUrl(technology.id)}
+                                    src={(() => {
+                                        const userSession = UsersService.getUserSession();
+                                        const username = userSession?.user?.username || '';
+                                        return username ? ImagesService.getTechnologyProfileImageUrl(username, technology.id) : '';
+                                    })()}
                                     alt={technology.name}
                                     loading="lazy"
                                     decoding="async"

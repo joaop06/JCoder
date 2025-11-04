@@ -1,7 +1,7 @@
 'use client';
 import React from 'react';
+import { CopyToClipboardButtonProps } from '@/types';
 import { useToast } from '@/components/toast/ToastContext';
-import { CopyToClipboardButtonProps } from '@/types/components/clipboard/clipboard.type';
 
 const CopyToClipboardButton: React.FC<CopyToClipboardButtonProps> = ({
   textToCopy,

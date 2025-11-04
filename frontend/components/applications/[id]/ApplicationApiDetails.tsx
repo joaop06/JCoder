@@ -1,7 +1,7 @@
+import { ApplicationComponentApi } from '@/types';
+import LinkDisplayBlock from './LinkDisplayBlock';
 import React, { useEffect, useState } from 'react';
 import CopyToClipboardButton from '@/components/clipboard/CopyToClipboardButton';
-import LinkDisplayBlock from './LinkDisplayBlock';
-import { ApplicationComponentApi } from '@/types/entities/application-component-api.entity';
 
 // Retry function for external API health checks
 const retryFetch = async (url: string, maxRetries: number = 3): Promise<Response> => {

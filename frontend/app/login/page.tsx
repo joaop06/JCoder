@@ -4,9 +4,9 @@ import Link from 'next/link';
 import { LazyImage } from '@/components/ui';
 import { useRouter } from 'next/navigation';
 import { useState, useCallback } from 'react';
-import { AuthService } from '@/services/auth.service';
 import { useToast } from '@/components/toast/ToastContext';
-import type { LoginResponse } from '@/types/api/auth/sign-in.dto';
+import type { SignInResponseDto } from '@/types/api/auth/sign-in.dto';
+import { AuthService } from '@/services/administration-by-user/auth.service';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -29,7 +29,7 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const data: LoginResponse = await AuthService.signIn({ username, password });
+      const data: SignInResponseDto = await AuthService.signIn({ username, password });
 
       const user = data.user;
       const accessToken = data.accessToken;

@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { useToast } from '@/components/toast/ToastContext';
-import { ApplicationService } from '@/services/applications.service';
 import LazyImage from '@/components/ui/LazyImage';
+import { useToast } from '@/components/toast/ToastContext';
+import { UsersService } from '@/services/administration-by-user/users.service';
+import { ImagesService } from '@/services/administration-by-user/images.service';
 
 interface ImageUploadProps {
     images: string[];
@@ -47,8 +48,11 @@ export default function ImageUpload({ images, onImagesChange, applicationId, dis
             // Upload to server
             setUploading(true);
             try {
-                const { ApplicationService } = await import('@/services/applications.service');
-                const updatedApplication = await ApplicationService.uploadImages(applicationId, validFiles);
+                const userSession = UsersService.getUserSession();
+                if (!userSession?.user?.username) {
+                    throw new Error('User session not found');
+                }
+                const updatedApplication = await ImagesService.uploadApplicationImages(userSession.user.username, applicationId, validFiles);
                 onImagesChange(updatedApplication.images || []);
                 toast.success(`${validFiles.length} image(s) uploaded successfully!`);
             } catch (error: any) {
@@ -76,8 +80,11 @@ export default function ImageUpload({ images, onImagesChange, applicationId, dis
         if (applicationId && filename) {
             // Delete from server
             try {
-                const { ApplicationService } = await import('@/services/applications.service');
-                await ApplicationService.deleteImage(applicationId, filename);
+                const userSession = UsersService.getUserSession();
+                if (!userSession?.user?.username) {
+                    throw new Error('User session not found');
+                }
+                await ImagesService.deleteApplicationImage(userSession.user.username, applicationId, filename);
                 const newImages = images.filter((_, i) => i !== index);
                 onImagesChange(newImages);
                 toast.success('Image deleted successfully!');
@@ -166,7 +173,11 @@ export default function ImageUpload({ images, onImagesChange, applicationId, dis
                     {images.map((image, index) => (
                         <div key={index} className="relative group">
                             <LazyImage
-                                src={image.startsWith('data:') ? image : (applicationId ? ApplicationService.getImageUrl(applicationId, image) : '')}
+                                src={image.startsWith('data:') ? image : (applicationId ? (() => {
+                                    const userSession = UsersService.getUserSession();
+                                    if (!userSession?.user?.username) return '';
+                                    return ImagesService.getApplicationImageUrl(userSession.user.username, applicationId, image);
+                                })() : '')}
                                 alt={`Application image ${index + 1}`}
                                 fallback={`Img ${index + 1}`}
                                 size="custom"

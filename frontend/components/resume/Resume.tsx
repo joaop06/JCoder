@@ -1,13 +1,16 @@
 'use client';
 
-import { UserComponentAboutMe } from '@/types/entities/user-component-about-me.entity';
-import { UserComponentEducation } from '@/types/entities/user-component-education.entity';
-import { UserComponentExperience } from '@/types/entities/user-component-experience.entity';
-import { UserComponentCertificate } from '@/types/entities/user-component-certificate.entity';
-import { Application } from '@/types/entities/application.entity';
-import { Technology } from '@/types/entities/technology.entity';
-import { ExpertiseLevel } from '@/types/enums/expertise-level.enum';
-import { User } from '@/types/entities/user.entity';
+import {
+  User,
+  Technology,
+  Application,
+  ExpertiseLevel,
+  UserComponentAboutMe,
+  UserComponentEducation,
+  UserComponentExperience,
+  UserComponentCertificate,
+} from "@/types";
+
 
 interface ResumeProps {
   aboutMe: UserComponentAboutMe | null;
@@ -182,7 +185,7 @@ export default function Resume({
                           color: '#444444',
                           margin: 0,
                         }}>
-                          {position.position || position.positionName}
+                          {position.position}
                         </h5>
                         <span style={{
                           fontSize: '10pt',
@@ -204,17 +207,6 @@ export default function Resume({
                           margin: '2px 0',
                         }}>
                           📍 {position.location}{position.locationType ? ` • ${position.locationType}` : ''}
-                        </p>
-                      )}
-                      {position.description && (
-                        <p style={{
-                          fontSize: '10pt',
-                          color: '#555555',
-                          textAlign: 'justify',
-                          marginTop: '5px',
-                          marginLeft: '10px',
-                        }}>
-                          {stripHtml(position.description)}
                         </p>
                       )}
                     </div>

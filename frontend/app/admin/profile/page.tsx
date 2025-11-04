@@ -1,5 +1,14 @@
 'use client';
 
+import {
+    User,
+    UserComponentAboutMe,
+    WorkLocationTypeEnum,
+    UserComponentEducation,
+    UserComponentExperience,
+    UserComponentCertificate,
+    UserComponentExperiencePosition,
+} from '@/types';
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
 import { useRouter } from 'next/navigation';
@@ -10,9 +19,9 @@ import { StatsCard } from '@/components/profile/StatsCard';
 import { useToast } from '@/components/toast/ToastContext';
 import { SectionCard } from '@/components/profile/SectionCard';
 import { TimelineItem } from '@/components/profile/TimelineItem';
-import { ProfileImageUploader } from '@/components/profile/ProfileImageUploader';
-import { User, UserComponentAboutMe, UserComponentCertificate, UserComponentEducation, UserComponentExperience, WorkLocationTypeEnum } from '@/types';
 import { UsersService } from '@/services/administration-by-user/users.service';
+import { ImagesService } from '@/services/administration-by-user/images.service';
+import { ProfileImageUploader } from '@/components/profile/ProfileImageUploader';
 
 export default function ProfileManagementPage() {
     const toast = useToast();
@@ -75,7 +84,6 @@ export default function ProfileManagementPage() {
 
     const [positionForm, setPositionForm] = useState({
         position: '',
-        description: '',
         startDate: '',
         endDate: '',
         isCurrentPosition: false,
@@ -249,7 +257,11 @@ export default function ProfileManagementPage() {
         setIsSaving(true);
         try {
             // Always use createOrUpdateAboutMe - the backend handles create vs update
-            const result = await UserComponentsService.createOrUpdateAboutMe({
+            const userSession = UsersService.getUserSession();
+            if (!userSession?.user?.username) {
+                throw new Error('User session not found');
+            }
+            const result = await UsersService.updateAboutMe(userSession.user.username, {
                 occupation: aboutMeForm.occupation,
                 description: aboutMeForm.description,
                 highlights: aboutMeForm.highlights as any, // Type cast needed as backend will assign id and aboutMeId
@@ -350,7 +362,7 @@ export default function ProfileManagementPage() {
             endDate: education.endDate ? new Date(education.endDate).toISOString().split('T')[0] : '',
             isCurrentlyStudying: education.isCurrentlyStudying || false,
         });
-        setEditingEducationId(education.id || education.userId || null);
+        setEditingEducationId(education.id || null);
         setIsEditingEducation(true);
     }, []);
 
@@ -396,6 +408,10 @@ export default function ProfileManagementPage() {
 
         setIsSaving(true);
         try {
+            const userSession = UsersService.getUserSession();
+            if (!userSession?.user?.username) {
+                throw new Error('User session not found');
+            }
             const educationData: any = {
                 institutionName: educationForm.institutionName,
                 courseName: educationForm.courseName,
@@ -412,10 +428,10 @@ export default function ProfileManagementPage() {
 
             let updatedEducation: UserComponentEducation;
             if (editingEducationId) {
-                updatedEducation = await UserComponentsService.updateEducation(editingEducationId, educationData);
-                setEducations(prev => prev.map(edu => (edu.id || edu.userId) === editingEducationId ? updatedEducation : edu));
+                updatedEducation = await UsersService.updateEducation(userSession.user.username, editingEducationId, educationData);
+                setEducations(prev => prev.map(edu => edu.id === editingEducationId ? updatedEducation : edu));
             } else {
-                updatedEducation = await UserComponentsService.createEducation(educationData);
+                updatedEducation = await UsersService.createEducation(userSession.user.username, educationData);
                 setEducations(prev => [...prev, updatedEducation]);
             }
 
@@ -436,8 +452,12 @@ export default function ProfileManagementPage() {
 
         setIsSaving(true);
         try {
-            await UserComponentsService.deleteEducation(educationId);
-            setEducations(prev => prev.filter(edu => (edu.id || edu.userId) !== educationId));
+            const userSession = UsersService.getUserSession();
+            if (!userSession?.user?.username) {
+                throw new Error('User session not found');
+            }
+            await UsersService.deleteEducation(userSession.user.username, educationId);
+            setEducations(prev => prev.filter(edu => edu.id !== educationId));
             toast.success('Education deleted successfully!');
         } catch (err: any) {
             toast.error(err.message || 'Failed to delete education. Please try again.');
@@ -470,7 +490,6 @@ export default function ProfileManagementPage() {
         setIsAddingPosition(false);
         setPositionForm({
             position: '',
-            description: '',
             startDate: '',
             endDate: '',
             isCurrentPosition: false,
@@ -483,13 +502,12 @@ export default function ProfileManagementPage() {
         setExperienceForm({
             companyName: experience.companyName || '',
         });
-        setEditingExperienceId(experience.userId);
+        setEditingExperienceId(experience.id);
         setIsEditingExperience(true);
         setEditingPositionIndex(null);
         setIsAddingPosition(false);
         setPositionForm({
             position: '',
-            description: '',
             startDate: '',
             endDate: '',
             isCurrentPosition: false,
@@ -506,7 +524,6 @@ export default function ProfileManagementPage() {
         setExperienceForm({ companyName: '' });
         setPositionForm({
             position: '',
-            description: '',
             startDate: '',
             endDate: '',
             isCurrentPosition: false,
@@ -523,6 +540,10 @@ export default function ProfileManagementPage() {
 
         setIsSaving(true);
         try {
+            const userSession = UsersService.getUserSession();
+            if (!userSession?.user?.username) {
+                throw new Error('User session not found');
+            }
             const experienceData: any = {
                 companyName: experienceForm.companyName,
             };
@@ -530,7 +551,7 @@ export default function ProfileManagementPage() {
             // Get positions from the current editing experience if editing
             let positionsToSave: UserComponentExperiencePosition[] = [];
             if (editingExperienceId) {
-                const currentExp = experiences.find(e => e.userId === editingExperienceId);
+                const currentExp = experiences.find(e => e.id === editingExperienceId);
                 if (currentExp?.positions) {
                     positionsToSave = currentExp.positions;
                 }
@@ -539,21 +560,20 @@ export default function ProfileManagementPage() {
             let updatedExperience: UserComponentExperience;
             if (editingExperienceId) {
                 experienceData.positions = positionsToSave.map(p => ({
-                    position: p.position || p.positionName || '',
-                    description: p.description,
+                    position: p.position || '',
                     startDate: p.startDate ? new Date(p.startDate) : undefined,
                     endDate: p.endDate ? new Date(p.endDate) : undefined,
                     isCurrentPosition: p.isCurrentPosition,
                     location: p.location,
                     locationType: p.locationType,
                 }));
-                updatedExperience = await UserComponentsService.updateExperience(editingExperienceId, experienceData);
-                setExperiences(prev => prev.map(exp => exp.userId === editingExperienceId ? updatedExperience : exp));
+                updatedExperience = await UsersService.updateExperience(userSession.user.username, editingExperienceId, experienceData);
+                setExperiences(prev => prev.map(exp => exp.id === editingExperienceId ? updatedExperience : exp));
             } else {
-                updatedExperience = await UserComponentsService.createExperience(experienceData);
+                updatedExperience = await UsersService.createExperience(userSession.user.username, experienceData);
                 setExperiences(prev => [...prev, updatedExperience]);
                 // After creating, keep editing mode to allow adding positions
-                setEditingExperienceId(updatedExperience.userId);
+                setEditingExperienceId(updatedExperience.id);
             }
 
             // Don't exit edit mode automatically - let user manage positions first
@@ -574,8 +594,12 @@ export default function ProfileManagementPage() {
 
         setIsSaving(true);
         try {
-            await UserComponentsService.deleteExperience(experienceId);
-            setExperiences(prev => prev.filter(exp => exp.userId !== experienceId));
+            const userSession = UsersService.getUserSession();
+            if (!userSession?.user?.username) {
+                throw new Error('User session not found');
+            }
+            await UsersService.deleteExperience(userSession.user.username, experienceId);
+            setExperiences(prev => prev.filter(exp => exp.id !== experienceId));
             toast.success('Experience deleted successfully!');
         } catch (err: any) {
             toast.error(err.message || 'Failed to delete experience. Please try again.');
@@ -592,7 +616,6 @@ export default function ProfileManagementPage() {
         }
         setPositionForm({
             position: '',
-            description: '',
             startDate: '',
             endDate: '',
             isCurrentPosition: false,
@@ -608,15 +631,14 @@ export default function ProfileManagementPage() {
             toast.error('Please save the company first before editing positions.');
             return;
         }
-        const currentExp = experiences.find(e => e.userId === experienceId);
+        const currentExp = experiences.find(e => e.id === experienceId);
         if (!currentExp?.positions?.[positionIndex]) {
             toast.error('Position not found.');
             return;
         }
         const position = currentExp.positions[positionIndex];
         setPositionForm({
-            position: position.position || position.positionName || '',
-            description: position.description || '',
+            position: position.position || '',
             startDate: position.startDate ? new Date(position.startDate).toISOString().split('T')[0] : '',
             endDate: position.endDate ? new Date(position.endDate).toISOString().split('T')[0] : '',
             isCurrentPosition: position.isCurrentPosition || false,
@@ -632,7 +654,6 @@ export default function ProfileManagementPage() {
         setIsAddingPosition(false);
         setPositionForm({
             position: '',
-            description: '',
             startDate: '',
             endDate: '',
             isCurrentPosition: false,
@@ -659,7 +680,7 @@ export default function ProfileManagementPage() {
             return;
         }
 
-        const currentExp = experiences.find(e => e.userId === experienceId);
+        const currentExp = experiences.find(e => e.id === experienceId);
         if (!currentExp) {
             toast.error('Experience not found.');
             return;
@@ -667,9 +688,8 @@ export default function ProfileManagementPage() {
 
         setIsSaving(true);
         try {
-            const newPosition: UserComponentExperiencePosition = {
+            const newPosition: any = {
                 position: positionForm.position,
-                description: positionForm.description || undefined,
                 startDate: new Date(positionForm.startDate),
                 endDate: positionForm.isCurrentPosition ? undefined : (positionForm.endDate ? new Date(positionForm.endDate) : undefined),
                 isCurrentPosition: positionForm.isCurrentPosition,
@@ -691,8 +711,7 @@ export default function ProfileManagementPage() {
             const experienceData: any = {
                 companyName: currentExp.companyName,
                 positions: updatedPositions.map(p => ({
-                    position: p.position || p.positionName || '',
-                    description: p.description,
+                    position: p.position || '',
                     startDate: p.startDate,
                     endDate: p.endDate,
                     isCurrentPosition: p.isCurrentPosition,
@@ -701,14 +720,17 @@ export default function ProfileManagementPage() {
                 })),
             };
 
-            const updatedExperience = await UserComponentsService.updateExperience(experienceId, experienceData);
-            setExperiences(prev => prev.map(exp => exp.userId === experienceId ? updatedExperience : exp));
+            const userSession = UsersService.getUserSession();
+            if (!userSession?.user?.username) {
+                throw new Error('User session not found');
+            }
+            const updatedExperience = await UsersService.updateExperience(userSession.user.username, experienceId, experienceData);
+            setExperiences(prev => prev.map(exp => exp.id === experienceId ? updatedExperience : exp));
 
             setEditingPositionIndex(null);
             setIsAddingPosition(false);
             setPositionForm({
                 position: '',
-                description: '',
                 startDate: '',
                 endDate: '',
                 isCurrentPosition: false,
@@ -728,7 +750,7 @@ export default function ProfileManagementPage() {
             return;
         }
 
-        const currentExp = experiences.find(e => e.userId === experienceId);
+        const currentExp = experiences.find(e => e.id === experienceId);
         if (!currentExp?.positions) {
             toast.error('Position not found.');
             return;
@@ -741,8 +763,7 @@ export default function ProfileManagementPage() {
             const experienceData: any = {
                 companyName: currentExp.companyName,
                 positions: updatedPositions.map(p => ({
-                    position: p.position || p.positionName || '',
-                    description: p.description,
+                    position: p.position || '',
                     startDate: p.startDate,
                     endDate: p.endDate,
                     isCurrentPosition: p.isCurrentPosition,
@@ -751,8 +772,12 @@ export default function ProfileManagementPage() {
                 })),
             };
 
-            const updatedExperience = await UserComponentsService.updateExperience(experienceId, experienceData);
-            setExperiences(prev => prev.map(exp => exp.userId === experienceId ? updatedExperience : exp));
+            const userSession = UsersService.getUserSession();
+            if (!userSession?.user?.username) {
+                throw new Error('User session not found');
+            }
+            const updatedExperience = await UsersService.updateExperience(userSession.user.username, experienceId, experienceData);
+            setExperiences(prev => prev.map(exp => exp.id === experienceId ? updatedExperience : exp));
 
             toast.success('Position deleted successfully!');
         } catch (err: any) {
@@ -782,7 +807,7 @@ export default function ProfileManagementPage() {
     }, [user]);
 
     const handleEditCertificate = useCallback((certificate: UserComponentCertificate) => {
-        const educationIds = certificate.educations?.map(e => e.id ?? e.userId).filter((id): id is number => id !== undefined) || [];
+        const educationIds = certificate.educations?.map(e => e.id).filter((id): id is number => id !== undefined) || [];
         setCertificateForm({
             certificateName: certificate.certificateName || '',
             registrationNumber: certificate.registrationNumber || '',
@@ -791,7 +816,7 @@ export default function ProfileManagementPage() {
             issuedTo: certificate.issuedTo || '',
             educationIds,
         });
-        const certId = certificate.id ?? certificate.userId;
+        const certId = certificate.id;
         setEditingCertificateId(certId ?? null);
         setIsEditingCertificate(true);
     }, []);
@@ -825,6 +850,10 @@ export default function ProfileManagementPage() {
 
         setIsSaving(true);
         try {
+            const userSession = UsersService.getUserSession();
+            if (!userSession?.user?.username) {
+                throw new Error('User session not found');
+            }
             const certificateData: any = {
                 certificateName: certificateForm.certificateName,
                 issuedTo: certificateForm.issuedTo,
@@ -836,13 +865,13 @@ export default function ProfileManagementPage() {
 
             let updatedCertificate: UserComponentCertificate;
             if (editingCertificateId) {
-                updatedCertificate = await UserComponentsService.updateCertificate(editingCertificateId, certificateData);
+                updatedCertificate = await UsersService.updateCertificate(userSession.user.username, editingCertificateId, certificateData);
                 setCertificates(prev => prev.map(cert => {
-                    const certId = cert.id ?? cert.userId;
+                    const certId = cert.id;
                     return certId === editingCertificateId ? updatedCertificate : cert;
                 }));
             } else {
-                updatedCertificate = await UserComponentsService.createCertificate(certificateData);
+                updatedCertificate = await UsersService.createCertificate(userSession.user.username, certificateData);
                 setCertificates(prev => [...prev, updatedCertificate]);
             }
 
@@ -863,9 +892,13 @@ export default function ProfileManagementPage() {
 
         setIsSaving(true);
         try {
-            await UserComponentsService.deleteCertificate(certificateId);
+            const userSession = UsersService.getUserSession();
+            if (!userSession?.user?.username) {
+                throw new Error('User session not found');
+            }
+            await UsersService.deleteCertificate(userSession.user.username, certificateId);
             setCertificates(prev => prev.filter(cert => {
-                const certId = cert.id ?? cert.userId;
+                const certId = cert.id;
                 return certId !== certificateId;
             }));
             toast.success('Certificate deleted successfully!');
@@ -946,11 +979,15 @@ export default function ProfileManagementPage() {
                                 <div className="flex flex-col sm:flex-row items-center sm:items-end gap-4 mb-4 md:mb-0">
                                     <ProfileImageUploader
                                         userId={user?.id || 0}
-                                        currentImage={user?.profileImage ? UsersService.getProfileImageUrl(user.id) : null}
+                                        currentImage={user?.profileImage ? (() => {
+                                            const userSession = UsersService.getUserSession();
+                                            const username = userSession?.user?.username || '';
+                                            return username && user?.id ? ImagesService.getUserProfileImageUrl(username, user.id) : null;
+                                        })() : null}
                                         userName={user?.fullName || user?.firstName}
                                         onImageUpdate={(url) => {
                                             if (user) {
-                                                setUser({ ...user, profileImage: url });
+                                                setUser({ ...user, profileImage: url || undefined });
                                             }
                                         }}
                                     />
@@ -1451,7 +1488,7 @@ export default function ProfileManagementPage() {
                             ) : (
                                 <div className="space-y-4">
                                     {educations.map((edu, index) => {
-                                        const educationId = edu.id || edu.userId;
+                                        const educationId = edu.id;
                                         return (
                                             <div key={educationId || index} className="group relative">
                                                 <TimelineItem
@@ -1583,17 +1620,6 @@ export default function ProfileManagementPage() {
                                                                 className="w-full px-3 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none text-sm"
                                                             />
                                                         </div>
-                                                        <div>
-                                                            <label className="block text-xs font-medium text-jcoder-muted mb-1">Description (Optional)</label>
-                                                            <textarea
-                                                                name="description"
-                                                                value={positionForm.description}
-                                                                onChange={handlePositionInputChange}
-                                                                rows={3}
-                                                                placeholder="Describe your responsibilities and achievements..."
-                                                                className="w-full px-3 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none resize-none text-sm"
-                                                            />
-                                                        </div>
                                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                                             <div>
                                                                 <label className="block text-xs font-medium text-jcoder-muted mb-1">Start Date *</label>
@@ -1680,7 +1706,7 @@ export default function ProfileManagementPage() {
 
                                             {/* Existing Positions List */}
                                             {(() => {
-                                                const currentExp = experiences.find(e => e.userId === editingExperienceId);
+                                                const currentExp = experiences.find(e => e.id === editingExperienceId);
                                                 const positions = currentExp?.positions || [];
                                                 if (positions.length === 0 && !isAddingPosition && editingPositionIndex === null) {
                                                     return (
@@ -1697,7 +1723,7 @@ export default function ProfileManagementPage() {
                                                                             <div className="flex-1">
                                                                                 <div className="flex items-center gap-2">
                                                                                     <h5 className="text-sm font-semibold text-jcoder-foreground">
-                                                                                        {position.position || position.positionName}
+                                                                                        {position.position}
                                                                                     </h5>
                                                                                     {position.isCurrentPosition && (
                                                                                         <span className="px-2 py-0.5 text-xs bg-green-500/20 text-green-500 rounded-full">Current</span>
@@ -1710,9 +1736,6 @@ export default function ProfileManagementPage() {
                                                                                     <p className="text-xs text-jcoder-muted mt-1">
                                                                                         {position.location} {position.locationType && `• ${position.locationType}`}
                                                                                     </p>
-                                                                                )}
-                                                                                {position.description && (
-                                                                                    <p className="text-xs text-jcoder-muted mt-2 line-clamp-2">{position.description}</p>
                                                                                 )}
                                                                             </div>
                                                                             <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -1749,7 +1772,7 @@ export default function ProfileManagementPage() {
                             ) : (
                                 <div className="space-y-6">
                                     {experiences.map((exp, index) => (
-                                        <div key={exp.userId || index} className="group relative">
+                                        <div key={exp.id || index} className="group relative">
                                             <div className="mb-4 flex items-center justify-between">
                                                 <h4 className="text-lg font-semibold text-jcoder-foreground">{exp.companyName}</h4>
                                                 <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -1763,7 +1786,7 @@ export default function ProfileManagementPage() {
                                                         </svg>
                                                     </button>
                                                     <button
-                                                        onClick={() => handleDeleteExperience(exp.userId)}
+                                                        onClick={() => handleDeleteExperience(exp.id)}
                                                         className="p-2 bg-jcoder-secondary border border-red-500/50 rounded-lg hover:border-red-500 transition-colors"
                                                         title="Delete experience"
                                                     >
@@ -1778,9 +1801,8 @@ export default function ProfileManagementPage() {
                                                     {exp.positions.map((position, pIndex) => (
                                                         <TimelineItem
                                                             key={pIndex}
-                                                            title={position.position || position.positionName || 'Position'}
+                                                            title={position.position || 'Position'}
                                                             period={`${formatDate(position.startDate)} - ${position.isCurrentPosition ? 'Present' : formatDate(position.endDate)}`}
-                                                            description={position.description}
                                                             isActive={position.isCurrentPosition}
                                                             tags={position.location ? [position.location, position.locationType].filter((t): t is string => Boolean(t)) : undefined}
                                                         />
@@ -1879,7 +1901,7 @@ export default function ProfileManagementPage() {
                                             <p className="text-sm text-jcoder-muted mb-3">Select education records to link this certificate to:</p>
                                             <div className="space-y-2 max-h-48 overflow-y-auto">
                                                 {educations.map((edu) => {
-                                                    const educationId = edu.id ?? edu.userId;
+                                                    const educationId = edu.id;
                                                     if (educationId === undefined) return null;
                                                     const isSelected = certificateForm.educationIds.includes(educationId);
                                                     return (
@@ -1931,7 +1953,7 @@ export default function ProfileManagementPage() {
                             ) : (
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     {certificates.map((cert, index) => {
-                                        const certificateId = cert.id ?? cert.userId;
+                                        const certificateId = cert.id;
                                         return (
                                             <div key={certificateId || index} className="group relative p-4 bg-jcoder-secondary rounded-lg border border-jcoder hover:border-jcoder-primary transition-all">
                                                 <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">

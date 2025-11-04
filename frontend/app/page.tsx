@@ -1,29 +1,29 @@
 'use client';
 
+import {
+  User,
+  Technology,
+  Application,
+  ExpertiseLevel,
+  UserComponentAboutMe,
+  UserComponentEducation,
+  UserComponentExperience,
+  UserComponentCertificate,
+} from '@/types';
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
-import ScrollToTop from '@/components/ScrollToTop';
 import { useEffect, useState } from 'react';
-import { useToast } from '@/components/toast/ToastContext';
-import { Application } from '@/types/entities/application.entity';
-import { Technology } from '@/types/entities/technology.entity';
-import { ApplicationService } from '@/services/applications.service';
-import { TechnologiesService } from '@/services/technologies.service';
-import { UserComponentsService } from '@/services/user-components.service';
-import { ImagesService } from '@/services/images.service';
-import { UsersService } from '@/services/users.service';
-import { UserComponentAboutMe } from '@/types/entities/user-component-about-me.entity';
-import { User } from '@/types/entities/user.entity';
-import { UserComponentEducation } from '@/types/entities/user-component-education.entity';
-import { UserComponentExperience } from '@/types/entities/user-component-experience.entity';
-import { UserComponentCertificate } from '@/types/entities/user-component-certificate.entity';
-import ApplicationCard from '@/components/applications/ApplicationCard';
-import { useSmoothScroll } from '@/hooks/useSmoothScroll';
 import { GitHubIcon } from '@/components/theme';
-import { ExpertiseLevel } from '@/types/enums/expertise-level.enum';
-import LazyImage from '@/components/ui/LazyImage';
 import Resume from '@/components/resume/Resume';
+import LazyImage from '@/components/ui/LazyImage';
+import ScrollToTop from '@/components/ScrollToTop';
 import { generateResumePDF } from '@/utils/resume-pdf';
+import { useSmoothScroll } from '@/hooks/useSmoothScroll';
+import { useToast } from '@/components/toast/ToastContext';
+import ApplicationCard from '@/components/applications/ApplicationCard';
+import { UsersService } from '@/services/administration-by-user/users.service';
+import { ImagesService } from '@/services/administration-by-user/images.service';
+import { PortfolioViewService } from '@/services/portfolio-view/portfolio-view.service';
 
 export default function Home() {
   const [loading, setLoading] = useState(true);
@@ -52,8 +52,9 @@ export default function Home() {
     setError(null);
 
     try {
-      const data = await ApplicationService.query({
-        isActive: true,
+      const userSession = UsersService.getUserSession();
+      const username = userSession?.user?.username || 'default'; // TODO: Get username from config or env
+      const data = await PortfolioViewService.getApplications(username, {
         limit: 100,
         sortBy: 'displayOrder',
         sortOrder: 'ASC',
@@ -72,8 +73,9 @@ export default function Home() {
   const loadTechnologies = async () => {
     setLoadingTechs(true);
     try {
-      const data = await TechnologiesService.query({
-        isActive: true,
+      const userSession = UsersService.getUserSession();
+      const username = userSession?.user?.username || 'default'; // TODO: Get username from config or env
+      const data = await PortfolioViewService.getTechnologies(username, {
         sortBy: 'displayOrder',
         sortOrder: 'ASC',
         limit: 100,
@@ -91,8 +93,10 @@ export default function Home() {
   const loadAboutMe = async () => {
     setLoadingAboutMe(true);
     try {
-      const data = await UserComponentsService.getAboutMe();
-      setAboutMe(data);
+      const userSession = UsersService.getUserSession();
+      const username = userSession?.user?.username || 'default'; // TODO: Get username from config or env
+      const profileData = await PortfolioViewService.getProfileWithAboutMe(username);
+      setAboutMe(profileData.aboutMe || null);
     } catch (err) {
       console.error('Failure to load about me', err);
       setAboutMe(null);
@@ -104,8 +108,10 @@ export default function Home() {
   const loadEducations = async () => {
     setLoadingEducations(true);
     try {
-      const data = await UserComponentsService.getEducations();
-      setEducations(data || []);
+      const userSession = UsersService.getUserSession();
+      const username = userSession?.user?.username || 'default'; // TODO: Get username from config or env
+      const data = await PortfolioViewService.getEducations(username);
+      setEducations(data.data || []);
     } catch (err) {
       console.error('Failure to load educations', err);
       setEducations([]);
@@ -117,8 +123,10 @@ export default function Home() {
   const loadExperiences = async () => {
     setLoadingExperiences(true);
     try {
-      const data = await UserComponentsService.getExperiences();
-      setExperiences(data || []);
+      const userSession = UsersService.getUserSession();
+      const username = userSession?.user?.username || 'default'; // TODO: Get username from config or env
+      const data = await PortfolioViewService.getExperiences(username);
+      setExperiences(data.data || []);
     } catch (err) {
       console.error('Failure to load experiences', err);
       setExperiences([]);
@@ -130,8 +138,10 @@ export default function Home() {
   const loadCertificates = async () => {
     setLoadingCertificates(true);
     try {
-      const data = await UserComponentsService.getCertificates();
-      setCertificates(data || []);
+      const userSession = UsersService.getUserSession();
+      const username = userSession?.user?.username || 'default'; // TODO: Get username from config or env
+      const data = await PortfolioViewService.getCertificates(username);
+      setCertificates(data.data || []);
     } catch (err) {
       console.error('Failure to load certificates', err);
       setCertificates([]);
@@ -441,7 +451,7 @@ export default function Home() {
                   <div className="space-y-8">
                     {experiences.map((experience, expIndex) => (
                       <div
-                        key={`experience-${experience.userId}-${experience.companyName}-${expIndex}`}
+                        key={`experience-${experience.username}-${experience.companyName}-${expIndex}`}
                         className="bg-jcoder-card rounded-2xl p-6 border border-jcoder hover:border-jcoder-primary transition-all duration-300"
                       >
                         <h3 className="text-2xl font-bold text-jcoder-foreground mb-6">
@@ -451,11 +461,11 @@ export default function Home() {
                         {experience.positions && experience.positions.length > 0 && (
                           <div className="space-y-6 pl-4 border-l-2 border-jcoder-primary/30">
                             {experience.positions.map((position, index) => (
-                              <div key={`position-${position.id || index}-${position.position || position.positionName}`} className="relative">
+                              <div key={`position-${position.id || index}-${position.position}`} className="relative">
                                 <div className="absolute -left-[29px] top-0 w-4 h-4 bg-jcoder-primary rounded-full"></div>
                                 <div className="mb-4">
                                   <h4 className="text-xl font-semibold text-jcoder-foreground mb-2">
-                                    {position.position || position.positionName}
+                                    {position.position}
                                   </h4>
                                   <div className="flex flex-wrap items-center gap-4 mb-2">
                                     <p className="text-jcoder-muted text-sm">
@@ -477,12 +487,6 @@ export default function Home() {
                                       </span>
                                     )}
                                   </div>
-                                  {position.description && (
-                                    <div
-                                      className="text-jcoder-muted leading-relaxed prose prose-invert max-w-none"
-                                      dangerouslySetInnerHTML={{ __html: position.description }}
-                                    />
-                                  )}
                                 </div>
                               </div>
                             ))}
@@ -673,7 +677,7 @@ export default function Home() {
                                 {certificate.profileImage && certificate.id && (
                                   <div className="mb-4 rounded-lg overflow-hidden bg-jcoder-secondary">
                                     <LazyImage
-                                      src={ImagesService.getCertificateImageUrl(certificate.id)}
+                                      src={ImagesService.getCertificateImageUrl(user?.username || '', certificate.id)}
                                       alt={certificate.certificateName}
                                       fallback="🎓"
                                       size="custom"
@@ -1049,7 +1053,9 @@ interface TechnologyCardProps {
 }
 
 function TechnologyCard({ technology }: TechnologyCardProps) {
-  const imageUrl = TechnologiesService.getProfileImageUrl(technology.id);
+  const userSession = UsersService.getUserSession();
+  const username = userSession?.user?.username || 'default'; // TODO: Get from config or env
+  const imageUrl = username ? ImagesService.getTechnologyProfileImageUrl(username, technology.id) : '';
 
   return (
     <div

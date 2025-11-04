@@ -1,3 +1,17 @@
+export interface PaginationMeta {
+    page: number;
+
+    limit: number;
+
+    total: number;
+
+    totalPages: number;
+
+    hasNextPage: boolean;
+
+    hasPreviousPage: boolean;
+};
+
 export interface PaginationDto {
     page?: number;
 
@@ -11,12 +25,5 @@ export interface PaginationDto {
 export interface PaginatedResponseDto<T> {
     data: T[];
 
-    meta?: {
-        page: number;
-        limit: number;
-        total: number;
-        totalPages: number;
-        hasNextPage: boolean;
-        hasPreviousPage: boolean;
-    };
+    meta?: PaginationMeta;
 };

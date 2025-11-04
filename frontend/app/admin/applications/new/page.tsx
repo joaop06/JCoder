@@ -3,14 +3,16 @@
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
 import { useRouter } from 'next/navigation';
+import { TableSkeleton } from '@/components/ui';
 import { useState, useEffect, useCallback } from 'react';
 import { useToast } from '@/components/toast/ToastContext';
 import ImageUpload from '@/components/applications/ImageUpload';
-import TechnologySelector from '@/components/applications/TechnologySelector';
-import { ApplicationService } from '@/services/applications.service';
 import { ApplicationTypeEnum } from '@/types/enums/application-type.enum';
-import { CreateApplicationDto } from '@/types/entities/dtos/create-application.dto';
-import { LazyImage, TableSkeleton } from '@/components/ui';
+import TechnologySelector from '@/components/applications/TechnologySelector';
+import { UsersService } from '@/services/administration-by-user/users.service';
+import { ImagesService } from '@/services/administration-by-user/images.service';
+import { ApplicationService } from '@/services/administration-by-user/applications.service';
+import { CreateApplicationDto } from '@/types/api/applications/dtos/create-application.dto';
 
 export default function NewApplicationPage() {
     const router = useRouter();
@@ -19,7 +21,7 @@ export default function NewApplicationPage() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [checkingAuth, setCheckingAuth] = useState(true);
     const [formError, setFormError] = useState<string | null>(null);
-    const [formData, setFormData] = useState<CreateApplicationDto>({
+    const [formData, setFormData] = useState<Omit<CreateApplicationDto, 'username'>>({
         name: '',
         description: '',
         applicationType: ApplicationTypeEnum.API,
@@ -67,7 +69,11 @@ export default function NewApplicationPage() {
 
 
         try {
-            const payload: CreateApplicationDto = { ...formData };
+            const userSession = UsersService.getUserSession();
+            if (!userSession?.user?.username) {
+                throw new Error('User session not found');
+            }
+            const payload: CreateApplicationDto = { ...formData, username: userSession.user.username };
 
             // Clean up components based on applicationType
             switch (payload.applicationType) {
@@ -99,7 +105,7 @@ export default function NewApplicationPage() {
                     break;
             }
 
-            const createdApplication = await ApplicationService.create(payload);
+            const createdApplication = await ApplicationService.create(userSession.user.username, payload);
 
             // Show success message for application creation
             toast.success(`${payload.name} successfully created!`);
@@ -108,7 +114,7 @@ export default function NewApplicationPage() {
 
             if (profileImageFile) {
                 try {
-                    await ApplicationService.uploadProfileImage(createdApplication.id, profileImageFile);
+                    await ImagesService.uploadApplicationProfileImage(userSession.user.username, createdApplication.id, profileImageFile);
                     toast.success('Profile image uploaded successfully!');
                 } catch (error: any) {
                     console.error('Error uploading profile image:', error);
@@ -146,7 +152,7 @@ export default function NewApplicationPage() {
                     }
 
                     if (files.length > 0) {
-                        await ApplicationService.uploadImages(createdApplication.id, files);
+                        await ImagesService.uploadApplicationImages(userSession.user.username, createdApplication.id, files);
                         toast.success('Images uploaded successfully!');
                     }
                 } catch (error: any) {

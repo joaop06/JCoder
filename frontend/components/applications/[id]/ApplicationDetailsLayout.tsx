@@ -1,10 +1,12 @@
 import React from 'react';
+import { LazyImage } from '@/components/ui';
 import LinkDisplayBlock from './LinkDisplayBlock';
 import ApplicationTechnologies from './ApplicationTechnologies';
 import ApplicationImagesGallery from './ApplicationImagesGallery';
-import { Application } from '@/types/entities/application.entity';
-import { ApplicationService } from '@/services/applications.service';
-import { LazyImage } from '@/components/ui';
+import { Application } from '@/types/api/applications/application.entity';
+import { UsersService } from '@/services/administration-by-user/users.service';
+import { ImagesService } from '@/services/administration-by-user/images.service';
+import { ApplicationService } from '@/services/administration-by-user/applications.service';
 
 interface ApplicationDetailsLayoutProps {
   application: Application;
@@ -24,7 +26,11 @@ const ApplicationDetailsLayout: React.FC<ApplicationDetailsLayoutProps> = ({
         <div className="flex items-start gap-3 sm:gap-4 min-w-0">
           {application.profileImage ? (
             <LazyImage
-              src={ApplicationService.getProfileImageUrl(application.id)}
+              src={(() => {
+                const userSession = UsersService.getUserSession();
+                const username = userSession?.user?.username || '';
+                return username ? ImagesService.getApplicationProfileImageUrl(username, application.id) : '';
+              })()}
               alt={application.name}
               fallback={application.name}
               className="object-cover"
@@ -34,7 +40,7 @@ const ApplicationDetailsLayout: React.FC<ApplicationDetailsLayoutProps> = ({
             />
           ) : application.images && application.images.length > 0 ? (
             <LazyImage
-              src={ApplicationService.getImageUrl(application.id, application.images[0])}
+              src={ImagesService.getApplicationImageUrl(application.username, application.id, application.images[0])}
               alt={application.name}
               fallback={application.name}
               className="object-cover"

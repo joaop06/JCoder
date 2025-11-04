@@ -2,7 +2,7 @@
 
 import { useState, useRef } from 'react';
 import { useToast } from '../toast/ToastContext';
-import { UsersService } from '@/services/users.service';
+import { ImagesService } from '@/services/administration-by-user/images.service';
 
 interface ProfileImageUploaderProps {
     userId: number;
@@ -13,8 +13,8 @@ interface ProfileImageUploaderProps {
 
 export const ProfileImageUploader: React.FC<ProfileImageUploaderProps> = ({
     userId,
+    userName,
     currentImage,
-    userName = 'User',
     onImageUpdate,
 }) => {
     const toast = useToast();
@@ -38,10 +38,20 @@ export const ProfileImageUploader: React.FC<ProfileImageUploaderProps> = ({
             return;
         }
 
+        if (!userName) {
+            toast.error('User name is required');
+            return;
+        }
+
+        if (!userId) {
+            toast.error('User ID is required');
+            return;
+        }
+
         setIsUploading(true);
         try {
-            await UsersService.uploadProfileImage(file);
-            const newImageUrl = UsersService.getProfileImageUrl(userId);
+            await ImagesService.uploadUserProfileImage(userName, userId, file);
+            const newImageUrl = ImagesService.getUserProfileImageUrl(userName, userId);
             setImageUrl(`${newImageUrl}?t=${Date.now()}`);
             onImageUpdate?.(newImageUrl);
             toast.success('Profile image updated successfully!');
@@ -56,6 +66,16 @@ export const ProfileImageUploader: React.FC<ProfileImageUploaderProps> = ({
     };
 
     const handleDeleteImage = async () => {
+        if (!userName) {
+            toast.error('User name is required');
+            return;
+        }
+
+        if (!userId) {
+            toast.error('User ID is required');
+            return;
+        }
+
         const confirmed = await toast.confirm(
             'Are you sure you want to delete your profile image?',
             {
@@ -63,12 +83,11 @@ export const ProfileImageUploader: React.FC<ProfileImageUploaderProps> = ({
                 cancelText: 'Cancel'
             }
         );
-
         if (!confirmed) return;
 
         setIsUploading(true);
         try {
-            await UsersService.deleteProfileImage();
+            await ImagesService.deleteUserProfileImage(userName, userId);
             setImageUrl(null);
             onImageUpdate?.(null);
             toast.success('Profile image deleted successfully!');

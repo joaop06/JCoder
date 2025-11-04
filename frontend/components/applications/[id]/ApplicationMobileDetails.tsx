@@ -1,7 +1,6 @@
 import React from 'react';
-import CopyToClipboardButton from '@/components/clipboard/CopyToClipboardButton';
 import LinkDisplayBlock from './LinkDisplayBlock';
-import { ApplicationComponentMobile } from '@/types/entities/application-component-mobile.entity';
+import { ApplicationComponentMobile } from '@/types';
 
 interface ApplicationMobileDetailsProps {
   mobileDetails: ApplicationComponentMobile;

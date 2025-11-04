@@ -1,8 +1,8 @@
 'use client';
 
-import { useSmoothScroll } from '@/hooks/useSmoothScroll';
-import { GitHubIcon } from '@/components/theme';
 import LazyImage from './ui/LazyImage';
+import { GitHubIcon } from '@/components/theme';
+import { useSmoothScroll } from '@/hooks/useSmoothScroll';
 
 export default function Footer() {
   const { scrollToElement } = useSmoothScroll();

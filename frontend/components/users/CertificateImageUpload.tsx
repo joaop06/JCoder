@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { ImagesService } from '@/services/images.service';
-import { useToast } from '@/components/toast/ToastContext';
 import LazyImage from '@/components/ui/LazyImage';
+import { useToast } from '@/components/toast/ToastContext';
+import { ImagesService } from '@/services/administration-by-user/images.service';
+import { UsersService } from '@/services/administration-by-user/users.service';
 
 interface CertificateImageUploadProps {
     certificateId: number;
@@ -57,7 +58,11 @@ export default function CertificateImageUpload({
     const uploadCertificateImage = async (file: File) => {
         setUploading(true);
         try {
-            const updatedCertificate = await ImagesService.uploadCertificateImage(certificateId, file);
+            const userSession = UsersService.getUserSession();
+            if (!userSession?.user?.username) {
+                throw new Error('User session not found');
+            }
+            const updatedCertificate = await ImagesService.uploadCertificateImage(userSession.user.username, certificateId, file);
             toast.success('Certificate image uploaded successfully!');
             onImageChange?.(updatedCertificate.profileImage || null);
         } catch (error: any) {
@@ -77,7 +82,11 @@ export default function CertificateImageUpload({
 
         setUploading(true);
         try {
-            await ImagesService.deleteCertificateImage(certificateId);
+            const userSession = UsersService.getUserSession();
+            if (!userSession?.user?.username) {
+                throw new Error('User session not found');
+            }
+            await ImagesService.deleteCertificateImage(userSession.user.username, certificateId);
             setPreview(null);
             toast.success('Certificate image deleted successfully!');
             onImageChange?.(null);
@@ -103,7 +112,11 @@ export default function CertificateImageUpload({
             return preview;
         }
         if (currentImage) {
-            return ImagesService.getCertificateImageUrl(certificateId);
+            const userSession = UsersService.getUserSession();
+            if (!userSession?.user?.username) {
+                throw new Error('User session not found');
+            }
+            return ImagesService.getCertificateImageUrl(userSession.user.username, certificateId);
         }
         return null;
     };

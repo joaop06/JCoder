@@ -3,15 +3,16 @@
 
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
-import { useEffect, useMemo, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Application } from '@/types/entities/application.entity';
-import { ApplicationService } from '@/services/applications.service';
+import { useEffect, useMemo, useState, useCallback } from 'react';
+import { Application } from '@/types/api/applications/application.entity';
 import { ApplicationTypeEnum } from '@/types/enums/application-type.enum';
+import { UsersService } from '@/services/administration-by-user/users.service';
+import { ApplicationService } from '@/services/administration-by-user/applications.service';
 
 // Import new components
-import { useToast } from '@/components/toast/ToastContext';
 import { TableSkeleton } from '@/components/ui';
+import { useToast } from '@/components/toast/ToastContext';
 import ApplicationApiDetails from '@/components/applications/[id]/ApplicationApiDetails';
 import ApplicationDetailsLayout from '@/components/applications/[id]/ApplicationDetailsLayout';
 import ApplicationMobileDetails from '@/components/applications/[id]/ApplicationMobileDetails';
@@ -48,7 +49,9 @@ export default function ApplicationDetailPage() {
     setError(null);
 
     try {
-      const data = await ApplicationService.getById(appId);
+      const userSession = UsersService.getUserSession();
+      const username = userSession?.user?.username || 'default'; // TODO: Get from config or env
+      const data = await ApplicationService.getById(username, appId);
       if (!data) {
         const errorMessage = 'Application not found';
         setError(errorMessage);
