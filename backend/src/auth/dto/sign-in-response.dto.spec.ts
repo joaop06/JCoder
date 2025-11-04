@@ -3,7 +3,7 @@ import { plainToInstance } from 'class-transformer';
 import { User } from '../../users/entities/user.entity';
 import { RoleEnum } from '../../@common/enums/role.enum';
 import { SignInResponseDto } from './sign-in-response.dto';
-import { ApplicationType } from '../../@common/types/entities.type';
+import { Application } from '../../applications/entities/application.entity';
 
 describe('SignInResponseDto', () => {
     it('should be defined', () => {
@@ -251,7 +251,7 @@ describe('SignInResponseDto', () => {
                     createdAt: '2023-01-01T00:00:00.000Z',
                     updatedAt: '2023-01-01T00:00:00.000Z',
                     deletedAt: null as unknown as Date,
-                    applications: [] as ApplicationType[],
+                    applications: [] as Application[],
                 },
             };
 

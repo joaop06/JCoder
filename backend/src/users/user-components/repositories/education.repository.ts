@@ -5,7 +5,7 @@ import { Repository, FindOptionsWhere, In } from 'typeorm';
 import { CacheService } from '../../../@common/services/cache.service';
 import { UserComponentEducation } from '../entities/user-component-education.entity';
 import { PaginationDto, PaginatedResponseDto } from '../../../@common/dto/pagination.dto';
-import { EducationNotFoundException } from '../exceptions/education-not-found.exception copy';
+import { EducationNotFoundException } from '../exceptions/education-not-found.exception';
 
 @Injectable()
 export class EducationRepository {

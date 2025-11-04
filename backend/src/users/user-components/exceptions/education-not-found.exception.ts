@@ -5,3 +5,4 @@ export class EducationNotFoundException extends NotFoundException {
         super('Education is not found');
     }
 };
+
