@@ -20,12 +20,14 @@ export class UploadImagesUseCase {
     async execute(id: number, files: Express.Multer.File[]): Promise<Application> {
         const application = await this.findApplicationById(id);
 
-        // Upload new images using the generic service
+        // Upload new images using the generic service with username segmentation
         const newImageFilenames = await this.imageStorageService.uploadImages(
             files,
             ResourceType.Application,
             id,
             ImageType.Gallery,
+            undefined,
+            application.username,
         );
 
         // Merge with existing images

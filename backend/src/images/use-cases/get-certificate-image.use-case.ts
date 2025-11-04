@@ -33,9 +33,10 @@ export class GetCertificateImageUseCase {
 
         return await this.imageStorageService.getImagePath(
             ResourceType.User,
-            certificate.username,
+            certificateId,
             certificate.profileImage,
             'certificates',
+            certificate.username,
         );
     }
 }

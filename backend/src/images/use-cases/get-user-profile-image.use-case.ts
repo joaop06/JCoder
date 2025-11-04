@@ -29,6 +29,8 @@ export class GetUserProfileImageUseCase {
             ResourceType.User,
             userId,
             user.profileImage,
+            undefined,
+            user.username,
         );
     }
 }

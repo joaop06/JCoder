@@ -23,11 +23,13 @@ export class DeleteProfileImageUseCase {
             throw new ApplicationNotFoundException();
         }
 
-        // Delete the profile image file
+        // Delete the profile image file with username segmentation
         await this.imageStorageService.deleteImage(
             ResourceType.Application,
             id,
             application.profileImage,
+            undefined,
+            application.username,
         );
 
         // Remove profile image from application

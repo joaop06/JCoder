@@ -25,11 +25,13 @@ export class DeleteUserProfileImageUseCase {
             return user;
         }
 
-        // Delete the profile image file
+        // Delete the profile image file with username segmentation
         await this.imageStorageService.deleteImage(
             ResourceType.User,
             userId,
             user.profileImage,
+            undefined,
+            user.username,
         );
 
         // Remove profile image from user

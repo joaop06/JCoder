@@ -35,11 +35,12 @@ export class ImageStorageService {
         resourceId: number | string,
         imageType: ImageType,
         subPath?: string,
+        username?: string,
     ): Promise<string> {
         const config = this.getImageConfig(resourceType, imageType);
         this.validateFile(file, config);
 
-        const dirPath = this.buildDirectoryPath(resourceType, resourceId, subPath);
+        const dirPath = this.buildDirectoryPath(resourceType, resourceId, subPath, username);
         await this.ensureDirectory(dirPath);
 
         const filename = await this.processAndSaveImage(file, dirPath, imageType, config);
@@ -55,6 +56,7 @@ export class ImageStorageService {
         resourceId: number | string,
         imageType: ImageType,
         subPath?: string,
+        username?: string,
     ): Promise<string[]> {
         if (!files || files.length === 0) {
             return [];
@@ -63,7 +65,7 @@ export class ImageStorageService {
         const config = this.getImageConfig(resourceType, imageType);
         files.forEach(file => this.validateFile(file, config));
 
-        const dirPath = this.buildDirectoryPath(resourceType, resourceId, subPath);
+        const dirPath = this.buildDirectoryPath(resourceType, resourceId, subPath, username);
         await this.ensureDirectory(dirPath);
 
         const uploadPromises = files.map(file =>
@@ -81,8 +83,9 @@ export class ImageStorageService {
         resourceId: number | string,
         filename: string,
         subPath?: string,
+        username?: string,
     ): Promise<string> {
-        const dirPath = this.buildDirectoryPath(resourceType, resourceId, subPath);
+        const dirPath = this.buildDirectoryPath(resourceType, resourceId, subPath, username);
         const filePath = path.join(dirPath, filename);
 
         try {
@@ -101,8 +104,9 @@ export class ImageStorageService {
         resourceId: number | string,
         filename: string,
         subPath?: string,
+        username?: string,
     ): Promise<void> {
-        const dirPath = this.buildDirectoryPath(resourceType, resourceId, subPath);
+        const dirPath = this.buildDirectoryPath(resourceType, resourceId, subPath, username);
         const filePath = path.join(dirPath, filename);
 
         try {
@@ -120,19 +124,20 @@ export class ImageStorageService {
         resourceId: number | string,
         filenames: string[],
         subPath?: string,
+        username?: string,
     ): Promise<void> {
         if (!filenames || filenames.length === 0) {
             return;
         }
 
         const deletePromises = filenames.map(filename =>
-            this.deleteImage(resourceType, resourceId, filename, subPath)
+            this.deleteImage(resourceType, resourceId, filename, subPath, username)
         );
 
         await Promise.all(deletePromises);
 
         // Try to remove the directory if it's empty
-        await this.cleanupEmptyDirectory(resourceType, resourceId, subPath);
+        await this.cleanupEmptyDirectory(resourceType, resourceId, subPath, username);
     }
 
     /**
@@ -141,8 +146,9 @@ export class ImageStorageService {
     async deleteAllResourceImages(
         resourceType: ResourceType,
         resourceId: number | string,
+        username?: string,
     ): Promise<void> {
-        const dirPath = this.buildDirectoryPath(resourceType, resourceId);
+        const dirPath = this.buildDirectoryPath(resourceType, resourceId, undefined, username);
 
         try {
             await fs.rm(dirPath, { recursive: true, force: true });
@@ -159,9 +165,10 @@ export class ImageStorageService {
         resourceId: number | string,
         filename: string,
         subPath?: string,
+        username?: string,
     ): Promise<boolean> {
         try {
-            await this.getImagePath(resourceType, resourceId, filename, subPath);
+            await this.getImagePath(resourceType, resourceId, filename, subPath, username);
             return true;
         } catch {
             return false;
@@ -326,13 +333,23 @@ export class ImageStorageService {
 
     /**
      * Build directory path for resource images
+     * Structure: uploads/{username}/{resourceType}/{resourceId}/{subPath}
+     * If username is not provided, it will be omitted (for global resources like technologies)
      */
     private buildDirectoryPath(
         resourceType: ResourceType,
         resourceId: number | string,
         subPath?: string,
+        username?: string,
     ): string {
-        const parts = [this.uploadBasePath, resourceType, resourceId.toString()];
+        const parts = [this.uploadBasePath];
+
+        // Add username if provided (for user-specific resources)
+        if (username) {
+            parts.push(username);
+        }
+
+        parts.push(resourceType, resourceId.toString());
 
         if (subPath) {
             parts.push(subPath);
@@ -359,8 +376,9 @@ export class ImageStorageService {
         resourceType: ResourceType,
         resourceId: number | string,
         subPath?: string,
+        username?: string,
     ): Promise<void> {
-        const dirPath = this.buildDirectoryPath(resourceType, resourceId, subPath);
+        const dirPath = this.buildDirectoryPath(resourceType, resourceId, subPath, username);
 
         try {
             const files = await fs.readdir(dirPath);

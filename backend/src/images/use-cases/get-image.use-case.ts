@@ -27,6 +27,8 @@ export class GetImageUseCase {
             ResourceType.Application,
             id,
             filename,
+            undefined,
+            application.username,
         );
     }
 

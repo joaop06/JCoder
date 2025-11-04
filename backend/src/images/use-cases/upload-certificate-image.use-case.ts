@@ -41,19 +41,21 @@ export class UploadCertificateImageUseCase {
         if (certificate.profileImage) {
             await this.imageStorageService.deleteImage(
                 ResourceType.User,
-                certificate.username,
+                certificateId,
                 certificate.profileImage,
                 'certificates',
+                certificate.username,
             );
         }
 
-        // Upload new image
+        // Upload new image with username segmentation
         const filename = await this.imageStorageService.uploadImage(
             file,
             ResourceType.User,
-            certificate.username,
+            certificateId,
             ImageType.Component,
             'certificates',
+            certificate.username,
         );
 
         // Update certificate with new image
