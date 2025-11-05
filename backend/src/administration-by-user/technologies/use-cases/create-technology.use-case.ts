@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { UsersService } from '../../users/users.service';
 import { Technology } from '../entities/technology.entity';
 import { TechnologiesService } from '../technologies.service';
 import { CreateTechnologyDto } from '../dto/create-technology.dto';
@@ -7,6 +8,7 @@ import { TechnologyAlreadyExistsException } from '../exceptions/technology-alrea
 @Injectable()
 export class CreateTechnologyUseCase {
     constructor(
+        private readonly usersService: UsersService,
         private readonly technologiesService: TechnologiesService,
     ) { }
 
@@ -20,9 +22,12 @@ export class CreateTechnologyUseCase {
             createTechnologyDto.name
         );
 
+        // Find the user
+        const user = await this.usersService.findOneBy({ username });
+
         // Increment displayOrder of all existing technologies
         // New technology will always be inserted at position 1
-        await this.technologiesService.incrementDisplayOrderFrom(1, username);
+        await this.technologiesService.incrementDisplayOrderFrom(1, user.id);
 
         // Create the technology with displayOrder = 1
         const technologyData = {

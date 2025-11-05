@@ -18,46 +18,46 @@ export class ApplicationComponentsService {
         switch (applicationType) {
             case ApplicationTypeEnum.API:
                 await this.applicationComponentsRepository.createApi({
+                    ...dtos.applicationComponentApi,
                     application,
                     userId: user.id,
-                    ...dtos.applicationComponentApi,
                 });
                 break;
 
             case ApplicationTypeEnum.FRONTEND:
                 await this.applicationComponentsRepository.createFrontend({
+                    ...dtos.applicationComponentFrontend,
                     application,
                     userId: user.id,
-                    ...dtos.applicationComponentFrontend,
                 });
                 break;
 
             case ApplicationTypeEnum.FULLSTACK:
                 await this.applicationComponentsRepository.createApi({
+                    ...dtos.applicationComponentApi,
                     application,
                     userId: user.id,
-                    ...dtos.applicationComponentApi,
                 });
                 await this.applicationComponentsRepository.createFrontend({
+                    ...dtos.applicationComponentFrontend,
                     application,
                     userId: user.id,
-                    ...dtos.applicationComponentFrontend,
                 });
                 break;
 
             case ApplicationTypeEnum.MOBILE:
                 await this.applicationComponentsRepository.createMobile({
+                    ...dtos.applicationComponentMobile,
                     application,
                     userId: user.id,
-                    ...dtos.applicationComponentMobile,
                 });
                 break;
 
             case ApplicationTypeEnum.LIBRARY:
                 await this.applicationComponentsRepository.createLibrary({
+                    ...dtos.applicationComponentLibrary,
                     application,
                     userId: user.id,
-                    ...dtos.applicationComponentLibrary,
                 });
                 break;
         }

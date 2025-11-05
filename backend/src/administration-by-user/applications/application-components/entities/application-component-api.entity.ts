@@ -25,7 +25,7 @@ export class ApplicationComponentApi {
         onDelete: 'CASCADE',
     })
     @JoinColumn({ name: 'applicationId' })
-    application: Application;
+    application?: Application;
 
     @ApiProperty({
         example: 1,
@@ -64,7 +64,7 @@ export class ApplicationComponentApi {
         description: 'Path to verify application documentation',
     })
     @Column({ nullable: true })
-    documentationUrl: string;
+    documentationUrl?: string;
 
     @ApiPropertyOptional({
         nullable: true,

@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CacheModule } from '@nestjs/cache-manager';
+import { UsersModule } from '../users/users.module';
 import { ImagesModule } from '../images/images.module';
 import { Technology } from './entities/technology.entity';
 import { TechnologiesService } from './technologies.service';
@@ -23,6 +24,7 @@ import { ReorderTechnologyUseCase } from './use-cases/reorder-technology.use-cas
     ],
     controllers: [TechnologiesController],
     imports: [
+        UsersModule,
         ConfigModule,
         ImagesModule,
         TypeOrmModule.forFeature([Technology]),

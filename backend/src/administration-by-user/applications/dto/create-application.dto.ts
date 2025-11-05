@@ -18,16 +18,16 @@ import { ApplicationComponentFrontendDto } from '../application-components/dto/a
 
 export class CreateApplicationDto {
   @ApiProperty({
-    type: 'string',
+    type: 'number',
     required: true,
     nullable: false,
-    example: 'Any Name',
-    description: 'Your application name',
+    example: 1,
+    description: 'User ID',
   })
   @IsNotEmpty()
-  @IsString()
+  @IsNumber()
+  userId: number;
 
-  username!: string;
   @ApiProperty({
     type: 'string',
     required: true,
@@ -37,7 +37,7 @@ export class CreateApplicationDto {
   })
   @IsNotEmpty()
   @IsString()
-  name!: string;
+  name: string;
 
   @ApiProperty({
     type: 'string',
@@ -48,7 +48,7 @@ export class CreateApplicationDto {
   })
   @IsNotEmpty()
   @IsString()
-  description!: string;
+  description: string;
 
   @ApiProperty({
     type: 'string',
@@ -60,7 +60,7 @@ export class CreateApplicationDto {
   })
   @IsNotEmpty()
   @IsEnum(ApplicationTypeEnum)
-  applicationType!: ApplicationTypeEnum;
+  applicationType: ApplicationTypeEnum;
 
   @ApiPropertyOptional({
     nullable: true,
@@ -129,4 +129,4 @@ export class CreateApplicationDto {
   @IsArray()
   @IsNumber({}, { each: true })
   technologyIds?: number[];
-}
+};

@@ -25,7 +25,7 @@ export class ApplicationComponentLibrary {
         onDelete: 'CASCADE',
     })
     @JoinColumn({ name: 'applicationId' })
-    application: Application;
+    application?: Application;
 
     @ApiProperty({
         example: 1,

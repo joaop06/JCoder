@@ -28,21 +28,19 @@ export class CreateApplicationUseCase {
         const exists = await this.applicationsService.existsByApplicationNameAndUsername(username, createApplicationDto.name);
         if (exists) throw new AlreadyExistsApplicationException();
 
+        // Find the user
+        const user = await this.usersService.findOneBy({ username });
+
         // Increment displayOrder of all existing applications for this user
         // New application will always be inserted at position 1
-        await this.applicationsService.incrementDisplayOrderFrom(1, username);
+        await this.applicationsService.incrementDisplayOrderFrom(1, user.id);
 
         // Create the application with displayOrder = 1
-        const applicationData = {
+        const application = await this.applicationsService.create({
             ...createApplicationDto,
-            username,
+            userId: user.id,
             displayOrder: 1,
-        };
-
-        // Create the application with the respective components
-        const application = await this.applicationsService.create(applicationData);
-
-        const user = await this.usersService.findOneBy({ username });
+        });
 
         /**
          * Create the components from application

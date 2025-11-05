@@ -83,7 +83,7 @@ export class ApplicationsService {
     );
   }
 
-  async create(createApplicationDto: CreateApplicationDto): Promise<Application> {
+  async create(createApplicationDto: CreateApplicationDto & { displayOrder: number }): Promise<Application> {
     const application = this.repository.create(createApplicationDto);
     const savedApplication = await this.repository.save(application);
 
@@ -135,13 +135,13 @@ export class ApplicationsService {
    * Increments displayOrder of all applications that have displayOrder >= startPosition
    * Used when inserting a new application at a specific position
    */
-  async incrementDisplayOrderFrom(startPosition: number, username: string): Promise<void> {
+  async incrementDisplayOrderFrom(startPosition: number, userId: number): Promise<void> {
     await this.repository
       .createQueryBuilder()
       .update(Application)
       .set({ displayOrder: () => 'displayOrder + 1' })
       .where('displayOrder >= :startPosition', { startPosition })
-      .andWhere('username = :username', { username })
+      .andWhere('userId = :userId', { userId })
       .execute();
   }
 

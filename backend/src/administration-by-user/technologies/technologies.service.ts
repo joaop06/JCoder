@@ -143,13 +143,13 @@ export class TechnologiesService {
      * Increments displayOrder of all technologies that have displayOrder >= startPosition
      * Used when inserting a new technology at a specific position
      */
-    async incrementDisplayOrderFrom(startPosition: number, username: string): Promise<void> {
+    async incrementDisplayOrderFrom(startPosition: number, userId: number): Promise<void> {
         await this.repository
             .createQueryBuilder()
             .update(Technology)
             .set({ displayOrder: () => 'displayOrder + 1' })
             .where('displayOrder >= :startPosition', { startPosition })
-            .andWhere('username = :username', { username })
+            .andWhere('userId = :userId', { userId })
             .execute();
     }
 

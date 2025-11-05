@@ -4,22 +4,11 @@ import {
   IsString,
   IsNotEmpty,
   IsOptional,
-  IsPositive,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { MobilePlatformEnum } from '../../enums/mobile-platform.enum';
 
 export class ApplicationComponentMobileDto {
-  @ApiProperty({
-    example: 1,
-    type: 'number',
-    nullable: false,
-    description: 'Linked application ID',
-  })
-  @IsNotEmpty()
-  @IsPositive()
-  applicationId: number;
-
   @ApiProperty({
     required: true,
     nullable: false,

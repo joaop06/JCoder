@@ -10,6 +10,7 @@ import {
   DeleteDateColumn,
   UpdateDateColumn,
   PrimaryGeneratedColumn,
+  Unique,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
@@ -21,6 +22,7 @@ import { ApplicationComponentLibrary } from '../application-components/entities/
 import { ApplicationComponentFrontend } from '../application-components/entities/application-component-frontend.entity';
 
 @Entity('applications')
+@Unique(['name', 'userId'])
 export class Application {
   @ApiProperty({
     example: 1,
