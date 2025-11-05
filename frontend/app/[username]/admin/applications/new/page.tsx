@@ -21,7 +21,7 @@ export default function NewApplicationPage() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [checkingAuth, setCheckingAuth] = useState(true);
     const [formError, setFormError] = useState<string | null>(null);
-    const [formData, setFormData] = useState<Omit<CreateApplicationDto, 'username'>>({
+    const [formData, setFormData] = useState<Omit<CreateApplicationDto, 'userId'>>({
         name: '',
         description: '',
         applicationType: ApplicationTypeEnum.API,
@@ -73,7 +73,7 @@ export default function NewApplicationPage() {
             if (!userSession?.user?.username) {
                 throw new Error('User session not found');
             }
-            const payload: CreateApplicationDto = { ...formData, username: userSession.user.username };
+            const payload: CreateApplicationDto = { ...formData, userId: userSession.user.id };
 
             // Clean up components based on applicationType
             switch (payload.applicationType) {

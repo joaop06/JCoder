@@ -7,7 +7,7 @@ import {
 import { ApplicationTypeEnum } from "@/types/enums";
 
 export interface CreateApplicationDto {
-  username: string;
+  userId: number;
 
   name: string;
 
