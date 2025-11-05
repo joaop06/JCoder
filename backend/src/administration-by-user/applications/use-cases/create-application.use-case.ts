@@ -78,7 +78,7 @@ export class CreateApplicationUseCase {
                 }
                 break;
             case ApplicationTypeEnum.FRONTEND:
-                if (!dto.applicationComponentApi) {
+                if (!dto.applicationComponentFrontend) {
                     throw new RequiredFrontendComponentToApiApplication();
                 }
                 break;

@@ -20,6 +20,9 @@ export default function EditApplicationPage() {
     const params = useParams();
     const applicationId = params?.id as string;
 
+    const userSession = UsersService.getUserSession();
+    const username = userSession?.user?.username || '';
+
     const [loading, setLoading] = useState(true);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [formError, setFormError] = useState<string | null>(null);
@@ -53,11 +56,10 @@ export default function EditApplicationPage() {
             setLoading(true);
             setFormError(null);
             try {
-                const userSession = UsersService.getUserSession();
-                if (!userSession?.user?.username) {
+                if (!username) {
                     throw new Error('User session not found');
                 }
-                const data = await ApplicationService.getById(userSession.user.username, Number(applicationId));
+                const data = await ApplicationService.getById(username, Number(applicationId));
 
                 const updateApplicationDto: UpdateApplicationDto = {
                     name: data.name,
@@ -133,35 +135,46 @@ export default function EditApplicationPage() {
                     delete payload.applicationComponentMobile;
                     delete payload.applicationComponentLibrary;
                     delete payload.applicationComponentFrontend;
+                    delete payload.applicationComponentApi?.userId;
+                    delete payload.applicationComponentApi?.applicationId;
                     break;
                 case ApplicationTypeEnum.FRONTEND:
                     delete payload.applicationComponentApi;
                     delete payload.applicationComponentMobile;
                     delete payload.applicationComponentLibrary;
+                    delete payload.applicationComponentFrontend?.userId;
+                    delete payload.applicationComponentFrontend?.applicationId;
                     break;
                 case ApplicationTypeEnum.MOBILE:
                     delete payload.applicationComponentApi;
                     delete payload.applicationComponentLibrary;
                     delete payload.applicationComponentFrontend;
+                    delete payload.applicationComponentMobile?.userId;
+                    delete payload.applicationComponentMobile?.applicationId;
                     break;
                 case ApplicationTypeEnum.LIBRARY:
                     delete payload.applicationComponentApi;
                     delete payload.applicationComponentMobile;
                     delete payload.applicationComponentFrontend;
+                    delete payload.applicationComponentLibrary?.userId;
+                    delete payload.applicationComponentLibrary?.applicationId;
                     break;
                 case ApplicationTypeEnum.FULLSTACK:
                     delete payload.applicationComponentMobile;
                     delete payload.applicationComponentLibrary;
+                    delete payload.applicationComponentApi?.userId;
+                    delete payload.applicationComponentFrontend?.userId;
+                    delete payload.applicationComponentApi?.applicationId;
+                    delete payload.applicationComponentFrontend?.applicationId;
                     break;
                 default:
                     break;
             }
 
-            const userSession = UsersService.getUserSession();
-            if (!userSession?.user?.username) {
+            if (!username) {
                 throw new Error('User session not found');
             }
-            await ApplicationService.update(userSession.user.username, Number(applicationId), payload);
+            await ApplicationService.update(username, Number(applicationId), payload);
             toast.success(`${payload.name} successfully updated!`);
 
             // Apply profile image changes only after successful application update
@@ -171,18 +184,18 @@ export default function EditApplicationPage() {
                     switch (pendingProfileImageAction) {
                         case 'upload':
                             if (pendingProfileImageFile) {
-                                await ImagesService.uploadApplicationProfileImage(userSession.user.username, Number(applicationId), pendingProfileImageFile);
+                                await ImagesService.uploadApplicationProfileImage(username, Number(applicationId), pendingProfileImageFile);
                                 toast.success('Profile image uploaded successfully!');
                             }
                             break;
                         case 'update':
                             if (pendingProfileImageFile) {
-                                await ImagesService.updateApplicationProfileImage(userSession.user.username, Number(applicationId), pendingProfileImageFile);
+                                await ImagesService.updateApplicationProfileImage(username, Number(applicationId), pendingProfileImageFile);
                                 toast.success('Profile image updated successfully!');
                             }
                             break;
                         case 'delete':
-                            await ImagesService.deleteApplicationProfileImage(userSession.user.username, Number(applicationId));
+                            await ImagesService.deleteApplicationProfileImage(username, Number(applicationId));
                             toast.success('Profile image deleted successfully!');
                             break;
                     }
@@ -199,7 +212,7 @@ export default function EditApplicationPage() {
                 }
             }
 
-            router.push('/admin');
+            router.push(`/${username}/admin/applications`);
         } catch (err: any) {
             console.error('Error updating application:', err);
             const errorMessage = err?.response?.data?.message
@@ -216,7 +229,7 @@ export default function EditApplicationPage() {
     if (!isAuthenticated || loading) {
         return (
             <div className="min-h-screen flex flex-col bg-background">
-                <Header isAdmin={true} onLogout={() => router.push('/')} />
+                <Header isAdmin={true} onLogout={() => router.push(`/${username}`)} />
                 <main className="flex-1 container mx-auto px-4 py-12 pt-24">
                     <div className="max-w-4xl mx-auto">
                         <div className="mb-8">
@@ -235,7 +248,7 @@ export default function EditApplicationPage() {
 
     return (
         <div className="min-h-screen flex flex-col bg-background">
-            <Header isAdmin={true} onLogout={() => router.push('/')} />
+            <Header isAdmin={true} onLogout={() => router.push(`/${username}`)} />
 
             <main className="flex-1 container mx-auto px-4 py-12 pt-24">
                 <div className="max-w-4xl mx-auto">
@@ -607,11 +620,7 @@ export default function EditApplicationPage() {
                                                 />
                                             ) : profileImage ? (
                                                 <LazyImage
-                                                    src={(() => {
-                                                        const userSession = UsersService.getUserSession();
-                                                        const username = userSession?.user?.username || '';
-                                                        return username ? ImagesService.getApplicationProfileImageUrl(username, Number(applicationId)) : '';
-                                                    })()}
+                                                    src={ImagesService.getApplicationProfileImageUrl(username, Number(applicationId))}
                                                     alt="Current profile"
                                                     fallback={formData.name!}
                                                     className="border border-jcoder object-cover"
@@ -737,15 +746,15 @@ export default function EditApplicationPage() {
                             <div className="mt-8 flex justify-end gap-4">
                                 <button
                                     type="button"
-                                    onClick={() => router.push('/admin')}
+                                    onClick={() => router.push(`/${username}/admin/applications`)}
                                     className="px-6 py-2 border border-jcoder rounded-md text-jcoder-muted hover:bg-jcoder-secondary hover:text-jcoder-foreground transition-colors duration-200"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
-                                    className="px-6 py-2 bg-jcoder-gradient text-black rounded-md hover:opacity-90 transition-opacity duration-200 font-medium"
                                     disabled={loading}
+                                    className="px-6 py-2 bg-jcoder-gradient text-black rounded-md hover:opacity-90 transition-opacity duration-200 font-medium"
                                 >
                                     {loading ? 'Updating...' : 'Update Application'}
                                 </button>

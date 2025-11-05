@@ -2,7 +2,7 @@
 
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
-import { useRouter } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useToast } from '@/components/toast/ToastContext';
 import { PaginationDto } from '@/types/api/pagination.dto';
 import { useState, useEffect, useMemo, useCallback, memo } from 'react';
@@ -295,6 +295,12 @@ ApplicationCard.displayName = 'ApplicationCard';
 
 export default function ApplicationsManagementPage() {
     const router = useRouter();
+
+    const params = useParams();
+    const username = useMemo(() => {
+        const raw = params?.username;
+        return Array.isArray(raw) ? raw[0] : raw || '';
+    }, [params]);
 
     const [loading, setLoading] = useState(true);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -710,7 +716,7 @@ export default function ApplicationsManagementPage() {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                                 </svg>
                             ),
-                            onClick: () => router.push('/admin/applications/new'),
+                            onClick: () => router.push(`/${username}/admin/applications/new`),
                         }}
                         columns={[
                             { label: '', className: 'px-2 py-4 text-center text-sm font-semibold text-jcoder-foreground w-12' },
@@ -731,7 +737,7 @@ export default function ApplicationsManagementPage() {
                                 index={index}
                                 draggedIndex={draggedIndex}
                                 dragOverIndex={dragOverIndex}
-                                onEdit={(app) => router.push(`/admin/applications/${app.id}/edit`)}
+                                onEdit={(app) => router.push(`/${username}/admin/applications/${app.id}/edit`)}
                                 onDelete={handleDelete}
                                 onDragStart={handleDragStart}
                                 onDragEnd={handleDragEnd}
@@ -747,7 +753,7 @@ export default function ApplicationsManagementPage() {
                                 index={index}
                                 draggedIndex={draggedIndex}
                                 dragOverIndex={dragOverIndex}
-                                onEdit={(app) => router.push(`/admin/applications/${app.id}/edit`)}
+                                onEdit={(app) => router.push(`/${username}/admin/applications/${app.id}/edit`)}
                                 onDelete={handleDelete}
                                 onDragStart={handleDragStart}
                                 onDragEnd={handleDragEnd}

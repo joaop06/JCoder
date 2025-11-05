@@ -9,7 +9,7 @@ import { ApplicationTypeEnum } from '@/types/enums/application-type.enum';
 
 export interface Application {
     id: number;
-    username: string;
+    userId: string;
     name: string;
     description: string;
     applicationType: ApplicationTypeEnum;

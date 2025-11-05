@@ -56,6 +56,14 @@ export class ApplicationsController {
     return await this.applicationsService.findAll(username, paginationDto);
   }
 
+  @Get('stats')
+  @ApiOkResponse({ type: () => ApplicationsStatsDto })
+  async getStats(
+    @Param('username') username: string,
+  ): Promise<ApplicationsStatsDto> {
+    return await this.applicationsService.getStats(username);
+  }
+
   @Get(':id')
   @ApiOkResponse({ type: () => Application })
   @ApiExceptionResponse(() => ApplicationNotFoundException)
@@ -110,14 +118,6 @@ export class ApplicationsController {
     @Param('id', ParseIntPipe) id: number,
   ) {
     return await this.deleteApplicationUseCase.execute(username, +id);
-  }
-
-  @Get('stats')
-  @ApiOkResponse({ type: () => ApplicationsStatsDto })
-  async getStats(
-    @Param('username') username: string,
-  ): Promise<ApplicationsStatsDto> {
-    return await this.applicationsService.getStats(username);
   }
 
   @Put(':id/reorder')

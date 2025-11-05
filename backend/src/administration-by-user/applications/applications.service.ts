@@ -1,6 +1,7 @@
 import { In, Repository } from 'typeorm';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { UsersService } from '../users/users.service';
 import { Application } from './entities/application.entity';
 import { CacheService } from '../../@common/services/cache.service';
 import { ApplicationsStatsDto } from './dto/applications-stats.dto';
@@ -15,6 +16,8 @@ import { ApplicationNotFoundException } from './exceptions/application-not-found
 export class ApplicationsService {
   constructor(
     private readonly cacheService: CacheService,
+
+    private readonly usersService: UsersService,
 
     @InjectRepository(Application)
     private readonly repository: Repository<Application>,
@@ -162,6 +165,8 @@ export class ApplicationsService {
       return; // No reordering needed
     }
 
+    const user = await this.usersService.findOneBy({ username });
+
     if (newPosition < oldPosition) {
       // Moving up: increment displayOrder of applications between new and old position
       await this.repository
@@ -171,7 +176,7 @@ export class ApplicationsService {
         .where('displayOrder >= :newPosition', { newPosition })
         .andWhere('displayOrder < :oldPosition', { oldPosition })
         .andWhere('id != :id', { id })
-        .andWhere('username = :username', { username })
+        .andWhere('userId = :userId', { userId: user.id })
         .execute();
     } else {
       // Moving down: decrement displayOrder of applications between old and new position
@@ -182,7 +187,7 @@ export class ApplicationsService {
         .where('displayOrder > :oldPosition', { oldPosition })
         .andWhere('displayOrder <= :newPosition', { newPosition })
         .andWhere('id != :id', { id })
-        .andWhere('username = :username', { username })
+        .andWhere('userId = :userId', { userId: user.id })
         .execute();
     }
   }
@@ -194,12 +199,14 @@ export class ApplicationsService {
    * @param username - User username to scope the reordering
    */
   async decrementDisplayOrderAfter(deletedPosition: number, username: string): Promise<void> {
+    const user = await this.usersService.findOneBy({ username });
+
     await this.repository
       .createQueryBuilder()
       .update(Application)
       .set({ displayOrder: () => 'displayOrder - 1' })
       .where('displayOrder > :deletedPosition', { deletedPosition })
-      .andWhere('username = :username', { username })
+      .andWhere('userId = :userId', { userId: user.id })
       .execute();
   }
 

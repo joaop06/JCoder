@@ -29,8 +29,8 @@ export default function ApplicationCard({ application, username }: ApplicationCa
     return null;
   };
 
+  const appUsername = username;
   const componentUrl = getComponentUrl();
-  const appUsername = username || application.username;
 
   return (
     <div className="bg-jcoder-card border border-jcoder rounded-lg p-6 hover:shadow-lg hover:shadow-jcoder-primary/20 transition-all duration-300 hover:border-jcoder-primary">

@@ -40,7 +40,11 @@ const ApplicationDetailsLayout: React.FC<ApplicationDetailsLayoutProps> = ({
             />
           ) : application.images && application.images.length > 0 ? (
             <LazyImage
-              src={ImagesService.getApplicationImageUrl(application.username, application.id, application.images[0])}
+              src={(() => {
+                const userSession = UsersService.getUserSession();
+                const username = userSession?.user?.username || '';
+                return ImagesService.getApplicationImageUrl(username, application.id, application.images[0]);
+              })()}
               alt={application.name}
               fallback={application.name}
               className="object-cover"

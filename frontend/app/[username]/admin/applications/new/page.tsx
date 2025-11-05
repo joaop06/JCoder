@@ -2,20 +2,27 @@
 
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
-import { useRouter } from 'next/navigation';
 import { TableSkeleton } from '@/components/ui';
-import { useState, useEffect, useCallback } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import { useToast } from '@/components/toast/ToastContext';
 import ImageUpload from '@/components/applications/ImageUpload';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { ApplicationTypeEnum } from '@/types/enums/application-type.enum';
 import TechnologySelector from '@/components/applications/TechnologySelector';
 import { UsersService } from '@/services/administration-by-user/users.service';
 import { ImagesService } from '@/services/administration-by-user/images.service';
 import { ApplicationService } from '@/services/administration-by-user/applications.service';
 import { CreateApplicationDto } from '@/types/api/applications/dtos/create-application.dto';
+import { MobilePlatformEnum } from '@/types';
 
 export default function NewApplicationPage() {
     const router = useRouter();
+
+    const params = useParams();
+    const username = useMemo(() => {
+        const raw = params?.username;
+        return Array.isArray(raw) ? raw[0] : raw || '';
+    }, [params]);
 
     const [loading, setLoading] = useState(false);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -43,6 +50,89 @@ export default function NewApplicationPage() {
         setCheckingAuth(false);
     }, [router]);
 
+    // Initialize component objects when application type changes
+    useEffect(() => {
+        setFormData((prev) => {
+            const newData = { ...prev };
+
+            // Remove component objects that are not needed for the current type
+            switch (prev.applicationType) {
+                case ApplicationTypeEnum.API:
+                    delete newData.applicationComponentMobile;
+                    delete newData.applicationComponentLibrary;
+                    delete newData.applicationComponentFrontend;
+                    // Initialize API component if it doesn't exist
+                    if (!newData.applicationComponentApi) {
+                        newData.applicationComponentApi = {
+                            domain: '',
+                            apiUrl: '',
+                            documentationUrl: undefined,
+                            healthCheckEndpoint: undefined,
+                        };
+                    }
+                    break;
+                case ApplicationTypeEnum.MOBILE:
+                    delete newData.applicationComponentApi;
+                    delete newData.applicationComponentLibrary;
+                    delete newData.applicationComponentFrontend;
+                    // Initialize Mobile component if it doesn't exist
+                    if (!newData.applicationComponentMobile) {
+                        newData.applicationComponentMobile = {
+                            platform: MobilePlatformEnum.ANDROID,
+                            downloadUrl: undefined,
+                        };
+                    }
+                    break;
+                case ApplicationTypeEnum.LIBRARY:
+                    delete newData.applicationComponentApi;
+                    delete newData.applicationComponentMobile;
+                    delete newData.applicationComponentFrontend;
+                    // Initialize Library component if it doesn't exist
+                    if (!newData.applicationComponentLibrary) {
+                        newData.applicationComponentLibrary = {
+                            packageManagerUrl: '',
+                            readmeContent: undefined,
+                        };
+                    }
+                    break;
+                case ApplicationTypeEnum.FRONTEND:
+                    delete newData.applicationComponentApi;
+                    delete newData.applicationComponentMobile;
+                    delete newData.applicationComponentLibrary;
+                    // Initialize Frontend component if it doesn't exist
+                    if (!newData.applicationComponentFrontend) {
+                        newData.applicationComponentFrontend = {
+                            frontendUrl: '',
+                            screenshotUrl: undefined,
+                        };
+                    }
+                    break;
+                case ApplicationTypeEnum.FULLSTACK:
+                    delete newData.applicationComponentMobile;
+                    delete newData.applicationComponentLibrary;
+                    // Initialize API component if it doesn't exist
+                    if (!newData.applicationComponentApi) {
+                        newData.applicationComponentApi = {
+                            domain: '',
+                            apiUrl: '',
+                            documentationUrl: undefined,
+                            healthCheckEndpoint: undefined,
+                        };
+                    }
+                    // Initialize Frontend component if it doesn't exist
+                    if (!newData.applicationComponentFrontend) {
+                        newData.applicationComponentFrontend = {
+                            frontendUrl: '',
+                            screenshotUrl: undefined,
+                        };
+                    }
+                    break;
+            }
+
+            return newData;
+        });
+    }, [formData.applicationType]);
+
     const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         if (name.includes('.')) {
@@ -50,7 +140,7 @@ export default function NewApplicationPage() {
             setFormData((prev) => ({
                 ...prev,
                 [parent]: {
-                    ...(prev as any)[parent],
+                    ...(prev as any)[parent] || {},
                     [child]: value,
                 },
             }));
@@ -164,7 +254,7 @@ export default function NewApplicationPage() {
                 }
             }
 
-            router.push('/admin');
+            router.push(`/${username}/admin/applications`);
         } catch (err: any) {
             const errorMessage = err?.response?.data?.message
                 || err.message
@@ -180,7 +270,7 @@ export default function NewApplicationPage() {
     if (checkingAuth || !isAuthenticated) {
         return (
             <div className="min-h-screen flex flex-col bg-background">
-                <Header isAdmin={true} onLogout={() => router.push('/')} />
+                <Header isAdmin={true} onLogout={() => router.push(`/${username}`)} />
                 <main className="flex-1 container mx-auto px-4 py-12 pt-24">
                     <div className="max-w-4xl mx-auto">
                         <div className="mb-8">
@@ -199,7 +289,7 @@ export default function NewApplicationPage() {
 
     return (
         <div className="min-h-screen flex flex-col bg-background">
-            <Header isAdmin={true} onLogout={() => router.push('/')} />
+            <Header isAdmin={true} onLogout={() => router.push(`/${username}`)} />
 
             <main className="flex-1 container mx-auto px-4 py-12 pt-24">
                 <div className="max-w-4xl mx-auto">
@@ -375,14 +465,14 @@ export default function NewApplicationPage() {
                                             <select
                                                 name="applicationComponentMobile.platform"
                                                 id="mobile-platform"
-                                                value={formData.applicationComponentMobile?.platform || 'Android'}
+                                                value={formData.applicationComponentMobile?.platform || MobilePlatformEnum.ANDROID}
                                                 onChange={handleChange}
                                                 required
                                                 className="mt-1 block w-full border border-jcoder rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted"
                                             >
-                                                <option value="iOS">iOS</option>
-                                                <option value="Android">Android</option>
-                                                <option value="Multiplatform">Multiplatform</option>
+                                                <option value={MobilePlatformEnum.IOS}>iOS</option>
+                                                <option value={MobilePlatformEnum.ANDROID}>Android</option>
+                                                <option value={MobilePlatformEnum.MULTIPLATFORM}>Multiplatform</option>
                                             </select>
                                         </div>
                                         <div>
@@ -616,7 +706,7 @@ export default function NewApplicationPage() {
                             <div className="mt-8 flex justify-end gap-4">
                                 <button
                                     type="button"
-                                    onClick={() => router.push('/admin')}
+                                    onClick={() => router.push(`/${username}/admin/applications`)}
                                     className="px-4 py-2 text-jcoder-muted bg-jcoder-secondary border border-jcoder rounded-md hover:bg-jcoder-secondary hover:text-jcoder-foreground transition-colors duration-200"
                                 >
                                     Cancel
