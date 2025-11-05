@@ -30,6 +30,28 @@ export class PortfolioViewController {
   ) { }
 
   /**
+   * Verifica disponibilidade do username
+   * Usado para validação em tempo real durante o cadastro
+   * Deve estar antes das rotas dinâmicas :username para evitar conflitos
+   */
+  @Get('check-username/:username')
+  @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ 
+    schema: { 
+      type: 'object', 
+      properties: { 
+        available: { type: 'boolean' },
+        username: { type: 'string' }
+      } 
+    } 
+  })
+  async checkUsernameAvailability(
+    @Param('username') username: string,
+  ): Promise<{ available: boolean; username: string }> {
+    return await this.portfolioViewService.checkUsernameAvailability(username);
+  }
+
+  /**
    * Busca dados básicos do perfil com About Me
    * Rota otimizada para carregamento inicial do portfólio
    */

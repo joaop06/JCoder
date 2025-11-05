@@ -146,4 +146,18 @@ export const PortfolioViewService = {
             throw error;
         }
     },
+
+    /**
+     * Verifica disponibilidade do username
+     * Usado para validação em tempo real durante o cadastro
+     * GET /portfolio/check-username/:username
+     */
+    async checkUsernameAvailability(username: string): Promise<{ available: boolean; username: string }> {
+        try {
+            const response = await ApiService.get(`/portfolio/check-username/${username}`);
+            return response.data.data;
+        } catch (error) {
+            throw error;
+        }
+    },
 };

@@ -356,5 +356,24 @@ export class PortfolioViewService {
       300, // 5 minutes cache
     );
   }
+
+  /**
+   * Verifica disponibilidade do username
+   * Retorna true se o username estiver disponível (não existe)
+   */
+  async checkUsernameAvailability(username: string): Promise<{ available: boolean; username: string }> {
+    // Validação básica do formato do username
+    if (!username || username.length < 3) {
+      return { available: false, username };
+    }
+
+    // Verificar se o username já existe
+    const userExists = await this.userRepository.findOneBy({ username });
+    
+    return {
+      available: !userExists,
+      username,
+    };
+  }
 }
 

@@ -3,9 +3,10 @@
 import Link from 'next/link';
 import { LazyImage } from '@/components/ui';
 import { useRouter } from 'next/navigation';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useToast } from '@/components/toast/ToastContext';
 import { AuthService } from '@/services/administration-by-user/auth.service';
+import { PortfolioViewService } from '@/services/portfolio-view/portfolio-view.service';
 import type { CreateUserDto } from '@/types/api/auth/create-user.dto';
 
 export default function RegisterPage() {
@@ -22,8 +23,13 @@ export default function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [usernameStatus, setUsernameStatus] = useState<{
+    checking: boolean;
+    available: boolean | null;
+  }>({ checking: false, available: null });
 
   const toast = useToast();
+  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const validateForm = useCallback((): boolean => {
     const newErrors: Record<string, string> = {};
@@ -40,8 +46,6 @@ export default function RegisterPage() {
     // Password validation
     if (!formData.password) {
       newErrors.password = 'Password is required';
-    } else if (formData.password.length < 8) {
-      newErrors.password = 'Password must be at least 8 characters';
     }
 
     // Confirm password validation
@@ -68,6 +72,62 @@ export default function RegisterPage() {
     return Object.keys(newErrors).length === 0;
   }, [formData, confirmPassword]);
 
+  // Verificação em tempo real da disponibilidade do username
+  useEffect(() => {
+    // Limpar timeout anterior se existir
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current);
+    }
+
+    const username = formData.username.trim();
+
+    // Validação básica antes de verificar
+    if (!username || username.length < 3) {
+      setUsernameStatus({ checking: false, available: null });
+      return;
+    }
+
+    // Validar formato do username
+    if (!/^[a-zA-Z0-9_-]+$/.test(username)) {
+      setUsernameStatus({ checking: false, available: null });
+      return;
+    }
+
+    // Debounce: aguardar 500ms após o usuário parar de digitar
+    setUsernameStatus({ checking: true, available: null });
+    debounceTimeoutRef.current = setTimeout(async () => {
+      try {
+        const result = await PortfolioViewService.checkUsernameAvailability(username);
+        setUsernameStatus({ checking: false, available: result.available });
+        
+        // Se o username não estiver disponível, adicionar erro
+        if (!result.available) {
+          setErrors(prev => ({
+            ...prev,
+            username: 'Este username já está em uso. Por favor, escolha outro.',
+          }));
+        } else {
+          // Remover erro se o username estiver disponível
+          setErrors(prev => {
+            const newErrors = { ...prev };
+            delete newErrors.username;
+            return newErrors;
+          });
+        }
+      } catch (error) {
+        // Em caso de erro, não bloquear o usuário, apenas parar a verificação
+        setUsernameStatus({ checking: false, available: null });
+      }
+    }, 500);
+
+    // Cleanup
+    return () => {
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
+    };
+  }, [formData.username]);
+
   const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -81,6 +141,10 @@ export default function RegisterPage() {
         delete newErrors[name];
         return newErrors;
       });
+    }
+    // Reset username status quando começar a digitar
+    if (name === 'username') {
+      setUsernameStatus({ checking: false, available: null });
     }
   }, [errors]);
 
@@ -195,20 +259,47 @@ export default function RegisterPage() {
                 <label htmlFor="username" className="block text-sm font-medium text-jcoder-muted mb-2">
                   Username <span className="text-red-400">*</span>
                 </label>
-                <input
-                  required
-                  id="username"
-                  name="username"
-                  type="text"
-                  value={formData.username}
-                  disabled={isLoading}
-                  placeholder="johndoe"
-                  onChange={handleChange}
-                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-transparent disabled:opacity-60 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted ${errors.username ? 'border-red-400' : 'border-jcoder'
+                <div className="relative">
+                  <input
+                    required
+                    id="username"
+                    name="username"
+                    type="text"
+                    value={formData.username}
+                    disabled={isLoading}
+                    placeholder="johndoe"
+                    onChange={handleChange}
+                    className={`w-full px-4 py-3 pr-10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-transparent disabled:opacity-60 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted ${
+                      errors.username ? 'border-red-400' : 
+                      usernameStatus.available === true ? 'border-green-400' : 
+                      usernameStatus.available === false ? 'border-red-400' : 
+                      'border-jcoder'
                     }`}
-                />
+                  />
+                  {formData.username.length >= 3 && (
+                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                      {usernameStatus.checking ? (
+                        <svg className="animate-spin h-5 w-5 text-jcoder-muted" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                      ) : usernameStatus.available === true ? (
+                        <svg className="h-5 w-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                      ) : usernameStatus.available === false ? (
+                        <svg className="h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      ) : null}
+                    </div>
+                  )}
+                </div>
                 {errors.username && (
                   <p className="mt-1 text-sm text-red-400">{errors.username}</p>
+                )}
+                {!errors.username && usernameStatus.available === true && formData.username.length >= 3 && (
+                  <p className="mt-1 text-sm text-green-400">Username disponível!</p>
                 )}
                 <p className="mt-1 text-xs text-jcoder-muted">
                   At least 3 characters. Letters, numbers, underscores, and hyphens only.
@@ -290,9 +381,6 @@ export default function RegisterPage() {
                 {errors.password && (
                   <p className="mt-1 text-sm text-red-400">{errors.password}</p>
                 )}
-                <p className="mt-1 text-xs text-jcoder-muted">
-                  At least 8 characters.
-                </p>
               </div>
 
               {/* Confirm Password */}
