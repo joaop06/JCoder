@@ -1,16 +1,17 @@
-import { Injectable } from '@nestjs/common';
 import { Repository } from 'typeorm';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../../users/entities/user.entity';
-import { UserNotFoundException } from '../../users/exceptions/user-not-found.exception';
-import { ImageStorageService } from '../services/image-storage.service';
 import { ResourceType } from '../enums/resource-type.enum';
+import { ImageStorageService } from '../services/image-storage.service';
+import { UserNotFoundException } from '../../users/exceptions/user-not-found.exception';
 
 @Injectable()
 export class DeleteUserProfileImageUseCase {
     constructor(
         @InjectRepository(User)
         private readonly userRepository: Repository<User>,
+
         private readonly imageStorageService: ImageStorageService,
     ) { }
 

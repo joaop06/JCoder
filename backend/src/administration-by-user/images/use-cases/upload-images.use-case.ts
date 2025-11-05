@@ -1,20 +1,19 @@
 import { Repository } from 'typeorm';
 import { Injectable } from '@nestjs/common';
+import { ImagesService } from '../images.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ImageType } from '../enums/image-type.enum';
-import { UsersService } from '../../users/users.service';
 import { ResourceType } from '../enums/resource-type.enum';
 import { CacheService } from '../../../@common/services/cache.service';
 import { ImageStorageService } from '../services/image-storage.service';
 import { Application } from '../../applications/entities/application.entity';
-import { ApplicationNotFoundException } from '../../applications/exceptions/application-not-found.exception';
 
 @Injectable()
 export class UploadImagesUseCase {
     constructor(
         private readonly cacheService: CacheService,
 
-        private readonly usersService: UsersService,
+        private readonly imagesService: ImagesService,
 
         private readonly imageStorageService: ImageStorageService,
 
@@ -23,9 +22,7 @@ export class UploadImagesUseCase {
     ) { }
 
     async execute(id: number, files: Express.Multer.File[]): Promise<Application> {
-        const application = await this.findApplicationById(id);
-
-        const user = await this.usersService.findOneBy({ id: application.userId });
+        const application = await this.imagesService.findApplicationById(id);
 
         // Upload new images using the generic service with username segmentation
         const newImageFilenames = await this.imageStorageService.uploadImages(
@@ -34,7 +31,7 @@ export class UploadImagesUseCase {
             id,
             ImageType.Gallery,
             undefined,
-            user.username,
+            application.user.username,
         );
 
         // Merge with existing images
@@ -46,27 +43,5 @@ export class UploadImagesUseCase {
         await this.cacheService.del(this.cacheService.applicationKey(id, 'full'));
 
         return updatedApplication;
-    }
-
-    private async findApplicationById(id: number): Promise<Application> {
-        const cacheKey = this.cacheService.applicationKey(id, 'full');
-
-        return await this.cacheService.getOrSet(
-            cacheKey,
-            async () => {
-                const application = await this.applicationRepository.findOne({
-                    where: { id },
-                    relations: {
-                        applicationComponentApi: true,
-                        applicationComponentMobile: true,
-                        applicationComponentLibrary: true,
-                        applicationComponentFrontend: true,
-                    },
-                });
-                if (!application) throw new ApplicationNotFoundException();
-                return application;
-            },
-            600,
-        );
     }
 };

@@ -1,7 +1,6 @@
 import { Repository } from 'typeorm';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UsersService } from '../../users/users.service';
 import { ResourceType } from '../enums/resource-type.enum';
 import { ImageStorageService } from '../services/image-storage.service';
 import { UserComponentCertificate } from '../../users/user-components/entities/user-component-certificate.entity';
@@ -13,8 +12,6 @@ import { ComponentNotFoundException } from '../../users/user-components/exceptio
 @Injectable()
 export class GetCertificateImageUseCase {
     constructor(
-        private readonly usersService: UsersService,
-
         private readonly imageStorageService: ImageStorageService,
 
         @InjectRepository(UserComponentCertificate)
@@ -22,12 +19,10 @@ export class GetCertificateImageUseCase {
     ) { }
 
     async execute(username: string, certificateId: number): Promise<string> {
-        // Find the user
-        const user = await this.usersService.findOneBy({ username });
-
         // Find the certificate
         const certificate = await this.certificateRepository.findOne({
-            where: { id: certificateId, userId: user.id },
+            relations: ['user'],
+            where: { id: certificateId },
         });
 
         if (!certificate) {
@@ -43,7 +38,7 @@ export class GetCertificateImageUseCase {
             certificateId,
             certificate.profileImage,
             'certificates',
-            user.username,
+            certificate.user.username,
         );
     }
 };

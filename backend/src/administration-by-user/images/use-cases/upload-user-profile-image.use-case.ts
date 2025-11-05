@@ -1,17 +1,18 @@
-import { Injectable } from '@nestjs/common';
 import { Repository } from 'typeorm';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from '../../users/entities/user.entity';
-import { UserNotFoundException } from '../../users/exceptions/user-not-found.exception';
-import { ImageStorageService } from '../services/image-storage.service';
-import { ResourceType } from '../enums/resource-type.enum';
 import { ImageType } from '../enums/image-type.enum';
+import { User } from '../../users/entities/user.entity';
+import { ResourceType } from '../enums/resource-type.enum';
+import { ImageStorageService } from '../services/image-storage.service';
+import { UserNotFoundException } from '../../users/exceptions/user-not-found.exception';
 
 @Injectable()
 export class UploadUserProfileImageUseCase {
     constructor(
         @InjectRepository(User)
         private readonly userRepository: Repository<User>,
+
         private readonly imageStorageService: ImageStorageService,
     ) { }
 
@@ -47,5 +48,4 @@ export class UploadUserProfileImageUseCase {
         user.profileImage = profileImageFilename;
         return await this.userRepository.save(user);
     }
-}
-
+};

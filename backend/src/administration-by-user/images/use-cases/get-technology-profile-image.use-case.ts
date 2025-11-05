@@ -1,17 +1,18 @@
-import { Injectable } from '@nestjs/common';
 import { Repository } from 'typeorm';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { ResourceType } from '../enums/resource-type.enum';
+import { ImageStorageService } from '../services/image-storage.service';
 import { Technology } from '../../technologies/entities/technology.entity';
 import { TechnologyNotFoundException } from '../../technologies/exceptions/technology-not-found.exception';
-import { ImageStorageService } from '../services/image-storage.service';
-import { ResourceType } from '../enums/resource-type.enum';
 
 @Injectable()
 export class GetTechnologyProfileImageUseCase {
     constructor(
+        private readonly imageStorageService: ImageStorageService,
+
         @InjectRepository(Technology)
         private readonly technologyRepository: Repository<Technology>,
-        private readonly imageStorageService: ImageStorageService,
     ) { }
 
     async execute(id: number): Promise<string> {
@@ -31,5 +32,4 @@ export class GetTechnologyProfileImageUseCase {
             technology.profileImage,
         );
     }
-}
-
+};
