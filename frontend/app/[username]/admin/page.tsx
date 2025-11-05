@@ -2,23 +2,41 @@
 
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { UsersService } from '@/services/administration-by-user/users.service';
 
 export default function AdminDashboardPage() {
   const router = useRouter();
+  const params = useParams();
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
+  // Get username from URL params
+  const urlUsername = useMemo(() => {
+    const raw = params?.username;
+    return Array.isArray(raw) ? raw[0] : raw || '';
+  }, [params]);
+
   useEffect(() => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
-    if (!token) {
-      router.push('/login');
+    const userSession = UsersService.getUserSession();
+    const loggedInUsername = userSession?.user?.username;
+
+    if (!token || !loggedInUsername) {
+      router.push('/sign-in');
       return;
     }
+
+    // Check if logged in user matches URL username
+    if (loggedInUsername !== urlUsername) {
+      router.push(`/${loggedInUsername}/admin`);
+      return;
+    }
+
     setIsAuthenticated(true);
     setLoading(false);
-  }, [router]);
+  }, [router, urlUsername]);
 
   const handleLogout = useCallback(() => {
     localStorage.removeItem('user');
@@ -35,7 +53,7 @@ export default function AdminDashboardPage() {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
         </svg>
       ),
-      href: '/admin/applications',
+      href: `/${urlUsername}/admin/applications`,
       color: 'from-blue-500 to-cyan-500',
       available: true,
     },
@@ -47,7 +65,7 @@ export default function AdminDashboardPage() {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
         </svg>
       ),
-      href: '/admin/profile',
+      href: `/${urlUsername}/admin/profile`,
       color: 'from-purple-500 to-pink-500',
       available: true,
     },
@@ -59,11 +77,11 @@ export default function AdminDashboardPage() {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
         </svg>
       ),
-      href: '/admin/technologies',
+      href: `/${urlUsername}/admin/technologies`,
       color: 'from-green-500 to-emerald-500',
       available: true,
     },
-  ], []);
+  ], [urlUsername]);
 
   if (!isAuthenticated || loading) {
     return (
@@ -169,7 +187,7 @@ export default function AdminDashboardPage() {
             <h2 className="text-2xl font-bold text-jcoder-foreground mb-4">Quick Actions</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <button
-                onClick={() => router.push('/admin/applications/new')}
+                onClick={() => router.push(`/${urlUsername}/admin/applications/new`)}
                 className="flex items-center gap-4 p-4 bg-jcoder-secondary border border-jcoder rounded-lg hover:border-jcoder-primary transition-colors text-left"
               >
                 <div className="flex-shrink-0 w-12 h-12 bg-jcoder-gradient rounded-lg flex items-center justify-center">
@@ -184,7 +202,7 @@ export default function AdminDashboardPage() {
               </button>
 
               <button
-                onClick={() => router.push('/admin/applications')}
+                onClick={() => router.push(`/${urlUsername}/admin/applications`)}
                 className="flex items-center gap-4 p-4 bg-jcoder-secondary border border-jcoder rounded-lg hover:border-jcoder-primary transition-colors text-left"
               >
                 <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center">

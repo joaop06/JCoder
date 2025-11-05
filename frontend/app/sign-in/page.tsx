@@ -42,9 +42,9 @@ export default function LoginPage() {
       localStorage.setItem('accessToken', accessToken);
       localStorage.setItem('user', JSON.stringify(user));
 
-      // Redirects to admin
+      // Redirects to admin with username
       toast.success('Sign in successful!');
-      router.push('/admin');
+      router.push(`/${user.username}/admin`);
     } catch (err: any) {
       // Friendly error handling
       const apiMessage =
@@ -166,8 +166,17 @@ export default function LoginPage() {
             </form>
           </div>
 
-          {/* Back Link */}
-          <div className="text-center mt-6">
+          {/* Links */}
+          <div className="text-center mt-6 space-y-2">
+            <p className="text-sm text-jcoder-muted">
+              Don't have an account?{' '}
+              <Link
+                href="/register"
+                className="text-jcoder-primary hover:text-jcoder-accent transition-colors font-medium"
+              >
+                Sign up
+              </Link>
+            </p>
             <Link
               href="/"
               className="text-sm text-jcoder-muted hover:text-jcoder-primary transition-colors inline-flex items-center gap-1"
@@ -175,7 +184,7 @@ export default function LoginPage() {
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
               </svg>
-              Back to portfolio
+              Back to home
             </Link>
           </div>
         </div>

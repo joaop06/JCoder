@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { ThemeToggle } from './theme';
 import LazyImage from './ui/LazyImage';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams, usePathname } from 'next/navigation';
 import { useSmoothScroll } from '@/hooks/useSmoothScroll';
 import { useEffect, useState, useCallback, useMemo, memo } from 'react';
 import { UsersService } from '@/services/administration-by-user/users.service';
@@ -18,6 +18,8 @@ export default function Header({
   onLogout
 }: HeaderProps) {
   const router = useRouter();
+  const params = useParams();
+  const pathname = usePathname();
   const { scrollToElement } = useSmoothScroll();
   const [isClient, setIsClient] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -27,6 +29,12 @@ export default function Header({
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const [showSignOutConfirmation, setShowSignOutConfirmation] = useState(false);
   const [currentPath, setCurrentPath] = useState('');
+
+  // Get username from URL params
+  const username = useMemo(() => {
+    const raw = params?.username;
+    return Array.isArray(raw) ? raw[0] : raw || '';
+  }, [params]);
 
   useEffect(() => {
     setIsClient(true);
@@ -45,20 +53,31 @@ export default function Header({
 
   // Detect current path
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (pathname) {
+      setCurrentPath(pathname);
+    } else if (typeof window !== 'undefined') {
       setCurrentPath(window.location.pathname);
     }
-  }, []);
+  }, [pathname]);
 
   // Check if we're on application detail page
   const isApplicationDetailPage = useMemo(() => {
-    return currentPath.startsWith('/applications/') && currentPath !== '/applications';
+    return currentPath.includes('/applications/') && !currentPath.endsWith('/applications');
   }, [currentPath]);
 
   // Check if we're on admin pages
   const isAdminPage = useMemo(() => {
-    return currentPath.startsWith('/admin');
+    return currentPath.includes('/admin');
   }, [currentPath]);
+
+  // Helper to get admin route with username
+  const getAdminRoute = useCallback((route: string) => {
+    if (username) {
+      return `/${username}/admin${route}`;
+    }
+    // Fallback for legacy routes
+    return `/admin${route}`;
+  }, [username]);
 
   // Scroll detection for active section with throttle
   useEffect(() => {
@@ -240,7 +259,7 @@ export default function Header({
                 <button
                   onClick={() => {
                     setIsProfileDropdownOpen(false);
-                    router.push('/admin');
+                    router.push(getAdminRoute(''));
                   }}
                   className="w-full text-left px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors flex items-center gap-2"
                 >
@@ -260,7 +279,7 @@ export default function Header({
               <button
                 onClick={() => {
                   setIsProfileDropdownOpen(false);
-                  router.push('/admin/applications');
+                  router.push(getAdminRoute('/applications'));
                 }}
                 className="w-full text-left px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors flex items-center gap-2"
               >
@@ -279,7 +298,7 @@ export default function Header({
               <button
                 onClick={() => {
                   setIsProfileDropdownOpen(false);
-                  router.push('/admin/profile');
+                  router.push(getAdminRoute('/profile'));
                 }}
                 className="w-full text-left px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors flex items-center gap-2"
               >
@@ -298,7 +317,7 @@ export default function Header({
               <button
                 onClick={() => {
                   setIsProfileDropdownOpen(false);
-                  router.push('/admin/technologies');
+                  router.push(getAdminRoute('/technologies'));
                 }}
                 className="w-full text-left px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors flex items-center gap-2"
               >
@@ -373,7 +392,7 @@ export default function Header({
               <button
                 onClick={() => {
                   setIsProfileDropdownOpen(false);
-                  router.push('/admin/applications');
+                  router.push(getAdminRoute('/applications'));
                 }}
                 className="w-full text-left px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors flex items-center gap-2"
               >
@@ -392,7 +411,7 @@ export default function Header({
               <button
                 onClick={() => {
                   setIsProfileDropdownOpen(false);
-                  router.push('/admin/profile');
+                  router.push(getAdminRoute('/profile'));
                 }}
                 className="w-full text-left px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors flex items-center gap-2"
               >
@@ -411,7 +430,7 @@ export default function Header({
               <button
                 onClick={() => {
                   setIsProfileDropdownOpen(false);
-                  router.push('/admin/technologies');
+                  router.push(getAdminRoute('/technologies'));
                 }}
                 className="w-full text-left px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors flex items-center gap-2"
               >
@@ -494,9 +513,9 @@ export default function Header({
                   <button
                     onClick={() => {
                       setIsMobileMenuOpen(false);
-                      router.push('/admin/applications');
+                      router.push(getAdminRoute('/applications'));
                     }}
-                    className={`w-full text-left px-3 py-2 rounded-md transition-colors ${currentPath.startsWith('/admin/applications')
+                    className={`w-full text-left px-3 py-2 rounded-md transition-colors ${currentPath.includes('/admin/applications')
                       ? 'text-blue-600 dark:text-jcoder-primary font-medium bg-blue-50 dark:bg-jcoder-secondary'
                       : 'text-gray-600 dark:text-jcoder-muted hover:text-blue-500 dark:hover:text-jcoder-primary hover:bg-gray-50 dark:hover:bg-jcoder-secondary'
                       }`}
@@ -506,9 +525,9 @@ export default function Header({
                   <button
                     onClick={() => {
                       setIsMobileMenuOpen(false);
-                      router.push('/admin/profile');
+                      router.push(getAdminRoute('/profile'));
                     }}
-                    className={`w-full text-left px-3 py-2 rounded-md transition-colors ${currentPath === '/admin/profile'
+                    className={`w-full text-left px-3 py-2 rounded-md transition-colors ${currentPath.includes('/admin/profile')
                       ? 'text-blue-600 dark:text-jcoder-primary font-medium bg-blue-50 dark:bg-jcoder-secondary'
                       : 'text-gray-600 dark:text-jcoder-muted hover:text-blue-500 dark:hover:text-jcoder-primary hover:bg-gray-50 dark:hover:bg-jcoder-secondary'
                       }`}
@@ -518,9 +537,9 @@ export default function Header({
                   <button
                     onClick={() => {
                       setIsMobileMenuOpen(false);
-                      router.push('/admin/technologies');
+                      router.push(getAdminRoute('/technologies'));
                     }}
-                    className={`w-full text-left px-3 py-2 rounded-md transition-colors ${currentPath === '/admin/technologies'
+                    className={`w-full text-left px-3 py-2 rounded-md transition-colors ${currentPath.includes('/admin/technologies')
                       ? 'text-blue-600 dark:text-jcoder-primary font-medium bg-blue-50 dark:bg-jcoder-secondary'
                       : 'text-gray-600 dark:text-jcoder-muted hover:text-blue-500 dark:hover:text-jcoder-primary hover:bg-gray-50 dark:hover:bg-jcoder-secondary'
                       }`}
@@ -708,7 +727,7 @@ export default function Header({
                 <button
                   onClick={() => {
                     setIsProfileDropdownOpen(false);
-                    router.push('/admin');
+                    router.push(getAdminRoute(''));
                   }}
                   className="w-full text-left px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors flex items-center gap-2"
                 >
@@ -728,7 +747,7 @@ export default function Header({
               <button
                 onClick={() => {
                   setIsProfileDropdownOpen(false);
-                  router.push('/admin/applications');
+                  router.push(getAdminRoute('/applications'));
                 }}
                 className="w-full text-left px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors flex items-center gap-2"
               >
@@ -747,7 +766,7 @@ export default function Header({
               <button
                 onClick={() => {
                   setIsProfileDropdownOpen(false);
-                  router.push('/admin/profile');
+                  router.push(getAdminRoute('/profile'));
                 }}
                 className="w-full text-left px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors flex items-center gap-2"
               >
@@ -766,7 +785,7 @@ export default function Header({
               <button
                 onClick={() => {
                   setIsProfileDropdownOpen(false);
-                  router.push('/admin/technologies');
+                  router.push(getAdminRoute('/technologies'));
                 }}
                 className="w-full text-left px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors flex items-center gap-2"
               >
@@ -878,8 +897,8 @@ export default function Header({
                   // Admin navigation
                   <>
                     <button
-                      onClick={() => router.push('/admin/applications')}
-                      className={`transition-colors cursor-pointer ${currentPath.startsWith('/admin/applications')
+                      onClick={() => router.push(getAdminRoute('/applications'))}
+                      className={`transition-colors cursor-pointer ${currentPath.includes('/admin/applications')
                         ? 'text-blue-600 dark:text-jcoder-primary font-medium'
                         : 'text-gray-600 dark:text-jcoder-muted hover:text-blue-500 dark:hover:text-jcoder-primary'
                         }`}
@@ -887,8 +906,8 @@ export default function Header({
                       Applications
                     </button>
                     <button
-                      onClick={() => router.push('/admin/profile')}
-                      className={`transition-colors cursor-pointer ${currentPath === '/admin/profile'
+                      onClick={() => router.push(getAdminRoute('/profile'))}
+                      className={`transition-colors cursor-pointer ${currentPath.includes('/admin/profile')
                         ? 'text-blue-600 dark:text-jcoder-primary font-medium'
                         : 'text-gray-600 dark:text-jcoder-muted hover:text-blue-500 dark:hover:text-jcoder-primary'
                         }`}
@@ -896,8 +915,8 @@ export default function Header({
                       Profile
                     </button>
                     <button
-                      onClick={() => router.push('/admin/technologies')}
-                      className={`transition-colors cursor-pointer ${currentPath === '/admin/technologies'
+                      onClick={() => router.push(getAdminRoute('/technologies'))}
+                      className={`transition-colors cursor-pointer ${currentPath.includes('/admin/technologies')
                         ? 'text-blue-600 dark:text-jcoder-primary font-medium'
                         : 'text-gray-600 dark:text-jcoder-muted hover:text-blue-500 dark:hover:text-jcoder-primary'
                         }`}

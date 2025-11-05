@@ -1,13 +1,13 @@
-
 'use client';
 
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
+import { User } from '@/types/api/users/user.entity';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState, useCallback } from 'react';
 import { Application } from '@/types/api/applications/application.entity';
 import { ApplicationTypeEnum } from '@/types/enums/application-type.enum';
-import { UsersService } from '@/services/administration-by-user/users.service';
+import { PortfolioViewService } from '@/services/portfolio-view/portfolio-view.service';
 import { ApplicationService } from '@/services/administration-by-user/applications.service';
 
 // Import new components
@@ -25,10 +25,16 @@ export default function ApplicationDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [application, setApplication] = useState<Application | null>(null);
+  const [user, setUser] = useState<User | null>(null);
 
   const toast = useToast();
 
-  // Found the application ID
+  // Get username and appId from URL params
+  const username = useMemo(() => {
+    const raw = params?.username;
+    return Array.isArray(raw) ? raw[0] : raw || '';
+  }, [params]);
+
   const appId = useMemo(() => {
     const raw = params?.id;
     const idStr = Array.isArray(raw) ? raw[0] : raw;
@@ -37,8 +43,8 @@ export default function ApplicationDetailPage() {
   }, [params]);
 
   const fetchApplication = useCallback(async () => {
-    if (appId === null) {
-      const errorMessage = 'Invalid ID Application';
+    if (appId === null || !username) {
+      const errorMessage = 'Invalid Application ID or Username';
       setError(errorMessage);
       toast.error(errorMessage);
       setLoading(false);
@@ -49,17 +55,21 @@ export default function ApplicationDetailPage() {
     setError(null);
 
     try {
-      const userSession = UsersService.getUserSession();
-      const username = userSession?.user?.username || 'default'; // TODO: Get from config or env
-      const data = await ApplicationService.getById(username, appId);
-      if (!data) {
+      // Fetch application and user profile in parallel
+      const [appData, profileData] = await Promise.all([
+        ApplicationService.getById(username, appId),
+        PortfolioViewService.getProfileWithAboutMe(username).catch(() => null),
+      ]);
+
+      if (!appData) {
         const errorMessage = 'Application not found';
         setError(errorMessage);
         toast.error(errorMessage);
         setApplication(null);
         return;
       }
-      setApplication(data);
+      setApplication(appData);
+      setUser(profileData || null);
     } catch (err: any) {
       const status = err?.response?.status;
       const errorMessage = status === 404
@@ -72,15 +82,19 @@ export default function ApplicationDetailPage() {
     } finally {
       setLoading(false);
     }
-  }, [appId, toast]);
+  }, [appId, username, toast]);
 
   const handleRetry = useCallback(() => {
     fetchApplication();
   }, [fetchApplication]);
 
   const handleGoHome = useCallback(() => {
-    router.push('/');
-  }, [router]);
+    if (username) {
+      router.push(`/${username}`);
+    } else {
+      router.push('/');
+    }
+  }, [router, username]);
 
   const handleBack = useCallback(() => {
     router.back();
@@ -158,7 +172,7 @@ export default function ApplicationDetailPage() {
                   onClick={handleGoHome}
                   className="inline-flex items-center px-4 py-2 bg-jcoder-gradient text-black rounded-md text-sm hover:opacity-90 transition-opacity font-medium"
                 >
-                  Go to top
+                  Go to portfolio
                 </button>
               </div>
             </div>
@@ -203,7 +217,8 @@ export default function ApplicationDetailPage() {
         </div>
       </main>
 
-      <Footer />
+      <Footer user={user} username={username} />
     </div>
   );
 };
+

@@ -1,10 +1,11 @@
+
 'use client';
 
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
-import { useRouter } from 'next/navigation';
-import { TableSkeleton } from '@/components/ui';
+import { useRouter, useParams } from 'next/navigation';
 import { useState, useEffect, useCallback } from 'react';
+import { LazyImage, TableSkeleton } from '@/components/ui';
 import { useToast } from '@/components/toast/ToastContext';
 import ImageUpload from '@/components/applications/ImageUpload';
 import { ApplicationTypeEnum } from '@/types/enums/application-type.enum';
@@ -12,36 +13,91 @@ import TechnologySelector from '@/components/applications/TechnologySelector';
 import { UsersService } from '@/services/administration-by-user/users.service';
 import { ImagesService } from '@/services/administration-by-user/images.service';
 import { ApplicationService } from '@/services/administration-by-user/applications.service';
-import { CreateApplicationDto } from '@/types/api/applications/dtos/create-application.dto';
+import { UpdateApplicationDto } from '@/types/api/applications/dtos/update-application.dto';
 
-export default function NewApplicationPage() {
+export default function EditApplicationPage() {
     const router = useRouter();
+    const params = useParams();
+    const applicationId = params?.id as string;
 
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [checkingAuth, setCheckingAuth] = useState(true);
     const [formError, setFormError] = useState<string | null>(null);
-    const [formData, setFormData] = useState<Omit<CreateApplicationDto, 'username'>>({
+    const [formData, setFormData] = useState<UpdateApplicationDto>({
         name: '',
         description: '',
         applicationType: ApplicationTypeEnum.API,
-        technologyIds: [],
+        isActive: true,
     });
     const [images, setImages] = useState<string[]>([]);
-    const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
+    const [profileImage, setProfileImage] = useState<string | null>(null);
+    const [originalProfileImage, setOriginalProfileImage] = useState<string | null>(null);
+    const [pendingProfileImageFile, setPendingProfileImageFile] = useState<File | null>(null);
+    const [pendingProfileImageAction, setPendingProfileImageAction] = useState<'none' | 'upload' | 'update' | 'delete'>('none');
 
     const toast = useToast();
-
 
     useEffect(() => {
         const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
         if (!token) {
-            router.push('/login');
+            router.push('/sign-in');
             return;
         }
         setIsAuthenticated(true);
-        setCheckingAuth(false);
     }, [router]);
+
+    useEffect(() => {
+        if (!isAuthenticated || !applicationId) return;
+
+        const fetchApplication = async () => {
+            setLoading(true);
+            setFormError(null);
+            try {
+                const userSession = UsersService.getUserSession();
+                if (!userSession?.user?.username) {
+                    throw new Error('User session not found');
+                }
+                const data = await ApplicationService.getById(userSession.user.username, Number(applicationId));
+
+                const updateApplicationDto: UpdateApplicationDto = {
+                    name: data.name,
+                    githubUrl: data.githubUrl,
+                    description: data.description,
+                    applicationType: data.applicationType,
+                    isActive: data.isActive ?? true,
+                    technologyIds: data.technologies?.map(t => t.id) || [],
+                    applicationComponentMobile: data.applicationComponentMobile ? {
+                        ...data.applicationComponentMobile,
+                    } : undefined,
+                    applicationComponentFrontend: data.applicationComponentFrontend ? {
+                        ...data.applicationComponentFrontend,
+                    } : undefined,
+                    applicationComponentLibrary: data.applicationComponentLibrary ? {
+                        ...data.applicationComponentLibrary,
+                    } : undefined,
+                    applicationComponentApi: data.applicationComponentApi ? {
+                        ...data.applicationComponentApi,
+                    } : undefined,
+                };
+
+                setFormData(updateApplicationDto);
+                setImages(data.images || []);
+                setProfileImage(data.profileImage || null);
+                setOriginalProfileImage(data.profileImage || null);
+            } catch (err: any) {
+                const errorMessage = err?.response?.data?.message
+                    || err.message
+                    || 'Failed to load application. Please try again.';
+
+                toast.error(errorMessage);
+                setFormError(errorMessage);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchApplication();
+    }, [isAuthenticated, applicationId]);
 
     const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
@@ -69,11 +125,7 @@ export default function NewApplicationPage() {
 
 
         try {
-            const userSession = UsersService.getUserSession();
-            if (!userSession?.user?.username) {
-                throw new Error('User session not found');
-            }
-            const payload: CreateApplicationDto = { ...formData, username: userSession.user.username };
+            const payload: UpdateApplicationDto = { ...formData };
 
             // Clean up components based on applicationType
             switch (payload.applicationType) {
@@ -105,79 +157,63 @@ export default function NewApplicationPage() {
                     break;
             }
 
-            const createdApplication = await ApplicationService.create(userSession.user.username, payload);
-
-            // Show success message for application creation
-            toast.success(`${payload.name} successfully created!`);
-
-            // Upload profile image if provided - only after successful creation
-
-            if (profileImageFile) {
-                try {
-                    await ImagesService.uploadApplicationProfileImage(userSession.user.username, createdApplication.id, profileImageFile);
-                    toast.success('Profile image uploaded successfully!');
-                } catch (error: any) {
-                    console.error('Error uploading profile image:', error);
-                    const errorMessage = error?.response?.data?.message
-                        || error?.message
-                        || 'Failed to upload profile image';
-                    toast.error(`Application created but failed to upload profile image: ${errorMessage}. You can add it later.`);
-                }
+            const userSession = UsersService.getUserSession();
+            if (!userSession?.user?.username) {
+                throw new Error('User session not found');
             }
+            await ApplicationService.update(userSession.user.username, Number(applicationId), payload);
+            toast.success(`${payload.name} successfully updated!`);
 
-            // Upload images if any - only after successful creation
-            if (images.length > 0) {
+            // Apply profile image changes only after successful application update
+
+            if (pendingProfileImageAction !== 'none') {
                 try {
-                    // Convert data URLs to File objects for upload
-                    const files: File[] = [];
-                    for (let i = 0; i < images.length; i++) {
-                        const image = images[i];
-                        if (image.startsWith('data:')) {
-                            // Parse data URL
-                            const [header, data] = image.split(',');
-                            const mimeType = header.match(/data:([^;]+)/)?.[1] || 'image/jpeg';
-                            const extension = mimeType.split('/')[1] || 'jpg';
-
-                            // Convert base64 to binary
-                            const binaryString = atob(data);
-                            const bytes = new Uint8Array(binaryString.length);
-                            for (let j = 0; j < binaryString.length; j++) {
-                                bytes[j] = binaryString.charCodeAt(j);
+                    switch (pendingProfileImageAction) {
+                        case 'upload':
+                            if (pendingProfileImageFile) {
+                                await ImagesService.uploadApplicationProfileImage(userSession.user.username, Number(applicationId), pendingProfileImageFile);
+                                toast.success('Profile image uploaded successfully!');
                             }
-
-                            // Create File object
-                            const file = new File([bytes], `image-${i}.${extension}`, { type: mimeType });
-                            files.push(file);
-                        }
+                            break;
+                        case 'update':
+                            if (pendingProfileImageFile) {
+                                await ImagesService.updateApplicationProfileImage(userSession.user.username, Number(applicationId), pendingProfileImageFile);
+                                toast.success('Profile image updated successfully!');
+                            }
+                            break;
+                        case 'delete':
+                            await ImagesService.deleteApplicationProfileImage(userSession.user.username, Number(applicationId));
+                            toast.success('Profile image deleted successfully!');
+                            break;
                     }
 
-                    if (files.length > 0) {
-                        await ImagesService.uploadApplicationImages(userSession.user.username, createdApplication.id, files);
-                        toast.success('Images uploaded successfully!');
-                    }
+                    // Reset pending states after successful application
+                    setPendingProfileImageFile(null);
+                    setPendingProfileImageAction('none');
                 } catch (error: any) {
-                    console.error('Error uploading images:', error);
+                    console.error('Error updating profile image:', error);
                     const errorMessage = error?.response?.data?.message
                         || error?.message
-                        || 'Failed to upload images';
-                    toast.error(`Application created but failed to upload images: ${errorMessage}. You can add them later.`);
+                        || 'Failed to update profile image';
+                    toast.error(`Application updated but failed to update profile image: ${errorMessage}. You can update it later.`);
                 }
             }
 
             router.push('/admin');
         } catch (err: any) {
+            console.error('Error updating application:', err);
             const errorMessage = err?.response?.data?.message
                 || err.message
-                || 'Failed to create application. Please try again.';
+                || 'Failed to update application. Please try again.';
 
             toast.error(errorMessage);
             setFormError(errorMessage);
         } finally {
             setLoading(false);
         }
-    }, [formData, images, profileImageFile, router, toast]);
+    }, [formData, router, applicationId, pendingProfileImageAction, pendingProfileImageFile, profileImage, toast]);
 
-    if (checkingAuth || !isAuthenticated) {
+    if (!isAuthenticated || loading) {
         return (
             <div className="min-h-screen flex flex-col bg-background">
                 <Header isAdmin={true} onLogout={() => router.push('/')} />
@@ -215,8 +251,8 @@ export default function NewApplicationPage() {
                     </button>
 
                     <div className="mb-8">
-                        <h1 className="text-3xl font-bold text-jcoder-foreground mb-2">New Application</h1>
-                        <p className="text-jcoder-muted">Create a new application for your portfolio</p>
+                        <h1 className="text-3xl font-bold text-jcoder-foreground mb-2">Edit Application</h1>
+                        <p className="text-jcoder-muted">Edit the details of your application</p>
                     </div>
 
                     <div className="bg-jcoder-card border border-jcoder rounded-lg p-6 shadow-lg hover:shadow-xl hover:shadow-jcoder-primary/20 transition-all duration-300">
@@ -260,7 +296,7 @@ export default function NewApplicationPage() {
                                         value={formData.applicationType}
                                         onChange={handleChange}
                                         required
-                                        className="mt-1 block w-full border border-jcoder rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-white"
+                                        className="mt-1 block w-full border border-jcoder rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted"
                                     >
                                         {Object.values(ApplicationTypeEnum).map((type) => (
                                             <option key={type} value={type}>{type}</option>
@@ -271,12 +307,37 @@ export default function NewApplicationPage() {
                                     <label htmlFor="githubUrl" className="block text-sm font-medium text-jcoder-muted">GitHub URL (Optional)</label>
                                     <input
                                         type="url"
-                                        name="githubUrl"
                                         id="githubUrl"
-                                        value={formData.githubUrl || ''}
+                                        name="githubUrl"
                                         onChange={handleChange}
+                                        value={formData.githubUrl || ''}
                                         className="mt-1 block w-full border border-jcoder rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted"
                                     />
+                                </div>
+                            </div>
+
+                            {/* Status Toggle */}
+                            <div className="mt-6 pt-6 border-t border-jcoder">
+                                <div className="flex items-center justify-between p-4 bg-jcoder-secondary border border-jcoder rounded-lg">
+                                    <div>
+                                        <label className="block text-sm font-medium text-jcoder-foreground mb-1">
+                                            Application Status
+                                        </label>
+                                        <p className="text-sm text-jcoder-muted">
+                                            {formData.isActive ? 'Application is visible on the public site' : 'Application is hidden from the public site'}
+                                        </p>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => setFormData({ ...formData, isActive: !formData.isActive })}
+                                        className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:ring-offset-2 focus:ring-offset-jcoder-card ${formData.isActive ? 'bg-green-500' : 'bg-gray-600'
+                                            }`}
+                                    >
+                                        <span
+                                            className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${formData.isActive ? 'translate-x-7' : 'translate-x-1'
+                                                }`}
+                                        />
+                                    </button>
                                 </div>
                             </div>
 
@@ -529,20 +590,34 @@ export default function NewApplicationPage() {
                                 />
                             </div>
 
-                            {/* Profile Image Upload Section */}
+                            {/* Profile Image Management Section */}
                             <div className="mt-6 pt-6 border-t border-jcoder border-l-4 border-jcoder-primary pl-4">
                                 <h3 className="text-lg font-medium text-jcoder-foreground mb-4">Profile Image</h3>
                                 <p className="text-sm text-jcoder-muted mb-4">
-                                    Upload a logo or profile image for your application (optional)
+                                    Manage the logo or profile image for your application
                                 </p>
                                 <div className="space-y-4">
                                     <div className="flex items-center space-x-4">
                                         <div className="relative">
-                                            {profileImageFile ? (
+                                            {pendingProfileImageFile ? (
                                                 <img
-                                                    src={URL.createObjectURL(profileImageFile)}
+                                                    src={URL.createObjectURL(pendingProfileImageFile)}
                                                     alt="Profile preview"
                                                     className="w-20 h-20 rounded-lg object-cover border border-jcoder"
+                                                />
+                                            ) : profileImage ? (
+                                                <LazyImage
+                                                    src={(() => {
+                                                        const userSession = UsersService.getUserSession();
+                                                        const username = userSession?.user?.username || '';
+                                                        return username ? ImagesService.getApplicationProfileImageUrl(username, Number(applicationId)) : '';
+                                                    })()}
+                                                    alt="Current profile"
+                                                    fallback={formData.name!}
+                                                    className="border border-jcoder object-cover"
+                                                    size="custom"
+                                                    width="w-20"
+                                                    height="h-20"
                                                 />
                                             ) : (
                                                 <div className="w-20 h-20 rounded-lg border-2 border-dashed border-jcoder flex items-center justify-center bg-jcoder-secondary">
@@ -564,24 +639,52 @@ export default function NewApplicationPage() {
                                         </div>
                                         <div className="flex-1">
                                             <p className="text-sm text-jcoder-muted">
-                                                {profileImageFile ? 'Profile image selected' : 'No profile image selected'}
+                                                {pendingProfileImageAction === 'delete'
+                                                    ? 'Profile image will be deleted'
+                                                    : pendingProfileImageFile
+                                                        ? 'New profile image selected'
+                                                        : profileImage
+                                                            ? 'Current profile image'
+                                                            : 'No profile image set'
+                                                }
                                             </p>
                                             <p className="text-xs text-jcoder-muted">
                                                 Recommended: 400x400px, max 5MB
                                             </p>
+                                            {pendingProfileImageAction !== 'none' && (
+                                                <p className="text-xs text-yellow-400 mt-1">
+                                                    Changes will be applied when you save the application
+                                                </p>
+                                            )}
                                         </div>
                                     </div>
 
                                     <div className="flex flex-wrap gap-2">
                                         <label className="px-4 py-2 bg-jcoder-gradient text-black rounded-md hover:opacity-90 transition-opacity duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm cursor-pointer">
-                                            {profileImageFile ? 'Change Image' : 'Select Image'}
+                                            {profileImage ? 'Change Image' : 'Upload Image'}
                                             <input
                                                 type="file"
                                                 accept="image/jpeg,image/jpg,image/png,image/webp"
                                                 onChange={(e) => {
                                                     const file = e.target.files?.[0];
                                                     if (file) {
-                                                        setProfileImageFile(file);
+                                                        // Validate file type
+                                                        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+                                                        if (!allowedTypes.includes(file.type)) {
+                                                            toast.error('Invalid file type. Only JPEG, PNG and WebP images are allowed.');
+                                                            return;
+                                                        }
+
+                                                        // Validate file size (5MB)
+                                                        const maxSize = 5 * 1024 * 1024; // 5MB
+                                                        if (file.size > maxSize) {
+                                                            toast.error('File too large. Maximum size is 5MB.');
+                                                            return;
+                                                        }
+
+                                                        setPendingProfileImageFile(file);
+                                                        const action = profileImage ? 'update' : 'upload';
+                                                        setPendingProfileImageAction(action);
                                                     }
                                                 }}
                                                 disabled={loading}
@@ -589,14 +692,31 @@ export default function NewApplicationPage() {
                                             />
                                         </label>
 
-                                        {profileImageFile && (
+                                        {profileImage && (
                                             <button
                                                 type="button"
-                                                onClick={() => setProfileImageFile(null)}
+                                                onClick={() => {
+                                                    setPendingProfileImageFile(null);
+                                                    setPendingProfileImageAction('delete');
+                                                }}
                                                 disabled={loading}
                                                 className="px-4 py-2 border border-red-400 text-red-400 rounded-md hover:bg-red-900/20 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm"
                                             >
-                                                Remove Image
+                                                Delete Image
+                                            </button>
+                                        )}
+
+                                        {pendingProfileImageAction !== 'none' && (
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setPendingProfileImageFile(null);
+                                                    setPendingProfileImageAction('none');
+                                                }}
+                                                disabled={loading}
+                                                className="px-4 py-2 border border-jcoder text-jcoder-muted rounded-md hover:bg-jcoder-secondary transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm"
+                                            >
+                                                Cancel Changes
                                             </button>
                                         )}
                                     </div>
@@ -609,6 +729,7 @@ export default function NewApplicationPage() {
                                 <ImageUpload
                                     images={images}
                                     onImagesChange={setImages}
+                                    applicationId={Number(applicationId)}
                                     disabled={loading}
                                 />
                             </div>
@@ -617,16 +738,16 @@ export default function NewApplicationPage() {
                                 <button
                                     type="button"
                                     onClick={() => router.push('/admin')}
-                                    className="px-4 py-2 text-jcoder-muted bg-jcoder-secondary border border-jcoder rounded-md hover:bg-jcoder-secondary hover:text-jcoder-foreground transition-colors duration-200"
+                                    className="px-6 py-2 border border-jcoder rounded-md text-jcoder-muted hover:bg-jcoder-secondary hover:text-jcoder-foreground transition-colors duration-200"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
+                                    className="px-6 py-2 bg-jcoder-gradient text-black rounded-md hover:opacity-90 transition-opacity duration-200 font-medium"
                                     disabled={loading}
-                                    className="px-4 py-2 bg-jcoder-gradient text-black rounded-md hover:opacity-90 transition-opacity duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
                                 >
-                                    {loading ? 'Creating...' : 'Create Application'}
+                                    {loading ? 'Updating...' : 'Update Application'}
                                 </button>
                             </div>
                         </form>
@@ -637,4 +758,5 @@ export default function NewApplicationPage() {
             <Footer />
         </div>
     );
-};
+}
+

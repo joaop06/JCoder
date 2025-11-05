@@ -1,15 +1,14 @@
 import Link from 'next/link';
 import LazyImage from '@/components/ui/LazyImage';
 import { Application } from '@/types/api/applications/application.entity';
-import { ApplicationService } from '@/services/administration-by-user/applications.service';
-import { UsersService } from '@/services/administration-by-user/users.service';
 import { ImagesService } from '@/services/administration-by-user/images.service';
 
 interface ApplicationCardProps {
   application: Application;
+  username?: string;
 }
 
-export default function ApplicationCard({ application }: ApplicationCardProps) {
+export default function ApplicationCard({ application, username }: ApplicationCardProps) {
   const getInitial = (name: string) => {
     return name.charAt(0).toUpperCase();
   };
@@ -31,18 +30,15 @@ export default function ApplicationCard({ application }: ApplicationCardProps) {
   };
 
   const componentUrl = getComponentUrl();
+  const appUsername = username || application.username;
 
   return (
     <div className="bg-jcoder-card border border-jcoder rounded-lg p-6 hover:shadow-lg hover:shadow-jcoder-primary/20 transition-all duration-300 hover:border-jcoder-primary">
       <div className="flex items-start gap-4">
         {/* Icon or Image */}
-        {application.profileImage ? (
+        {application.profileImage && appUsername ? (
           <LazyImage
-            src={(() => {
-              const userSession = UsersService.getUserSession();
-              const username = userSession?.user?.username || '';
-              return username ? ImagesService.getApplicationProfileImageUrl(username, application.id) : '';
-            })()}
+            src={ImagesService.getApplicationProfileImageUrl(appUsername, application.id)}
             alt={application.name}
             fallback={getInitial(application.name)}
             size="custom"
@@ -52,9 +48,9 @@ export default function ApplicationCard({ application }: ApplicationCardProps) {
             objectFit="object-cover"
             rootMargin="100px"
           />
-        ) : application.images && application.images.length > 0 ? (
+        ) : application.images && application.images.length > 0 && appUsername ? (
           <LazyImage
-            src={ImagesService.getApplicationImageUrl(application.username, application.id, application.images[0])}
+            src={ImagesService.getApplicationImageUrl(appUsername, application.id, application.images[0])}
             alt={application.name}
             fallback={getInitial(application.name)}
             size="custom"
@@ -81,16 +77,18 @@ export default function ApplicationCard({ application }: ApplicationCardProps) {
 
           {/* Actions */}
           <div className="flex items-center gap-3">
-            <Link
-              href={`/applications/${application.id}`}
-              className="inline-flex items-center gap-2 px-4 py-2 text-sm border border-jcoder rounded-lg hover:bg-jcoder-secondary hover:border-jcoder-primary transition-colors text-jcoder-muted hover:text-white"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-              </svg>
-              See details
-            </Link>
+            {appUsername ? (
+              <Link
+                href={`/${appUsername}/applications/${application.id}`}
+                className="inline-flex items-center gap-2 px-4 py-2 text-sm border border-jcoder rounded-lg hover:bg-jcoder-secondary hover:border-jcoder-primary transition-colors text-jcoder-muted hover:text-white"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+                See details
+              </Link>
+            ) : null}
 
             {componentUrl && (
               <a

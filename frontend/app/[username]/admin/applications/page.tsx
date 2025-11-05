@@ -327,7 +327,7 @@ export default function ApplicationsManagementPage() {
     useEffect(() => {
         const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
         if (!token) {
-            router.push('/login');
+            router.push('/sign-in');
             return;
         }
         setIsAuthenticated(true);

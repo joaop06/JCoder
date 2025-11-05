@@ -95,14 +95,14 @@ AxiosInstance.interceptors.response.use(
 
         if (error.response?.status === 401) {
             // Token expired or invalid
-            // Only redirect to login if it's NOT a public route
+            // Only redirect to sign-in if it's NOT a public route
             const url = error.config?.url || '';
             const isPublicRoute = url.includes('/public/');
 
             if (!isPublicRoute) {
                 localStorage.removeItem('accessToken');
                 localStorage.removeItem('user');
-                window.location.href = '/login';
+                window.location.href = '/sign-in';
             }
         }
 
