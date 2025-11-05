@@ -5,6 +5,7 @@ import {
     ValidateNested,
 } from "class-validator";
 import { Type } from "class-transformer";
+import { User } from "../../../users/entities/user.entity";
 import { Application } from "../../entities/application.entity";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { ApplicationTypeEnum } from "../../enums/application-type.enum";
@@ -14,6 +15,16 @@ import { ApplicationComponentLibraryDto } from "./application-component-library.
 import { ApplicationComponentFrontendDto } from "./application-component-frontend.dto";
 
 export class CreateComponentsForTypeDto {
+    @ApiProperty({
+        required: true,
+        type: () => User,
+        description: 'User record to be linked with components',
+    })
+    @IsNotEmpty()
+    @Type(() => User)
+    @ValidateNested()
+    user: User;
+
     @ApiProperty({
         required: true,
         type: () => Application,

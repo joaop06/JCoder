@@ -9,41 +9,19 @@ import {
     ValidateNested,
 } from 'class-validator';
 import { Expose, Type } from 'class-transformer';
-import { User } from '../../../users/entities/user.entity';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { UserComponentCertificateDto } from './user-component-certificate.dto';
+import { CreateUserComponentCertificateDto } from './create-user-component-certificate.dto';
 
-export class UserComponentEducationDto {
+export class CreateUserComponentEducationDto {
     @ApiProperty({
         example: 1,
         type: 'number',
         nullable: false,
-        description: 'ID',
+        description: 'User ID',
     })
     @IsNotEmpty()
     @IsNumber()
-    id: number;
-
-    @ApiProperty({
-        type: 'string',
-        nullable: false,
-        example: 'johndoe',
-        description: 'Unique username used for login',
-    })
-    @IsNotEmpty()
-    @IsString()
-    username!: string;
-
-    @ApiPropertyOptional({
-        nullable: true,
-        type: () => User,
-        description: 'User',
-    })
-    @IsOptional()
-    @ValidateNested()
-    @Type(() => User)
-    @Expose()
-    user?: User;
+    userId: number;
 
     @ApiProperty({
         type: 'string',
@@ -54,7 +32,7 @@ export class UserComponentEducationDto {
     })
     @IsNotEmpty()
     @IsString()
-    institutionName!: string;
+    institutionName: string;
 
     @ApiProperty({
         type: 'string',
@@ -65,7 +43,7 @@ export class UserComponentEducationDto {
     })
     @IsNotEmpty()
     @IsString()
-    courseName!: string;
+    courseName: string;
 
     @ApiPropertyOptional({
         type: 'string',
@@ -87,7 +65,7 @@ export class UserComponentEducationDto {
     @IsNotEmpty()
     @IsDate()
     @Type(() => Date)
-    startDate!: Date;
+    startDate: Date;
 
     @ApiPropertyOptional({
         nullable: true,
@@ -114,13 +92,13 @@ export class UserComponentEducationDto {
     @ApiPropertyOptional({
         isArray: true,
         nullable: true,
-        type: () => UserComponentCertificateDto,
+        type: () => CreateUserComponentCertificateDto,
         description: 'Related certificates (ManyToMany relationship)',
     })
     @IsOptional()
     @IsArray()
     @ValidateNested({ each: true })
-    @Type(() => UserComponentCertificateDto)
+    @Type(() => CreateUserComponentCertificateDto)
     @Expose()
-    certificates?: UserComponentCertificateDto[];
+    certificates?: CreateUserComponentCertificateDto[];
 };

@@ -42,19 +42,19 @@ import { PaginatedResponseDto, PaginationDto } from 'src/@common/dto/pagination.
 import { UnauthorizedAccessException } from './exceptions/unauthorized-access.exception';
 import { EmailAlreadyExistsException } from './exceptions/email-already-exists.exception';
 import { ApiTags, ApiOkResponse, ApiNoContentResponse, ApiBearerAuth } from '@nestjs/swagger';
-import { UserComponentEducationDto } from './user-components/dto/user-component-education.dto';
-import { UserComponentExperienceDto } from './user-components/dto/user-component-experience.dto';
 import { InvalidCurrentPasswordException } from './exceptions/invalid-current-password.exception';
-import { UserComponentCertificateDto } from './user-components/dto/user-component-certificate.dto';
 import { UserComponentEducation } from './user-components/entities/user-component-education.entity';
 import { UserComponentExperience } from './user-components/entities/user-component-experience.entity';
 import { UpdateAboutMeUseCase, GetAboutMeUseCase } from './user-components/use-cases/about-me.use-case';
 import { UserComponentCertificate } from './user-components/entities/user-component-certificate.entity';
 import { ComponentNotFoundException } from './user-components/exceptions/component-not-found.exceptions';
 import { UpdateUserComponentAboutMeDto } from './user-components/dto/update-user-component-about-me.dto';
-import { ApiExceptionResponse } from '../../@common/decorators/documentation/api-exception-response.decorator';
+import { CreateUserComponentEducationDto } from './user-components/dto/create-user-component-education.dto';
 import { UpdateUserComponentEducationDto } from './user-components/dto/update-user-component-education.dto';
+import { CreateUserComponentExperienceDto } from './user-components/dto/create-user-component-experience.dto';
 import { UpdateUserComponentExperienceDto } from './user-components/dto/update-user-component-experience.dto';
+import { ApiExceptionResponse } from '../../@common/decorators/documentation/api-exception-response.decorator';
+import { CreateUserComponentCertificateDto } from './user-components/dto/create-user-component-certificate.dto';
 import { InvalidEducationDatesException } from './user-components/exceptions/invalid-education-dates.exception';
 import { UpdateUserComponentCertificateDto } from './user-components/dto/update-user-component-certificate.dto';
 import { LinkCertificateToEducationUseCase } from './user-components/use-cases/link-certificate-education.use-case';
@@ -153,7 +153,7 @@ export class UsersController {
     @ApiExceptionResponse(() => [InvalidEducationDatesException, UnauthorizedAccessException])
     async createEducation(
         @Param('username') username: string,
-        @Body() dto: UserComponentEducationDto,
+        @Body() dto: CreateUserComponentEducationDto,
     ): Promise<UserComponentEducation> {
         return await this.createEducationUseCase.execute(username, dto);
     }
@@ -204,7 +204,7 @@ export class UsersController {
     @ApiExceptionResponse(() => [InvalidExperiencePositionDatesException, UnauthorizedAccessException])
     async createExperience(
         @Param('username') username: string,
-        @Body() dto: UserComponentExperienceDto,
+        @Body() dto: CreateUserComponentExperienceDto,
     ): Promise<UserComponentExperience> {
         return await this.createExperienceUseCase.execute(username, dto);
     }
@@ -255,7 +255,7 @@ export class UsersController {
     @ApiExceptionResponse(() => UnauthorizedAccessException)
     async createCertificate(
         @Param('username') username: string,
-        @Body() dto: UserComponentCertificateDto,
+        @Body() dto: CreateUserComponentCertificateDto,
     ): Promise<UserComponentCertificate> {
         return await this.createCertificateUseCase.execute(username, dto);
     }

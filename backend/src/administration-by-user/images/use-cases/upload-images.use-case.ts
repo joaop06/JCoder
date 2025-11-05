@@ -1,24 +1,31 @@
-import { Injectable } from '@nestjs/common';
 import { Repository } from 'typeorm';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Application } from '../../applications/entities/application.entity';
-import { ApplicationNotFoundException } from '../../applications/exceptions/application-not-found.exception';
+import { ImageType } from '../enums/image-type.enum';
+import { UsersService } from '../../users/users.service';
+import { ResourceType } from '../enums/resource-type.enum';
 import { CacheService } from '../../../@common/services/cache.service';
 import { ImageStorageService } from '../services/image-storage.service';
-import { ResourceType } from '../enums/resource-type.enum';
-import { ImageType } from '../enums/image-type.enum';
+import { Application } from '../../applications/entities/application.entity';
+import { ApplicationNotFoundException } from '../../applications/exceptions/application-not-found.exception';
 
 @Injectable()
 export class UploadImagesUseCase {
     constructor(
+        private readonly cacheService: CacheService,
+
+        private readonly usersService: UsersService,
+
+        private readonly imageStorageService: ImageStorageService,
+
         @InjectRepository(Application)
         private readonly applicationRepository: Repository<Application>,
-        private readonly imageStorageService: ImageStorageService,
-        private readonly cacheService: CacheService,
     ) { }
 
     async execute(id: number, files: Express.Multer.File[]): Promise<Application> {
         const application = await this.findApplicationById(id);
+
+        const user = await this.usersService.findOneBy({ id: application.userId });
 
         // Upload new images using the generic service with username segmentation
         const newImageFilenames = await this.imageStorageService.uploadImages(
@@ -27,7 +34,7 @@ export class UploadImagesUseCase {
             id,
             ImageType.Gallery,
             undefined,
-            application.username,
+            user.username,
         );
 
         // Merge with existing images
@@ -62,4 +69,4 @@ export class UploadImagesUseCase {
             600,
         );
     }
-}
+};

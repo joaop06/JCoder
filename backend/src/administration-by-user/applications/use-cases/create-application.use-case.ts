@@ -1,4 +1,5 @@
 import { Injectable } from "@nestjs/common";
+import { UsersService } from "../../users/users.service";
 import { Application } from "../entities/application.entity";
 import { ApplicationsService } from "../applications.service";
 import { ApplicationTypeEnum } from "../enums/application-type.enum";
@@ -14,6 +15,7 @@ import { RequiredApiAndFrontendComponentsToFullstackApplication } from "../excep
 @Injectable()
 export class CreateApplicationUseCase {
     constructor(
+        private readonly usersService: UsersService,
         private readonly applicationsService: ApplicationsService,
         private readonly applicationComponentsService: ApplicationComponentsService,
     ) { }
@@ -40,11 +42,13 @@ export class CreateApplicationUseCase {
         // Create the application with the respective components
         const application = await this.applicationsService.create(applicationData);
 
+        const user = await this.usersService.findOneBy({ username });
+
         /**
          * Create the components from application
          */
         await this.applicationComponentsService.saveComponentsForType({
-            username,
+            user,
             application,
             applicationType: createApplicationDto.applicationType,
             dtos: {

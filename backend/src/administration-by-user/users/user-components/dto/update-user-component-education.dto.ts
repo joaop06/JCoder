@@ -1,4 +1,4 @@
 import { PartialType } from '@nestjs/swagger';
-import { UserComponentEducationDto } from './user-component-education.dto';
+import { CreateUserComponentEducationDto } from './create-user-component-education.dto';
 
-export class UpdateUserComponentEducationDto extends PartialType(UserComponentEducationDto) { };
+export class UpdateUserComponentEducationDto extends PartialType(CreateUserComponentEducationDto) { };

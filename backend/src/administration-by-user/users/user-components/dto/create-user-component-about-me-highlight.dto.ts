@@ -9,7 +9,7 @@ import { Expose, Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { UserComponentAboutMe } from '../entities/user-component-about-me.entity';
 
-export class UserComponentAboutMeHighlightDto {
+export class CreateUserComponentAboutMeHighlightDto {
     @ApiProperty({
         example: 1,
         type: 'number',
@@ -50,7 +50,7 @@ export class UserComponentAboutMeHighlightDto {
     })
     @IsNotEmpty()
     @IsString()
-    title!: string;
+    title: string;
 
     @ApiPropertyOptional({
         type: 'string',

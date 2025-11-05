@@ -1,20 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { User } from '../../entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UsersService } from '../../users.service';
 import { Repository, In, FindOptionsWhere } from 'typeorm';
 import { EducationRepository } from './education.repository';
 import { CacheService } from '../../../../@common/services/cache.service';
 import { UserComponentCertificate } from '../entities/user-component-certificate.entity';
 import { PaginationDto, PaginatedResponseDto } from '../../../../@common/dto/pagination.dto';
 import { CertificateNotFoundException } from '../exceptions/certificate-not-found.exception';
+import { CreateUserComponentCertificateDto } from '../dto/create-user-component-certificate.dto';
+import { UpdateUserComponentCertificateDto } from '../dto/update-user-component-certificate.dto';
 
 @Injectable()
 export class CertificateRepository {
     constructor(
         private readonly cacheService: CacheService,
-
-        private readonly usersService: UsersService,
 
         private readonly educationRepository: EducationRepository,
 
@@ -72,8 +71,6 @@ export class CertificateRepository {
             sortOrder,
         );
 
-        const user = await this.usersService.findOneBy({ username });
-
         return await this.cacheService.getOrSet(
             cacheKey,
             async () => {
@@ -81,7 +78,7 @@ export class CertificateRepository {
                     skip,
                     take: limit,
                     relations: ['educations'],
-                    where: { userId: user.id },
+                    where: { user: { username } },
                     order: { [sortBy]: sortOrder },
                 });
 
@@ -94,8 +91,8 @@ export class CertificateRepository {
                         limit,
                         total,
                         totalPages,
-                        hasNextPage: page < totalPages,
                         hasPreviousPage: page > 1,
+                        hasNextPage: page < totalPages,
                     },
                 };
             },
@@ -103,7 +100,7 @@ export class CertificateRepository {
         );
     }
 
-    async create(user: User, data: Partial<UserComponentCertificate>): Promise<UserComponentCertificate> {
+    async create(user: User, data: CreateUserComponentCertificateDto): Promise<UserComponentCertificate> {
         const certificate = this.certificateRepository.create({
             ...data,
             userId: user.id,
@@ -112,7 +109,7 @@ export class CertificateRepository {
         return await this.certificateRepository.save(certificate);
     }
 
-    async update(id: number, data: Partial<UserComponentCertificate>): Promise<UserComponentCertificate> {
+    async update(id: number, data: UpdateUserComponentCertificateDto): Promise<UserComponentCertificate> {
         await this.certificateRepository.update({ id }, data);
         return await this.certificateRepository.findOne({
             where: { id },

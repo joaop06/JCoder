@@ -6,24 +6,12 @@ import {
     IsBoolean,
     IsNotEmpty,
     IsOptional,
-    ValidateNested,
 } from 'class-validator';
-import { Expose, Type } from 'class-transformer';
+import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { WorkLocationTypeEnum } from '../../enums/work-location-type.enum';
-import { UserComponentExperience } from '../entities/user-component-experience.entity';
 
-export class UserComponentExperiencePositionDto {
-    @ApiProperty({
-        example: 1,
-        type: 'number',
-        nullable: false,
-        description: 'ID',
-    })
-    @IsNotEmpty()
-    @IsNumber()
-    id: number;
-
+export class CreateUserComponentExperiencePositionDto {
     @ApiProperty({
         example: 1,
         type: 'number',
@@ -32,18 +20,7 @@ export class UserComponentExperiencePositionDto {
     })
     @IsNotEmpty()
     @IsNumber()
-    experienceId!: number;
-
-    @ApiPropertyOptional({
-        nullable: true,
-        type: () => UserComponentExperience,
-        description: 'UserComponentExperience',
-    })
-    @IsOptional()
-    @ValidateNested()
-    @Type(() => UserComponentExperience)
-    @Expose()
-    experience?: UserComponentExperience;
+    experienceId: number;
 
     @ApiProperty({
         type: 'string',
@@ -54,7 +31,7 @@ export class UserComponentExperiencePositionDto {
     })
     @IsNotEmpty()
     @IsString()
-    position!: string;
+    position: string;
 
     @ApiProperty({
         required: true,
@@ -66,7 +43,7 @@ export class UserComponentExperiencePositionDto {
     @IsNotEmpty()
     @IsDate()
     @Type(() => Date)
-    startDate!: Date;
+    startDate: Date;
 
     @ApiPropertyOptional({
         nullable: true,

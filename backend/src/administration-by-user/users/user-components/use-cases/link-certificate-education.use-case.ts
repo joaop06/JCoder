@@ -1,27 +1,23 @@
 import { Injectable } from '@nestjs/common';
-import { UsersService } from '../../users.service';
 import { UserComponentsRepository } from '../repositories';
 import { ComponentNotFoundException } from '../exceptions/component-not-found.exceptions';
 
 @Injectable()
 export class LinkCertificateToEducationUseCase {
     constructor(
-        private readonly usersService: UsersService,
         private readonly userComponentsRepository: UserComponentsRepository,
     ) { }
 
     async execute(username: string, certificateUserId: number, educationUserId: number): Promise<void> {
-        const user = await this.usersService.findOneBy({ username });
-
         // Verify certificate belongs to user
-        const certificate = await this.userComponentsRepository.certificateRepository.findOneBy({ id: certificateUserId });
-        if (!certificate || certificate.username !== user.username) {
+        const certificate = await this.userComponentsRepository.certificateRepository.findOneBy({ id: certificateUserId, user: { username } });
+        if (!certificate) {
             throw new ComponentNotFoundException('Certificate');
         }
 
         // Verify education belongs to user
-        const education = await this.userComponentsRepository.educationRepository.findOneBy({ id: educationUserId });
-        if (!education || education.username !== user.username) {
+        const education = await this.userComponentsRepository.educationRepository.findOneBy({ id: educationUserId, user: { username } });
+        if (!education) {
             throw new ComponentNotFoundException('Education');
         }
 

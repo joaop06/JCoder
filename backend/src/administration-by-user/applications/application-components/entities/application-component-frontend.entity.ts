@@ -58,11 +58,4 @@ export class ApplicationComponentFrontend {
     })
     @Column({ nullable: true })
     screenshotUrl?: string;
-
-    @Column({ nullable: true })
-    associatedApiId: number;
-
-    @ManyToOne(() => Application, { nullable: true })
-    @JoinColumn({ name: 'associatedApiId' })
-    associatedApi?: Application;
 };

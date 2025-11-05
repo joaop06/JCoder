@@ -1,12 +1,13 @@
-import { Injectable } from '@nestjs/common';
 import { Repository } from 'typeorm';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { ImageType } from '../enums/image-type.enum';
+import { UsersService } from '../../users/users.service';
+import { ResourceType } from '../enums/resource-type.enum';
+import { ImageStorageService } from '../services/image-storage.service';
+import { CacheService } from '../../../@common/services/cache.service';
 import { Application } from '../../applications/entities/application.entity';
 import { ApplicationNotFoundException } from '../../applications/exceptions/application-not-found.exception';
-import { CacheService } from '../../../@common/services/cache.service';
-import { ImageStorageService } from '../services/image-storage.service';
-import { ResourceType } from '../enums/resource-type.enum';
-import { ImageType } from '../enums/image-type.enum';
 
 @Injectable()
 export class UploadProfileImageUseCase {
@@ -15,10 +16,13 @@ export class UploadProfileImageUseCase {
         private readonly applicationRepository: Repository<Application>,
         private readonly imageStorageService: ImageStorageService,
         private readonly cacheService: CacheService,
+        private readonly usersService: UsersService,
     ) { }
 
     async execute(id: number, file: Express.Multer.File): Promise<Application> {
         const application = await this.findApplicationById(id);
+
+        const user = await this.usersService.findOneBy({ id: application.userId });
 
         // Delete existing profile image if it exists
         if (application.profileImage) {
@@ -27,7 +31,7 @@ export class UploadProfileImageUseCase {
                 id,
                 application.profileImage,
                 undefined,
-                application.username,
+                user.username,
             );
         }
 
@@ -38,7 +42,7 @@ export class UploadProfileImageUseCase {
             id,
             ImageType.Profile,
             undefined,
-            application.username,
+            user.username,
         );
 
         // Update application with new profile image

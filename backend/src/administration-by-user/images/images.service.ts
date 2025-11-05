@@ -9,9 +9,11 @@ import { ApplicationNotFoundException } from '../applications/exceptions/applica
 @Injectable()
 export class ImagesService {
     constructor(
+        private readonly cacheService: CacheService,
+
         @InjectRepository(Application)
         private readonly repository: Repository<Application>,
-        private readonly cacheService: CacheService,
+
         private readonly imageUploadService: ImageUploadService,
     ) { }
 

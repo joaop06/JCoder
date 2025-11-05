@@ -5,6 +5,8 @@ import { FindOptionsWhere, Repository } from 'typeorm';
 import { CacheService } from '../../../../@common/services/cache.service';
 import { UserComponentExperience } from '../entities/user-component-experience.entity';
 import { PaginationDto, PaginatedResponseDto } from '../../../../@common/dto/pagination.dto';
+import { CreateUserComponentExperienceDto } from '../dto/create-user-component-experience.dto';
+import { UpdateUserComponentExperienceDto } from '../dto/update-user-component-experience.dto';
 import { UserComponentExperiencePosition } from '../entities/user-component-experience-position.entity';
 
 @Injectable()
@@ -31,8 +33,8 @@ export class ExperienceRepository {
                 const [data, total] = await this.experienceRepository.findAndCount({
                     skip,
                     take: limit,
-                    where: { username },
                     relations: ['positions'],
+                    where: { user: { username } },
                     order: { [sortBy]: sortOrder },
                 });
 
@@ -54,16 +56,16 @@ export class ExperienceRepository {
         );
     }
 
-    async create(user: User, data: Partial<UserComponentExperience>): Promise<UserComponentExperience> {
+    async create(user: User, data: CreateUserComponentExperienceDto): Promise<UserComponentExperience> {
         const experience = this.experienceRepository.create({
             ...data,
-            username: user.username,
+            userId: user.id,
             user,
         });
         return await this.experienceRepository.save(experience);
     }
 
-    async update(id: number, data: Partial<UserComponentExperience>): Promise<UserComponentExperience> {
+    async update(id: number, data: UpdateUserComponentExperienceDto): Promise<UserComponentExperience> {
         await this.experienceRepository.update({ id }, data);
         return await this.experienceRepository.findOne({
             where: { id },

@@ -6,42 +6,20 @@ import {
     IsOptional,
     ValidateNested,
 } from 'class-validator';
-import { Expose, Type } from 'class-transformer';
-import { User } from '../../../users/entities/user.entity';
+import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { UserComponentAboutMeHighlightDto } from './user-component-about-me-highlight.dto';
+import { CreateUserComponentAboutMeHighlightDto } from './create-user-component-about-me-highlight.dto';
 
-export class UserComponentAboutMeDto {
+export class CreateUserComponentAboutMeDto {
     @ApiProperty({
         example: 1,
         type: 'number',
         nullable: false,
-        description: 'ID',
+        description: 'User ID',
     })
     @IsNotEmpty()
     @IsNumber()
-    id: number;
-
-    @ApiProperty({
-        type: 'string',
-        nullable: false,
-        example: 'johndoe',
-        description: 'Unique username used for login',
-    })
-    @IsNotEmpty()
-    @IsString()
-    username!: string;
-
-    @ApiPropertyOptional({
-        type: () => User,
-        nullable: true,
-        description: 'User',
-    })
-    @IsOptional()
-    @ValidateNested()
-    @Type(() => User)
-    @Expose()
-    user?: User;
+    userId: number;
 
     @ApiPropertyOptional({
         type: 'string',
@@ -67,11 +45,11 @@ export class UserComponentAboutMeDto {
         isArray: true,
         nullable: true,
         description: 'Highlights/achievements',
-        type: () => UserComponentAboutMeHighlightDto,
+        type: () => CreateUserComponentAboutMeHighlightDto,
     })
     @IsOptional()
     @IsArray()
     @ValidateNested({ each: true })
-    @Type(() => UserComponentAboutMeHighlightDto)
-    highlights?: UserComponentAboutMeHighlightDto[];
+    @Type(() => CreateUserComponentAboutMeHighlightDto)
+    highlights?: CreateUserComponentAboutMeHighlightDto[];
 };

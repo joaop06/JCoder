@@ -63,11 +63,4 @@ export class ApplicationComponentMobile {
     })
     @Column({ nullable: true })
     downloadUrl?: string;
-
-    @Column({ nullable: true })
-    associatedApiId: number;
-
-    @ManyToOne(() => Application, { nullable: true })
-    @JoinColumn({ name: 'associatedApiId' })
-    associatedApi?: Application;
 };

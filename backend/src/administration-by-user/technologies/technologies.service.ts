@@ -2,9 +2,9 @@ import { Repository } from 'typeorm';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Technology } from './entities/technology.entity';
-import { CacheService } from '../../@common/services/cache.service';
 import { CreateTechnologyDto } from './dto/create-technology.dto';
 import { UpdateTechnologyDto } from './dto/update-technology.dto';
+import { CacheService } from '../../@common/services/cache.service';
 import { TechnologiesStatsDto } from './dto/technologies-stats.dto';
 import { ImageUploadService } from '../images/services/image-upload.service';
 import { PaginationDto, PaginatedResponseDto } from '../../@common/dto/pagination.dto';
@@ -13,10 +13,11 @@ import { TechnologyNotFoundException } from './exceptions/technology-not-found.e
 @Injectable()
 export class TechnologiesService {
     constructor(
+        private readonly cacheService: CacheService,
+
         @InjectRepository(Technology)
         private readonly repository: Repository<Technology>,
 
-        private readonly cacheService: CacheService,
         private readonly imageUploadService: ImageUploadService,
     ) { }
 
@@ -48,7 +49,7 @@ export class TechnologiesService {
                 const [data, total] = await this.repository.findAndCount({
                     skip,
                     take: limit,
-                    where: { username },
+                    where: { user: { username } },
                     order: { [sortBy]: sortOrder },
                 });
 
@@ -77,7 +78,7 @@ export class TechnologiesService {
             cacheKey,
             async () => {
                 const technology = await this.repository.findOne({
-                    where: { id, username },
+                    where: { id, user: { username } },
                 });
                 if (!technology) throw new TechnologyNotFoundException();
                 return technology;
@@ -218,9 +219,9 @@ export class TechnologiesService {
             cacheKey,
             async () => {
                 const [total, active, inactive] = await Promise.all([
-                    this.repository.count({ where: { username } }),
-                    this.repository.count({ where: { username, isActive: true } }),
-                    this.repository.count({ where: { username, isActive: false } }),
+                    this.repository.count({ where: { user: { username } } }),
+                    this.repository.count({ where: { user: { username }, isActive: true } }),
+                    this.repository.count({ where: { user: { username }, isActive: false } }),
                 ]);
 
                 return { active, inactive, total };
@@ -230,6 +231,6 @@ export class TechnologiesService {
     }
 
     async existsByTechnologyNameAndUsername(username: string, name: string): Promise<Technology | null> {
-        return await this.repository.findOneBy({ username, name });
+        return await this.repository.findOneBy({ user: { username }, name });
     }
 };

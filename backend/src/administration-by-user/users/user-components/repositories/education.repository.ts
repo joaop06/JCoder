@@ -4,8 +4,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, FindOptionsWhere, In } from 'typeorm';
 import { CacheService } from '../../../../@common/services/cache.service';
 import { UserComponentEducation } from '../entities/user-component-education.entity';
-import { PaginationDto, PaginatedResponseDto } from '../../../../@common/dto/pagination.dto';
 import { EducationNotFoundException } from '../exceptions/education-not-found.exception';
+import { PaginationDto, PaginatedResponseDto } from '../../../../@common/dto/pagination.dto';
+import { CreateUserComponentEducationDto } from '../dto/create-user-component-education.dto';
+import { UpdateUserComponentEducationDto } from '../dto/update-user-component-education.dto';
 
 @Injectable()
 export class EducationRepository {
@@ -70,8 +72,8 @@ export class EducationRepository {
                 const [data, total] = await this.educationRepository.findAndCount({
                     skip,
                     take: limit,
-                    where: { username },
                     relations: ['certificates'],
+                    where: { user: { username } },
                     order: { [sortBy]: sortOrder },
                 });
 
@@ -93,16 +95,16 @@ export class EducationRepository {
         );
     }
 
-    async create(user: User, data: Partial<UserComponentEducation>): Promise<UserComponentEducation> {
+    async create(user: User, data: CreateUserComponentEducationDto): Promise<UserComponentEducation> {
         const education = this.educationRepository.create({
             ...data,
-            username: user.username,
+            userId: user.id,
             user,
         });
         return await this.educationRepository.save(education);
     }
 
-    async update(id: number, data: Partial<UserComponentEducation>): Promise<UserComponentEducation> {
+    async update(id: number, data: UpdateUserComponentEducationDto): Promise<UserComponentEducation> {
         await this.educationRepository.update({ id }, data);
         return await this.educationRepository.findOne({
             where: { id },

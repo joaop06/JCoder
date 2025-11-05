@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { UserComponentsRepository } from '../repositories';
 import { UsersService } from '../../../users/users.service';
-import { UserComponentExperienceDto } from '../dto/user-component-experience.dto';
 import { UserComponentExperience } from '../entities/user-component-experience.entity';
 import { PaginatedResponseDto, PaginationDto } from '../../../../@common/dto/pagination.dto';
+import { CreateUserComponentExperienceDto } from '../dto/create-user-component-experience.dto';
 import { UpdateUserComponentExperienceDto } from '../dto/update-user-component-experience.dto';
 
 @Injectable()
@@ -24,7 +24,7 @@ export class CreateExperienceUseCase {
         private readonly userComponentsRepository: UserComponentsRepository,
     ) { }
 
-    async execute(username: string, dto: UserComponentExperienceDto): Promise<UserComponentExperience> {
+    async execute(username: string, dto: CreateUserComponentExperienceDto): Promise<UserComponentExperience> {
         const user = await this.usersService.findOneBy({ username });
         return await this.userComponentsRepository.experienceRepository.create(user, dto);
     }

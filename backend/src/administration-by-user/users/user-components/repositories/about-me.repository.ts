@@ -2,17 +2,16 @@ import { Repository } from 'typeorm';
 import { Injectable } from '@nestjs/common';
 import { User } from '../../entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UsersService } from '../../users.service';
 import { CacheService } from '../../../../@common/services/cache.service';
 import { UserComponentAboutMe } from '../entities/user-component-about-me.entity';
+import { CreateUserComponentAboutMeDto } from '../dto/create-user-component-about-me.dto';
+import { UpdateUserComponentAboutMeDto } from '../dto/update-user-component-about-me.dto';
 import { UserComponentAboutMeHighlight } from '../entities/user-component-about-me-highlight.entity';
 
 @Injectable()
 export class AboutMeRepository {
     constructor(
         private readonly cacheService: CacheService,
-
-        private readonly usersService: UsersService,
 
         @InjectRepository(UserComponentAboutMe)
         private readonly aboutMeRepository: Repository<UserComponentAboutMe>,
@@ -26,14 +25,12 @@ export class AboutMeRepository {
     ): Promise<UserComponentAboutMe> {
         const cacheKey = this.cacheService.generateKey('about-me', 'paginated', username);
 
-        const user = await this.usersService.findOneBy({ username });
-
         return await this.cacheService.getOrSet(
             cacheKey,
             async () => {
                 const aboutMe = await this.aboutMeRepository.findOne({
-                    where: { userId: user.id },
                     relations: ['highlights'],
+                    where: { user: { username } },
                 });
 
                 return aboutMe;
@@ -42,7 +39,7 @@ export class AboutMeRepository {
         );
     }
 
-    async create(user: User, data: Partial<UserComponentAboutMe>): Promise<UserComponentAboutMe> {
+    async create(user: User, data: CreateUserComponentAboutMeDto): Promise<UserComponentAboutMe> {
         const aboutMe = this.aboutMeRepository.create({
             ...data,
             userId: user.id,
@@ -51,11 +48,9 @@ export class AboutMeRepository {
         return await this.aboutMeRepository.save(aboutMe);
     }
 
-    async update(username: string, data: Partial<UserComponentAboutMe>): Promise<UserComponentAboutMe> {
-        const user = await this.usersService.findOneBy({ username });
-
-        await this.aboutMeRepository.update({ userId: user.id }, data);
-        return await this.aboutMeRepository.findOne({ where: { userId: user.id } });
+    async update(username: string, data: UpdateUserComponentAboutMeDto): Promise<UserComponentAboutMe> {
+        await this.aboutMeRepository.update({ user: { username } }, data);
+        return await this.aboutMeRepository.findOne({ where: { user: { username } } });
     }
 
     async createHighlight(aboutMeId: number, data: Partial<UserComponentAboutMeHighlight>): Promise<UserComponentAboutMeHighlight> {

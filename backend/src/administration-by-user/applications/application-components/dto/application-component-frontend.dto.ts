@@ -1,12 +1,23 @@
 import {
   IsUrl,
+  IsString,
   IsNotEmpty,
   IsOptional,
-  IsString,
+  IsPositive,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class ApplicationComponentFrontendDto {
+  @ApiProperty({
+    example: 1,
+    type: 'number',
+    nullable: false,
+    description: 'Linked application ID',
+  })
+  @IsNotEmpty()
+  @IsPositive()
+  applicationId: number;
+
   @ApiProperty({
     required: true,
     nullable: false,

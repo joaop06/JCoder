@@ -1,7 +1,6 @@
 import { In, Repository } from 'typeorm';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UsersService } from '../users/users.service';
 import { Application } from './entities/application.entity';
 import { CacheService } from '../../@common/services/cache.service';
 import { ApplicationsStatsDto } from './dto/applications-stats.dto';
@@ -16,11 +15,11 @@ import { ApplicationNotFoundException } from './exceptions/application-not-found
 export class ApplicationsService {
   constructor(
     private readonly cacheService: CacheService,
-    private readonly usersService: UsersService,
-    private readonly imageUploadService: ImageUploadService,
 
     @InjectRepository(Application)
     private readonly repository: Repository<Application>,
+
+    private readonly imageUploadService: ImageUploadService,
 
     @InjectRepository(Technology)
     private readonly technologyRepository: Repository<Technology>,
@@ -38,7 +37,7 @@ export class ApplicationsService {
         const [data, total] = await this.repository.findAndCount({
           skip,
           take: limit,
-          where: { username },
+          where: { user: { username } },
           order: { [sortBy]: sortOrder },
         });
 
@@ -67,8 +66,9 @@ export class ApplicationsService {
       cacheKey,
       async () => {
         const application = await this.repository.findOne({
-          where: { id, username },
+          where: { id, user: { username } },
           relations: {
+            user: true,
             technologies: true,
             applicationComponentApi: true,
             applicationComponentMobile: true,
@@ -265,9 +265,9 @@ export class ApplicationsService {
       cacheKey,
       async () => {
         const [total, active, inactive] = await Promise.all([
-          this.repository.count({ where: { username } }),
-          this.repository.count({ where: { username, isActive: true } }),
-          this.repository.count({ where: { username, isActive: false } }),
+          this.repository.count({ where: { user: { username } } }),
+          this.repository.count({ where: { user: { username }, isActive: true } }),
+          this.repository.count({ where: { user: { username }, isActive: false } }),
         ]);
 
         return { active, inactive, total };
@@ -277,6 +277,6 @@ export class ApplicationsService {
   }
 
   async existsByApplicationNameAndUsername(username: string, name: string): Promise<Application | null> {
-    return await this.repository.findOneBy({ username, name });
+    return await this.repository.findOneBy({ name, user: { username } });
   }
 };

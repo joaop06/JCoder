@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { UsersService } from '../../users.service';
 import { UserComponentsRepository } from '../repositories';
-import { UserComponentCertificateDto } from '../dto/user-component-certificate.dto';
 import { UserComponentCertificate } from '../entities/user-component-certificate.entity';
 import { PaginatedResponseDto, PaginationDto } from '../../../../@common/dto/pagination.dto';
+import { CreateUserComponentCertificateDto } from '../dto/create-user-component-certificate.dto';
 import { UpdateUserComponentCertificateDto } from '../dto/update-user-component-certificate.dto';
 
 @Injectable()
@@ -24,7 +24,7 @@ export class CreateCertificateUseCase {
         private readonly userComponentsRepository: UserComponentsRepository,
     ) { }
 
-    async execute(username: string, dto: UserComponentCertificateDto): Promise<UserComponentCertificate> {
+    async execute(username: string, dto: CreateUserComponentCertificateDto): Promise<UserComponentCertificate> {
         const user = await this.usersService.findOneBy({ username });
         return await this.userComponentsRepository.certificateRepository.create(user, dto);
     }

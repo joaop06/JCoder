@@ -11,15 +11,15 @@ export class ApplicationComponentsService {
 
     async saveComponentsForType({
         dtos,
-        username,
+        user,
         application,
         applicationType,
-    }: CreateComponentsForTypeDto & { username: string }) {
+    }: CreateComponentsForTypeDto) {
         switch (applicationType) {
             case ApplicationTypeEnum.API:
                 await this.applicationComponentsRepository.createApi({
                     application,
-                    username,
+                    userId: user.id,
                     ...dtos.applicationComponentApi,
                 });
                 break;
@@ -27,7 +27,7 @@ export class ApplicationComponentsService {
             case ApplicationTypeEnum.FRONTEND:
                 await this.applicationComponentsRepository.createFrontend({
                     application,
-                    username,
+                    userId: user.id,
                     ...dtos.applicationComponentFrontend,
                 });
                 break;
@@ -35,12 +35,12 @@ export class ApplicationComponentsService {
             case ApplicationTypeEnum.FULLSTACK:
                 await this.applicationComponentsRepository.createApi({
                     application,
-                    username,
+                    userId: user.id,
                     ...dtos.applicationComponentApi,
                 });
                 await this.applicationComponentsRepository.createFrontend({
                     application,
-                    username,
+                    userId: user.id,
                     ...dtos.applicationComponentFrontend,
                 });
                 break;
@@ -48,7 +48,7 @@ export class ApplicationComponentsService {
             case ApplicationTypeEnum.MOBILE:
                 await this.applicationComponentsRepository.createMobile({
                     application,
-                    username,
+                    userId: user.id,
                     ...dtos.applicationComponentMobile,
                 });
                 break;
@@ -56,7 +56,7 @@ export class ApplicationComponentsService {
             case ApplicationTypeEnum.LIBRARY:
                 await this.applicationComponentsRepository.createLibrary({
                     application,
-                    username,
+                    userId: user.id,
                     ...dtos.applicationComponentLibrary,
                 });
                 break;

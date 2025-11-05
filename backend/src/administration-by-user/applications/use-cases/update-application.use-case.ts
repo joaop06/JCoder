@@ -14,20 +14,20 @@ export class UpdateApplicationUseCase {
 
     async execute(username: string, id: Application['id'], updateApplicationDto: UpdateApplicationDto): Promise<Application> {
         // Verify if exists the application for this user
-        await this.applicationsService.findById(id, username);
+        const application = await this.applicationsService.findById(id, username);
 
         // Verify if already exists the Application name for this user
         await this.existsApplicationName(username, id, updateApplicationDto.name);
 
         // Update application
-        const application = await this.applicationsService.update(id, updateApplicationDto);
+        const updatedApplication = await this.applicationsService.update(id, updateApplicationDto);
 
         /**
          * Update the components from application
          */
         await this.applicationComponentsService.saveComponentsForType({
-            username,
-            application,
+            user: application.user,
+            application: updatedApplication,
             applicationType: updateApplicationDto.applicationType,
             dtos: {
                 applicationComponentApi: updateApplicationDto.applicationComponentApi,

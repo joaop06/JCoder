@@ -1,23 +1,31 @@
-import { Injectable } from '@nestjs/common';
 import { Repository } from 'typeorm';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Application } from '../../applications/entities/application.entity';
-import { ApplicationNotFoundException } from '../../applications/exceptions/application-not-found.exception';
+import { UsersService } from '../../users/users.service';
+import { ResourceType } from '../enums/resource-type.enum';
 import { CacheService } from '../../../@common/services/cache.service';
 import { ImageStorageService } from '../services/image-storage.service';
-import { ResourceType } from '../enums/resource-type.enum';
+import { Application } from '../../applications/entities/application.entity';
+import { ApplicationNotFoundException } from '../../applications/exceptions/application-not-found.exception';
 
 @Injectable()
 export class DeleteProfileImageUseCase {
     constructor(
+        private readonly usersService: UsersService,
+
+        private readonly cacheService: CacheService,
+
+        private readonly imageStorageService: ImageStorageService,
+
         @InjectRepository(Application)
         private readonly applicationRepository: Repository<Application>,
-        private readonly imageStorageService: ImageStorageService,
-        private readonly cacheService: CacheService,
     ) { }
 
     async execute(id: number): Promise<void> {
         const application = await this.findApplicationById(id);
+
+        // Find the user
+        const user = await this.usersService.findOneBy({ id: application.userId });
 
         if (!application.profileImage) {
             throw new ApplicationNotFoundException();
@@ -29,7 +37,7 @@ export class DeleteProfileImageUseCase {
             id,
             application.profileImage,
             undefined,
-            application.username,
+            user.username,
         );
 
         // Remove profile image from application
@@ -61,4 +69,4 @@ export class DeleteProfileImageUseCase {
             600,
         );
     }
-}
+};

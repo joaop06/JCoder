@@ -2,6 +2,7 @@ import { Repository } from 'typeorm';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ImageType } from '../enums/image-type.enum';
+import { UsersService } from '../../users/users.service';
 import { ResourceType } from '../enums/resource-type.enum';
 import { ImageStorageService } from '../services/image-storage.service';
 import { UserComponentCertificate } from '../../users/user-components/entities/user-component-certificate.entity';
@@ -13,9 +14,12 @@ import { ComponentNotFoundException } from '../../users/user-components/exceptio
 @Injectable()
 export class UploadCertificateImageUseCase {
     constructor(
+        private readonly usersService: UsersService,
+
+        private readonly imageStorageService: ImageStorageService,
+
         @InjectRepository(UserComponentCertificate)
         private readonly certificateRepository: Repository<UserComponentCertificate>,
-        private readonly imageStorageService: ImageStorageService,
     ) { }
 
     async execute(
@@ -23,9 +27,12 @@ export class UploadCertificateImageUseCase {
         certificateId: number,
         file: Express.Multer.File,
     ): Promise<UserComponentCertificate> {
+        // Find the user
+        const user = await this.usersService.findOneBy({ username });
+
         // Find the certificate
         const certificate = await this.certificateRepository.findOne({
-            where: { id: certificateId, username },
+            where: { id: certificateId, userId: user.id },
         });
 
         if (!certificate) {
@@ -33,7 +40,7 @@ export class UploadCertificateImageUseCase {
         }
 
         // Verify ownership
-        if (certificate.username !== username) {
+        if (certificate.userId !== user.id) {
             throw new ComponentNotFoundException('Certificate not found');
         }
 
@@ -44,7 +51,7 @@ export class UploadCertificateImageUseCase {
                 certificateId,
                 certificate.profileImage,
                 'certificates',
-                certificate.username,
+                user.username,
             );
         }
 
@@ -55,7 +62,7 @@ export class UploadCertificateImageUseCase {
             certificateId,
             ImageType.Component,
             'certificates',
-            certificate.username,
+            user.username,
         );
 
         // Update certificate with new image
