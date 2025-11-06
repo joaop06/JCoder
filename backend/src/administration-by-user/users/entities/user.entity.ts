@@ -9,6 +9,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
+import { Message } from '../../messages/entities/message.entity';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Technology } from '../../technologies/entities/technology.entity';
 import { Application } from '../../applications/entities/application.entity';
@@ -213,4 +214,13 @@ export class User {
   })
   @OneToMany(() => ApplicationComponentFrontend, (applicationComponentFrontend) => applicationComponentFrontend.user)
   applicationsComponentsFrontends?: ApplicationComponentFrontend[];
+
+  @ApiPropertyOptional({
+    isArray: true,
+    nullable: true,
+    type: () => Message,
+    description: 'Messages received by the user',
+  })
+  @OneToMany(() => Message, (message) => message.user)
+  messages?: Message[];
 };

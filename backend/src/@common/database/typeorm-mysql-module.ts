@@ -2,6 +2,7 @@ import { config } from "dotenv";
 import { ConfigService } from "@nestjs/config";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { User } from "../../administration-by-user/users/entities/user.entity";
+import { Message } from "../../administration-by-user/messages/entities/message.entity";
 import { Technology } from "../../administration-by-user/technologies/entities/technology.entity";
 import { Application } from "../../administration-by-user/applications/entities/application.entity";
 import { UserComponentAboutMe } from "../../administration-by-user/users/user-components/entities/user-component-about-me.entity";
@@ -22,6 +23,7 @@ export const TypeormMysqlModule = TypeOrmModule.forRoot({
   type: 'mysql',
   entities: [
     User,
+    Message,
     Technology,
     Application,
     UserComponentAboutMe,

@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { WinstonModule } from 'nest-winston';
 import { ConfigModule } from '@nestjs/config';
+import { EmailModule } from './email/email.module';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { HealthModule } from './health/health.module';
 import { loggerConfig } from './@common/config/logger.config';
@@ -9,6 +10,7 @@ import { UsersModule } from './administration-by-user/users/users.module';
 import { ImagesModule } from './administration-by-user/images/images.module';
 import { PortfolioViewModule } from './portfolio-view/portfolio-view.module';
 import { TypeormMysqlModule } from './@common/database/typeorm-mysql-module';
+import { MessagesModule } from './administration-by-user/messages/messages.module';
 import { ApplicationsModule } from './administration-by-user/applications/applications.module';
 import { TechnologiesModule } from './administration-by-user/technologies/technologies.module';
 
@@ -28,9 +30,11 @@ import { TechnologiesModule } from './administration-by-user/technologies/techno
       },
     ]),
     AuthModule,
+    EmailModule,
     UsersModule,
     HealthModule,
     ImagesModule,
+    MessagesModule,
     ApplicationsModule,
     TechnologiesModule,
     TypeormMysqlModule,
