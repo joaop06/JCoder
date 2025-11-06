@@ -44,6 +44,8 @@ export default function PortfolioPage() {
   const [loadingCertificates, setLoadingCertificates] = useState(true);
   const [generatingPDF, setGeneratingPDF] = useState(false);
   const [user, setUser] = useState<User | null>(null);
+  const [userNotFound, setUserNotFound] = useState(false);
+  const [checkingUser, setCheckingUser] = useState(true);
 
   const toast = useToast();
   const { scrollToElement } = useSmoothScroll();
@@ -151,27 +153,51 @@ export default function PortfolioPage() {
     }
   };
 
+  // Pre-verificação do usuário
   useEffect(() => {
     if (!username) return;
     let isMounted = true;
 
-    const loadData = async () => {
-      if (!isMounted) return;
-      await Promise.all([
-        loadApplications(),
-        loadTechnologies(),
-        loadAboutMe(),
-        loadEducations(),
-        loadExperiences(),
-        loadCertificates(),
-      ]);
+    const checkUserExists = async () => {
+      setCheckingUser(true);
+      setUserNotFound(false);
+      try {
+        const result = await PortfolioViewService.checkUsernameAvailability(username);
+        // Se available === true, significa que o usuário NÃO existe
+        if (result.available) {
+          if (isMounted) {
+            setUserNotFound(true);
+            setCheckingUser(false);
+          }
+          return;
+        }
+        // Se available === false, o usuário existe, então carregamos os dados
+        if (isMounted) {
+          await Promise.all([
+            loadAboutMe(),
+            loadApplications(),
+            loadTechnologies(),
+            loadEducations(),
+            loadExperiences(),
+            loadCertificates(),
+          ]);
+          setCheckingUser(false);
+        }
+      } catch (err) {
+        console.error('Erro ao verificar usuário', err);
+        if (isMounted) {
+          setUserNotFound(true);
+          setCheckingUser(false);
+        }
+      }
     };
 
-    loadData();
+    checkUserExists();
 
     return () => {
       isMounted = false;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [username]);
 
   const scrollToSection = (sectionId: string) => {
@@ -212,6 +238,66 @@ export default function PortfolioPage() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <p className="text-jcoder-muted">Invalid username</p>
+      </div>
+    );
+  }
+
+  // Tela de usuário não encontrado
+  if (checkingUser) {
+    return (
+      <div className="min-h-screen flex flex-col bg-background">
+        <Header isAdmin={false} />
+        <main className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-jcoder-primary mx-auto mb-4"></div>
+            <p className="text-jcoder-muted">Carregando...</p>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  if (userNotFound) {
+    return (
+      <div className="min-h-screen flex flex-col bg-background">
+        <Header isAdmin={false} />
+        <main className="flex-1 flex items-center justify-center overflow-hidden relative">
+          <div className="absolute inset-0 bg-gradient-to-br from-jcoder-cyan/10 via-transparent to-jcoder-blue/10">
+            <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-jcoder-cyan/5 rounded-full blur-3xl animate-pulse"></div>
+            <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-jcoder-blue/5 rounded-full blur-3xl animate-pulse delay-1000"></div>
+          </div>
+
+          <div className="relative z-10 text-center max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="mb-8">
+              <div className="text-9xl font-bold text-jcoder-primary/20 mb-4">404</div>
+              <div className="text-6xl mb-6">🔍</div>
+            </div>
+
+            <h1 className="text-4xl md:text-5xl font-bold text-jcoder-foreground mb-4">
+              Usuário não encontrado
+            </h1>
+
+            <p className="text-lg md:text-xl text-jcoder-muted mb-8 max-w-xl mx-auto leading-relaxed">
+              O portfólio do usuário <span className="font-semibold text-jcoder-primary">@{username}</span> não existe ou não está disponível.
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <a
+                href="/"
+                className="px-8 py-4 bg-jcoder-gradient text-black font-semibold rounded-lg hover:shadow-jcoder-primary transition-all duration-300 transform hover:scale-105"
+              >
+                Voltar ao Início
+              </a>
+              <button
+                onClick={() => window.history.back()}
+                className="px-8 py-4 border-2 border-jcoder-primary text-jcoder-primary font-semibold rounded-lg hover:bg-jcoder-primary hover:text-black transition-all duration-300"
+              >
+                Voltar
+              </button>
+            </div>
+          </div>
+        </main>
+        <Footer user={null} username={username} />
       </div>
     );
   }
