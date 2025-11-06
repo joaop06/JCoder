@@ -6,7 +6,7 @@ import { TableSkeleton } from '@/components/ui';
 import { useParams, useRouter } from 'next/navigation';
 import { useToast } from '@/components/toast/ToastContext';
 import ImageUpload from '@/components/applications/ImageUpload';
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { ApplicationTypeEnum } from '@/types/enums/application-type.enum';
 import TechnologySelector from '@/components/applications/TechnologySelector';
 import { UsersService } from '@/services/administration-by-user/users.service';
@@ -28,6 +28,7 @@ export default function NewApplicationPage() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [checkingAuth, setCheckingAuth] = useState(true);
     const [formError, setFormError] = useState<string | null>(null);
+    const isSubmittingRef = useRef(false);
     const [formData, setFormData] = useState<Omit<CreateApplicationDto, 'userId'>>({
         name: '',
         description: '',
@@ -154,6 +155,13 @@ export default function NewApplicationPage() {
 
     const handleSubmit = useCallback(async (e: React.FormEvent) => {
         e.preventDefault();
+        
+        // Prevent multiple submissions
+        if (isSubmittingRef.current) {
+            return;
+        }
+        
+        isSubmittingRef.current = true;
         setLoading(true);
         setFormError(null);
 
@@ -222,28 +230,43 @@ export default function NewApplicationPage() {
                     const files: File[] = [];
                     for (let i = 0; i < images.length; i++) {
                         const image = images[i];
-                        if (image.startsWith('data:')) {
-                            // Parse data URL
-                            const [header, data] = image.split(',');
-                            const mimeType = header.match(/data:([^;]+)/)?.[1] || 'image/jpeg';
-                            const extension = mimeType.split('/')[1] || 'jpg';
+                        if (image && image.startsWith('data:')) {
+                            try {
+                                // Parse data URL
+                                const commaIndex = image.indexOf(',');
+                                if (commaIndex === -1) {
+                                    console.warn(`Skipping invalid data URL at index ${i}`);
+                                    continue;
+                                }
+                                
+                                const header = image.substring(0, commaIndex);
+                                const data = image.substring(commaIndex + 1);
+                                const mimeMatch = header.match(/data:([^;]+)/);
+                                const mimeType = mimeMatch?.[1] || 'image/jpeg';
+                                const extension = mimeType.split('/')[1] || 'jpg';
 
-                            // Convert base64 to binary
-                            const binaryString = atob(data);
-                            const bytes = new Uint8Array(binaryString.length);
-                            for (let j = 0; j < binaryString.length; j++) {
-                                bytes[j] = binaryString.charCodeAt(j);
+                                // Convert base64 to binary
+                                const binaryString = atob(data);
+                                const bytes = new Uint8Array(binaryString.length);
+                                for (let j = 0; j < binaryString.length; j++) {
+                                    bytes[j] = binaryString.charCodeAt(j);
+                                }
+
+                                // Create File object
+                                const file = new File([bytes], `image-${i}.${extension}`, { type: mimeType });
+                                files.push(file);
+                            } catch (parseError) {
+                                console.error(`Error parsing image at index ${i}:`, parseError);
+                                continue;
                             }
-
-                            // Create File object
-                            const file = new File([bytes], `image-${i}.${extension}`, { type: mimeType });
-                            files.push(file);
                         }
                     }
 
                     if (files.length > 0) {
                         await ImagesService.uploadApplicationImages(userSession.user.username, createdApplication.id, files);
-                        toast.success('Images uploaded successfully!');
+                        toast.success(`${files.length} image(s) uploaded successfully!`);
+                    } else if (images.length > 0) {
+                        console.warn('No valid images could be converted for upload');
                     }
                 } catch (error: any) {
                     console.error('Error uploading images:', error);
@@ -264,8 +287,9 @@ export default function NewApplicationPage() {
             setFormError(errorMessage);
         } finally {
             setLoading(false);
+            isSubmittingRef.current = false;
         }
-    }, [formData, images, profileImageFile, router, toast]);
+    }, [formData, images, profileImageFile, router, username, toast]);
 
     if (checkingAuth || !isAuthenticated) {
         return (

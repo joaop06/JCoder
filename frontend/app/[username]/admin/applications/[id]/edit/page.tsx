@@ -4,7 +4,7 @@
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
 import { useRouter, useParams } from 'next/navigation';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { LazyImage, TableSkeleton } from '@/components/ui';
 import { useToast } from '@/components/toast/ToastContext';
 import ImageUpload from '@/components/applications/ImageUpload';
@@ -26,6 +26,7 @@ export default function EditApplicationPage() {
     const [loading, setLoading] = useState(true);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [formError, setFormError] = useState<string | null>(null);
+    const isSubmittingRef = useRef(false);
     const [formData, setFormData] = useState<UpdateApplicationDto>({
         name: '',
         description: '',
@@ -122,6 +123,13 @@ export default function EditApplicationPage() {
 
     const handleSubmit = useCallback(async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Prevent multiple submissions
+        if (isSubmittingRef.current) {
+            return;
+        }
+
+        isSubmittingRef.current = true;
         setLoading(true);
         setFormError(null);
 
@@ -178,8 +186,7 @@ export default function EditApplicationPage() {
             toast.success(`${payload.name} successfully updated!`);
 
             // Apply profile image changes only after successful application update
-
-            if (pendingProfileImageAction !== 'none') {
+            if (pendingProfileImageAction !== 'none' && pendingProfileImageAction !== undefined) {
                 try {
                     switch (pendingProfileImageAction) {
                         case 'upload':
@@ -200,7 +207,7 @@ export default function EditApplicationPage() {
                             break;
                     }
 
-                    // Reset pending states after successful application
+                    // Reset pending states after successful operation
                     setPendingProfileImageFile(null);
                     setPendingProfileImageAction('none');
                 } catch (error: any) {
@@ -223,8 +230,9 @@ export default function EditApplicationPage() {
             setFormError(errorMessage);
         } finally {
             setLoading(false);
+            isSubmittingRef.current = false;
         }
-    }, [formData, router, applicationId, pendingProfileImageAction, pendingProfileImageFile, profileImage, toast]);
+    }, [formData, router, applicationId, pendingProfileImageAction, pendingProfileImageFile, username, toast]);
 
     if (!isAuthenticated || loading) {
         return (

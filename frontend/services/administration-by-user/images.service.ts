@@ -26,12 +26,7 @@ export const ImagesService = {
 
             const response = await ApiService.post(
                 `/${username}/images/applications/${applicationId}`,
-                formData,
-                {
-                    headers: {
-                        'Content-Type': 'multipart/form-data',
-                    },
-                }
+                formData
             );
             return response.data.data;
         } catch (error) {
@@ -72,12 +67,7 @@ export const ImagesService = {
 
             const response = await ApiService.post(
                 `/${username}/images/applications/${applicationId}/profile-image`,
-                formData,
-                {
-                    headers: {
-                        'Content-Type': 'multipart/form-data',
-                    },
-                }
+                formData
             );
             return response.data.data;
         } catch (error) {
@@ -96,12 +86,7 @@ export const ImagesService = {
 
             const response = await ApiService.put(
                 `/${username}/images/applications/${applicationId}/profile-image`,
-                formData,
-                {
-                    headers: {
-                        'Content-Type': 'multipart/form-data',
-                    },
-                }
+                formData
             );
             return response.data.data;
         } catch (error) {

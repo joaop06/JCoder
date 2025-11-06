@@ -92,7 +92,7 @@ export class ImagesController {
     }))
     @ApiOkResponse({ type: () => Application })
     @ApiExceptionResponse(() => ApplicationNotFoundException)
-    async uploadImages(
+    async uploadApplicationImages(
         @Param('id', ParseIntPipe) id: number,
         @UploadedFiles() files: Express.Multer.File[],
     ): Promise<Application> {
@@ -102,7 +102,7 @@ export class ImagesController {
     @Get('applications/:id/:filename')
     @ApiOkResponse({ description: 'Image file' })
     @ApiExceptionResponse(() => ApplicationNotFoundException)
-    async getImage(
+    async getApplicationImage(
         @Param('id', ParseIntPipe) id: number,
         @Param('filename') filename: string,
         @Res() res: Response,
@@ -123,7 +123,7 @@ export class ImagesController {
     @HttpCode(HttpStatus.NO_CONTENT)
     @ApiNoContentResponse()
     @ApiExceptionResponse(() => ApplicationNotFoundException)
-    async deleteImage(
+    async deleteApplicationImage(
         @Param('id', ParseIntPipe) id: number,
         @Param('filename') filename: string,
     ): Promise<void> {
@@ -147,7 +147,7 @@ export class ImagesController {
     }))
     @ApiOkResponse({ type: () => Application })
     @ApiExceptionResponse(() => ApplicationNotFoundException)
-    async uploadProfileImage(
+    async uploadApplicationProfileImage(
         @Param('id', ParseIntPipe) id: number,
         @UploadedFiles() files: Express.Multer.File[],
     ): Promise<Application> {
@@ -174,7 +174,7 @@ export class ImagesController {
     }))
     @ApiOkResponse({ type: () => Application })
     @ApiExceptionResponse(() => ApplicationNotFoundException)
-    async updateProfileImage(
+    async updateApplicationProfileImage(
         @Param('id', ParseIntPipe) id: number,
         @UploadedFiles() files: Express.Multer.File[],
     ): Promise<Application> {
@@ -187,7 +187,7 @@ export class ImagesController {
     @Get('applications/:id/profile-image')
     @ApiOkResponse({ description: 'Profile image file' })
     @ApiExceptionResponse(() => ApplicationNotFoundException)
-    async getProfileImage(
+    async getApplicationProfileImage(
         @Param('id', ParseIntPipe) id: number,
         @Res() res: Response,
     ): Promise<void> {
@@ -207,7 +207,7 @@ export class ImagesController {
     @HttpCode(HttpStatus.NO_CONTENT)
     @ApiNoContentResponse()
     @ApiExceptionResponse(() => ApplicationNotFoundException)
-    async deleteProfileImage(
+    async deleteApplicationProfileImage(
         @Param('id', ParseIntPipe) id: number,
     ): Promise<void> {
         await this.deleteProfileImageUseCase.execute(id);

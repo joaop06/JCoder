@@ -17,14 +17,13 @@ import { ImageType } from '../enums/image-type.enum';
  */
 @Injectable()
 export class ImageStorageService {
-    // Path fixo relativo ao módulo de imagens
-    private static readonly STORAGE_BASE_PATH = path.resolve(__dirname, '../../storage');
-
     private readonly uploadBasePath: string;
     private readonly resourceConfigs: Map<string, ResourceImageConfig>;
 
     constructor() {
-        this.uploadBasePath = ImageStorageService.STORAGE_BASE_PATH;
+        // Usar path absoluto baseado em process.cwd() para garantir que funcione em qualquer ambiente
+        // O storage sempre está em src/administration-by-user/images/storage, mesmo quando o código está compilado em dist/
+        this.uploadBasePath = path.resolve(process.cwd(), 'src', 'administration-by-user', 'images', 'storage');
         this.resourceConfigs = new Map(Object.entries(DEFAULT_IMAGE_CONFIGS));
     }
 

@@ -53,8 +53,17 @@ export default function ImageUpload({ images, onImagesChange, applicationId, dis
                     throw new Error('User session not found');
                 }
                 const updatedApplication = await ImagesService.uploadApplicationImages(userSession.user.username, applicationId, validFiles);
-                onImagesChange(updatedApplication.images || []);
-                toast.success(`${validFiles.length} image(s) uploaded successfully!`);
+                // Update images list with the filenames returned from server
+                if (updatedApplication.images && Array.isArray(updatedApplication.images)) {
+                    onImagesChange(updatedApplication.images);
+                    toast.success(`${validFiles.length} image(s) uploaded successfully!`);
+                } else {
+                    // Fallback: keep existing images and add new ones
+                    const currentImages = images.filter(img => !img.startsWith('data:'));
+                    const newFilenames = validFiles.map((_, i) => `image-${Date.now()}-${i}.jpg`);
+                    onImagesChange([...currentImages, ...newFilenames]);
+                    toast.success(`${validFiles.length} image(s) uploaded successfully!`);
+                }
             } catch (error: any) {
                 const errorMessage = error?.response?.data?.message || error.message || 'Failed to upload images';
                 toast.error(errorMessage);
@@ -85,7 +94,15 @@ export default function ImageUpload({ images, onImagesChange, applicationId, dis
                     throw new Error('User session not found');
                 }
                 await ImagesService.deleteApplicationImage(userSession.user.username, applicationId, filename);
-                const newImages = images.filter((_, i) => i !== index);
+                // Remove the image by filtering out the deleted filename
+                const newImages = images.filter((img, i) => {
+                    // If it's a filename (not a data URL), compare by value
+                    if (typeof img === 'string' && !img.startsWith('data:')) {
+                        return img !== filename;
+                    }
+                    // If it's a data URL or we're using index, remove by index
+                    return i !== index;
+                });
                 onImagesChange(newImages);
                 toast.success('Image deleted successfully!');
             } catch (error: any) {
