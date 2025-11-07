@@ -23,6 +23,7 @@ import { generateResumePDF } from '@/utils/resume-pdf';
 import { useSmoothScroll } from '@/hooks/useSmoothScroll';
 import { useToast } from '@/components/toast/ToastContext';
 import ApplicationCard from '@/components/applications/ApplicationCard';
+import ApplicationsCarousel from '@/components/applications/ApplicationsCarousel';
 import { ImagesService } from '@/services/administration-by-user/images.service';
 import { PortfolioViewService } from '@/services/portfolio-view/portfolio-view.service';
 import WebGLBackground from '@/components/webgl/WebGLBackground';
@@ -97,12 +98,36 @@ export default function PortfolioPage() {
     setError(null);
 
     try {
-      const data = await PortfolioViewService.getApplications(username, {
-        limit: 100,
-        sortBy: 'displayOrder',
-        sortOrder: 'ASC',
-      });
-      setApplications(data.data || []);
+      const allApplications: Application[] = [];
+      let page = 1;
+      let hasMore = true;
+      const limit = 100; // Carregar 100 por vez para melhor performance
+
+      // Carregar todas as aplicações usando paginação
+      while (hasMore) {
+        const data = await PortfolioViewService.getApplications(username, {
+          page,
+          limit,
+          sortBy: 'displayOrder',
+          sortOrder: 'ASC',
+        });
+
+        if (data.data && data.data.length > 0) {
+          allApplications.push(...data.data);
+        }
+
+        // Verificar se há mais páginas
+        hasMore = data.meta?.hasNextPage || false;
+        page++;
+
+        // Limite de segurança para evitar loops infinitos
+        if (page > 100) {
+          console.warn('Limite de páginas atingido ao carregar aplicações');
+          break;
+        }
+      }
+
+      setApplications(allApplications);
     } catch (err) {
       console.error('Failure to load applications', err);
       const errorMessage = 'The applications could not be loaded. Please try again.';
@@ -751,13 +776,11 @@ export default function PortfolioPage() {
                   </button>
                 </div>
               ) : applications.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                  {applications.map((app, index) => (
-                    <FeatureCard3D key={app.id} mouse={mousePosition} index={index}>
-                      <ApplicationCard application={app} username={username} />
-                    </FeatureCard3D>
-                  ))}
-                </div>
+                <ApplicationsCarousel
+                  applications={applications}
+                  username={username}
+                  mouse={mousePosition}
+                />
               ) : (
                 <div className="text-center py-12">
                   <div className="text-6xl mb-4">🚀</div>
