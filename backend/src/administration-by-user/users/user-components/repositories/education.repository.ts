@@ -64,7 +64,11 @@ export class EducationRepository {
         const { page = 1, limit = 10, sortBy = 'startDate', sortOrder = 'DESC' } = paginationDto;
         const skip = (page - 1) * limit;
 
-        const cacheKey = this.cacheService.generateKey('educations', 'paginated', username, page, limit, sortBy, sortOrder);
+        // Validar sortBy - apenas campos válidos da entidade
+        const validSortFields = ['id', 'userId', 'institutionName', 'courseName', 'degree', 'startDate', 'endDate', 'isCurrentlyStudying'];
+        const validatedSortBy = validSortFields.includes(sortBy) ? sortBy : 'startDate';
+
+        const cacheKey = this.cacheService.generateKey('educations', 'paginated', username, page, limit, validatedSortBy, sortOrder);
 
         return await this.cacheService.getOrSet(
             cacheKey,
@@ -74,7 +78,7 @@ export class EducationRepository {
                     take: limit,
                     relations: ['certificates'],
                     where: { user: { username } },
-                    order: { [sortBy]: sortOrder },
+                    order: { [validatedSortBy]: sortOrder },
                 });
 
                 const totalPages = Math.ceil(total / limit);

@@ -61,13 +61,17 @@ export class CertificateRepository {
         const { page = 1, limit = 10, sortBy = 'issueDate', sortOrder = 'DESC' } = paginationDto;
         const skip = (page - 1) * limit;
 
+        // Validar sortBy - apenas campos válidos da entidade
+        const validSortFields = ['id', 'userId', 'certificateName', 'registrationNumber', 'verificationUrl', 'issueDate', 'issuedTo', 'profileImage'];
+        const validatedSortBy = validSortFields.includes(sortBy) ? sortBy : 'issueDate';
+
         const cacheKey = this.cacheService.generateKey(
             'certificates',
             'paginated',
             username,
             page,
             limit,
-            sortBy,
+            validatedSortBy,
             sortOrder,
         );
 
@@ -79,7 +83,7 @@ export class CertificateRepository {
                     take: limit,
                     relations: ['educations'],
                     where: { user: { username } },
-                    order: { [sortBy]: sortOrder },
+                    order: { [validatedSortBy]: sortOrder },
                 });
 
                 const totalPages = Math.ceil(total / limit);

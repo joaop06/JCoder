@@ -28,8 +28,12 @@ export class GetExperiencesUseCase {
     username: string,
     paginationDto: PaginationDto,
   ): Promise<GetExperiencesDto> {
-    const { page = 1, limit = 10, sortBy = 'startDate', sortOrder = 'DESC' } = paginationDto;
+    const { page = 1, limit = 10, sortBy = 'companyName', sortOrder = 'ASC' } = paginationDto;
     const skip = (page - 1) * limit;
+
+    // Validar sortBy - apenas campos válidos da entidade
+    const validSortFields = ['id', 'userId', 'companyName'];
+    const validatedSortBy = validSortFields.includes(sortBy) ? sortBy : 'companyName';
 
     const cacheKey = this.cacheService.generateKey(
       'portfolio',
@@ -37,7 +41,7 @@ export class GetExperiencesUseCase {
       username,
       page,
       limit,
-      sortBy,
+      validatedSortBy,
       sortOrder,
     );
 
@@ -52,7 +56,7 @@ export class GetExperiencesUseCase {
           relations: ['positions'],
           skip,
           take: limit,
-          order: { [sortBy]: sortOrder },
+          order: { [validatedSortBy]: sortOrder },
         });
 
         const totalPages = Math.ceil(total / limit);

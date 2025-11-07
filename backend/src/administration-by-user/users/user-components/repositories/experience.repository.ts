@@ -25,7 +25,11 @@ export class ExperienceRepository {
         const { page = 1, limit = 10, sortBy = 'companyName', sortOrder = 'ASC' } = paginationDto;
         const skip = (page - 1) * limit;
 
-        const cacheKey = this.cacheService.generateKey('experiences', 'paginated', username, page, limit, sortBy, sortOrder);
+        // Validar sortBy - apenas campos válidos da entidade
+        const validSortFields = ['id', 'userId', 'companyName'];
+        const validatedSortBy = validSortFields.includes(sortBy) ? sortBy : 'companyName';
+
+        const cacheKey = this.cacheService.generateKey('experiences', 'paginated', username, page, limit, validatedSortBy, sortOrder);
 
         return await this.cacheService.getOrSet(
             cacheKey,
@@ -35,7 +39,7 @@ export class ExperienceRepository {
                     take: limit,
                     relations: ['positions'],
                     where: { user: { username } },
-                    order: { [sortBy]: sortOrder },
+                    order: { [validatedSortBy]: sortOrder },
                 });
 
                 const totalPages = Math.ceil(total / limit);
