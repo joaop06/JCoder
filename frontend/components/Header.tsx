@@ -7,6 +7,7 @@ import { useRouter, useParams, usePathname } from 'next/navigation';
 import { useSmoothScroll } from '@/hooks/useSmoothScroll';
 import { useEffect, useState, useCallback, useMemo, memo } from 'react';
 import { UsersService } from '@/services/administration-by-user/users.service';
+import { ImagesService } from '@/services/administration-by-user/images.service';
 
 interface HeaderProps {
   isAdmin?: boolean;
@@ -35,6 +36,54 @@ export default function Header({
     const raw = params?.username;
     return Array.isArray(raw) ? raw[0] : raw || '';
   }, [params]);
+
+  // Get user session data
+  const userSession = useMemo(() => {
+    if (!isClient) return null;
+    try {
+      return UsersService.getUserSession?.() || null;
+    } catch {
+      return null;
+    }
+  }, [isClient, isLoggedIn]);
+
+  // Get profile image URL and fallback initial
+  const profileImageData = useMemo(() => {
+    if (!isLoggedIn || !userSession?.user) {
+      return { imageUrl: null, fallback: 'JP' };
+    }
+
+    const user = userSession.user;
+    const userName = userSession.user.username || username;
+
+    // Get first letter from fullName or firstName
+    const getInitial = () => {
+      if (user.fullName) {
+        return user.fullName.charAt(0).toUpperCase();
+      }
+      if (user.firstName) {
+        return user.firstName.charAt(0).toUpperCase();
+      }
+      if (user.username) {
+        return user.username.charAt(0).toUpperCase();
+      }
+      return 'U';
+    };
+
+    // If user has profileImage, get the URL
+    if (user.profileImage && user.id && userName) {
+      return {
+        imageUrl: ImagesService.getUserProfileImageUrl(userName, user.id),
+        fallback: getInitial()
+      };
+    }
+
+    // Otherwise, return null image with initial
+    return {
+      imageUrl: null,
+      fallback: getInitial()
+    };
+  }, [isLoggedIn, userSession, username]);
 
   useEffect(() => {
     setIsClient(true);
@@ -233,22 +282,28 @@ export default function Header({
         <button
           type="button"
           onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
-          className="w-8 h-8 rounded-full overflow-hidden border-2 border-jcoder hover:border-jcoder-primary transition-colors"
+          className="w-8 h-8 rounded-full overflow-hidden border-2 border-jcoder hover:border-jcoder-primary transition-colors flex items-center justify-center bg-jcoder-secondary"
           aria-label="Profile menu"
           title="Profile menu"
         >
-          <LazyImage
-            src="/images/profile_picture.jpeg"
-            alt="Profile"
-            fallback="JP"
-            size="custom"
-            width="w-full"
-            height="h-full"
-            rounded="rounded-full"
-            objectFit="object-cover"
-            showSkeleton={false}
-            rootMargin="0px"
-          />
+          {profileImageData.imageUrl ? (
+            <LazyImage
+              src={profileImageData.imageUrl}
+              alt="Profile"
+              fallback={profileImageData.fallback}
+              size="custom"
+              width="w-full"
+              height="h-full"
+              rounded="rounded-full"
+              objectFit="object-cover"
+              showSkeleton={false}
+              rootMargin="0px"
+            />
+          ) : (
+            <span className="text-sm font-semibold text-jcoder-foreground">
+              {profileImageData.fallback}
+            </span>
+          )}
         </button>
 
         {/* Profile dropdown menu */}
@@ -367,22 +422,28 @@ export default function Header({
         <button
           type="button"
           onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
-          className="w-8 h-8 rounded-full overflow-hidden border-2 border-jcoder hover:border-jcoder-primary transition-colors"
+          className="w-8 h-8 rounded-full overflow-hidden border-2 border-jcoder hover:border-jcoder-primary transition-colors flex items-center justify-center bg-jcoder-secondary"
           aria-label="Profile menu"
           title="Profile menu"
         >
-          <LazyImage
-            src="/images/profile_picture.jpeg"
-            alt="Profile"
-            fallback="JP"
-            size="custom"
-            width="w-full"
-            height="h-full"
-            rounded="rounded-full"
-            objectFit="object-cover"
-            showSkeleton={false}
-            rootMargin="0px"
-          />
+          {profileImageData.imageUrl ? (
+            <LazyImage
+              src={profileImageData.imageUrl}
+              alt="Profile"
+              fallback={profileImageData.fallback}
+              size="custom"
+              width="w-full"
+              height="h-full"
+              rounded="rounded-full"
+              objectFit="object-cover"
+              showSkeleton={false}
+              rootMargin="0px"
+            />
+          ) : (
+            <span className="text-sm font-semibold text-jcoder-foreground">
+              {profileImageData.fallback}
+            </span>
+          )}
         </button>
 
         {/* Profile dropdown menu */}
@@ -691,22 +752,28 @@ export default function Header({
         <button
           type="button"
           onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
-          className="w-8 h-8 rounded-full overflow-hidden border-2 border-jcoder hover:border-jcoder-primary transition-colors"
+          className="w-8 h-8 rounded-full overflow-hidden border-2 border-jcoder hover:border-jcoder-primary transition-colors flex items-center justify-center bg-jcoder-secondary"
           aria-label="Profile menu"
           title="Profile menu"
         >
-          <LazyImage
-            src="/images/profile_picture.jpeg"
-            alt="Profile"
-            fallback="JP"
-            size="custom"
-            width="w-full"
-            height="h-full"
-            rounded="rounded-full"
-            objectFit="object-cover"
-            showSkeleton={false}
-            rootMargin="0px"
-          />
+          {profileImageData.imageUrl ? (
+            <LazyImage
+              src={profileImageData.imageUrl}
+              alt="Profile"
+              fallback={profileImageData.fallback}
+              size="custom"
+              width="w-full"
+              height="h-full"
+              rounded="rounded-full"
+              objectFit="object-cover"
+              showSkeleton={false}
+              rootMargin="0px"
+            />
+          ) : (
+            <span className="text-sm font-semibold text-jcoder-foreground">
+              {profileImageData.fallback}
+            </span>
+          )}
         </button>
 
         {/* Profile dropdown menu */}
