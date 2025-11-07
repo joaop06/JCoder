@@ -39,6 +39,12 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { User } from '../administration-by-user/users/entities/user.entity';
 import { EmailAlreadyExistsException } from '../administration-by-user/users/exceptions/email-already-exists.exception';
 import { UsernameAlreadyExistsException } from '../administration-by-user/users/exceptions/username-already-exists.exception';
+import { SendEmailVerificationUseCase } from './use-cases/send-email-verification.use-case';
+import { VerifyEmailCodeUseCase } from './use-cases/verify-email-code.use-case';
+import { CheckEmailAvailabilityUseCase } from './use-cases/check-email-availability.use-case';
+import { SendEmailVerificationDto } from './dto/send-email-verification.dto';
+import { VerifyEmailCodeDto } from './dto/verify-email-code.dto';
+import { CheckEmailAvailabilityDto } from './dto/check-email-availability.dto';
 
 @ApiTags('Portfolio View')
 @Controller('portfolio')
@@ -54,6 +60,9 @@ export class PortfolioViewController {
     private readonly getApplicationDetailsUseCase: GetApplicationDetailsUseCase,
     private readonly getProfileWithAboutMeUseCase: GetProfileWithAboutMeUseCase,
     private readonly checkUsernameAvailabilityUseCase: CheckUsernameAvailabilityUseCase,
+    private readonly checkEmailAvailabilityUseCase: CheckEmailAvailabilityUseCase,
+    private readonly sendEmailVerificationUseCase: SendEmailVerificationUseCase,
+    private readonly verifyEmailCodeUseCase: VerifyEmailCodeUseCase,
   ) { }
 
   /**
@@ -68,6 +77,48 @@ export class PortfolioViewController {
     @Param('username') username: string,
   ): Promise<CheckUsernameAvailabilityDto> {
     return await this.checkUsernameAvailabilityUseCase.execute(username);
+  }
+
+  /**
+   * Verifica disponibilidade do email
+   * Usado para validação em tempo real durante o cadastro
+   */
+  @Get('check-email/:email')
+  @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ type: () => CheckEmailAvailabilityDto })
+  async checkEmailAvailability(
+    @Param('email') email: string,
+  ): Promise<CheckEmailAvailabilityDto> {
+    return await this.checkEmailAvailabilityUseCase.execute(email);
+  }
+
+  /**
+   * Envia código de verificação para o email
+   * Usado durante o processo de cadastro
+   */
+  @Post('send-email-verification')
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ short: { limit: 3, ttl: 60000 } }) // 3 tentativas por minuto
+  @ApiOkResponse({ schema: { type: 'object', properties: { message: { type: 'string' } } } })
+  @ApiExceptionResponse(() => EmailAlreadyExistsException)
+  async sendEmailVerification(
+    @Body() dto: SendEmailVerificationDto,
+  ): Promise<{ message: string }> {
+    return await this.sendEmailVerificationUseCase.execute(dto);
+  }
+
+  /**
+   * Verifica o código de verificação do email
+   * Usado durante o processo de cadastro
+   */
+  @Post('verify-email-code')
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ short: { limit: 5, ttl: 60000 } }) // 5 tentativas por minuto
+  @ApiOkResponse({ schema: { type: 'object', properties: { verified: { type: 'boolean' }, message: { type: 'string' } } } })
+  async verifyEmailCode(
+    @Body() dto: VerifyEmailCodeDto,
+  ): Promise<{ verified: boolean; message: string }> {
+    return await this.verifyEmailCodeUseCase.execute(dto);
   }
 
   /**

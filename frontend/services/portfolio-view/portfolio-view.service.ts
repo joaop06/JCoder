@@ -163,6 +163,20 @@ export const PortfolioViewService = {
     },
 
     /**
+     * Verifica disponibilidade do email
+     * Usado para validação em tempo real durante o cadastro
+     * GET /portfolio/check-email/:email
+     */
+    async checkEmailAvailability(email: string): Promise<{ available: boolean; email: string }> {
+        try {
+            const response = await ApiService.get(`/portfolio/check-email/${encodeURIComponent(email)}`);
+            return response.data.data;
+        } catch (error) {
+            throw error;
+        }
+    },
+
+    /**
      * Envia uma mensagem ao administrador do portfólio
      * Endpoint público para usuários comuns enviarem mensagens
      * POST /portfolio/:username/messages
@@ -190,6 +204,32 @@ export const PortfolioViewService = {
     async register(createUserDto: CreateUserDto): Promise<User> {
         try {
             const response = await ApiService.post('/portfolio/register', createUserDto);
+            return response.data.data;
+        } catch (error) {
+            throw error;
+        }
+    },
+
+    /**
+     * Envia código de verificação para o email
+     * POST /portfolio/send-email-verification
+     */
+    async sendEmailVerification(email: string): Promise<{ message: string }> {
+        try {
+            const response = await ApiService.post('/portfolio/send-email-verification', { email });
+            return response.data.data;
+        } catch (error) {
+            throw error;
+        }
+    },
+
+    /**
+     * Verifica o código de verificação do email
+     * POST /portfolio/verify-email-code
+     */
+    async verifyEmailCode(email: string, code: string): Promise<{ verified: boolean; message: string }> {
+        try {
+            const response = await ApiService.post('/portfolio/verify-email-code', { email, code });
             return response.data.data;
         } catch (error) {
             throw error;

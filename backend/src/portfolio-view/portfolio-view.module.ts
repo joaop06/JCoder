@@ -2,8 +2,11 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CacheModule } from '@nestjs/cache-manager';
+import { EmailModule } from '../email/email.module';
 import { CacheService } from '../@common/services/cache.service';
+import { CreateUserUseCase } from './use-cases/create-user.use-case';
 import { PortfolioViewController } from './portfolio-view.controller';
+import { EmailVerification } from './entities/email-verification.entity';
 import { GetEducationsUseCase } from './use-cases/get-educations.use-case';
 import { UsersModule } from '../administration-by-user/users/users.module';
 import { User } from '../administration-by-user/users/entities/user.entity';
@@ -11,10 +14,12 @@ import { GetExperiencesUseCase } from './use-cases/get-experiences.use-case';
 import { GetCertificatesUseCase } from './use-cases/get-certificates.use-case';
 import { GetApplicationsUseCase } from './use-cases/get-applications.use-case';
 import { GetTechnologiesUseCase } from './use-cases/get-technologies.use-case';
+import { VerifyEmailCodeUseCase } from './use-cases/verify-email-code.use-case';
 import { MessagesModule } from '../administration-by-user/messages/messages.module';
 import { GetApplicationDetailsUseCase } from './use-cases/get-application-details.use-case';
+import { SendEmailVerificationUseCase } from './use-cases/send-email-verification.use-case';
+import { CheckEmailAvailabilityUseCase } from './use-cases/check-email-availability.use-case';
 import { GetProfileWithAboutMeUseCase } from './use-cases/get-profile-with-about-me.use-case';
-import { CreateUserUseCase } from './use-cases/create-user.use-case';
 import { Technology } from '../administration-by-user/technologies/entities/technology.entity';
 import { Application } from '../administration-by-user/applications/entities/application.entity';
 import { CheckUsernameAvailabilityUseCase } from './use-cases/check-username-availability.use-case';
@@ -26,20 +31,24 @@ import { UserComponentCertificate } from '../administration-by-user/users/user-c
 @Module({
   providers: [
     CacheService,
+    CreateUserUseCase,
     GetEducationsUseCase,
     GetExperiencesUseCase,
     GetApplicationsUseCase,
     GetCertificatesUseCase,
     GetTechnologiesUseCase,
-    CreateUserUseCase,
+    VerifyEmailCodeUseCase,
     GetApplicationDetailsUseCase,
     GetProfileWithAboutMeUseCase,
+    SendEmailVerificationUseCase,
+    CheckEmailAvailabilityUseCase,
     CheckUsernameAvailabilityUseCase,
   ],
   controllers: [
     PortfolioViewController,
   ],
   imports: [
+    EmailModule,
     UsersModule,
     ConfigModule,
     MessagesModule,
@@ -51,6 +60,7 @@ import { UserComponentCertificate } from '../administration-by-user/users/user-c
       UserComponentEducation,
       UserComponentExperience,
       UserComponentCertificate,
+      EmailVerification,
     ]),
     CacheModule.register({
       ttl: 300, // 5 minutes default

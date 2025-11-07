@@ -27,14 +27,15 @@ export class CreateUserDto {
   @IsString()
   declare password: string;
 
-  @ApiPropertyOptional({
+  @ApiProperty({
     type: 'string',
+    required: true,
     example: 'your@email.com',
-    description: 'User contact email',
+    description: 'User contact email (must be verified)',
   })
-  @IsOptional()
+  @IsNotEmpty()
   @IsEmail()
-  declare email?: string;
+  declare email: string;
 
   @ApiPropertyOptional({
     type: 'string',
@@ -71,5 +72,23 @@ export class CreateUserDto {
   @IsOptional()
   @IsString()
   declare linkedinUrl?: string;
+
+  @ApiPropertyOptional({
+    type: 'string',
+    example: 'Senior Software Engineer',
+    description: 'User job title/occupation',
+  })
+  @IsOptional()
+  @IsString()
+  declare occupation?: string;
+
+  @ApiPropertyOptional({
+    type: 'string',
+    example: '<p>Hello, I am a software engineer...</p>',
+    description: 'Rich text description (HTML formatted)',
+  })
+  @IsOptional()
+  @IsString()
+  declare description?: string;
 };
 

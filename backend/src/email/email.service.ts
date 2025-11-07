@@ -156,4 +156,29 @@ export class EmailService {
             throw error;
         }
     }
+
+    /**
+     * Método genérico para enviar e-mails
+     */
+    async sendEmail(
+        to: string,
+        subject: string,
+        htmlContent: string,
+        textContent: string,
+    ): Promise<void> {
+        try {
+            const from = this.configService.get<string>('SMTP_FROM') || this.configService.get<string>('SMTP_USER');
+
+            await this.transporter.sendMail({
+                to,
+                subject,
+                html: htmlContent,
+                text: textContent,
+                from: `"JCoder" <${from}>`,
+            });
+        } catch (error) {
+            console.error('Erro ao enviar e-mail:', error);
+            throw error;
+        }
+    }
 };

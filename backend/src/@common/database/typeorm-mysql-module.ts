@@ -15,6 +15,7 @@ import { UserComponentExperiencePosition } from "../../administration-by-user/us
 import { ApplicationComponentMobile } from "../../administration-by-user/applications/application-components/entities/application-component-mobile.entity";
 import { ApplicationComponentLibrary } from "../../administration-by-user/applications/application-components/entities/application-component-library.entity";
 import { ApplicationComponentFrontend } from "../../administration-by-user/applications/application-components/entities/application-component-frontend.entity";
+import { EmailVerification } from "../../portfolio-view/entities/email-verification.entity";
 
 config();
 const configService = new ConfigService();
@@ -36,6 +37,7 @@ export const TypeormMysqlModule = TypeOrmModule.forRoot({
     ApplicationComponentFrontend,
     UserComponentAboutMeHighlight,
     UserComponentExperiencePosition,
+    EmailVerification,
   ],
   username: configService.get("DATABASE_USER") || 'root',
   database: configService.get("DATABASE_NAME") || 'jcoder',
