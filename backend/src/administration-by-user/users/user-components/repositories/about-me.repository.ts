@@ -2,6 +2,7 @@ import { Repository } from 'typeorm';
 import { Injectable } from '@nestjs/common';
 import { User } from '../../entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
+import { UsersService } from '../../users.service';
 import { CacheService } from '../../../../@common/services/cache.service';
 import { UserComponentAboutMe } from '../entities/user-component-about-me.entity';
 import { CreateUserComponentAboutMeDto } from '../dto/create-user-component-about-me.dto';
@@ -12,6 +13,8 @@ import { UserComponentAboutMeHighlight } from '../entities/user-component-about-
 export class AboutMeRepository {
     constructor(
         private readonly cacheService: CacheService,
+
+        private readonly usersService: UsersService,
 
         @InjectRepository(UserComponentAboutMe)
         private readonly aboutMeRepository: Repository<UserComponentAboutMe>,
@@ -49,8 +52,26 @@ export class AboutMeRepository {
     }
 
     async update(username: string, data: UpdateUserComponentAboutMeDto): Promise<UserComponentAboutMe> {
-        await this.aboutMeRepository.update({ user: { username } }, data);
-        return await this.aboutMeRepository.findOne({ where: { user: { username } } });
+        const user = await this.usersService.findOneBy({ username });
+
+        // Extract highlights from data if present
+        const { highlights, ...aboutMeData } = data;
+
+        // Update about me (excluding highlights)
+        await this.aboutMeRepository.update({ userId: user.id }, aboutMeData);
+
+        // If highlights are provided, save them
+        if (highlights !== undefined) {
+            const aboutMe = await this.aboutMeRepository.findOne({ where: { userId: user.id } });
+            if (aboutMe) {
+                await this.saveHighlights(aboutMe.id, highlights);
+            }
+        }
+
+        return await this.aboutMeRepository.findOne({
+            where: { userId: user.id },
+            relations: ['highlights'],
+        });
     }
 
     async createHighlight(aboutMeId: number, data: Partial<UserComponentAboutMeHighlight>): Promise<UserComponentAboutMeHighlight> {
@@ -61,15 +82,9 @@ export class AboutMeRepository {
         return await this.aboutMeHighlightRepository.save(highlight);
     }
 
-    async saveHighlights(username: string, aboutMeId: number, highlights: Partial<UserComponentAboutMeHighlight>[]): Promise<UserComponentAboutMeHighlight[]> {
-        // Find the about me record to get the aboutMeId
-        const aboutMe = await this.findByUsername(username);
-        if (!aboutMe) {
-            throw new Error('About Me record not found');
-        }
-
+    async saveHighlights(aboutMeId: number, highlights: Partial<UserComponentAboutMeHighlight>[]): Promise<UserComponentAboutMeHighlight[]> {
         // Delete existing highlights
-        await this.deleteHighlights(aboutMe.id);
+        await this.deleteHighlights(aboutMeId);
 
         // Create new highlights
         const savedHighlights = [];
