@@ -1,5 +1,7 @@
 import {
   Get,
+  Post,
+  Body,
   Param,
   Query,
   HttpCode,
@@ -7,26 +9,45 @@ import {
   HttpStatus,
   ParseIntPipe,
 } from '@nestjs/common';
-import { ApiTags, ApiOkResponse } from '@nestjs/swagger';
-import { PortfolioViewService } from './portfolio-view.service';
-import { User } from '../administration-by-user/users/entities/user.entity';
-import { PaginationDto, PaginatedResponseDto } from '../@common/dto/pagination.dto';
-import { Technology } from '../administration-by-user/technologies/entities/technology.entity';
-import { Application } from '../administration-by-user/applications/entities/application.entity';
+import { Throttle } from '@nestjs/throttler';
+import { PaginationDto } from '../@common/dto/pagination.dto';
+import { GetEducationsDto } from './dto/get-educations.dto';
+import { GetExperiencesDto } from './dto/get-experiences.dto';
+import { GetCertificatesDto } from './dto/get-certificates.dto';
+import { GetApplicationsDto } from './dto/get-applications.dto';
+import { GetTechnologiesDto } from './dto/get-technologies.dto';
+import { GetEducationsUseCase } from './use-cases/get-educations.use-case';
+import { GetApplicationDetailsDto } from './dto/get-application-details.dto';
+import { GetExperiencesUseCase } from './use-cases/get-experiences.use-case';
+import { ApiTags, ApiOkResponse, ApiNoContentResponse } from '@nestjs/swagger';
+import { GetApplicationsUseCase } from './use-cases/get-applications.use-case';
+import { GetCertificatesUseCase } from './use-cases/get-certificates.use-case';
+import { GetTechnologiesUseCase } from './use-cases/get-technologies.use-case';
+import { GetProfileWithAboutMeDto } from './dto/get-profile-with-about-me.dto';
+import { CheckUsernameAvailabilityDto } from './dto/check-username-availability.dto';
+import { GetApplicationDetailsUseCase } from './use-cases/get-application-details.use-case';
+import { CreateMessageDto } from '../administration-by-user/messages/dto/create-message.dto';
+import { GetProfileWithAboutMeUseCase } from './use-cases/get-profile-with-about-me.use-case';
+import { CheckUsernameAvailabilityUseCase } from './use-cases/check-username-availability.use-case';
 import { ApiExceptionResponse } from '../@common/decorators/documentation/api-exception-response.decorator';
 import { UserNotFoundException } from '../administration-by-user/users/exceptions/user-not-found.exception';
+import { CreateMessageUseCase } from '../administration-by-user/messages/use-cases/create-message.use-case';
 import { TechnologyNotFoundException } from '../administration-by-user/technologies/exceptions/technology-not-found.exception';
-import { UserComponentAboutMe } from '../administration-by-user/users/user-components/entities/user-component-about-me.entity';
 import { ApplicationNotFoundException } from '../administration-by-user/applications/exceptions/application-not-found.exception';
-import { UserComponentEducation } from '../administration-by-user/users/user-components/entities/user-component-education.entity';
-import { UserComponentExperience } from '../administration-by-user/users/user-components/entities/user-component-experience.entity';
-import { UserComponentCertificate } from '../administration-by-user/users/user-components/entities/user-component-certificate.entity';
 
 @ApiTags('Portfolio View')
 @Controller('portfolio')
 export class PortfolioViewController {
   constructor(
-    private readonly portfolioViewService: PortfolioViewService,
+    private readonly createMessageUseCase: CreateMessageUseCase,
+    private readonly getEducationsUseCase: GetEducationsUseCase,
+    private readonly getExperiencesUseCase: GetExperiencesUseCase,
+    private readonly getApplicationsUseCase: GetApplicationsUseCase,
+    private readonly getCertificatesUseCase: GetCertificatesUseCase,
+    private readonly getTechnologiesUseCase: GetTechnologiesUseCase,
+    private readonly getApplicationDetailsUseCase: GetApplicationDetailsUseCase,
+    private readonly getProfileWithAboutMeUseCase: GetProfileWithAboutMeUseCase,
+    private readonly checkUsernameAvailabilityUseCase: CheckUsernameAvailabilityUseCase,
   ) { }
 
   /**
@@ -36,19 +57,25 @@ export class PortfolioViewController {
    */
   @Get('check-username/:username')
   @HttpCode(HttpStatus.OK)
-  @ApiOkResponse({ 
-    schema: { 
-      type: 'object', 
-      properties: { 
-        available: { type: 'boolean' },
-        username: { type: 'string' }
-      } 
-    } 
-  })
+  @ApiOkResponse({ type: () => CheckUsernameAvailabilityDto })
   async checkUsernameAvailability(
     @Param('username') username: string,
-  ): Promise<{ available: boolean; username: string }> {
-    return await this.portfolioViewService.checkUsernameAvailability(username);
+  ): Promise<CheckUsernameAvailabilityDto> {
+    return await this.checkUsernameAvailabilityUseCase.execute(username);
+  }
+
+  /**
+   * Endpoint público para usuários comuns enviarem mensagens ao administrador
+   */
+  @Post(':username/messages')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Throttle({ short: { limit: 5, ttl: 60000 } }) // 5 mensagens por minuto para prevenir spam
+  @ApiNoContentResponse()
+  async createMessage(
+    @Param('username') username: string,
+    @Body() createMessageDto: CreateMessageDto,
+  ): Promise<void> {
+    return await this.createMessageUseCase.execute(username, createMessageDto);
   }
 
   /**
@@ -57,12 +84,12 @@ export class PortfolioViewController {
    */
   @Get(':username/profile')
   @HttpCode(HttpStatus.OK)
-  @ApiOkResponse({ type: () => User })
+  @ApiOkResponse({ type: () => GetProfileWithAboutMeDto })
   @ApiExceptionResponse(() => UserNotFoundException)
   async getProfileWithAboutMe(
     @Param('username') username: string,
-  ): Promise<User & { aboutMe?: UserComponentAboutMe }> {
-    return await this.portfolioViewService.getProfileWithAboutMe(username);
+  ): Promise<GetProfileWithAboutMeDto> {
+    return await this.getProfileWithAboutMeUseCase.execute(username);
   }
 
   /**
@@ -71,13 +98,13 @@ export class PortfolioViewController {
    */
   @Get(':username/educations')
   @HttpCode(HttpStatus.OK)
-  @ApiOkResponse({ type: () => PaginatedResponseDto<UserComponentEducation> })
+  @ApiOkResponse({ type: () => GetEducationsDto })
   @ApiExceptionResponse(() => UserNotFoundException)
   async getEducations(
     @Param('username') username: string,
     @Query() paginationDto: PaginationDto,
-  ): Promise<PaginatedResponseDto<UserComponentEducation>> {
-    return await this.portfolioViewService.getEducations(username, paginationDto);
+  ): Promise<GetEducationsDto> {
+    return await this.getEducationsUseCase.execute(username, paginationDto);
   }
 
   /**
@@ -85,13 +112,13 @@ export class PortfolioViewController {
    */
   @Get(':username/experiences')
   @HttpCode(HttpStatus.OK)
-  @ApiOkResponse({ type: () => PaginatedResponseDto<UserComponentExperience> })
+  @ApiOkResponse({ type: () => GetExperiencesDto })
   @ApiExceptionResponse(() => UserNotFoundException)
   async getExperiences(
     @Param('username') username: string,
     @Query() paginationDto: PaginationDto,
-  ): Promise<PaginatedResponseDto<UserComponentExperience>> {
-    return await this.portfolioViewService.getExperiences(username, paginationDto);
+  ): Promise<GetExperiencesDto> {
+    return await this.getExperiencesUseCase.execute(username, paginationDto);
   }
 
   /**
@@ -99,13 +126,13 @@ export class PortfolioViewController {
    */
   @Get(':username/certificates')
   @HttpCode(HttpStatus.OK)
-  @ApiOkResponse({ type: () => PaginatedResponseDto<UserComponentCertificate> })
+  @ApiOkResponse({ type: () => GetCertificatesDto })
   @ApiExceptionResponse(() => UserNotFoundException)
   async getCertificates(
     @Param('username') username: string,
     @Query() paginationDto: PaginationDto,
-  ): Promise<PaginatedResponseDto<UserComponentCertificate>> {
-    return await this.portfolioViewService.getCertificates(username, paginationDto);
+  ): Promise<GetCertificatesDto> {
+    return await this.getCertificatesUseCase.execute(username, paginationDto);
   }
 
   /**
@@ -114,13 +141,13 @@ export class PortfolioViewController {
    */
   @Get(':username/applications')
   @HttpCode(HttpStatus.OK)
-  @ApiOkResponse({ type: () => PaginatedResponseDto<Application> })
+  @ApiOkResponse({ type: () => GetApplicationsDto })
   @ApiExceptionResponse(() => UserNotFoundException)
   async getApplications(
     @Param('username') username: string,
     @Query() paginationDto: PaginationDto,
-  ): Promise<PaginatedResponseDto<Application>> {
-    return await this.portfolioViewService.getApplications(username, paginationDto);
+  ): Promise<GetApplicationsDto> {
+    return await this.getApplicationsUseCase.execute(username, paginationDto);
   }
 
   /**
@@ -129,13 +156,13 @@ export class PortfolioViewController {
    */
   @Get(':username/applications/:id')
   @HttpCode(HttpStatus.OK)
-  @ApiOkResponse({ type: () => Application })
+  @ApiOkResponse({ type: () => GetApplicationDetailsDto })
   @ApiExceptionResponse(() => [UserNotFoundException, ApplicationNotFoundException])
   async getApplicationDetails(
     @Param('username') username: string,
     @Param('id', ParseIntPipe) id: number,
-  ): Promise<Application> {
-    return await this.portfolioViewService.getApplicationDetails(id, username);
+  ): Promise<GetApplicationDetailsDto> {
+    return await this.getApplicationDetailsUseCase.execute(id, username);
   }
 
   /**
@@ -143,12 +170,12 @@ export class PortfolioViewController {
    */
   @Get(':username/technologies')
   @HttpCode(HttpStatus.OK)
-  @ApiOkResponse({ type: () => PaginatedResponseDto<Technology> })
+  @ApiOkResponse({ type: () => GetTechnologiesDto })
   @ApiExceptionResponse(() => [UserNotFoundException, TechnologyNotFoundException])
   async getTechnologies(
     @Param('username') username: string,
     @Query() paginationDto: PaginationDto,
-  ): Promise<PaginatedResponseDto<Technology>> {
-    return await this.portfolioViewService.getTechnologies(username, paginationDto);
+  ): Promise<GetTechnologiesDto> {
+    return await this.getTechnologiesUseCase.execute(username, paginationDto);
   }
 };

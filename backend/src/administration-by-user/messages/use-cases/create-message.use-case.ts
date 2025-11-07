@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Message } from '../entities/message.entity';
 import { MessagesService } from '../messages.service';
 import { UsersService } from '../../users/users.service';
 import { EmailService } from '../../../email/email.service';
@@ -15,9 +14,9 @@ export class CreateMessageUseCase {
         private readonly messagesService: MessagesService,
     ) { }
 
-    async execute(username: string, createMessageDto: CreateMessageDto): Promise<Message> {
+    async execute(username: string, createMessageDto: CreateMessageDto): Promise<void> {
         // Criar a mensagem no banco de dados
-        const message = await this.messagesService.create(username, createMessageDto);
+        await this.messagesService.create(username, createMessageDto);
 
         // Buscar o usuário administrador para obter informações para o e-mail
         const user = await this.usersService.findOneBy({ username });
@@ -42,7 +41,5 @@ export class CreateMessageUseCase {
                 // A mensagem já foi criada, então não lançamos o erro
             }
         }
-
-        return message;
     }
 };

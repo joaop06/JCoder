@@ -16,7 +16,7 @@ import { CreateMessageUseCase } from './use-cases/create-message.use-case';
         ConfigModule,
         TypeOrmModule.forFeature([Message]),
     ],
-    exports: [MessagesService],
+    exports: [MessagesService, CreateMessageUseCase],
     controllers: [MessagesController],
     providers: [MessagesService, CreateMessageUseCase, OwnerGuard],
 })
