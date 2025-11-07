@@ -12,8 +12,9 @@ import {
 } from '@/types';
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, Suspense } from 'react';
 import { useParams } from 'next/navigation';
+import { Canvas } from '@react-three/fiber';
 import { GitHubIcon } from '@/components/theme';
 import Resume from '@/components/resume/Resume';
 import LazyImage from '@/components/ui/LazyImage';
@@ -24,6 +25,9 @@ import { useToast } from '@/components/toast/ToastContext';
 import ApplicationCard from '@/components/applications/ApplicationCard';
 import { ImagesService } from '@/services/administration-by-user/images.service';
 import { PortfolioViewService } from '@/services/portfolio-view/portfolio-view.service';
+import WebGLBackground from '@/components/webgl/WebGLBackground';
+import FloatingParticles3D from '@/components/webgl/FloatingParticles3D';
+import FeatureCard3D from '@/components/webgl/FeatureCard3D';
 
 export default function PortfolioPage() {
   const params = useParams();
@@ -54,9 +58,32 @@ export default function PortfolioPage() {
     message: '',
   });
   const [sendingMessage, setSendingMessage] = useState(false);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [windowSize, setWindowSize] = useState({ width: 1920, height: 1080 });
+  const [isVisible, setIsVisible] = useState(false);
 
   const toast = useToast();
   const { scrollToElement } = useSmoothScroll();
+
+  useEffect(() => {
+    setIsVisible(true);
+
+    // Update window size
+    const updateWindowSize = () => {
+      setWindowSize({ width: window.innerWidth, height: window.innerHeight });
+    };
+    updateWindowSize();
+    window.addEventListener('resize', updateWindowSize);
+    return () => window.removeEventListener('resize', updateWindowSize);
+  }, []);
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      setMousePosition({ x: e.clientX, y: e.clientY });
+    };
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
 
   // Get username from URL params
   const username = useMemo(() => {
@@ -244,25 +271,25 @@ export default function PortfolioPage() {
 
   const handleMessageSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    
+
     // Basic validation
     if (!messageForm.senderName.trim()) {
       toast.error('Please enter your name.');
       return;
     }
-    
+
     if (!messageForm.senderEmail.trim()) {
       toast.error('Please enter your email.');
       return;
     }
-    
+
     // Simple email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(messageForm.senderEmail)) {
       toast.error('Please enter a valid email.');
       return;
     }
-    
+
     if (!messageForm.message.trim()) {
       toast.error('Please write a message.');
       return;
@@ -275,7 +302,7 @@ export default function PortfolioPage() {
         senderEmail: messageForm.senderEmail.trim(),
         message: messageForm.message.trim(),
       });
-      
+
       toast.success('Message sent successfully!');
       // Clear form
       setMessageForm({
@@ -285,9 +312,9 @@ export default function PortfolioPage() {
       });
     } catch (error: any) {
       console.error('Error sending message:', error);
-      const errorMessage = error.response?.data?.message || 
-                          error.message || 
-                          'Failed to send message. Please try again.';
+      const errorMessage = error.response?.data?.message ||
+        error.message ||
+        'Failed to send message. Please try again.';
       toast.error(errorMessage);
     } finally {
       setSendingMessage(false);
@@ -363,21 +390,63 @@ export default function PortfolioPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="min-h-screen flex flex-col bg-background overflow-hidden relative">
+      {/* WebGL Background - Animated 3D mesh */}
+      <Suspense fallback={null}>
+        <WebGLBackground mouse={mousePosition} windowSize={windowSize} />
+      </Suspense>
+
+      {/* Animated Background - CSS layers for depth */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+        {/* Gradient Orbs */}
+        <div
+          className="absolute w-96 h-96 bg-jcoder-cyan/15 rounded-full blur-3xl animate-pulse"
+          style={{
+            left: `${mousePosition.x / 20}px`,
+            top: `${mousePosition.y / 20}px`,
+            transition: 'all 0.3s ease-out',
+          }}
+        />
+        <div
+          className="absolute w-96 h-96 bg-jcoder-blue/15 rounded-full blur-3xl animate-pulse delay-1000"
+          style={{
+            right: `${mousePosition.x / 25}px`,
+            bottom: `${mousePosition.y / 25}px`,
+            transition: 'all 0.3s ease-out',
+          }}
+        />
+
+        {/* Grid Pattern */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]" />
+      </div>
+
       <Header isAdmin={false} />
 
-      <main className="flex-1">
+      <main className="flex-1 relative z-10">
         {/* Hero Section */}
         <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-jcoder-cyan/10 via-transparent to-jcoder-blue/10">
-            <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-jcoder-cyan/5 rounded-full blur-3xl animate-pulse"></div>
-            <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-jcoder-blue/5 rounded-full blur-3xl animate-pulse delay-1000"></div>
+          {/* 3D Particles no Background */}
+          <div className="absolute inset-0 pointer-events-none z-0">
+            <Suspense fallback={null}>
+              <Canvas
+                camera={{ position: [0, 0, 5], fov: 75 }}
+                gl={{ alpha: true, antialias: true }}
+                style={{ width: '100%', height: '100%' }}
+              >
+                <FloatingParticles3D />
+              </Canvas>
+            </Suspense>
           </div>
 
-          <div className="relative z-10 text-center max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className={`relative z-10 text-center max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
             {/* Profile Image */}
             <div className="mb-8">
-              <div className="w-32 h-32 mx-auto rounded-full bg-jcoder-gradient p-1">
+              <div
+                className="w-32 h-32 mx-auto rounded-full bg-jcoder-gradient p-1 shadow-lg shadow-jcoder-primary/50 transform-gpu animate-bounce-slow"
+                style={{
+                  transform: `perspective(1000px) rotateY(${(mousePosition.x / windowSize.width - 0.5) * 10}deg) rotateX(${-(mousePosition.y / windowSize.height - 0.5) * 10}deg)`,
+                }}
+              >
                 <div className="w-full h-full rounded-full bg-jcoder-card flex items-center justify-center">
                   {user?.profileImage ? (
                     <LazyImage
@@ -407,8 +476,8 @@ export default function PortfolioPage() {
             </div>
 
             {/* Main Title */}
-            <h1 className="text-5xl md:text-7xl font-bold mb-6">
-              <span className="text-jcoder-cyan">
+            <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-jcoder-cyan via-jcoder-primary to-jcoder-blue">
+              <span>
                 {user?.fullName || user?.firstName || username}
               </span>
             </h1>
@@ -435,14 +504,14 @@ export default function PortfolioPage() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <button
                 onClick={() => scrollToSection('projects')}
-                className="px-8 py-4 bg-jcoder-gradient text-black font-semibold rounded-lg hover:shadow-jcoder-primary transition-all duration-300 transform hover:scale-105"
+                className="px-8 py-4 bg-jcoder-gradient text-black font-semibold rounded-lg hover:shadow-jcoder-primary hover:shadow-xl transition-all duration-300 transform-gpu hover:scale-105 active:scale-95"
               >
                 View Projects
               </button>
               <button
                 onClick={handleDownloadResume}
                 disabled={generatingPDF}
-                className="px-8 py-4 bg-jcoder-card border-2 border-jcoder-primary text-jcoder-primary font-semibold rounded-lg hover:bg-jcoder-primary hover:text-black transition-all duration-300 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-8 py-4 bg-jcoder-card border-2 border-jcoder-primary text-jcoder-primary font-semibold rounded-lg hover:bg-jcoder-primary hover:text-black transition-all duration-300 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transform-gpu hover:scale-105 active:scale-95"
               >
                 {generatingPDF ? (
                   <>
@@ -474,7 +543,7 @@ export default function PortfolioPage() {
               </button>
               <button
                 onClick={() => scrollToSection('contact')}
-                className="px-8 py-4 border-2 border-jcoder-primary text-jcoder-primary font-semibold rounded-lg hover:bg-jcoder-primary hover:text-black transition-all duration-300 flex items-center gap-2"
+                className="px-8 py-4 border-2 border-jcoder-primary text-jcoder-primary font-semibold rounded-lg hover:bg-jcoder-primary hover:text-black transition-all duration-300 flex items-center gap-2 transform-gpu hover:scale-105 active:scale-95"
               >
                 Get in Touch
                 <svg
@@ -683,8 +752,10 @@ export default function PortfolioPage() {
                 </div>
               ) : applications.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                  {applications.map((app) => (
-                    <ApplicationCard key={app.id} application={app} username={username} />
+                  {applications.map((app, index) => (
+                    <FeatureCard3D key={app.id} mouse={mousePosition} index={index}>
+                      <ApplicationCard application={app} username={username} />
+                    </FeatureCard3D>
                   ))}
                 </div>
               ) : (
@@ -709,8 +780,10 @@ export default function PortfolioPage() {
                 <TechnologiesGridSkeleton />
               ) : technologies.length > 0 ? (
                 <div className="flex flex-wrap justify-center gap-8">
-                  {technologies.map((tech) => (
-                    <TechnologyCard key={tech.id} technology={tech} username={username} />
+                  {technologies.map((tech, index) => (
+                    <FeatureCard3D key={tech.id} mouse={mousePosition} index={index}>
+                      <TechnologyCard technology={tech} username={username} />
+                    </FeatureCard3D>
                   ))}
                 </div>
               ) : (
@@ -938,45 +1011,56 @@ export default function PortfolioPage() {
               </div>
 
               <div className="max-w-2xl mx-auto">
-                <div className="bg-jcoder-card rounded-2xl p-8">
+                <div
+                  className="bg-jcoder-card/90 backdrop-blur-sm border border-jcoder rounded-2xl p-8 shadow-xl shadow-jcoder-primary/10 transform-gpu transition-all duration-300 hover:shadow-2xl hover:shadow-jcoder-primary/20"
+                  style={{
+                    transform: `perspective(1000px) rotateX(${-(mousePosition.y / windowSize.height - 0.5) * 2}deg) rotateY(${(mousePosition.x / windowSize.width - 0.5) * 2}deg) translateZ(0)`,
+                  }}
+                >
                   <h3 className="text-2xl font-bold text-jcoder-foreground mb-6">
                     Send a Message
                   </h3>
                   <form className="space-y-6" onSubmit={handleMessageSubmit}>
                     <div className="grid md:grid-cols-2 gap-6">
-                      <input
-                        type="text"
-                        placeholder="Your Name"
-                        value={messageForm.senderName}
-                        onChange={(e) => setMessageForm({ ...messageForm, senderName: e.target.value })}
-                        disabled={sendingMessage}
-                        required
-                        className="w-full px-4 py-3 bg-jcoder-secondary border border-jcoder rounded-lg focus:outline-none focus:ring-2 focus:ring-jcoder-primary text-jcoder-foreground placeholder-jcoder-muted disabled:opacity-50 disabled:cursor-not-allowed"
-                      />
-                      <input
-                        type="email"
-                        placeholder="Your Email"
-                        value={messageForm.senderEmail}
-                        onChange={(e) => setMessageForm({ ...messageForm, senderEmail: e.target.value })}
-                        disabled={sendingMessage}
-                        required
-                        className="w-full px-4 py-3 bg-jcoder-secondary border border-jcoder rounded-lg focus:outline-none focus:ring-2 focus:ring-jcoder-primary text-jcoder-foreground placeholder-jcoder-muted disabled:opacity-50 disabled:cursor-not-allowed"
-                      />
+                      <div className="transform-gpu transition-transform duration-200 hover:scale-[1.02]">
+                        <input
+                          type="text"
+                          placeholder="Your Name"
+                          value={messageForm.senderName}
+                          onChange={(e) => setMessageForm({ ...messageForm, senderName: e.target.value })}
+                          disabled={sendingMessage}
+                          required
+                          className="w-full px-4 py-3 bg-jcoder-secondary border border-jcoder rounded-lg focus:outline-none focus:ring-2 focus:ring-jcoder-primary text-jcoder-foreground placeholder-jcoder-muted disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:border-jcoder-primary/50"
+                        />
+                      </div>
+                      <div className="transform-gpu transition-transform duration-200 hover:scale-[1.02]">
+                        <input
+                          type="email"
+                          placeholder="Your Email"
+                          value={messageForm.senderEmail}
+                          onChange={(e) => setMessageForm({ ...messageForm, senderEmail: e.target.value })}
+                          disabled={sendingMessage}
+                          required
+                          className="w-full px-4 py-3 bg-jcoder-secondary border border-jcoder rounded-lg focus:outline-none focus:ring-2 focus:ring-jcoder-primary text-jcoder-foreground placeholder-jcoder-muted disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:border-jcoder-primary/50"
+                        />
+                      </div>
                     </div>
-                    <textarea
-                      placeholder="Your Message"
-                      rows={4}
-                      value={messageForm.message}
-                      onChange={(e) => setMessageForm({ ...messageForm, message: e.target.value })}
-                      disabled={sendingMessage}
-                      required
-                      maxLength={5000}
-                      className="w-full px-4 py-3 bg-jcoder-secondary border border-jcoder rounded-lg focus:outline-none focus:ring-2 focus:ring-jcoder-primary text-jcoder-foreground placeholder-jcoder-muted resize-none disabled:opacity-50 disabled:cursor-not-allowed"
-                    ></textarea>
+                    <div className="transform-gpu transition-transform duration-200 hover:scale-[1.01]">
+                      <textarea
+                        placeholder="Your Message"
+                        rows={4}
+                        value={messageForm.message}
+                        onChange={(e) => setMessageForm({ ...messageForm, message: e.target.value })}
+                        disabled={sendingMessage}
+                        required
+                        maxLength={5000}
+                        className="w-full px-4 py-3 bg-jcoder-secondary border border-jcoder rounded-lg focus:outline-none focus:ring-2 focus:ring-jcoder-primary text-jcoder-foreground placeholder-jcoder-muted resize-none disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:border-jcoder-primary/50"
+                      ></textarea>
+                    </div>
                     <button
                       type="submit"
                       disabled={sendingMessage}
-                      className="w-full px-8 py-4 bg-jcoder-gradient text-black font-semibold rounded-lg hover:shadow-jcoder-primary transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2"
+                      className="w-full px-8 py-4 bg-jcoder-gradient text-black font-semibold rounded-lg hover:shadow-jcoder-primary hover:shadow-xl transition-all duration-300 transform-gpu hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2"
                     >
                       {sendingMessage ? (
                         <>
@@ -1016,6 +1100,20 @@ export default function PortfolioPage() {
 
       <Footer user={user} username={username} />
       <ScrollToTop />
+
+      <style jsx>{`
+        @keyframes bounce-slow {
+          0%, 100% {
+            transform: translateY(0);
+          }
+          50% {
+            transform: translateY(-10px);
+          }
+        }
+        .animate-bounce-slow {
+          animation: bounce-slow 3s ease-in-out infinite;
+        }
+      `}</style>
 
       {/* Hidden Resume Component for PDF Generation */}
       <div style={{ display: 'none' }}>

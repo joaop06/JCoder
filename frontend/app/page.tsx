@@ -1,18 +1,32 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
+import { Canvas } from '@react-three/fiber';
 import LazyImage from '@/components/ui/LazyImage';
 import Footer from '@/components/Footer';
+import WebGLBackground from '@/components/webgl/WebGLBackground';
+import FloatingParticles3D from '@/components/webgl/FloatingParticles3D';
+import Hero3D from '@/components/webgl/Hero3D';
+import FeatureCard3D from '@/components/webgl/FeatureCard3D';
 
 export default function HomePage() {
   const router = useRouter();
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [isVisible, setIsVisible] = useState(false);
+  const [windowSize, setWindowSize] = useState({ width: 1920, height: 1080 });
 
   useEffect(() => {
     setIsVisible(true);
+    
+    // Atualizar tamanho da janela
+    const updateWindowSize = () => {
+      setWindowSize({ width: window.innerWidth, height: window.innerHeight });
+    };
+    updateWindowSize();
+    window.addEventListener('resize', updateWindowSize);
+    return () => window.removeEventListener('resize', updateWindowSize);
   }, []);
 
   useEffect(() => {
@@ -25,8 +39,13 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background overflow-hidden relative">
-      {/* Animated Background */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+      {/* WebGL Background - Malha 3D animada */}
+      <Suspense fallback={null}>
+        <WebGLBackground mouse={mousePosition} windowSize={windowSize} />
+      </Suspense>
+
+      {/* Animated Background - Camadas CSS para profundidade */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
         {/* Gradient Orbs */}
         <div
           className="absolute w-96 h-96 bg-jcoder-cyan/20 rounded-full blur-3xl animate-pulse"
@@ -47,30 +66,44 @@ export default function HomePage() {
 
         {/* Grid Pattern */}
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]" />
-
-        {/* Floating Particles */}
-        {[...Array(20)].map((_, i) => (
-          <div
-            key={i}
-            className="absolute w-2 h-2 bg-jcoder-primary/30 rounded-full"
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              animation: `float ${3 + Math.random() * 4}s ease-in-out infinite`,
-              animationDelay: `${Math.random() * 2}s`,
-            }}
-          />
-        ))}
       </div>
 
       {/* Main Content */}
       <main className="flex-1 relative z-10">
         {/* Hero Section */}
-        <section className="min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8 py-20">
-          <div className={`max-w-6xl mx-auto text-center transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+        <section className="min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8 py-20 relative">
+          {/* 3D Particles no Hero */}
+          <div className="absolute inset-0 pointer-events-none z-0">
+            <Suspense fallback={null}>
+              <Canvas
+                camera={{ position: [0, 0, 5], fov: 75 }}
+                gl={{ alpha: true, antialias: true }}
+                style={{ width: '100%', height: '100%' }}
+              >
+                <FloatingParticles3D />
+              </Canvas>
+            </Suspense>
+          </div>
+
+          {/* 3D Logo Element (opcional, sutil) */}
+          <div className="absolute top-20 right-10 w-32 h-32 pointer-events-none opacity-20 hidden lg:block">
+            <Suspense fallback={null}>
+              <Canvas
+                camera={{ position: [0, 0, 3], fov: 75 }}
+                gl={{ alpha: true, antialias: true }}
+                style={{ width: '100%', height: '100%' }}
+              >
+                <Hero3D mouse={mousePosition} windowSize={windowSize} />
+              </Canvas>
+            </Suspense>
+          </div>
+
+          <div className={`max-w-6xl mx-auto text-center transition-all duration-1000 relative z-10 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
             {/* Logo */}
             <div className="mb-8 animate-bounce-slow">
-              <div className="w-24 h-24 mx-auto rounded-full bg-jcoder-gradient p-1 shadow-lg shadow-jcoder-primary/50">
+              <div className="w-24 h-24 mx-auto rounded-full bg-jcoder-gradient p-1 shadow-lg shadow-jcoder-primary/50 transform-gpu" style={{
+                transform: `perspective(1000px) rotateY(${(mousePosition.x / windowSize.width - 0.5) * 10}deg) rotateX(${-(mousePosition.y / windowSize.height - 0.5) * 10}deg)`,
+              }}>
                 <div className="w-full h-full rounded-full bg-jcoder-card flex items-center justify-center">
                   <LazyImage
                     src="/images/jcoder-logo.png"
@@ -156,6 +189,7 @@ export default function HomePage() {
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
               {/* Feature 1 */}
+              <FeatureCard3D mouse={mousePosition} index={0}>
               <div className="group bg-jcoder-card border border-jcoder rounded-2xl p-8 hover:border-jcoder-primary transition-all duration-300 hover:shadow-lg hover:shadow-jcoder-primary/20 hover:-translate-y-2">
                 <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                   <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -167,8 +201,10 @@ export default function HomePage() {
                   Manage projects, technologies, professional experience, education and certifications all in one place.
                 </p>
               </div>
+              </FeatureCard3D>
 
               {/* Feature 2 */}
+              <FeatureCard3D mouse={mousePosition} index={1}>
               <div className="group bg-jcoder-card border border-jcoder rounded-2xl p-8 hover:border-jcoder-primary transition-all duration-300 hover:shadow-lg hover:shadow-jcoder-primary/20 hover:-translate-y-2">
                 <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                   <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -180,8 +216,10 @@ export default function HomePage() {
                   Portfolios with modern and responsive design, fully customizable to reflect your identity.
                 </p>
               </div>
+              </FeatureCard3D>
 
               {/* Feature 3 */}
+              <FeatureCard3D mouse={mousePosition} index={2}>
               <div className="group bg-jcoder-card border border-jcoder rounded-2xl p-8 hover:border-jcoder-primary transition-all duration-300 hover:shadow-lg hover:shadow-jcoder-primary/20 hover:-translate-y-2">
                 <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                   <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -193,8 +231,10 @@ export default function HomePage() {
                   Intuitive interface and optimized system so you can focus on what really matters: your projects.
                 </p>
               </div>
+              </FeatureCard3D>
 
               {/* Feature 4 */}
+              <FeatureCard3D mouse={mousePosition} index={3}>
               <div className="group bg-jcoder-card border border-jcoder rounded-2xl p-8 hover:border-jcoder-primary transition-all duration-300 hover:shadow-lg hover:shadow-jcoder-primary/20 hover:-translate-y-2">
                 <div className="w-16 h-16 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                   <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -206,8 +246,10 @@ export default function HomePage() {
                   Your portfolio accessible through a unique URL based on your username, easy to share.
                 </p>
               </div>
+              </FeatureCard3D>
 
               {/* Feature 5 */}
+              <FeatureCard3D mouse={mousePosition} index={4}>
               <div className="group bg-jcoder-card border border-jcoder rounded-2xl p-8 hover:border-jcoder-primary transition-all duration-300 hover:shadow-lg hover:shadow-jcoder-primary/20 hover:-translate-y-2">
                 <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                   <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -219,8 +261,10 @@ export default function HomePage() {
                   Complete panel to manage all your portfolio information in a simple and organized way.
                 </p>
               </div>
+              </FeatureCard3D>
 
               {/* Feature 6 */}
+              <FeatureCard3D mouse={mousePosition} index={5}>
               <div className="group bg-jcoder-card border border-jcoder rounded-2xl p-8 hover:border-jcoder-primary transition-all duration-300 hover:shadow-lg hover:shadow-jcoder-primary/20 hover:-translate-y-2">
                 <div className="w-16 h-16 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                   <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -232,6 +276,7 @@ export default function HomePage() {
                   Generate and download your resume in PDF with all your portfolio information professionally formatted.
                 </p>
               </div>
+              </FeatureCard3D>
             </div>
           </div>
         </section>

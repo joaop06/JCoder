@@ -4,9 +4,12 @@ import Link from 'next/link';
 import { LazyImage } from '@/components/ui';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/toast/ToastContext';
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef, Suspense } from 'react';
+import { Canvas } from '@react-three/fiber';
 import type { CreateUserDto } from '@/types/api/auth/create-user.dto';
 import { PortfolioViewService } from '@/services/portfolio-view/portfolio-view.service';
+import WebGLBackground from '@/components/webgl/WebGLBackground';
+import FloatingParticles3D from '@/components/webgl/FloatingParticles3D';
 
 type Step = 1 | 2 | 3;
 
@@ -15,6 +18,9 @@ export default function RegisterPage() {
   const toast = useToast();
   const [currentStep, setCurrentStep] = useState<Step>(1);
   const [isLoading, setIsLoading] = useState(false);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [windowSize, setWindowSize] = useState({ width: 1920, height: 1080 });
+  const [isVisible, setIsVisible] = useState(false);
 
   // Step 1: Username
   const [username, setUsername] = useState('');
@@ -45,13 +51,33 @@ export default function RegisterPage() {
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  useEffect(() => {
+    setIsVisible(true);
+
+    // Update window size
+    const updateWindowSize = () => {
+      setWindowSize({ width: window.innerWidth, height: window.innerHeight });
+    };
+    updateWindowSize();
+    window.addEventListener('resize', updateWindowSize);
+    return () => window.removeEventListener('resize', updateWindowSize);
+  }, []);
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      setMousePosition({ x: e.clientX, y: e.clientY });
+    };
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
+
   const steps = [
-    { number: 1, title: 'Escolha seu username', description: 'Este será seu identificador único' },
-    { number: 2, title: 'Verifique seu email', description: 'Enviaremos um código de verificação' },
-    { number: 3, title: 'Complete seu perfil', description: 'Defina sua senha e informações básicas' },
+    { number: 1, title: 'Choose your username', description: 'This will be your unique identifier' },
+    { number: 2, title: 'Verify your email', description: 'We\'ll send a verification code' },
+    { number: 3, title: 'Complete your profile', description: 'Set your password and basic information' },
   ];
 
-  // Verificação em tempo real da disponibilidade do username
+  // Real-time username availability check
   useEffect(() => {
     if (debounceTimeoutRef.current) {
       clearTimeout(debounceTimeoutRef.current);
@@ -78,7 +104,7 @@ export default function RegisterPage() {
         if (!result.available) {
           setErrors(prev => ({
             ...prev,
-            username: 'Este username já está em uso. Por favor, escolha outro.',
+            username: 'This username is already in use. Please choose another one.',
           }));
         } else {
           setErrors(prev => {
@@ -99,7 +125,7 @@ export default function RegisterPage() {
     };
   }, [username]);
 
-  // Verificação em tempo real da disponibilidade do email
+  // Real-time email availability check
   useEffect(() => {
     if (emailDebounceTimeoutRef.current) {
       clearTimeout(emailDebounceTimeoutRef.current);
@@ -121,7 +147,7 @@ export default function RegisterPage() {
         if (!result.available) {
           setErrors(prev => ({
             ...prev,
-            email: 'Este email já está em uso. Por favor, use outro email.',
+            email: 'This email is already in use. Please use another email.',
           }));
         } else {
           setErrors(prev => {
@@ -145,30 +171,30 @@ export default function RegisterPage() {
   const handleNextStep = useCallback(() => {
     if (currentStep === 1) {
       if (!username || username.length < 3) {
-        setErrors({ username: 'Username deve ter pelo menos 3 caracteres' });
+        setErrors({ username: 'Username must be at least 3 characters' });
         return;
       }
       if (!/^[a-zA-Z0-9_-]+$/.test(username)) {
-        setErrors({ username: 'Username pode conter apenas letras, números, underscores e hífens' });
+        setErrors({ username: 'Username can only contain letters, numbers, underscores and hyphens' });
         return;
       }
       if (usernameStatus.available !== true) {
-        setErrors({ username: 'Por favor, escolha um username disponível' });
+        setErrors({ username: 'Please choose an available username' });
         return;
       }
       setErrors({});
       setCurrentStep(2);
     } else if (currentStep === 2) {
       if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        setErrors({ email: 'Por favor, insira um email válido' });
+        setErrors({ email: 'Please enter a valid email' });
         return;
       }
       if (emailStatus.available !== true) {
-        setErrors({ email: 'Por favor, use um email disponível' });
+        setErrors({ email: 'Please use an available email' });
         return;
       }
       if (!isEmailVerified) {
-        setErrors({ email: 'Por favor, verifique seu email antes de continuar' });
+        setErrors({ email: 'Please verify your email before continuing' });
         return;
       }
       setErrors({});
@@ -185,12 +211,12 @@ export default function RegisterPage() {
 
   const handleSendVerificationCode = useCallback(async () => {
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setErrors({ email: 'Por favor, insira um email válido' });
+      setErrors({ email: 'Please enter a valid email' });
       return;
     }
 
     if (emailStatus.available !== true) {
-      setErrors({ email: 'Este email já está em uso. Por favor, use outro email.' });
+      setErrors({ email: 'This email is already in use. Please use another email.' });
       return;
     }
 
@@ -202,12 +228,12 @@ export default function RegisterPage() {
       setCodeSent(true);
       setIsEmailVerified(false);
       setVerificationCode('');
-      toast.success('Código de verificação enviado! Verifique sua caixa de entrada.');
+      toast.success('Verification code sent! Check your inbox.');
     } catch (err: any) {
       const apiMessage =
         err?.response?.data?.message ||
         err?.message ||
-        'Falha ao enviar código de verificação. Tente novamente.';
+        'Failed to send verification code. Please try again.';
       setErrors({ email: apiMessage });
       toast.error(apiMessage);
     } finally {
@@ -217,7 +243,7 @@ export default function RegisterPage() {
 
   const handleVerifyCode = useCallback(async () => {
     if (!verificationCode || verificationCode.length !== 6) {
-      setErrors({ code: 'Por favor, insira o código de 6 dígitos' });
+      setErrors({ code: 'Please enter the 6-digit code' });
       return;
     }
 
@@ -228,13 +254,13 @@ export default function RegisterPage() {
       const result = await PortfolioViewService.verifyEmailCode(email, verificationCode);
       if (result.verified) {
         setIsEmailVerified(true);
-        toast.success('Email verificado com sucesso!');
+        toast.success('Email verified successfully!');
       }
     } catch (err: any) {
       const apiMessage =
         err?.response?.data?.message ||
         err?.message ||
-        'Código inválido ou expirado. Tente novamente.';
+        'Invalid or expired code. Please try again.';
       setErrors({ code: apiMessage });
       toast.error(apiMessage);
     } finally {
@@ -246,13 +272,13 @@ export default function RegisterPage() {
     const newErrors: Record<string, string> = {};
 
     if (!password) {
-      newErrors.password = 'Senha é obrigatória';
+      newErrors.password = 'Password is required';
     }
 
     if (!confirmPassword) {
-      newErrors.confirmPassword = 'Por favor, confirme sua senha';
+      newErrors.confirmPassword = 'Please confirm your password';
     } else if (password !== confirmPassword) {
-      newErrors.confirmPassword = 'As senhas não coincidem';
+      newErrors.confirmPassword = 'Passwords do not match';
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -273,13 +299,13 @@ export default function RegisterPage() {
 
       await PortfolioViewService.register(payload);
 
-      toast.success('Conta criada com sucesso! Faça login para continuar.');
+      toast.success('Account created successfully! Please sign in to continue.');
       router.push('/sign-in');
     } catch (err: any) {
       const apiMessage =
         err?.response?.data?.message ||
         err?.message ||
-        'Falha ao criar conta. Tente novamente.';
+        'Failed to create account. Please try again.';
       toast.error(apiMessage);
     } finally {
       setIsLoading(false);
@@ -287,9 +313,38 @@ export default function RegisterPage() {
   }, [username, password, confirmPassword, email, occupation, description, router, toast]);
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="min-h-screen flex flex-col bg-background overflow-hidden relative">
+      {/* WebGL Background - Animated 3D mesh */}
+      <Suspense fallback={null}>
+        <WebGLBackground mouse={mousePosition} windowSize={windowSize} />
+      </Suspense>
+
+      {/* Animated Background - CSS layers for depth */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+        {/* Gradient Orbs */}
+        <div
+          className="absolute w-96 h-96 bg-jcoder-cyan/15 rounded-full blur-3xl animate-pulse"
+          style={{
+            left: `${mousePosition.x / 20}px`,
+            top: `${mousePosition.y / 20}px`,
+            transition: 'all 0.3s ease-out',
+          }}
+        />
+        <div
+          className="absolute w-96 h-96 bg-jcoder-blue/15 rounded-full blur-3xl animate-pulse delay-1000"
+          style={{
+            right: `${mousePosition.x / 25}px`,
+            bottom: `${mousePosition.y / 25}px`,
+            transition: 'all 0.3s ease-out',
+          }}
+        />
+
+        {/* Grid Pattern */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]" />
+      </div>
+
       {/* Header */}
-      <header className="border-b border-jcoder bg-jcoder-card">
+      <header className="border-b border-jcoder bg-jcoder-card/80 backdrop-blur-sm relative z-10">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center">
             <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
@@ -311,26 +366,47 @@ export default function RegisterPage() {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 flex items-center justify-center px-4 py-12">
-        <div className="w-full max-w-2xl">
+      <main className="flex-1 flex items-center justify-center px-4 py-12 relative z-10">
+        {/* 3D Particles in Background */}
+        <div className="absolute inset-0 pointer-events-none z-0">
+          <Suspense fallback={null}>
+            <Canvas
+              camera={{ position: [0, 0, 5], fov: 75 }}
+              gl={{ alpha: true, antialias: true }}
+              style={{ width: '100%', height: '100%' }}
+            >
+              <FloatingParticles3D />
+            </Canvas>
+          </Suspense>
+        </div>
+
+        <div className={`w-full max-w-2xl transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
           {/* Logo and Title */}
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-transparent rounded-lg mb-4">
-              <LazyImage
-                src="/images/jcoder-logo.png"
-                alt="JCoder"
-                fallback="JC"
-                className="object-contain"
-                size="custom"
-                width="w-full"
-                height="h-full"
-              />
+            <div
+              className="inline-flex items-center justify-center w-16 h-16 bg-jcoder-gradient rounded-full p-1 shadow-lg shadow-jcoder-primary/50 mb-4 transform-gpu animate-bounce-slow"
+              style={{
+                transform: `perspective(1000px) rotateY(${(mousePosition.x / windowSize.width - 0.5) * 10}deg) rotateX(${-(mousePosition.y / windowSize.height - 0.5) * 10}deg)`,
+              }}
+            >
+              <div className="w-full h-full rounded-full bg-jcoder-card flex items-center justify-center">
+                <LazyImage
+                  src="/images/jcoder-logo.png"
+                  alt="JCoder"
+                  fallback="JC"
+                  className="object-contain"
+                  size="custom"
+                  width="w-12"
+                  height="h-12"
+                  rounded="rounded-full"
+                />
+              </div>
             </div>
-            <h1 className="text-2xl font-bold text-jcoder-foreground mb-2">
-              Crie sua conta
+            <h1 className="text-2xl font-bold text-jcoder-foreground mb-2 bg-clip-text text-transparent bg-gradient-to-r from-jcoder-cyan via-jcoder-primary to-jcoder-blue">
+              Create your account
             </h1>
             <p className="text-jcoder-muted">
-              Comece a construir seu portfólio profissional
+              Start building your professional portfolio
             </p>
           </div>
 
@@ -342,10 +418,10 @@ export default function RegisterPage() {
                   <div className="flex flex-col items-center flex-1">
                     <div
                       className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-colors ${currentStep === step.number
-                          ? 'bg-jcoder-primary text-black'
-                          : currentStep > step.number
-                            ? 'bg-green-500 text-white'
-                            : 'bg-jcoder-secondary text-jcoder-muted border-2 border-jcoder'
+                        ? 'bg-jcoder-primary text-black'
+                        : currentStep > step.number
+                          ? 'bg-green-500 text-white'
+                          : 'bg-jcoder-secondary text-jcoder-muted border-2 border-jcoder'
                         }`}
                     >
                       {currentStep > step.number ? (
@@ -374,18 +450,23 @@ export default function RegisterPage() {
           </div>
 
           {/* Registration Form */}
-          <div className="bg-jcoder-card border border-jcoder rounded-lg p-8">
+          <div
+            className="bg-jcoder-card/90 backdrop-blur-sm border border-jcoder rounded-2xl p-8 shadow-xl shadow-jcoder-primary/10 transform-gpu transition-all duration-300 hover:shadow-2xl hover:shadow-jcoder-primary/20"
+            style={{
+              transform: `perspective(1000px) rotateX(${-(mousePosition.y / windowSize.height - 0.5) * 2}deg) rotateY(${(mousePosition.x / windowSize.width - 0.5) * 2}deg) translateZ(0)`,
+            }}
+          >
             {/* Step 1: Username */}
             {currentStep === 1 && (
               <div className="space-y-4">
                 <div>
-                  <h2 className="text-lg font-semibold mb-1 text-jcoder-foreground">Escolha seu username</h2>
+                  <h2 className="text-lg font-semibold mb-1 text-jcoder-foreground">Choose your username</h2>
                   <p className="text-sm text-jcoder-muted mb-4">
-                    Este será seu identificador único no JCoder
+                    This will be your unique identifier on JCoder
                   </p>
                 </div>
 
-                <div>
+                <div className="transform-gpu transition-transform duration-200 hover:scale-[1.01]">
                   <label htmlFor="username" className="block text-sm font-medium text-jcoder-muted mb-2">
                     Username <span className="text-red-400">*</span>
                   </label>
@@ -405,10 +486,10 @@ export default function RegisterPage() {
                           return newErrors;
                         });
                       }}
-                      className={`w-full px-4 py-3 pr-10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-transparent disabled:opacity-60 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted ${errors.username ? 'border-red-400' :
-                          usernameStatus.available === true ? 'border-green-400' :
-                            usernameStatus.available === false ? 'border-red-400' :
-                              'border-jcoder'
+                      className={`w-full px-4 py-3 pr-10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-transparent disabled:opacity-60 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted transition-all duration-200 hover:border-jcoder-primary/50 ${errors.username ? 'border-red-400' :
+                        usernameStatus.available === true ? 'border-green-400' :
+                          usernameStatus.available === false ? 'border-red-400' :
+                            'border-jcoder'
                         }`}
                     />
                     {username.length >= 3 && (
@@ -434,19 +515,19 @@ export default function RegisterPage() {
                     <p className="mt-1 text-sm text-red-400">{errors.username}</p>
                   )}
                   {!errors.username && usernameStatus.available === true && username.length >= 3 && (
-                    <p className="mt-1 text-sm text-green-400">Username disponível!</p>
+                    <p className="mt-1 text-sm text-green-400">Username available!</p>
                   )}
                   <p className="mt-1 text-xs text-jcoder-muted">
-                    Mínimo de 3 caracteres. Apenas letras, números, underscores e hífens.
+                    Minimum 3 characters. Only letters, numbers, underscores and hyphens.
                   </p>
                 </div>
 
                 <button
                   onClick={handleNextStep}
                   disabled={isLoading || usernameStatus.available !== true}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed font-medium transform-gpu hover:scale-105 hover:shadow-lg hover:shadow-jcoder-primary/50 active:scale-95"
                 >
-                  Continuar
+                  Continue
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
@@ -458,13 +539,13 @@ export default function RegisterPage() {
             {currentStep === 2 && (
               <div className="space-y-4">
                 <div>
-                  <h2 className="text-lg font-semibold mb-1 text-jcoder-foreground">Verifique seu email</h2>
+                  <h2 className="text-lg font-semibold mb-1 text-jcoder-foreground">Verify your email</h2>
                   <p className="text-sm text-jcoder-muted mb-4">
-                    Enviaremos um código de verificação para seu email
+                    We'll send a verification code to your email
                   </p>
                 </div>
 
-                <div>
+                <div className="transform-gpu transition-transform duration-200 hover:scale-[1.01]">
                   <label htmlFor="email" className="block text-sm font-medium text-jcoder-muted mb-2">
                     Email <span className="text-red-400">*</span>
                   </label>
@@ -475,7 +556,7 @@ export default function RegisterPage() {
                         type="email"
                         value={email}
                         disabled={isLoading || isEmailVerified}
-                        placeholder="seu@email.com"
+                        placeholder="your@email.com"
                         onChange={(e) => {
                           setEmail(e.target.value);
                           setCodeSent(false);
@@ -486,11 +567,11 @@ export default function RegisterPage() {
                             return newErrors;
                           });
                         }}
-                        className={`w-full px-4 py-3 pr-10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-transparent disabled:opacity-60 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted ${errors.email ? 'border-red-400' :
-                            emailStatus.available === true ? 'border-green-400' :
-                              emailStatus.available === false ? 'border-red-400' :
-                                isEmailVerified ? 'border-green-400' :
-                                  'border-jcoder'
+                        className={`w-full px-4 py-3 pr-10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-transparent disabled:opacity-60 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted transition-all duration-200 hover:border-jcoder-primary/50 ${errors.email ? 'border-red-400' :
+                          emailStatus.available === true ? 'border-green-400' :
+                            emailStatus.available === false ? 'border-red-400' :
+                              isEmailVerified ? 'border-green-400' :
+                                'border-jcoder'
                           }`}
                       />
                       {email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && (
@@ -515,26 +596,34 @@ export default function RegisterPage() {
                     <button
                       onClick={handleSendVerificationCode}
                       disabled={isLoading || isSendingCode || isEmailVerified || !email || emailStatus.available !== true}
-                      className="px-4 py-3 bg-jcoder-secondary border border-jcoder rounded-lg hover:bg-jcoder hover:border-jcoder-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-jcoder-foreground font-medium whitespace-nowrap"
+                      className="px-4 py-3 bg-jcoder-secondary border border-jcoder rounded-lg hover:bg-jcoder hover:border-jcoder-primary transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-jcoder-foreground font-medium whitespace-nowrap transform-gpu hover:scale-105 active:scale-95"
                     >
-                      {isSendingCode ? 'Enviando...' : codeSent ? 'Reenviar' : 'Enviar código'}
+                      {isSendingCode ? (
+                        <span className="flex items-center gap-2">
+                          <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          Sending...
+                        </span>
+                      ) : codeSent ? 'Resend' : 'Send code'}
                     </button>
                   </div>
                   {errors.email && (
                     <p className="mt-1 text-sm text-red-400">{errors.email}</p>
                   )}
                   {!errors.email && emailStatus.available === true && email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && (
-                    <p className="mt-1 text-sm text-green-400">Email disponível!</p>
+                    <p className="mt-1 text-sm text-green-400">Email available!</p>
                   )}
                   {isEmailVerified && (
-                    <p className="mt-1 text-sm text-green-400">Email verificado com sucesso!</p>
+                    <p className="mt-1 text-sm text-green-400">Email verified successfully!</p>
                   )}
                 </div>
 
                 {codeSent && !isEmailVerified && (
                   <div>
                     <label htmlFor="code" className="block text-sm font-medium text-jcoder-muted mb-2">
-                      Código de verificação <span className="text-red-400">*</span>
+                      Verification code <span className="text-red-400">*</span>
                     </label>
                     <div className="flex gap-2">
                       <input
@@ -560,7 +649,7 @@ export default function RegisterPage() {
                         disabled={isLoading || isVerifyingCode || verificationCode.length !== 6}
                         className="px-4 py-3 bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed font-medium whitespace-nowrap"
                       >
-                        {isVerifyingCode ? 'Verificando...' : 'Verificar'}
+                        {isVerifyingCode ? 'Verifying...' : 'Verify'}
                       </button>
                     </div>
                     {errors.code && (
@@ -575,14 +664,14 @@ export default function RegisterPage() {
                     disabled={isLoading}
                     className="flex-1 px-4 py-3 bg-jcoder-secondary border border-jcoder rounded-lg hover:bg-jcoder hover:border-jcoder-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium text-jcoder-foreground"
                   >
-                    Voltar
+                    Back
                   </button>
                   <button
                     onClick={handleNextStep}
                     disabled={isLoading || !isEmailVerified}
                     className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed font-medium"
                   >
-                    Continuar
+                    Continue
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
@@ -595,15 +684,15 @@ export default function RegisterPage() {
             {currentStep === 3 && (
               <div className="space-y-4">
                 <div>
-                  <h2 className="text-lg font-semibold mb-1 text-jcoder-foreground">Complete seu perfil</h2>
+                  <h2 className="text-lg font-semibold mb-1 text-jcoder-foreground">Complete your profile</h2>
                   <p className="text-sm text-jcoder-muted mb-4">
-                    Defina sua senha e informações básicas (opcional)
+                    Set your password and basic information (optional)
                   </p>
                 </div>
 
                 <div>
                   <label htmlFor="password" className="block text-sm font-medium text-jcoder-muted mb-2">
-                    Senha <span className="text-red-400">*</span>
+                    Password <span className="text-red-400">*</span>
                   </label>
                   <input
                     required
@@ -630,7 +719,7 @@ export default function RegisterPage() {
 
                 <div>
                   <label htmlFor="confirmPassword" className="block text-sm font-medium text-jcoder-muted mb-2">
-                    Confirmar Senha <span className="text-red-400">*</span>
+                    Confirm Password <span className="text-red-400">*</span>
                   </label>
                   <input
                     required
@@ -656,18 +745,18 @@ export default function RegisterPage() {
                 </div>
 
                 <div className="pt-4 border-t border-jcoder">
-                  <h3 className="text-sm font-semibold text-jcoder-foreground mb-4">Sobre você (opcional)</h3>
+                  <h3 className="text-sm font-semibold text-jcoder-foreground mb-4">About you (optional)</h3>
 
                   <div className="mb-4">
                     <label htmlFor="occupation" className="block text-sm font-medium text-jcoder-muted mb-2">
-                      Cargo / Título
+                      Position / Title
                     </label>
                     <input
                       id="occupation"
                       type="text"
                       value={occupation}
                       disabled={isLoading}
-                      placeholder="Ex: Desenvolvedor Full Stack"
+                      placeholder="Ex: Full Stack Developer"
                       onChange={(e) => setOccupation(e.target.value)}
                       className="w-full px-4 py-3 border border-jcoder rounded-lg focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-transparent disabled:opacity-60 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted"
                     />
@@ -675,13 +764,13 @@ export default function RegisterPage() {
 
                   <div>
                     <label htmlFor="description" className="block text-sm font-medium text-jcoder-muted mb-2">
-                      Descrição
+                      Description
                     </label>
                     <textarea
                       id="description"
                       value={description}
                       disabled={isLoading}
-                      placeholder="Conte um pouco sobre você, sua experiência e paixões..."
+                      placeholder="Tell us a bit about yourself, your experience and passions..."
                       rows={4}
                       onChange={(e) => setDescription(e.target.value)}
                       className="w-full px-4 py-3 border border-jcoder rounded-lg focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-transparent disabled:opacity-60 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted resize-none"
@@ -695,7 +784,7 @@ export default function RegisterPage() {
                     disabled={isLoading}
                     className="flex-1 px-4 py-3 bg-jcoder-secondary border border-jcoder rounded-lg hover:bg-jcoder hover:border-jcoder-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium text-jcoder-foreground"
                   >
-                    Voltar
+                    Back
                   </button>
                   <button
                     onClick={handleSubmit}
@@ -703,13 +792,13 @@ export default function RegisterPage() {
                     className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed font-medium"
                   >
                     {isLoading ? (
-                      <span>Criando conta...</span>
+                      <span>Creating account...</span>
                     ) : (
                       <>
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
                         </svg>
-                        Criar Conta
+                        Create Account
                       </>
                     )}
                   </button>
@@ -721,12 +810,12 @@ export default function RegisterPage() {
           {/* Login Link */}
           <div className="text-center mt-6">
             <p className="text-sm text-jcoder-muted">
-              Já tem uma conta?{' '}
+              Already have an account?{' '}
               <Link
                 href="/sign-in"
                 className="text-jcoder-primary hover:text-jcoder-accent transition-colors font-medium"
               >
-                Fazer login
+                Sign in
               </Link>
             </p>
             <Link
@@ -736,7 +825,7 @@ export default function RegisterPage() {
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
               </svg>
-              Voltar para home
+              Back to home
             </Link>
           </div>
         </div>
