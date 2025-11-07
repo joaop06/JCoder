@@ -94,9 +94,9 @@ export default function HomePage() {
 
             {/* Subtitle */}
             <p className="text-xl md:text-2xl text-jcoder-muted mb-8 max-w-3xl mx-auto leading-relaxed">
-              Crie, gerencie e compartilhe seu portfólio profissional de forma simples e elegante.
+              Create, manage and share your professional portfolio in a simple and elegant way.
               <br />
-              <span className="text-jcoder-primary">Destaque seus projetos e conquiste novas oportunidades.</span>
+              <span className="text-jcoder-primary">Showcase your projects and seize new opportunities.</span>
             </p>
 
             {/* CTA Buttons */}
@@ -105,7 +105,7 @@ export default function HomePage() {
                 href="/register"
                 className="group px-8 py-4 bg-jcoder-gradient text-black font-semibold rounded-lg hover:shadow-jcoder-primary hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center gap-2"
               >
-                <span>Começar Agora</span>
+                <span>Get Started</span>
                 <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                 </svg>
@@ -114,7 +114,7 @@ export default function HomePage() {
                 href="/sign-in"
                 className="px-8 py-4 border-2 border-jcoder-primary text-jcoder-primary font-semibold rounded-lg hover:bg-jcoder-primary hover:text-black transition-all duration-300 flex items-center gap-2"
               >
-                <span>Entrar</span>
+                <span>Sign In</span>
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
                 </svg>
@@ -126,7 +126,7 @@ export default function HomePage() {
                 }}
                 className="px-8 py-4 border-2 border-jcoder-primary text-jcoder-primary font-semibold rounded-lg hover:bg-jcoder-primary hover:text-black transition-all duration-300 flex items-center gap-2"
               >
-                <span>Saiba Mais</span>
+                <span>Learn More</span>
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
@@ -147,10 +147,10 @@ export default function HomePage() {
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16">
               <h2 className="text-4xl md:text-5xl font-bold text-jcoder-foreground mb-4">
-                Por que escolher o <span className="text-jcoder-primary">JCoder</span>?
+                Why choose <span className="text-jcoder-primary">JCoder</span>?
               </h2>
               <p className="text-lg text-jcoder-muted max-w-2xl mx-auto">
-                Uma plataforma completa para gerenciar e exibir seu portfólio profissional
+                A complete platform to manage and showcase your professional portfolio
               </p>
             </div>
 
@@ -162,9 +162,9 @@ export default function HomePage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
                   </svg>
                 </div>
-                <h3 className="text-2xl font-bold text-jcoder-foreground mb-4">Gerenciamento Completo</h3>
+                <h3 className="text-2xl font-bold text-jcoder-foreground mb-4">Complete Management</h3>
                 <p className="text-jcoder-muted leading-relaxed">
-                  Gerencie projetos, tecnologias, experiência profissional, educação e certificações tudo em um só lugar.
+                  Manage projects, technologies, professional experience, education and certifications all in one place.
                 </p>
               </div>
 
@@ -175,9 +175,9 @@ export default function HomePage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
                   </svg>
                 </div>
-                <h3 className="text-2xl font-bold text-jcoder-foreground mb-4">Design Personalizado</h3>
+                <h3 className="text-2xl font-bold text-jcoder-foreground mb-4">Custom Design</h3>
                 <p className="text-jcoder-muted leading-relaxed">
-                  Portfólios com design moderno e responsivo, totalmente personalizável para refletir sua identidade.
+                  Portfolios with modern and responsive design, fully customizable to reflect your identity.
                 </p>
               </div>
 
@@ -188,9 +188,9 @@ export default function HomePage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                   </svg>
                 </div>
-                <h3 className="text-2xl font-bold text-jcoder-foreground mb-4">Rápido e Eficiente</h3>
+                <h3 className="text-2xl font-bold text-jcoder-foreground mb-4">Fast and Efficient</h3>
                 <p className="text-jcoder-muted leading-relaxed">
-                  Interface intuitiva e sistema otimizado para que você possa focar no que realmente importa: seus projetos.
+                  Intuitive interface and optimized system so you can focus on what really matters: your projects.
                 </p>
               </div>
 
@@ -201,9 +201,9 @@ export default function HomePage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                   </svg>
                 </div>
-                <h3 className="text-2xl font-bold text-jcoder-foreground mb-4">URL Personalizada</h3>
+                <h3 className="text-2xl font-bold text-jcoder-foreground mb-4">Custom URL</h3>
                 <p className="text-jcoder-muted leading-relaxed">
-                  Seu portfólio acessível através de uma URL única baseada no seu username, fácil de compartilhar.
+                  Your portfolio accessible through a unique URL based on your username, easy to share.
                 </p>
               </div>
 
@@ -214,9 +214,9 @@ export default function HomePage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                   </svg>
                 </div>
-                <h3 className="text-2xl font-bold text-jcoder-foreground mb-4">Área Administrativa</h3>
+                <h3 className="text-2xl font-bold text-jcoder-foreground mb-4">Admin Area</h3>
                 <p className="text-jcoder-muted leading-relaxed">
-                  Painel completo para gerenciar todas as informações do seu portfólio de forma simples e organizada.
+                  Complete panel to manage all your portfolio information in a simple and organized way.
                 </p>
               </div>
 
@@ -227,9 +227,9 @@ export default function HomePage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                   </svg>
                 </div>
-                <h3 className="text-2xl font-bold text-jcoder-foreground mb-4">Exportação de Currículo</h3>
+                <h3 className="text-2xl font-bold text-jcoder-foreground mb-4">Resume Export</h3>
                 <p className="text-jcoder-muted leading-relaxed">
-                  Gere e baixe seu currículo em PDF com todas as informações do seu portfólio formatadas profissionalmente.
+                  Generate and download your resume in PDF with all your portfolio information professionally formatted.
                 </p>
               </div>
             </div>
@@ -241,10 +241,10 @@ export default function HomePage() {
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16">
               <h2 className="text-4xl md:text-5xl font-bold text-jcoder-foreground mb-4">
-                Como Funciona
+                How It Works
               </h2>
               <p className="text-lg text-jcoder-muted max-w-2xl mx-auto">
-                Três passos simples para ter seu portfólio online
+                Three simple steps to get your portfolio online
               </p>
             </div>
 
@@ -255,9 +255,9 @@ export default function HomePage() {
                   <div className="w-12 h-12 bg-jcoder-gradient rounded-full flex items-center justify-center mx-auto mb-6 text-black font-bold text-xl">
                     1
                   </div>
-                  <h3 className="text-2xl font-bold text-jcoder-foreground mb-4">Crie sua Conta</h3>
+                  <h3 className="text-2xl font-bold text-jcoder-foreground mb-4">Create Your Account</h3>
                   <p className="text-jcoder-muted">
-                    Faça o cadastro e escolha seu username único para acessar sua área administrativa.
+                    Sign up and choose your unique username to access your admin area.
                   </p>
                 </div>
                 <div className="hidden md:block absolute top-1/2 -right-4 w-8 h-0.5 bg-jcoder-primary z-0" />
@@ -269,9 +269,9 @@ export default function HomePage() {
                   <div className="w-12 h-12 bg-jcoder-gradient rounded-full flex items-center justify-center mx-auto mb-6 text-black font-bold text-xl">
                     2
                   </div>
-                  <h3 className="text-2xl font-bold text-jcoder-foreground mb-4">Configure seu Perfil</h3>
+                  <h3 className="text-2xl font-bold text-jcoder-foreground mb-4">Configure Your Profile</h3>
                   <p className="text-jcoder-muted">
-                    Adicione informações pessoais, projetos, tecnologias, experiência e muito mais.
+                    Add personal information, projects, technologies, experience and much more.
                   </p>
                 </div>
                 <div className="hidden md:block absolute top-1/2 -right-4 w-8 h-0.5 bg-jcoder-primary z-0" />
@@ -283,9 +283,9 @@ export default function HomePage() {
                   <div className="w-12 h-12 bg-jcoder-gradient rounded-full flex items-center justify-center mx-auto mb-6 text-black font-bold text-xl">
                     3
                   </div>
-                  <h3 className="text-2xl font-bold text-jcoder-foreground mb-4">Compartilhe</h3>
+                  <h3 className="text-2xl font-bold text-jcoder-foreground mb-4">Share</h3>
                   <p className="text-jcoder-muted">
-                    Seu portfólio estará disponível em uma URL única e personalizada. Compartilhe com o mundo!
+                    Your portfolio will be available at a unique and personalized URL. Share it with the world!
                   </p>
                 </div>
               </div>
@@ -300,17 +300,17 @@ export default function HomePage() {
               <div className="absolute inset-0 bg-[url('/images/jcoder-logo.png')] bg-contain bg-center opacity-5" />
               <div className="relative z-10">
                 <h2 className="text-4xl md:text-5xl font-bold text-black mb-6">
-                  Pronto para começar?
+                  Ready to get started?
                 </h2>
                 <p className="text-xl text-black/80 mb-8 max-w-2xl mx-auto">
-                  Crie sua conta agora e transforme seu portfólio profissional em minutos.
+                  Create your account now and transform your professional portfolio in minutes.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
                   <Link
                     href="/register"
                     className="px-8 py-4 bg-black text-white font-semibold rounded-lg hover:bg-black/90 transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2"
                   >
-                    <span>Cadastrar Agora</span>
+                    <span>Sign Up Now</span>
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                     </svg>
@@ -319,7 +319,7 @@ export default function HomePage() {
                     href="/sign-in"
                     className="px-8 py-4 border-2 border-black text-black font-semibold rounded-lg hover:bg-black hover:text-white transition-all duration-300 flex items-center justify-center gap-2"
                   >
-                    <span>Já tenho conta</span>
+                    <span>I already have an account</span>
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
                     </svg>

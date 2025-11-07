@@ -161,7 +161,7 @@ export default function PortfolioPage() {
     }
   };
 
-  // Pre-verificação do usuário
+  // User pre-check
   useEffect(() => {
     if (!username) return;
     let isMounted = true;
@@ -171,7 +171,7 @@ export default function PortfolioPage() {
       setUserNotFound(false);
       try {
         const result = await PortfolioViewService.checkUsernameAvailability(username);
-        // Se available === true, significa que o usuário NÃO existe
+        // If available === true, it means the user does NOT exist
         if (result.available) {
           if (isMounted) {
             setUserNotFound(true);
@@ -179,7 +179,7 @@ export default function PortfolioPage() {
           }
           return;
         }
-        // Se available === false, o usuário existe, então carregamos os dados
+        // If available === false, the user exists, so we load the data
         if (isMounted) {
           await Promise.all([
             loadAboutMe(),
@@ -192,7 +192,7 @@ export default function PortfolioPage() {
           setCheckingUser(false);
         }
       } catch (err) {
-        console.error('Erro ao verificar usuário', err);
+        console.error('Error checking user', err);
         if (isMounted) {
           setUserNotFound(true);
           setCheckingUser(false);
@@ -245,26 +245,26 @@ export default function PortfolioPage() {
   const handleMessageSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
-    // Validação básica
+    // Basic validation
     if (!messageForm.senderName.trim()) {
-      toast.error('Por favor, informe seu nome.');
+      toast.error('Please enter your name.');
       return;
     }
     
     if (!messageForm.senderEmail.trim()) {
-      toast.error('Por favor, informe seu e-mail.');
+      toast.error('Please enter your email.');
       return;
     }
     
-    // Validação de e-mail simples
+    // Simple email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(messageForm.senderEmail)) {
-      toast.error('Por favor, informe um e-mail válido.');
+      toast.error('Please enter a valid email.');
       return;
     }
     
     if (!messageForm.message.trim()) {
-      toast.error('Por favor, escreva uma mensagem.');
+      toast.error('Please write a message.');
       return;
     }
 
@@ -276,18 +276,18 @@ export default function PortfolioPage() {
         message: messageForm.message.trim(),
       });
       
-      toast.success('Mensagem enviada com sucesso!');
-      // Limpar formulário
+      toast.success('Message sent successfully!');
+      // Clear form
       setMessageForm({
         senderName: '',
         senderEmail: '',
         message: '',
       });
     } catch (error: any) {
-      console.error('Erro ao enviar mensagem:', error);
+      console.error('Error sending message:', error);
       const errorMessage = error.response?.data?.message || 
                           error.message || 
-                          'Falha ao enviar mensagem. Por favor, tente novamente.';
+                          'Failed to send message. Please try again.';
       toast.error(errorMessage);
     } finally {
       setSendingMessage(false);
@@ -302,7 +302,7 @@ export default function PortfolioPage() {
     );
   }
 
-  // Tela de usuário não encontrado
+  // User not found screen
   if (checkingUser) {
     return (
       <div className="min-h-screen flex flex-col bg-background">
@@ -310,7 +310,7 @@ export default function PortfolioPage() {
         <main className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-jcoder-primary mx-auto mb-4"></div>
-            <p className="text-jcoder-muted">Carregando...</p>
+            <p className="text-jcoder-muted">Loading...</p>
           </div>
         </main>
       </div>
@@ -334,11 +334,11 @@ export default function PortfolioPage() {
             </div>
 
             <h1 className="text-4xl md:text-5xl font-bold text-jcoder-foreground mb-4">
-              Usuário não encontrado
+              User not found
             </h1>
 
             <p className="text-lg md:text-xl text-jcoder-muted mb-8 max-w-xl mx-auto leading-relaxed">
-              O portfólio do usuário <span className="font-semibold text-jcoder-primary">@{username}</span> não existe ou não está disponível.
+              The user's portfolio <span className="font-semibold text-jcoder-primary">@{username}</span> does not exist or is not available.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
@@ -346,13 +346,13 @@ export default function PortfolioPage() {
                 href="/"
                 className="px-8 py-4 bg-jcoder-gradient text-black font-semibold rounded-lg hover:shadow-jcoder-primary transition-all duration-300 transform hover:scale-105"
               >
-                Voltar ao Início
+                Back to Home
               </a>
               <button
                 onClick={() => window.history.back()}
                 className="px-8 py-4 border-2 border-jcoder-primary text-jcoder-primary font-semibold rounded-lg hover:bg-jcoder-primary hover:text-black transition-all duration-300"
               >
-                Voltar
+                Back
               </button>
             </div>
           </div>
@@ -940,13 +940,13 @@ export default function PortfolioPage() {
               <div className="max-w-2xl mx-auto">
                 <div className="bg-jcoder-card rounded-2xl p-8">
                   <h3 className="text-2xl font-bold text-jcoder-foreground mb-6">
-                    Enviar uma Mensagem
+                    Send a Message
                   </h3>
                   <form className="space-y-6" onSubmit={handleMessageSubmit}>
                     <div className="grid md:grid-cols-2 gap-6">
                       <input
                         type="text"
-                        placeholder="Seu Nome"
+                        placeholder="Your Name"
                         value={messageForm.senderName}
                         onChange={(e) => setMessageForm({ ...messageForm, senderName: e.target.value })}
                         disabled={sendingMessage}
@@ -955,7 +955,7 @@ export default function PortfolioPage() {
                       />
                       <input
                         type="email"
-                        placeholder="Seu E-mail"
+                        placeholder="Your Email"
                         value={messageForm.senderEmail}
                         onChange={(e) => setMessageForm({ ...messageForm, senderEmail: e.target.value })}
                         disabled={sendingMessage}
@@ -964,7 +964,7 @@ export default function PortfolioPage() {
                       />
                     </div>
                     <textarea
-                      placeholder="Sua Mensagem"
+                      placeholder="Your Message"
                       rows={4}
                       value={messageForm.message}
                       onChange={(e) => setMessageForm({ ...messageForm, message: e.target.value })}
@@ -984,7 +984,7 @@ export default function PortfolioPage() {
                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                           </svg>
-                          Enviando...
+                          Sending...
                         </>
                       ) : (
                         <>
@@ -1002,7 +1002,7 @@ export default function PortfolioPage() {
                               d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
                             />
                           </svg>
-                          Enviar Mensagem
+                          Send Message
                         </>
                       )}
                     </button>
