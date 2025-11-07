@@ -1,7 +1,22 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsOptional, IsString, MinLength, IsUrl } from 'class-validator';
+import { IsEmail, IsOptional, IsString, MinLength, IsUrl, Matches } from 'class-validator';
 
 export class UpdateProfileDto {
+    @ApiProperty({
+        type: 'string',
+        required: false,
+        example: 'johndoe',
+        description: 'Unique username for login and portfolio URL',
+        minLength: 3,
+    })
+    @IsOptional()
+    @IsString()
+    @MinLength(3)
+    @Matches(/^[a-zA-Z0-9_-]+$/, {
+        message: 'Username must contain only letters, numbers, underscores, and hyphens',
+    })
+    declare username?: string;
+
     @ApiProperty({
         type: 'string',
         required: false,

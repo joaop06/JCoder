@@ -41,6 +41,7 @@ import { UserNotFoundException } from './exceptions/user-not-found.exception';
 import { PaginatedResponseDto, PaginationDto } from 'src/@common/dto/pagination.dto';
 import { UnauthorizedAccessException } from './exceptions/unauthorized-access.exception';
 import { EmailAlreadyExistsException } from './exceptions/email-already-exists.exception';
+import { UsernameAlreadyExistsException } from './exceptions/username-already-exists.exception';
 import { ApiTags, ApiOkResponse, ApiNoContentResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { InvalidCurrentPasswordException } from './exceptions/invalid-current-password.exception';
 import { UserComponentEducation } from './user-components/entities/user-component-education.entity';
@@ -101,7 +102,7 @@ export class UsersController {
     @UseGuards(JwtAuthGuard, OwnerGuard)
     @HttpCode(HttpStatus.OK)
     @ApiOkResponse({ type: () => User })
-    @ApiExceptionResponse(() => [UserNotFoundException, InvalidCurrentPasswordException, EmailAlreadyExistsException, UnauthorizedAccessException])
+    @ApiExceptionResponse(() => [UserNotFoundException, InvalidCurrentPasswordException, EmailAlreadyExistsException, UsernameAlreadyExistsException, UnauthorizedAccessException])
     async updateProfile(
         @Param('username') username: string,
         @Body() updateProfileDto: UpdateProfileDto,

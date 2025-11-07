@@ -4,6 +4,7 @@ import { User } from "../entities/user.entity";
 import { UsersService } from "../users.service";
 import { UpdateProfileDto } from "../dto/update-profile.dto";
 import { EmailAlreadyExistsException } from "../exceptions/email-already-exists.exception";
+import { UsernameAlreadyExistsException } from "../exceptions/username-already-exists.exception";
 import { InvalidCurrentPasswordException } from "../exceptions/invalid-current-password.exception";
 
 @Injectable()
@@ -29,6 +30,15 @@ export class UpdateProfileUseCase {
             // Hash the new password
             const hashedPassword = await bcrypt.hash(updateProfileDto.newPassword, 10);
             user.password = hashedPassword;
+        }
+
+        // Check if username is being changed and if it's already in use
+        if (updateProfileDto.username && updateProfileDto.username !== user.username) {
+            const usernameExists = await this.usersService.existsBy({ username: updateProfileDto.username });
+            if (usernameExists) {
+                throw new UsernameAlreadyExistsException();
+            }
+            user.username = updateProfileDto.username;
         }
 
         // Check if email is being changed and if it's already in use

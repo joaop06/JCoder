@@ -94,7 +94,7 @@ AxiosInstance.interceptors.response.use(
     (error) => {
         // Log errors in development
         if (process.env.NODE_ENV === 'development') {
-            console.error(`❌ ${error.config?.method?.toUpperCase()} ${error.config?.url} - ${error.response?.status || 'Network Error'}`);
+            console.error(`❌ ${error?.config?.method?.toUpperCase()} ${error?.config?.url} - ${error?.response?.status || 'Network Error'}`);
         }
 
         if (error.response?.status === 401) {

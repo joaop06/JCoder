@@ -13,7 +13,7 @@ import Footer from '@/components/Footer';
 import Header from '@/components/Header';
 import { useRouter } from 'next/navigation';
 import { TableSkeleton } from '@/components/ui';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { InfoField } from '@/components/profile/InfoField';
 import { StatsCard } from '@/components/profile/StatsCard';
 import { useToast } from '@/components/toast/ToastContext';
@@ -22,6 +22,7 @@ import { TimelineItem } from '@/components/profile/TimelineItem';
 import { UsersService } from '@/services/administration-by-user/users.service';
 import { ImagesService } from '@/services/administration-by-user/images.service';
 import { ProfileImageUploader } from '@/components/profile/ProfileImageUploader';
+import { PortfolioViewService } from '@/services/portfolio-view/portfolio-view.service';
 
 export default function ProfileManagementPage() {
     const toast = useToast();
@@ -51,8 +52,28 @@ export default function ProfileManagementPage() {
     const [editingCertificateId, setEditingCertificateId] = useState<number | null>(null);
     const [isSaving, setIsSaving] = useState(false);
 
+    // Username availability check
+    const [usernameStatus, setUsernameStatus] = useState<{
+        checking: boolean;
+        available: boolean | null;
+    }>({ checking: false, available: null });
+    const usernameDebounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    // Email availability and verification
+    const [emailStatus, setEmailStatus] = useState<{
+        checking: boolean;
+        available: boolean | null;
+    }>({ checking: false, available: null });
+    const [verificationCode, setVerificationCode] = useState('');
+    const [isEmailVerified, setIsEmailVerified] = useState(false);
+    const [isSendingCode, setIsSendingCode] = useState(false);
+    const [isVerifyingCode, setIsVerifyingCode] = useState(false);
+    const [codeSent, setCodeSent] = useState(false);
+    const emailDebounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
     // Form data
     const [basicInfoForm, setBasicInfoForm] = useState({
+        username: '',
         firstName: '',
         fullName: '',
         email: '',
@@ -127,6 +148,7 @@ export default function ProfileManagementPage() {
             }
             setUser(userSession.user);
             setBasicInfoForm({
+                username: userSession.user.username || '',
                 firstName: userSession.user.firstName || '',
                 fullName: userSession.user.fullName || '',
                 email: userSession.user.email || '',
@@ -172,10 +194,164 @@ export default function ProfileManagementPage() {
         loadUserProfile();
     }, [isAuthenticated, loadUserProfile]);
 
+    // Verificação em tempo real da disponibilidade do username
+    useEffect(() => {
+        if (!isEditingBasicInfo) {
+            setUsernameStatus({ checking: false, available: null });
+            return;
+        }
+
+        if (usernameDebounceTimeoutRef.current) {
+            clearTimeout(usernameDebounceTimeoutRef.current);
+        }
+
+        const usernameTrimmed = basicInfoForm.username.trim();
+        const originalUsername = user?.username || '';
+
+        // Se o username não mudou, não precisa verificar
+        if (usernameTrimmed === originalUsername) {
+            setUsernameStatus({ checking: false, available: true });
+            return;
+        }
+
+        if (!usernameTrimmed || usernameTrimmed.length < 3) {
+            setUsernameStatus({ checking: false, available: null });
+            return;
+        }
+
+        if (!/^[a-zA-Z0-9_-]+$/.test(usernameTrimmed)) {
+            setUsernameStatus({ checking: false, available: null });
+            return;
+        }
+
+        setUsernameStatus({ checking: true, available: null });
+        usernameDebounceTimeoutRef.current = setTimeout(async () => {
+            try {
+                const result = await PortfolioViewService.checkUsernameAvailability(usernameTrimmed);
+                setUsernameStatus({ checking: false, available: result.available });
+            } catch (error) {
+                setUsernameStatus({ checking: false, available: null });
+            }
+        }, 500);
+
+        return () => {
+            if (usernameDebounceTimeoutRef.current) {
+                clearTimeout(usernameDebounceTimeoutRef.current);
+            }
+        };
+    }, [basicInfoForm.username, isEditingBasicInfo, user?.username]);
+
+    // Verificação em tempo real da disponibilidade do email
+    useEffect(() => {
+        if (!isEditingBasicInfo) {
+            setEmailStatus({ checking: false, available: null });
+            setIsEmailVerified(false);
+            setCodeSent(false);
+            setVerificationCode('');
+            return;
+        }
+
+        if (emailDebounceTimeoutRef.current) {
+            clearTimeout(emailDebounceTimeoutRef.current);
+        }
+
+        const emailTrimmed = (basicInfoForm.email || '').trim();
+        const originalEmail = (user?.email || '').trim();
+
+        // Se o email não mudou, não precisa verificar
+        if (emailTrimmed === originalEmail && emailTrimmed !== '') {
+            setEmailStatus({ checking: false, available: true });
+            setIsEmailVerified(true);
+            setCodeSent(false);
+            setVerificationCode('');
+            return;
+        }
+
+        if (!emailTrimmed || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailTrimmed)) {
+            setEmailStatus({ checking: false, available: null });
+            setIsEmailVerified(false);
+            setCodeSent(false);
+            setVerificationCode('');
+            return;
+        }
+
+        setEmailStatus({ checking: true, available: null });
+        setIsEmailVerified(false);
+        setCodeSent(false);
+        setVerificationCode('');
+        emailDebounceTimeoutRef.current = setTimeout(async () => {
+            try {
+                const result = await PortfolioViewService.checkEmailAvailability(emailTrimmed);
+                setEmailStatus({ checking: false, available: result.available });
+            } catch (error) {
+                setEmailStatus({ checking: false, available: null });
+            }
+        }, 500);
+
+        return () => {
+            if (emailDebounceTimeoutRef.current) {
+                clearTimeout(emailDebounceTimeoutRef.current);
+            }
+        };
+    }, [basicInfoForm.email, isEditingBasicInfo, user?.email]);
+
     const handleBasicInfoInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         setBasicInfoForm(prev => ({ ...prev, [name]: value }));
     }, []);
+
+    const handleSendVerificationCode = useCallback(async () => {
+        if (!basicInfoForm.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(basicInfoForm.email)) {
+            toast.error('Por favor, insira um email válido');
+            return;
+        }
+
+        if (emailStatus.available !== true) {
+            toast.error('Este email já está em uso. Por favor, use outro email.');
+            return;
+        }
+
+        setIsSendingCode(true);
+        try {
+            await PortfolioViewService.sendEmailVerification(basicInfoForm.email);
+            setCodeSent(true);
+            setIsEmailVerified(false);
+            setVerificationCode('');
+            toast.success('Código de verificação enviado! Verifique sua caixa de entrada.');
+        } catch (err: any) {
+            const apiMessage =
+                err?.response?.data?.message ||
+                err?.message ||
+                'Falha ao enviar código de verificação. Tente novamente.';
+            toast.error(apiMessage);
+        } finally {
+            setIsSendingCode(false);
+        }
+    }, [basicInfoForm.email, emailStatus, toast]);
+
+    const handleVerifyCode = useCallback(async () => {
+        if (!verificationCode || verificationCode.length !== 6) {
+            toast.error('Por favor, insira o código de 6 dígitos');
+            return;
+        }
+
+        setIsVerifyingCode(true);
+        try {
+            const result = await PortfolioViewService.verifyEmailCode(basicInfoForm.email, verificationCode);
+            if (result.verified) {
+                setIsEmailVerified(true);
+                toast.success('Email verificado com sucesso!');
+            }
+        } catch (err: any) {
+            const apiMessage =
+                err?.response?.data?.message ||
+                err?.message ||
+                'Código inválido ou expirado. Tente novamente.';
+            toast.error(apiMessage);
+        } finally {
+            setIsVerifyingCode(false);
+        }
+    }, [basicInfoForm.email, verificationCode, toast]);
 
     const handleAboutMeInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
@@ -184,6 +360,40 @@ export default function ProfileManagementPage() {
 
     const handleSaveBasicInfo = useCallback(async () => {
         if (!user) return;
+
+        // Validate username if changed
+        const usernameChanged = basicInfoForm.username.trim() !== (user.username || '');
+        if (usernameChanged) {
+            if (!basicInfoForm.username.trim() || basicInfoForm.username.trim().length < 3) {
+                toast.error('Username deve ter pelo menos 3 caracteres');
+                return;
+            }
+            if (!/^[a-zA-Z0-9_-]+$/.test(basicInfoForm.username.trim())) {
+                toast.error('Username pode conter apenas letras, números, underscores e hífens');
+                return;
+            }
+            if (usernameStatus.available !== true) {
+                toast.error('Por favor, escolha um username disponível');
+                return;
+            }
+        }
+
+        // Validate email if changed
+        const emailChanged = basicInfoForm.email.trim() !== (user.email || '');
+        if (emailChanged) {
+            if (!basicInfoForm.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(basicInfoForm.email.trim())) {
+                toast.error('Por favor, insira um email válido');
+                return;
+            }
+            if (emailStatus.available !== true) {
+                toast.error('Por favor, use um email disponível');
+                return;
+            }
+            if (!isEmailVerified) {
+                toast.error('Por favor, verifique seu email antes de salvar');
+                return;
+            }
+        }
 
         // Validate password change if attempting to change password
         if (basicInfoForm.newPassword) {
@@ -212,10 +422,19 @@ export default function ProfileManagementPage() {
             const updateData: any = {
                 firstName: basicInfoForm.firstName,
                 fullName: basicInfoForm.fullName,
-                email: basicInfoForm.email,
                 githubUrl: basicInfoForm.githubUrl || undefined,
                 linkedinUrl: basicInfoForm.linkedinUrl || undefined,
             };
+
+            // Only include username if it changed
+            if (usernameChanged) {
+                updateData.username = basicInfoForm.username.trim();
+            }
+
+            // Only include email if it changed
+            if (emailChanged) {
+                updateData.email = basicInfoForm.email.trim();
+            }
 
             if (basicInfoForm.newPassword) {
                 updateData.currentPassword = basicInfoForm.currentPassword;
@@ -226,8 +445,16 @@ export default function ProfileManagementPage() {
             setUser(updatedUser);
             setIsEditingBasicInfo(false);
 
+            // Reset verification states
+            setUsernameStatus({ checking: false, available: null });
+            setEmailStatus({ checking: false, available: null });
+            setIsEmailVerified(false);
+            setCodeSent(false);
+            setVerificationCode('');
+
             // Update form with new values and clear password fields
             setBasicInfoForm({
+                username: updatedUser.username || '',
                 firstName: updatedUser.firstName || '',
                 fullName: updatedUser.fullName || '',
                 email: updatedUser.email || '',
@@ -238,13 +465,22 @@ export default function ProfileManagementPage() {
                 confirmPassword: '',
             });
 
-            toast.success('Profile updated successfully!');
+            // If username changed, update localStorage and redirect
+            if (usernameChanged && updatedUser.username) {
+                localStorage.setItem('user', JSON.stringify(updatedUser));
+                toast.success('Perfil atualizado com sucesso! Redirecionando...');
+                setTimeout(() => {
+                    router.push(`/${updatedUser.username}/admin/profile`);
+                }, 1500);
+            } else {
+                toast.success('Perfil atualizado com sucesso!');
+            }
         } catch (err: any) {
             toast.error(err.message || 'Failed to update profile. Please try again.');
         } finally {
             setIsSaving(false);
         }
-    }, [user, basicInfoForm, toast]);
+    }, [user, basicInfoForm, usernameStatus, emailStatus, isEmailVerified, toast, handleLogout, router]);
 
     const handleSaveAboutMe = useCallback(async () => {
         // Validate highlights
@@ -279,6 +515,7 @@ export default function ProfileManagementPage() {
     const handleCancelBasicInfo = useCallback(() => {
         if (user) {
             setBasicInfoForm({
+                username: user.username || '',
                 firstName: user.firstName || '',
                 fullName: user.fullName || '',
                 email: user.email || '',
@@ -290,6 +527,11 @@ export default function ProfileManagementPage() {
             });
         }
         setIsEditingBasicInfo(false);
+        setUsernameStatus({ checking: false, available: null });
+        setEmailStatus({ checking: false, available: null });
+        setIsEmailVerified(false);
+        setCodeSent(false);
+        setVerificationCode('');
     }, [user]);
 
     const handleCancelAboutMe = useCallback(() => {
@@ -1088,6 +1330,58 @@ export default function ProfileManagementPage() {
                                 <div className="space-y-4">
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
+                                            <label className="block text-sm font-medium text-jcoder-muted mb-2">Username</label>
+                                            <div className="relative">
+                                                <input
+                                                    type="text"
+                                                    name="username"
+                                                    value={basicInfoForm.username}
+                                                    onChange={handleBasicInfoInputChange}
+                                                    placeholder="johndoe"
+                                                    className={`w-full px-4 py-2 pr-10 bg-jcoder-secondary border rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none ${
+                                                        basicInfoForm.username.trim() !== (user?.username || '') && basicInfoForm.username.trim().length >= 3
+                                                            ? usernameStatus.available === true
+                                                                ? 'border-green-400'
+                                                                : usernameStatus.available === false
+                                                                ? 'border-red-400'
+                                                                : 'border-jcoder'
+                                                            : 'border-jcoder'
+                                                    }`}
+                                                />
+                                                {basicInfoForm.username.trim() !== (user?.username || '') && basicInfoForm.username.trim().length >= 3 && (
+                                                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                                                        {usernameStatus.checking ? (
+                                                            <svg className="animate-spin h-5 w-5 text-jcoder-muted" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                            </svg>
+                                                        ) : usernameStatus.available === true ? (
+                                                            <svg className="h-5 w-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                                            </svg>
+                                                        ) : usernameStatus.available === false ? (
+                                                            <svg className="h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                                            </svg>
+                                                        ) : null}
+                                                    </div>
+                                                )}
+                                            </div>
+                                            {basicInfoForm.username.trim() !== (user?.username || '') && (
+                                                <>
+                                                    {usernameStatus.available === true && basicInfoForm.username.trim().length >= 3 && (
+                                                        <p className="mt-1 text-sm text-green-400">Username disponível!</p>
+                                                    )}
+                                                    {usernameStatus.available === false && (
+                                                        <p className="mt-1 text-sm text-red-400">Este username já está em uso</p>
+                                                    )}
+                                                    <p className="mt-1 text-xs text-jcoder-muted">
+                                                        Mínimo de 3 caracteres. Apenas letras, números, underscores e hífens.
+                                                    </p>
+                                                </>
+                                            )}
+                                        </div>
+                                        <div>
                                             <label className="block text-sm font-medium text-jcoder-muted mb-2">First Name</label>
                                             <input
                                                 type="text"
@@ -1109,13 +1403,121 @@ export default function ProfileManagementPage() {
                                         </div>
                                         <div>
                                             <label className="block text-sm font-medium text-jcoder-muted mb-2">Email</label>
-                                            <input
-                                                type="email"
-                                                name="email"
-                                                value={basicInfoForm.email}
-                                                onChange={handleBasicInfoInputChange}
-                                                className="w-full px-4 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none"
-                                            />
+                                            <div className="relative">
+                                                <input
+                                                    type="email"
+                                                    name="email"
+                                                    value={basicInfoForm.email || ''}
+                                                    onChange={handleBasicInfoInputChange}
+                                                    className={`w-full px-4 py-2 pr-10 bg-jcoder-secondary border rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none ${
+                                                        basicInfoForm.email.trim() !== (user?.email || '') && basicInfoForm.email.trim()
+                                                            ? emailStatus.available === true
+                                                                ? 'border-green-400'
+                                                                : emailStatus.available === false
+                                                                ? 'border-red-400'
+                                                                : 'border-jcoder'
+                                                            : 'border-jcoder'
+                                                    }`}
+                                                />
+                                                {basicInfoForm.email.trim() !== (user?.email || '') && basicInfoForm.email.trim() && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(basicInfoForm.email.trim()) && (
+                                                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                                                        {emailStatus.checking ? (
+                                                            <svg className="animate-spin h-5 w-5 text-jcoder-muted" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                            </svg>
+                                                        ) : emailStatus.available === true ? (
+                                                            <svg className="h-5 w-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                                            </svg>
+                                                        ) : emailStatus.available === false ? (
+                                                            <svg className="h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                                            </svg>
+                                                        ) : null}
+                                                    </div>
+                                                )}
+                                                {isEmailVerified && basicInfoForm.email.trim() === (user?.email || '') && (
+                                                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                                                        <svg className="h-5 w-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                                        </svg>
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div className="min-h-[60px]">
+                                                {basicInfoForm.email.trim() !== (user?.email || '') && (
+                                                    <>
+                                                        {emailStatus.available === true && basicInfoForm.email.trim() && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(basicInfoForm.email.trim()) && (
+                                                            <p className="mt-1 text-sm text-green-400">Email disponível!</p>
+                                                        )}
+                                                        {emailStatus.available === false && (
+                                                            <p className="mt-1 text-sm text-red-400">Este email já está em uso</p>
+                                                        )}
+                                                    </>
+                                                )}
+                                                {isEmailVerified && basicInfoForm.email.trim() === (user?.email || '') && (
+                                                    <p className="mt-1 text-sm text-green-400">Email verificado</p>
+                                                )}
+
+                                                {/* Email Verification Section - Compact */}
+                                                {basicInfoForm.email.trim() !== (user?.email || '') && emailStatus.available === true && (
+                                                    <div className="mt-3 space-y-2">
+                                                        {!isEmailVerified && (
+                                                            <>
+                                                                {!codeSent ? (
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={handleSendVerificationCode}
+                                                                        disabled={isSendingCode || emailStatus.available !== true}
+                                                                        className="text-sm px-3 py-1.5 bg-jcoder-primary/10 text-jcoder-primary rounded-lg hover:bg-jcoder-primary/20 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                                                                    >
+                                                                        {isSendingCode ? 'Enviando...' : 'Enviar código'}
+                                                                    </button>
+                                                                ) : (
+                                                                    <div className="space-y-2">
+                                                                        <div className="flex gap-2 items-center">
+                                                                            <input
+                                                                                type="text"
+                                                                                value={verificationCode}
+                                                                                onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, ''))}
+                                                                                placeholder="000000"
+                                                                                maxLength={6}
+                                                                                disabled={isVerifyingCode || isEmailVerified}
+                                                                                className="w-36 px-3 py-1.5 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none disabled:opacity-60 text-center text-lg tracking-widest"
+                                                                            />
+                                                                            <button
+                                                                                type="button"
+                                                                                onClick={handleVerifyCode}
+                                                                                disabled={isVerifyingCode || verificationCode.length !== 6 || isEmailVerified}
+                                                                                className="px-3 py-1.5 bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                                                                            >
+                                                                                {isVerifyingCode ? 'Verificando...' : 'Verificar'}
+                                                                            </button>
+                                                                            <button
+                                                                                type="button"
+                                                                                onClick={handleSendVerificationCode}
+                                                                                disabled={isSendingCode}
+                                                                                className="text-xs text-jcoder-primary hover:text-jcoder-accent transition-colors disabled:opacity-50"
+                                                                            >
+                                                                                {isSendingCode ? 'Enviando...' : 'Reenviar'}
+                                                                            </button>
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+                                                            </>
+                                                        )}
+                                                        {isEmailVerified && (
+                                                            <div className="flex items-center gap-1.5 text-xs text-green-400">
+                                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                                                </svg>
+                                                                <span>Email verificado</span>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
                                         <div>
                                             <label className="block text-sm font-medium text-jcoder-muted mb-2">GitHub URL</label>
@@ -1198,6 +1600,11 @@ export default function ProfileManagementPage() {
                                 </div>
                             ) : (
                                 <div className="space-y-2">
+                                    <InfoField
+                                        label="Username"
+                                        value={user?.username}
+                                        icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>}
+                                    />
                                     <InfoField
                                         label="First Name"
                                         value={user?.firstName}
