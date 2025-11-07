@@ -253,23 +253,21 @@ export default function Header({
   }, [isProfileDropdownOpen]);
 
 
-  // Logo component - Memoized
+  // Logo component - Memoized with stable image to prevent flickering
   const Logo = memo(() => (
     <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-      <LazyImage
+      <img
         src="/images/jcoder-logo.png"
         alt="JCoder"
-        fallback="JC"
-        size="custom"
-        width="w-10"
-        height="h-10"
-        rounded="rounded-lg"
-        showSkeleton={false}
-        rootMargin="0px"
+        className="w-10 h-10 rounded-lg object-contain flex-shrink-0"
+        loading="eager"
+        decoding="async"
       />
       <span className="text-xl font-semibold text-jcoder-foreground">JCoder</span>
     </Link>
   ));
+  
+  Logo.displayName = 'Logo';
 
   // Profile section for desktop
   const DesktopProfileSection = () => (

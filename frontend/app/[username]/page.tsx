@@ -12,7 +12,7 @@ import {
 } from '@/types';
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
-import { useEffect, useState, useMemo, Suspense } from 'react';
+import { useEffect, useState, useMemo, Suspense, useRef, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import { Canvas } from '@react-three/fiber';
 import { GitHubIcon } from '@/components/theme';
@@ -63,6 +63,10 @@ export default function PortfolioPage() {
   const [windowSize, setWindowSize] = useState({ width: 1920, height: 1080 });
   const [isVisible, setIsVisible] = useState(false);
 
+  // Refs for mouse position throttling
+  const mousePositionRef = useRef({ x: 0, y: 0 });
+  const rafRef = useRef<number | null>(null);
+
   const toast = useToast();
   const { scrollToElement } = useSmoothScroll();
 
@@ -80,10 +84,25 @@ export default function PortfolioPage() {
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
-      setMousePosition({ x: e.clientX, y: e.clientY });
+      // Update ref immediately
+      mousePositionRef.current = { x: e.clientX, y: e.clientY };
+      
+      // Throttle state updates using requestAnimationFrame
+      if (rafRef.current === null) {
+        rafRef.current = requestAnimationFrame(() => {
+          setMousePosition(mousePositionRef.current);
+          rafRef.current = null;
+        });
+      }
     };
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
+    
+    window.addEventListener('mousemove', handleMouseMove, { passive: true });
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      if (rafRef.current !== null) {
+        cancelAnimationFrame(rafRef.current);
+      }
+    };
   }, []);
 
   // Get username from URL params
@@ -501,9 +520,24 @@ export default function PortfolioPage() {
             </div>
 
             {/* Main Title */}
-            <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-jcoder-cyan via-jcoder-primary to-jcoder-blue">
-              <span>
-                {user?.fullName || user?.firstName || username}
+            <h1 className="text-5xl md:text-7xl font-bold mb-6">
+              <span className="relative inline-block">
+                {/* Texto base visível como fallback */}
+                <span className="text-jcoder-foreground opacity-100">
+                  {user?.fullName || user?.firstName || username}
+                </span>
+                {/* Gradiente por cima */}
+                <span 
+                  className="absolute inset-0 inline-block"
+                  style={{
+                    background: 'linear-gradient(to right, #00c8ff, #00c8ff, #0050a0)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text',
+                  }}
+                >
+                  {user?.fullName || user?.firstName || username}
+                </span>
               </span>
             </h1>
 
