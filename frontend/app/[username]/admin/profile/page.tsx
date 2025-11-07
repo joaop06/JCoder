@@ -1210,7 +1210,7 @@ export default function ProfileManagementPage() {
                         <TableSkeleton />
                     </div>
                 </main>
-                <Footer />
+                <Footer user={user} username={user?.username} />
             </div>
         );
     }
@@ -2457,7 +2457,7 @@ export default function ProfileManagementPage() {
                 </div>
             </main>
 
-            <Footer />
+            <Footer user={user} username={user?.username} />
         </div>
     );
 }

@@ -7,6 +7,7 @@ import { useToast } from '@/components/toast/ToastContext';
 import { PaginationDto } from '@/types/api/pagination.dto';
 import { useState, useEffect, useMemo, useCallback, memo } from 'react';
 import { Application } from '@/types/api/applications/application.entity';
+import { User } from '@/types/api/users/user.entity';
 import { LazyImage, TableSkeleton, ManagementTable } from '@/components/ui';
 import { UsersService } from '@/services/administration-by-user/users.service';
 import { ImagesService } from '@/services/administration-by-user/images.service';
@@ -307,6 +308,7 @@ export default function ApplicationsManagementPage() {
     const [checkingAuth, setCheckingAuth] = useState(true);
     const [fetchError, setFetchError] = useState<string | null>(null);
     const [applications, setApplications] = useState<Application[]>([]);
+    const [user, setUser] = useState<User | null>(null);
     const [pagination, setPagination] = useState<PaginationDto>({
         page: 1,
         limit: 10,
@@ -336,9 +338,33 @@ export default function ApplicationsManagementPage() {
             router.push('/sign-in');
             return;
         }
+
+        // Load user profile data for footer
+        const loadUserProfile = async () => {
+            try {
+                if (username) {
+                    const userProfile = await UsersService.getProfile(username);
+                    setUser(userProfile);
+                } else {
+                    const userSession = UsersService.getUserSession();
+                    if (userSession?.user) {
+                        setUser(userSession.user);
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading user profile:', error);
+                // Fallback to session data if API call fails
+                const userSession = UsersService.getUserSession();
+                if (userSession?.user) {
+                    setUser(userSession.user);
+                }
+            }
+        };
+
         setIsAuthenticated(true);
         setCheckingAuth(false);
-    }, [router]);
+        loadUserProfile();
+    }, [router, username]);
 
     const fetchStats = useCallback(async () => {
         try {
@@ -606,7 +632,7 @@ export default function ApplicationsManagementPage() {
                         </div>
                     </div>
                 </main>
-                <Footer />
+                <Footer user={user} username={username || user?.username} />
             </div>
         );
     }
@@ -774,7 +800,7 @@ export default function ApplicationsManagementPage() {
                 </div>
             </main>
 
-            <Footer />
+            <Footer user={user} username={username || user?.username} />
         </div>
     );
 }

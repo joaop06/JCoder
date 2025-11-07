@@ -14,6 +14,7 @@ import { ImagesService } from '@/services/administration-by-user/images.service'
 import { ApplicationService } from '@/services/administration-by-user/applications.service';
 import { CreateApplicationDto } from '@/types/api/applications/dtos/create-application.dto';
 import { MobilePlatformEnum } from '@/types';
+import { User } from '@/types/api/users/user.entity';
 
 export default function NewApplicationPage() {
     const router = useRouter();
@@ -28,6 +29,7 @@ export default function NewApplicationPage() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [checkingAuth, setCheckingAuth] = useState(true);
     const [formError, setFormError] = useState<string | null>(null);
+    const [user, setUser] = useState<User | null>(null);
     const isSubmittingRef = useRef(false);
     const [formData, setFormData] = useState<Omit<CreateApplicationDto, 'userId'>>({
         name: '',
@@ -47,9 +49,33 @@ export default function NewApplicationPage() {
             router.push('/sign-in');
             return;
         }
+
+        // Load user profile data for footer
+        const loadUserProfile = async () => {
+            try {
+                if (username) {
+                    const userProfile = await UsersService.getProfile(username);
+                    setUser(userProfile);
+                } else {
+                    const userSession = UsersService.getUserSession();
+                    if (userSession?.user) {
+                        setUser(userSession.user);
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading user profile:', error);
+                // Fallback to session data if API call fails
+                const userSession = UsersService.getUserSession();
+                if (userSession?.user) {
+                    setUser(userSession.user);
+                }
+            }
+        };
+
         setIsAuthenticated(true);
         setCheckingAuth(false);
-    }, [router]);
+        loadUserProfile();
+    }, [router, username]);
 
     // Initialize component objects when application type changes
     useEffect(() => {
@@ -306,7 +332,7 @@ export default function NewApplicationPage() {
                         </div>
                     </div>
                 </main>
-                <Footer />
+                <Footer user={user} username={username || user?.username} />
             </div>
         );
     }
@@ -748,7 +774,7 @@ export default function NewApplicationPage() {
                 </div>
             </main>
 
-            <Footer />
+            <Footer user={user} username={username || user?.username} />
         </div>
     );
 };
