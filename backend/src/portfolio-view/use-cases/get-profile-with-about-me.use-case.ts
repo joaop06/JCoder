@@ -26,24 +26,32 @@ export class GetProfileWithAboutMeUseCase {
         const user = await this.cacheService.getOrSet(
             cacheKey,
             async () => {
-                const user = await this.userRepository.findOne({
-                    where: { username },
-                    relations: ['userComponentAboutMe', 'userComponentAboutMe.highlights'],
-                    select: {
-                        username: true,
-                        firstName: true,
-                        fullName: true,
-                        email: true,
-                        githubUrl: true,
-                        linkedinUrl: true,
-                        profileImage: true,
-                        createdAt: true,
-                        updatedAt: true,
-                        userComponentAboutMe: {
-                            highlights: true,
-                        },
-                    },
-                });
+                const user = await this.userRepository
+                    .createQueryBuilder('user')
+                    .where('user.username = :username', { username })
+                    .leftJoinAndSelect('user.userComponentAboutMe', 'aboutMe')
+                    .leftJoinAndSelect('aboutMe.highlights', 'highlights')
+                    .select([
+                        'user.username',
+                        'user.firstName',
+                        'user.fullName',
+                        'user.email',
+                        'user.githubUrl',
+                        'user.linkedinUrl',
+                        'user.profileImage',
+                        'user.createdAt',
+                        'user.updatedAt',
+                        'aboutMe.id',
+                        'aboutMe.userId',
+                        'aboutMe.occupation',
+                        'aboutMe.description',
+                        'highlights.id',
+                        'highlights.aboutMeId',
+                        'highlights.title',
+                        'highlights.subtitle',
+                        'highlights.emoji',
+                    ])
+                    .getOne();
 
                 if (!user) throw new UserNotFoundException();
 
