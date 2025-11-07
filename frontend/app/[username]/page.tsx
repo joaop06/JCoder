@@ -47,6 +47,14 @@ export default function PortfolioPage() {
   const [userNotFound, setUserNotFound] = useState(false);
   const [checkingUser, setCheckingUser] = useState(true);
 
+  // Message form states
+  const [messageForm, setMessageForm] = useState({
+    senderName: '',
+    senderEmail: '',
+    message: '',
+  });
+  const [sendingMessage, setSendingMessage] = useState(false);
+
   const toast = useToast();
   const { scrollToElement } = useSmoothScroll();
 
@@ -231,6 +239,58 @@ export default function PortfolioPage() {
       toast.error('Failed to generate resume. Please try again.');
     } finally {
       setGeneratingPDF(false);
+    }
+  };
+
+  const handleMessageSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    
+    // Validação básica
+    if (!messageForm.senderName.trim()) {
+      toast.error('Por favor, informe seu nome.');
+      return;
+    }
+    
+    if (!messageForm.senderEmail.trim()) {
+      toast.error('Por favor, informe seu e-mail.');
+      return;
+    }
+    
+    // Validação de e-mail simples
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(messageForm.senderEmail)) {
+      toast.error('Por favor, informe um e-mail válido.');
+      return;
+    }
+    
+    if (!messageForm.message.trim()) {
+      toast.error('Por favor, escreva uma mensagem.');
+      return;
+    }
+
+    setSendingMessage(true);
+    try {
+      await PortfolioViewService.createMessage(username, {
+        senderName: messageForm.senderName.trim(),
+        senderEmail: messageForm.senderEmail.trim(),
+        message: messageForm.message.trim(),
+      });
+      
+      toast.success('Mensagem enviada com sucesso!');
+      // Limpar formulário
+      setMessageForm({
+        senderName: '',
+        senderEmail: '',
+        message: '',
+      });
+    } catch (error: any) {
+      console.error('Erro ao enviar mensagem:', error);
+      const errorMessage = error.response?.data?.message || 
+                          error.message || 
+                          'Falha ao enviar mensagem. Por favor, tente novamente.';
+      toast.error(errorMessage);
+    } finally {
+      setSendingMessage(false);
     }
   };
 
@@ -880,31 +940,71 @@ export default function PortfolioPage() {
               <div className="max-w-2xl mx-auto">
                 <div className="bg-jcoder-card rounded-2xl p-8">
                   <h3 className="text-2xl font-bold text-jcoder-foreground mb-6">
-                    Send a Message
+                    Enviar uma Mensagem
                   </h3>
-                  <form className="space-y-6">
+                  <form className="space-y-6" onSubmit={handleMessageSubmit}>
                     <div className="grid md:grid-cols-2 gap-6">
                       <input
                         type="text"
-                        placeholder="Your Name"
-                        className="w-full px-4 py-3 bg-jcoder-secondary border border-jcoder rounded-lg focus:outline-none focus:ring-2 focus:ring-jcoder-primary text-jcoder-foreground placeholder-jcoder-muted"
+                        placeholder="Seu Nome"
+                        value={messageForm.senderName}
+                        onChange={(e) => setMessageForm({ ...messageForm, senderName: e.target.value })}
+                        disabled={sendingMessage}
+                        required
+                        className="w-full px-4 py-3 bg-jcoder-secondary border border-jcoder rounded-lg focus:outline-none focus:ring-2 focus:ring-jcoder-primary text-jcoder-foreground placeholder-jcoder-muted disabled:opacity-50 disabled:cursor-not-allowed"
                       />
                       <input
                         type="email"
-                        placeholder="Your Email"
-                        className="w-full px-4 py-3 bg-jcoder-secondary border border-jcoder rounded-lg focus:outline-none focus:ring-2 focus:ring-jcoder-primary text-jcoder-foreground placeholder-jcoder-muted"
+                        placeholder="Seu E-mail"
+                        value={messageForm.senderEmail}
+                        onChange={(e) => setMessageForm({ ...messageForm, senderEmail: e.target.value })}
+                        disabled={sendingMessage}
+                        required
+                        className="w-full px-4 py-3 bg-jcoder-secondary border border-jcoder rounded-lg focus:outline-none focus:ring-2 focus:ring-jcoder-primary text-jcoder-foreground placeholder-jcoder-muted disabled:opacity-50 disabled:cursor-not-allowed"
                       />
                     </div>
                     <textarea
-                      placeholder="Your Message"
+                      placeholder="Sua Mensagem"
                       rows={4}
-                      className="w-full px-4 py-3 bg-jcoder-secondary border border-jcoder rounded-lg focus:outline-none focus:ring-2 focus:ring-jcoder-primary text-jcoder-foreground placeholder-jcoder-muted resize-none"
+                      value={messageForm.message}
+                      onChange={(e) => setMessageForm({ ...messageForm, message: e.target.value })}
+                      disabled={sendingMessage}
+                      required
+                      maxLength={5000}
+                      className="w-full px-4 py-3 bg-jcoder-secondary border border-jcoder rounded-lg focus:outline-none focus:ring-2 focus:ring-jcoder-primary text-jcoder-foreground placeholder-jcoder-muted resize-none disabled:opacity-50 disabled:cursor-not-allowed"
                     ></textarea>
                     <button
                       type="submit"
-                      className="w-full px-8 py-4 bg-jcoder-gradient text-black font-semibold rounded-lg hover:shadow-jcoder-primary transition-all duration-300 transform hover:scale-105"
+                      disabled={sendingMessage}
+                      className="w-full px-8 py-4 bg-jcoder-gradient text-black font-semibold rounded-lg hover:shadow-jcoder-primary transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2"
                     >
-                      Send Message
+                      {sendingMessage ? (
+                        <>
+                          <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          Enviando...
+                        </>
+                      ) : (
+                        <>
+                          <svg
+                            className="w-5 h-5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
+                            />
+                          </svg>
+                          Enviar Mensagem
+                        </>
+                      )}
                     </button>
                   </form>
                 </div>

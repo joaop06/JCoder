@@ -160,4 +160,24 @@ export const PortfolioViewService = {
             throw error;
         }
     },
+
+    /**
+     * Envia uma mensagem ao administrador do portfólio
+     * Endpoint público para usuários comuns enviarem mensagens
+     * POST /portfolio/:username/messages
+     */
+    async createMessage(
+        username: string,
+        data: {
+            senderName: string;
+            senderEmail: string;
+            message: string;
+        }
+    ): Promise<void> {
+        try {
+            await ApiService.post(`/portfolio/${username}/messages`, data);
+        } catch (error) {
+            throw error;
+        }
+    },
 };
