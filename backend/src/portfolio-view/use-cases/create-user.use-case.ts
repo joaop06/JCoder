@@ -2,22 +2,25 @@ import * as bcrypt from 'bcrypt';
 import { Repository } from 'typeorm';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CreateUserDto } from './dto/create-user.dto';
+import { CreateUserDto } from '../dto/create-user.dto';
 import { User } from '../../administration-by-user/users/entities/user.entity';
 import { UsersService } from '../../administration-by-user/users/users.service';
 import { EmailAlreadyExistsException } from '../../administration-by-user/users/exceptions/email-already-exists.exception';
 import { UsernameAlreadyExistsException } from '../../administration-by-user/users/exceptions/username-already-exists.exception';
 
 @Injectable()
-export class UserRegistrationService {
+export class CreateUserUseCase {
   constructor(
     private readonly usersService: UsersService,
-
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
   ) { }
 
-  async createUser(createUserDto: CreateUserDto): Promise<User> {
+  /**
+   * Cria um novo usuário administrador
+   * Permite que novos usuários criem suas contas e comecem a gerenciar seus portfólios
+   */
+  async execute(createUserDto: CreateUserDto): Promise<User> {
     // Verificar se username já existe
     const usernameExists = await this.usersService.existsBy({ username: createUserDto.username });
     if (usernameExists) {
@@ -53,3 +56,4 @@ export class UserRegistrationService {
     return userWithoutPassword as User;
   }
 };
+

@@ -12,10 +12,9 @@ import { GetCertificatesUseCase } from './use-cases/get-certificates.use-case';
 import { GetApplicationsUseCase } from './use-cases/get-applications.use-case';
 import { GetTechnologiesUseCase } from './use-cases/get-technologies.use-case';
 import { MessagesModule } from '../administration-by-user/messages/messages.module';
-import { UserRegistrationService } from './user-registration/user-registration.service';
 import { GetApplicationDetailsUseCase } from './use-cases/get-application-details.use-case';
 import { GetProfileWithAboutMeUseCase } from './use-cases/get-profile-with-about-me.use-case';
-import { UserRegistrationController } from './user-registration/user-registration.controller';
+import { CreateUserUseCase } from './use-cases/create-user.use-case';
 import { Technology } from '../administration-by-user/technologies/entities/technology.entity';
 import { Application } from '../administration-by-user/applications/entities/application.entity';
 import { CheckUsernameAvailabilityUseCase } from './use-cases/check-username-availability.use-case';
@@ -32,14 +31,13 @@ import { UserComponentCertificate } from '../administration-by-user/users/user-c
     GetApplicationsUseCase,
     GetCertificatesUseCase,
     GetTechnologiesUseCase,
-    UserRegistrationService,
+    CreateUserUseCase,
     GetApplicationDetailsUseCase,
     GetProfileWithAboutMeUseCase,
     CheckUsernameAvailabilityUseCase,
   ],
   controllers: [
     PortfolioViewController,
-    UserRegistrationController,
   ],
   imports: [
     UsersModule,

@@ -8,6 +8,7 @@ import {
     UserComponentEducation,
     UserComponentExperience,
     UserComponentCertificate,
+    CreateUserDto,
 } from "@/types";
 import { ApiService } from "../api.service";
 
@@ -176,6 +177,20 @@ export const PortfolioViewService = {
     ): Promise<void> {
         try {
             await ApiService.post(`/portfolio/${username}/messages`, data);
+        } catch (error) {
+            throw error;
+        }
+    },
+
+    /**
+     * Cadastro de novo usuário administrador
+     * Permite que novos usuários criem suas contas e comecem a gerenciar seus portfólios
+     * POST /portfolio/register
+     */
+    async register(createUserDto: CreateUserDto): Promise<User> {
+        try {
+            const response = await ApiService.post('/portfolio/register', createUserDto);
+            return response.data.data;
         } catch (error) {
             throw error;
         }

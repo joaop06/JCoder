@@ -5,7 +5,6 @@ import { LazyImage } from '@/components/ui';
 import { useRouter } from 'next/navigation';
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useToast } from '@/components/toast/ToastContext';
-import { AuthService } from '@/services/administration-by-user/auth.service';
 import { PortfolioViewService } from '@/services/portfolio-view/portfolio-view.service';
 import type { CreateUserDto } from '@/types/api/auth/create-user.dto';
 
@@ -181,7 +180,7 @@ export default function RegisterPage() {
       if (formData.githubUrl) payload.githubUrl = formData.githubUrl;
       if (formData.linkedinUrl) payload.linkedinUrl = formData.linkedinUrl;
 
-      await AuthService.register(payload);
+      await PortfolioViewService.register(payload);
 
       toast.success('Account created successfully! Please log in.');
       router.push('/sign-in');

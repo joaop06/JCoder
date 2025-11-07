@@ -72,3 +72,4 @@ export class CreateUserDto {
   @IsString()
   declare linkedinUrl?: string;
 };
+

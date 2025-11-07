@@ -18,11 +18,11 @@ export const AuthService = {
 
     /**
      * Register new user
-     * POST /register
+     * POST /portfolio/register
      */
     async register(createUserDto: CreateUserDto): Promise<User> {
         try {
-            const response = await ApiService.post('/register', createUserDto);
+            const response = await ApiService.post('/portfolio/register', createUserDto);
             return response.data.data;
         } catch (error) {
             throw error;

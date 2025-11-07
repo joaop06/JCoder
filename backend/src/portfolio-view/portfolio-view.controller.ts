@@ -29,17 +29,23 @@ import { GetApplicationDetailsUseCase } from './use-cases/get-application-detail
 import { CreateMessageDto } from '../administration-by-user/messages/dto/create-message.dto';
 import { GetProfileWithAboutMeUseCase } from './use-cases/get-profile-with-about-me.use-case';
 import { CheckUsernameAvailabilityUseCase } from './use-cases/check-username-availability.use-case';
+import { CreateUserUseCase } from './use-cases/create-user.use-case';
 import { ApiExceptionResponse } from '../@common/decorators/documentation/api-exception-response.decorator';
 import { UserNotFoundException } from '../administration-by-user/users/exceptions/user-not-found.exception';
 import { CreateMessageUseCase } from '../administration-by-user/messages/use-cases/create-message.use-case';
 import { TechnologyNotFoundException } from '../administration-by-user/technologies/exceptions/technology-not-found.exception';
 import { ApplicationNotFoundException } from '../administration-by-user/applications/exceptions/application-not-found.exception';
+import { CreateUserDto } from './dto/create-user.dto';
+import { User } from '../administration-by-user/users/entities/user.entity';
+import { EmailAlreadyExistsException } from '../administration-by-user/users/exceptions/email-already-exists.exception';
+import { UsernameAlreadyExistsException } from '../administration-by-user/users/exceptions/username-already-exists.exception';
 
 @ApiTags('Portfolio View')
 @Controller('portfolio')
 export class PortfolioViewController {
   constructor(
     private readonly createMessageUseCase: CreateMessageUseCase,
+    private readonly createUserUseCase: CreateUserUseCase,
     private readonly getEducationsUseCase: GetEducationsUseCase,
     private readonly getExperiencesUseCase: GetExperiencesUseCase,
     private readonly getApplicationsUseCase: GetApplicationsUseCase,
@@ -62,6 +68,19 @@ export class PortfolioViewController {
     @Param('username') username: string,
   ): Promise<CheckUsernameAvailabilityDto> {
     return await this.checkUsernameAvailabilityUseCase.execute(username);
+  }
+
+  /**
+   * Cadastro de novo usuário administrador
+   * Permite que novos usuários criem suas contas e comecem a gerenciar seus portfólios
+   */
+  @Post('register')
+  @HttpCode(HttpStatus.CREATED)
+  @Throttle({ short: { limit: 3, ttl: 60000 } }) // 3 tentativas por minuto para prevenir spam
+  @ApiOkResponse({ type: () => User })
+  @ApiExceptionResponse(() => [EmailAlreadyExistsException, UsernameAlreadyExistsException])
+  async createUser(@Body() createUserDto: CreateUserDto): Promise<User> {
+    return await this.createUserUseCase.execute(createUserDto);
   }
 
   /**
