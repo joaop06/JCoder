@@ -13,15 +13,15 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { CreateUserComponentCertificateDto } from './create-user-component-certificate.dto';
 
 export class CreateUserComponentEducationDto {
-    @ApiProperty({
+    @ApiPropertyOptional({
         example: 1,
         type: 'number',
-        nullable: false,
-        description: 'User ID',
+        nullable: true,
+        description: 'User ID (automatically filled by backend if not provided)',
     })
-    @IsNotEmpty()
+    @IsOptional()
     @IsNumber()
-    userId: number;
+    userId?: number;
 
     @ApiProperty({
         type: 'string',

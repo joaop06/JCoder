@@ -13,15 +13,15 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { CreateUserComponentEducationDto } from './create-user-component-education.dto';
 
 export class CreateUserComponentCertificateDto {
-    @ApiProperty({
+    @ApiPropertyOptional({
         example: 1,
         type: 'number',
-        nullable: false,
-        description: 'User ID',
+        nullable: true,
+        description: 'User ID (automatically filled by backend if not provided)',
     })
-    @IsNotEmpty()
+    @IsOptional()
     @IsNumber()
-    userId: number;
+    userId?: number;
 
     @ApiProperty({
         type: 'string',
@@ -100,4 +100,16 @@ export class CreateUserComponentCertificateDto {
     @Type(() => CreateUserComponentEducationDto)
     @Expose()
     educations?: CreateUserComponentEducationDto[];
+
+    @ApiPropertyOptional({
+        isArray: true,
+        nullable: true,
+        type: [Number],
+        description: 'Education IDs to link to this certificate (alternative to educations array)',
+        example: [1, 2, 3],
+    })
+    @IsOptional()
+    @IsArray()
+    @IsNumber({}, { each: true })
+    educationIds?: number[];
 };

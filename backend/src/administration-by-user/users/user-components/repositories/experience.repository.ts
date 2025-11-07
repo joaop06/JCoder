@@ -70,7 +70,17 @@ export class ExperienceRepository {
     }
 
     async update(id: number, data: UpdateUserComponentExperienceDto): Promise<UserComponentExperience> {
-        await this.experienceRepository.update({ id }, data);
+        // Extract positions from data if present
+        const { positions, ...experienceData } = data;
+        
+        // Update experience (excluding positions)
+        await this.experienceRepository.update({ id }, experienceData);
+        
+        // If positions are provided, save them
+        if (positions && Array.isArray(positions)) {
+            await this.savePositions(id, positions);
+        }
+        
         return await this.experienceRepository.findOne({
             where: { id },
             relations: ['positions'],

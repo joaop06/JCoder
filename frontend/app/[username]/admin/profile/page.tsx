@@ -157,9 +157,9 @@ export default function ProfileManagementPage() {
                     })) || [],
                 });
             }
-            setEducations(Array.isArray(educationsData) ? educationsData : []);
-            setExperiences(Array.isArray(experiencesData) ? experiencesData : []);
-            setCertificates(Array.isArray(certificatesData) ? certificatesData : []);
+            setEducations(Array.isArray(educationsData?.data) ? educationsData.data : (Array.isArray(educationsData) ? educationsData : []));
+            setExperiences(Array.isArray(experiencesData?.data) ? experiencesData.data : (Array.isArray(experiencesData) ? experiencesData : []));
+            setCertificates(Array.isArray(certificatesData?.data) ? certificatesData.data : (Array.isArray(certificatesData) ? certificatesData : []));
         } catch (err: any) {
             console.error('Error loading profile:', err);
         } finally {
@@ -416,14 +416,14 @@ export default function ProfileManagementPage() {
                 institutionName: educationForm.institutionName,
                 courseName: educationForm.courseName,
                 degree: educationForm.degree || undefined,
-                startDate: new Date(educationForm.startDate),
+                startDate: new Date(educationForm.startDate).toISOString(),
                 isCurrentlyStudying: educationForm.isCurrentlyStudying,
             };
 
             if (!educationForm.isCurrentlyStudying && educationForm.endDate) {
-                educationData.endDate = new Date(educationForm.endDate);
+                educationData.endDate = new Date(educationForm.endDate).toISOString();
             } else if (educationForm.isCurrentlyStudying) {
-                educationData.endDate = undefined;
+                educationData.endDate = null;
             }
 
             let updatedEducation: UserComponentEducation;
@@ -446,7 +446,15 @@ export default function ProfileManagementPage() {
     }, [educationForm, editingEducationId, toast]);
 
     const handleDeleteEducation = useCallback(async (educationId: number) => {
-        if (!confirm('Are you sure you want to delete this education record?')) {
+        const confirmed = await toast.confirm(
+            'Are you sure you want to delete this education record?',
+            {
+                confirmText: 'Delete',
+                cancelText: 'Cancel',
+            }
+        );
+
+        if (!confirmed) {
             return;
         }
 
@@ -561,8 +569,8 @@ export default function ProfileManagementPage() {
             if (editingExperienceId) {
                 experienceData.positions = positionsToSave.map(p => ({
                     position: p.position || '',
-                    startDate: p.startDate ? new Date(p.startDate) : undefined,
-                    endDate: p.endDate ? new Date(p.endDate) : undefined,
+                    startDate: p.startDate ? (typeof p.startDate === 'string' ? p.startDate : new Date(p.startDate).toISOString()) : undefined,
+                    endDate: p.endDate ? (typeof p.endDate === 'string' ? p.endDate : new Date(p.endDate).toISOString()) : (p.isCurrentPosition ? null : undefined),
                     isCurrentPosition: p.isCurrentPosition,
                     location: p.location,
                     locationType: p.locationType,
@@ -588,7 +596,15 @@ export default function ProfileManagementPage() {
     }, [experienceForm, editingExperienceId, experiences, toast]);
 
     const handleDeleteExperience = useCallback(async (experienceId: number) => {
-        if (!confirm('Are you sure you want to delete this experience? All positions associated with it will also be deleted.')) {
+        const confirmed = await toast.confirm(
+            'Are you sure you want to delete this experience? All positions associated with it will also be deleted.',
+            {
+                confirmText: 'Delete',
+                cancelText: 'Cancel',
+            }
+        );
+
+        if (!confirmed) {
             return;
         }
 
@@ -690,11 +706,11 @@ export default function ProfileManagementPage() {
         try {
             const newPosition: any = {
                 position: positionForm.position,
-                startDate: new Date(positionForm.startDate),
-                endDate: positionForm.isCurrentPosition ? undefined : (positionForm.endDate ? new Date(positionForm.endDate) : undefined),
+                startDate: new Date(positionForm.startDate).toISOString(),
+                endDate: positionForm.isCurrentPosition ? undefined : (positionForm.endDate ? new Date(positionForm.endDate).toISOString() : undefined),
                 isCurrentPosition: positionForm.isCurrentPosition,
-                location: positionForm.location || undefined,
-                locationType: positionForm.locationType || undefined,
+                location: positionForm.location?.trim() || undefined,
+                locationType: positionForm.locationType?.trim() || undefined,
             };
 
             let updatedPositions = [...(currentExp.positions || [])];
@@ -712,11 +728,11 @@ export default function ProfileManagementPage() {
                 companyName: currentExp.companyName,
                 positions: updatedPositions.map(p => ({
                     position: p.position || '',
-                    startDate: p.startDate,
-                    endDate: p.endDate,
+                    startDate: p.startDate ? (typeof p.startDate === 'string' ? p.startDate : new Date(p.startDate).toISOString()) : undefined,
+                    endDate: p.endDate ? (typeof p.endDate === 'string' ? p.endDate : new Date(p.endDate).toISOString()) : undefined,
                     isCurrentPosition: p.isCurrentPosition,
-                    location: p.location,
-                    locationType: p.locationType,
+                    location: p.location?.trim() || undefined,
+                    locationType: p.locationType?.trim() || undefined,
                 })),
             };
 
@@ -746,7 +762,15 @@ export default function ProfileManagementPage() {
     }, [positionForm, editingPositionIndex, experiences, toast]);
 
     const handleDeletePosition = useCallback(async (experienceId: number, positionIndex: number) => {
-        if (!confirm('Are you sure you want to delete this position?')) {
+        const confirmed = await toast.confirm(
+            'Are you sure you want to delete this position?',
+            {
+                confirmText: 'Delete',
+                cancelText: 'Cancel',
+            }
+        );
+
+        if (!confirmed) {
             return;
         }
 
@@ -764,11 +788,11 @@ export default function ProfileManagementPage() {
                 companyName: currentExp.companyName,
                 positions: updatedPositions.map(p => ({
                     position: p.position || '',
-                    startDate: p.startDate,
-                    endDate: p.endDate,
+                    startDate: p.startDate ? (typeof p.startDate === 'string' ? p.startDate : new Date(p.startDate).toISOString()) : undefined,
+                    endDate: p.endDate ? (typeof p.endDate === 'string' ? p.endDate : new Date(p.endDate).toISOString()) : undefined,
                     isCurrentPosition: p.isCurrentPosition,
-                    location: p.location,
-                    locationType: p.locationType,
+                    location: p.location?.trim() || undefined,
+                    locationType: p.locationType?.trim() || undefined,
                 })),
             };
 
@@ -857,10 +881,11 @@ export default function ProfileManagementPage() {
             const certificateData: any = {
                 certificateName: certificateForm.certificateName,
                 issuedTo: certificateForm.issuedTo,
-                issueDate: new Date(certificateForm.issueDate),
-                registrationNumber: certificateForm.registrationNumber || undefined,
-                verificationUrl: certificateForm.verificationUrl || undefined,
-                educationIds: certificateForm.educationIds.length > 0 ? certificateForm.educationIds : undefined,
+                issueDate: new Date(certificateForm.issueDate).toISOString(),
+                registrationNumber: certificateForm.registrationNumber?.trim() || undefined,
+                verificationUrl: certificateForm.verificationUrl?.trim() || undefined,
+                // Sempre enviar o array, mesmo que vazio, para permitir remover vínculos
+                educationIds: certificateForm.educationIds,
             };
 
             let updatedCertificate: UserComponentCertificate;
@@ -886,7 +911,15 @@ export default function ProfileManagementPage() {
     }, [certificateForm, editingCertificateId, toast]);
 
     const handleDeleteCertificate = useCallback(async (certificateId: number) => {
-        if (!confirm('Are you sure you want to delete this certificate?')) {
+        const confirmed = await toast.confirm(
+            'Are you sure you want to delete this certificate?',
+            {
+                confirmText: 'Delete',
+                cancelText: 'Cancel',
+            }
+        );
+
+        if (!confirmed) {
             return;
         }
 

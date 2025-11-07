@@ -12,15 +12,15 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { WorkLocationTypeEnum } from '../../enums/work-location-type.enum';
 
 export class CreateUserComponentExperiencePositionDto {
-    @ApiProperty({
+    @ApiPropertyOptional({
         example: 1,
         type: 'number',
-        nullable: false,
-        description: 'Linked experience component ID',
+        nullable: true,
+        description: 'Linked experience component ID (automatically filled by backend if not provided)',
     })
-    @IsNotEmpty()
+    @IsOptional()
     @IsNumber()
-    experienceId: number;
+    experienceId?: number;
 
     @ApiProperty({
         type: 'string',

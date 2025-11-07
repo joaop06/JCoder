@@ -105,16 +105,41 @@ export class CertificateRepository {
     }
 
     async create(user: User, data: CreateUserComponentCertificateDto): Promise<UserComponentCertificate> {
+        // Extract educationIds from data if present
+        const { educationIds, educations, ...certificateData } = data;
+        
         const certificate = this.certificateRepository.create({
-            ...data,
+            ...certificateData,
             userId: user.id,
             user,
         });
-        return await this.certificateRepository.save(certificate);
+        const savedCertificate = await this.certificateRepository.save(certificate);
+        
+        // If educationIds are provided, link them
+        if (educationIds && Array.isArray(educationIds) && educationIds.length > 0) {
+            await this.setEducations(savedCertificate.certificateName, educationIds);
+            // Reload certificate with educations
+            return await this.findOneBy({ id: savedCertificate.id }, true);
+        }
+        
+        return savedCertificate;
     }
 
     async update(id: number, data: UpdateUserComponentCertificateDto): Promise<UserComponentCertificate> {
-        await this.certificateRepository.update({ id }, data);
+        // Extract educationIds from data if present
+        const { educationIds, educations, ...certificateData } = data;
+        
+        // Update certificate (excluding educationIds and educations)
+        await this.certificateRepository.update({ id }, certificateData);
+        
+        // If educationIds are provided, update the links
+        if (educationIds !== undefined) {
+            const certificate = await this.findOneBy({ id });
+            if (certificate) {
+                await this.setEducations(certificate.certificateName, Array.isArray(educationIds) ? educationIds : []);
+            }
+        }
+        
         return await this.certificateRepository.findOne({
             where: { id },
             relations: ['educations'],
