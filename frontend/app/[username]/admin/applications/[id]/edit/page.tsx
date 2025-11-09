@@ -14,6 +14,7 @@ import { UsersService } from '@/services/administration-by-user/users.service';
 import { ImagesService } from '@/services/administration-by-user/images.service';
 import { ApplicationService } from '@/services/administration-by-user/applications.service';
 import { UpdateApplicationDto } from '@/types/api/applications/dtos/update-application.dto';
+import { User } from '@/types/api/users/user.entity';
 
 export default function EditApplicationPage() {
     const router = useRouter();
@@ -26,6 +27,7 @@ export default function EditApplicationPage() {
     const [loading, setLoading] = useState(true);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [formError, setFormError] = useState<string | null>(null);
+    const [user, setUser] = useState<User | null>(null);
     const isSubmittingRef = useRef(false);
     const [formData, setFormData] = useState<UpdateApplicationDto>({
         name: '',
@@ -47,8 +49,32 @@ export default function EditApplicationPage() {
             router.push('/sign-in');
             return;
         }
+
+        // Load user profile data for footer
+        const loadUserProfile = async () => {
+            try {
+                if (username) {
+                    const userProfile = await UsersService.getProfile(username);
+                    setUser(userProfile);
+                } else {
+                    const userSession = UsersService.getUserSession();
+                    if (userSession?.user) {
+                        setUser(userSession.user);
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading user profile:', error);
+                // Fallback to session data if API call fails
+                const userSession = UsersService.getUserSession();
+                if (userSession?.user) {
+                    setUser(userSession.user);
+                }
+            }
+        };
+
         setIsAuthenticated(true);
-    }, [router]);
+        loadUserProfile();
+    }, [router, username]);
 
     useEffect(() => {
         if (!isAuthenticated || !applicationId) return;
@@ -249,7 +275,7 @@ export default function EditApplicationPage() {
                         </div>
                     </div>
                 </main>
-                <Footer />
+                <Footer user={user} username={username || user?.username} />
             </div>
         );
     }
@@ -772,7 +798,7 @@ export default function EditApplicationPage() {
                 </div>
             </main>
 
-            <Footer />
+            <Footer user={user} username={username || user?.username} />
         </div>
     );
 }

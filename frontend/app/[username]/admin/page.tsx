@@ -5,12 +5,14 @@ import Header from '@/components/Header';
 import { useRouter, useParams } from 'next/navigation';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { UsersService } from '@/services/administration-by-user/users.service';
+import { User } from '@/types/api/users/user.entity';
 
 export default function AdminDashboardPage() {
   const router = useRouter();
   const params = useParams();
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
 
   // Get username from URL params
   const urlUsername = useMemo(() => {
@@ -34,7 +36,22 @@ export default function AdminDashboardPage() {
       return;
     }
 
+    // Load user profile data for footer
+    const loadUserProfile = async () => {
+      try {
+        const userProfile = await UsersService.getProfile(urlUsername);
+        setUser(userProfile);
+      } catch (error) {
+        console.error('Error loading user profile:', error);
+        // Fallback to session data if API call fails
+        if (userSession?.user) {
+          setUser(userSession.user);
+        }
+      }
+    };
+
     setIsAuthenticated(true);
+    loadUserProfile();
     setLoading(false);
   }, [router, urlUsername]);
 
@@ -119,7 +136,7 @@ export default function AdminDashboardPage() {
             </div>
           </div>
         </main>
-        <Footer />
+        <Footer user={user} username={urlUsername} />
       </div>
     );
   }
@@ -220,7 +237,7 @@ export default function AdminDashboardPage() {
         </div>
       </main>
 
-      <Footer />
+      <Footer user={user} username={urlUsername} />
     </div>
   );
 }

@@ -2,11 +2,12 @@
 
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { useToast } from '@/components/toast/ToastContext';
 import { PaginationDto } from '@/types/api/pagination.dto';
 import { ExpertiseLevel } from '@/types/enums/expertise-level.enum';
 import { Technology } from '@/types/api/technologies/technology.entity';
+import { User } from '@/types/api/users/user.entity';
 import { useState, useEffect, useMemo, useCallback, memo } from 'react';
 import { LazyImage, TableSkeleton, ManagementTable } from '@/components/ui';
 import { UsersService } from '@/services/administration-by-user/users.service';
@@ -291,12 +292,14 @@ TechnologyCard.displayName = 'TechnologyCard';
 
 export default function TechnologiesManagementPage() {
     const router = useRouter();
+    const params = useParams();
 
     const [loading, setLoading] = useState(true);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [checkingAuth, setCheckingAuth] = useState(true);
     const [fetchError, setFetchError] = useState<string | null>(null);
     const [technologies, setTechnologies] = useState<Technology[]>([]);
+    const [user, setUser] = useState<User | null>(null);
     const [pagination, setPagination] = useState<PaginationDto>({
         page: 1,
         limit: 10,
@@ -304,6 +307,12 @@ export default function TechnologiesManagementPage() {
         sortBy: 'displayOrder',
     });
     const [paginationMeta, setPaginationMeta] = useState<any>(null);
+
+    // Get username from URL params
+    const urlUsername = useMemo(() => {
+        const raw = params?.username;
+        return Array.isArray(raw) ? raw[0] : raw || '';
+    }, [params]);
 
     // Modal states
     const [showCreateModal, setShowCreateModal] = useState(false);
@@ -335,9 +344,33 @@ export default function TechnologiesManagementPage() {
             router.push('/sign-in');
             return;
         }
+
+        // Load user profile data for footer
+        const loadUserProfile = async () => {
+            try {
+                if (urlUsername) {
+                    const userProfile = await UsersService.getProfile(urlUsername);
+                    setUser(userProfile);
+                } else {
+                    const userSession = UsersService.getUserSession();
+                    if (userSession?.user) {
+                        setUser(userSession.user);
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading user profile:', error);
+                // Fallback to session data if API call fails
+                const userSession = UsersService.getUserSession();
+                if (userSession?.user) {
+                    setUser(userSession.user);
+                }
+            }
+        };
+
         setIsAuthenticated(true);
         setCheckingAuth(false);
-    }, [router]);
+        loadUserProfile();
+    }, [router, urlUsername]);
 
     const fetchStats = useCallback(async () => {
         try {
@@ -709,7 +742,7 @@ export default function TechnologiesManagementPage() {
                         </div>
                     </div>
                 </main>
-                <Footer />
+                <Footer user={user} username={urlUsername || user?.username} />
             </div>
         );
     }
@@ -911,7 +944,7 @@ export default function TechnologiesManagementPage() {
                 />
             )}
 
-            <Footer />
+            <Footer user={user} username={urlUsername || user?.username} />
         </div>
     );
 }
