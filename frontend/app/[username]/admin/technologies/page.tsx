@@ -2,12 +2,12 @@
 
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
+import { User } from '@/types/api/users/user.entity';
 import { useRouter, useParams } from 'next/navigation';
 import { useToast } from '@/components/toast/ToastContext';
 import { PaginationDto } from '@/types/api/pagination.dto';
 import { ExpertiseLevel } from '@/types/enums/expertise-level.enum';
 import { Technology } from '@/types/api/technologies/technology.entity';
-import { User } from '@/types/api/users/user.entity';
 import { useState, useEffect, useMemo, useCallback, memo } from 'react';
 import { LazyImage, TableSkeleton, ManagementTable } from '@/components/ui';
 import { UsersService } from '@/services/administration-by-user/users.service';
@@ -20,9 +20,9 @@ import { TechnologiesService } from '@/services/administration-by-user/technolog
 const getExpertiseLevelLabel = (level: ExpertiseLevel): string => {
     const labels: Record<ExpertiseLevel, string> = {
         [ExpertiseLevel.BASIC]: 'Basic',
-        [ExpertiseLevel.INTERMEDIATE]: 'Intermediate',
-        [ExpertiseLevel.ADVANCED]: 'Advanced',
         [ExpertiseLevel.EXPERT]: 'Expert',
+        [ExpertiseLevel.ADVANCED]: 'Advanced',
+        [ExpertiseLevel.INTERMEDIATE]: 'Intermediate',
     };
     return labels[level];
 };

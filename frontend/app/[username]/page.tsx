@@ -12,7 +12,6 @@ import {
 } from '@/types';
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
-import { useEffect, useState, useMemo, Suspense, useRef, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import { Canvas } from '@react-three/fiber';
 import { GitHubIcon } from '@/components/theme';
@@ -22,13 +21,13 @@ import ScrollToTop from '@/components/ScrollToTop';
 import { generateResumePDF } from '@/utils/resume-pdf';
 import { useSmoothScroll } from '@/hooks/useSmoothScroll';
 import { useToast } from '@/components/toast/ToastContext';
-import ApplicationCard from '@/components/applications/ApplicationCard';
-import ApplicationsCarousel from '@/components/applications/ApplicationsCarousel';
-import { ImagesService } from '@/services/administration-by-user/images.service';
-import { PortfolioViewService } from '@/services/portfolio-view/portfolio-view.service';
-import WebGLBackground from '@/components/webgl/WebGLBackground';
-import FloatingParticles3D from '@/components/webgl/FloatingParticles3D';
 import FeatureCard3D from '@/components/webgl/FeatureCard3D';
+import WebGLBackground from '@/components/webgl/WebGLBackground';
+import { useEffect, useState, useMemo, Suspense, useRef } from 'react';
+import FloatingParticles3D from '@/components/webgl/FloatingParticles3D';
+import { ImagesService } from '@/services/administration-by-user/images.service';
+import ApplicationsCarousel from '@/components/applications/ApplicationsCarousel';
+import { PortfolioViewService } from '@/services/portfolio-view/portfolio-view.service';
 
 export default function PortfolioPage() {
   const params = useParams();
@@ -86,7 +85,7 @@ export default function PortfolioPage() {
     const handleMouseMove = (e: MouseEvent) => {
       // Update ref immediately
       mousePositionRef.current = { x: e.clientX, y: e.clientY };
-      
+
       // Throttle state updates using requestAnimationFrame
       if (rafRef.current === null) {
         rafRef.current = requestAnimationFrame(() => {
@@ -95,7 +94,7 @@ export default function PortfolioPage() {
         });
       }
     };
-    
+
     window.addEventListener('mousemove', handleMouseMove, { passive: true });
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
@@ -120,9 +119,9 @@ export default function PortfolioPage() {
       const allApplications: Application[] = [];
       let page = 1;
       let hasMore = true;
-      const limit = 100; // Carregar 100 por vez para melhor performance
+      const limit = 100; // Load 100 at a time for better performance
 
-      // Carregar todas as aplicações usando paginação
+      // Load all applications using pagination
       while (hasMore) {
         const data = await PortfolioViewService.getApplications(username, {
           page,
@@ -135,13 +134,13 @@ export default function PortfolioPage() {
           allApplications.push(...data.data);
         }
 
-        // Verificar se há mais páginas
+        // Check if there are more pages
         hasMore = data.meta?.hasNextPage || false;
         page++;
 
-        // Limite de segurança para evitar loops infinitos
+        // Safety limit to avoid infinite loops
         if (page > 100) {
-          console.warn('Limite de páginas atingido ao carregar aplicações');
+          console.warn('Page limit reached while loading applications');
           break;
         }
       }
@@ -522,12 +521,12 @@ export default function PortfolioPage() {
             {/* Main Title */}
             <h1 className="text-5xl md:text-7xl font-bold mb-6">
               <span className="relative inline-block">
-                {/* Texto base visível como fallback */}
+                {/* Base text visible as fallback */}
                 <span className="text-jcoder-foreground opacity-100">
                   {user?.fullName || user?.firstName || username}
                 </span>
-                {/* Gradiente por cima */}
-                <span 
+                {/* Gradient on top */}
+                <span
                   className="absolute inset-0 inline-block"
                   style={{
                     background: 'linear-gradient(to right, #00c8ff, #00c8ff, #0050a0)',

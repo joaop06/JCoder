@@ -9,7 +9,7 @@ export async function generateResumePDF(): Promise<void> {
   }
 
   try {
-    // Guardar estilos originais
+    // Save original styles
     const parentElement = resumeElement.parentElement;
     const originalParentDisplay = parentElement?.style.display || '';
     const originalDisplay = resumeElement.style.display;
@@ -20,7 +20,7 @@ export async function generateResumePDF(): Promise<void> {
     const originalOpacity = resumeElement.style.opacity;
     const originalVisibility = resumeElement.style.visibility;
 
-    // Mostrar o elemento temporariamente fora da viewport
+    // Show element temporarily outside viewport
     if (parentElement) {
       parentElement.style.display = 'block';
       parentElement.style.position = 'absolute';
@@ -36,10 +36,10 @@ export async function generateResumePDF(): Promise<void> {
     resumeElement.style.opacity = '1';
     resumeElement.style.visibility = 'visible';
 
-    // Aguardar um momento para garantir que o elemento está renderizado
+    // Wait a moment to ensure element is rendered
     await new Promise(resolve => setTimeout(resolve, 200));
 
-    // Criar canvas do HTML
+    // Create HTML canvas
     const canvas = await html2canvas(resumeElement, {
       scale: 2,
       useCORS: true,
@@ -51,7 +51,7 @@ export async function generateResumePDF(): Promise<void> {
       windowHeight: resumeElement.scrollHeight,
     });
 
-    // Restaurar estilos originais
+    // Restore original styles
     if (parentElement) {
       parentElement.style.display = originalParentDisplay;
       parentElement.style.position = '';
@@ -67,13 +67,13 @@ export async function generateResumePDF(): Promise<void> {
     resumeElement.style.opacity = originalOpacity;
     resumeElement.style.visibility = originalVisibility;
 
-    // Calcular dimensões do PDF (A4)
+    // Calculate PDF dimensions (A4)
     const pdfWidth = 210; // mm
     const pdfHeight = 297; // mm
     const imgWidth = pdfWidth;
     const imgHeight = (canvas.height * pdfWidth) / canvas.width;
 
-    // Criar PDF
+    // Create PDF
     const pdf = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
@@ -83,11 +83,11 @@ export async function generateResumePDF(): Promise<void> {
     let heightLeft = imgHeight;
     let position = 0;
 
-    // Adicionar primeira página
+    // Add first page
     pdf.addImage(canvas.toDataURL('image/png', 1.0), 'PNG', 0, position, imgWidth, imgHeight);
     heightLeft -= pdfHeight;
 
-    // Adicionar páginas adicionais se necessário
+    // Add additional pages if necessary
     while (heightLeft > 0) {
       position = heightLeft - imgHeight;
       pdf.addPage();
@@ -95,7 +95,7 @@ export async function generateResumePDF(): Promise<void> {
       heightLeft -= pdfHeight;
     }
 
-    // Baixar o PDF
+    // Download PDF
     const fileName = `Resume_${new Date().getFullYear()}_${String(new Date().getMonth() + 1).padStart(2, '0')}.pdf`;
     pdf.save(fileName);
   } catch (error) {

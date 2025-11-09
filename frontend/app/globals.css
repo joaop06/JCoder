@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  /* JCoder Dark Theme - Baseado na logo com fundo preto e gradiente azul */
+  /* JCoder Dark Theme - Based on the logo with black background and blue gradient */
   --background: #000000;
   --foreground: #ffffff;
   --card: #0a0a0a;
@@ -24,7 +24,7 @@
   --font-sans: "Inter", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 
-  /* JCoder Brand Colors - Baseados na logo */
+  /* JCoder Brand Colors - Based on the logo */
   --jcoder-cyan: #00c8ff;
   --jcoder-blue: #0050a0;
   --jcoder-black: #000000;
@@ -48,7 +48,7 @@
 }
 
 [data-theme="light"] {
-  /* JCoder Light Theme - Inversão apropriada da logo */
+  /* JCoder Light Theme - Appropriate inversion of the logo */
   --background: #ffffff;
   --foreground: #000000;
   --card: #f8f9fa;
@@ -127,12 +127,12 @@ body {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Garantir que o background seja aplicado corretamente */
+/* Ensure background is applied correctly */
 .bg-background {
   background-color: var(--background) !important;
 }
 
-/* Garantir que as classes de tema sejam aplicadas corretamente */
+/* Ensure theme classes are applied correctly */
 [data-theme="light"] .bg-background {
   background-color: var(--background) !important;
 }
@@ -141,7 +141,7 @@ body {
   background-color: var(--background) !important;
 }
 
-/* Dark theme background - Inspirado na logo com fundo preto e gradientes azuis */
+/* Dark theme background - Inspired by the logo with black background and blue gradients */
 [data-theme="dark"] body {
   background:
     radial-gradient(ellipse at top left, rgba(0, 200, 255, 0.08) 0%, transparent 60%),
@@ -152,7 +152,7 @@ body {
     linear-gradient(135deg, #000000 0%, #0a0a0a 25%, #000000 50%, #050505 75%, #000000 100%);
 }
 
-/* Light theme background - Versão clara com gradientes sutis */
+/* Light theme background - Light version with subtle gradients */
 [data-theme="light"] body {
   background:
     radial-gradient(ellipse at top left, rgba(0, 80, 160, 0.03) 0%, transparent 60%),
@@ -163,7 +163,7 @@ body {
     linear-gradient(135deg, #ffffff 0%, #f8f9fa 25%, #ffffff 50%, #f1f3f4 75%, #ffffff 100%);
 }
 
-/* Garantir que o background seja aplicado corretamente em todos os elementos */
+/* Ensure background is applied correctly to all elements */
 [data-theme="light"] .bg-background {
   background:
     radial-gradient(ellipse at top left, rgba(0, 80, 160, 0.03) 0%, transparent 60%),
@@ -203,9 +203,9 @@ body {
   background: var(--accent);
 }
 
-/* JCoder Theme Utilities - Baseados na identidade visual da logo */
+/* JCoder Theme Utilities - Based on the logo's visual identity */
 
-/* Background utilities - Classes que respondem ao tema atual */
+/* Background utilities - Classes that respond to the current theme */
 .bg-jcoder-theme {
   background: var(--background);
 }
@@ -230,7 +230,7 @@ body {
     linear-gradient(135deg, #ffffff 0%, #f8f9fa 25%, #ffffff 50%, #f1f3f4 75%, #ffffff 100%);
 }
 
-/* Background utilities - Classes específicas para compatibilidade */
+/* Background utilities - Specific classes for compatibility */
 .bg-jcoder-dark {
   background:
     radial-gradient(ellipse at top left, rgba(0, 200, 255, 0.08) 0%, transparent 60%),
@@ -344,7 +344,7 @@ body {
   box-shadow: 0 4px 20px -4px var(--shadow-primary);
 }
 
-/* JCoder Brand Gradients - Baseados no gradiente da logo */
+/* JCoder Brand Gradients - Based on the logo gradient */
 .bg-jcoder-gradient {
   background: linear-gradient(135deg, var(--jcoder-cyan) 0%, var(--jcoder-blue) 100%);
 }

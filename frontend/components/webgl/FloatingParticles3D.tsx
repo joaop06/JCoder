@@ -1,25 +1,25 @@
 'use client';
 
+import { Mesh } from 'three';
+import * as THREE from 'three';
 import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Mesh, InstancedMesh, Object3D } from 'three';
-import * as THREE from 'three';
 
 function Particle({ position, index }: { position: [number, number, number]; index: number }) {
   const meshRef = useRef<Mesh>(null);
 
   useFrame(({ clock }) => {
     if (meshRef.current) {
-      // Movimento flutuante suave
+      // Smooth floating movement
       const time = clock.getElapsedTime();
       meshRef.current.position.y = position[1] + Math.sin(time + index) * 0.3;
       meshRef.current.position.x = position[0] + Math.cos(time * 0.5 + index) * 0.2;
-      
-      // Rotação sutil
+
+      // Subtle rotation
       meshRef.current.rotation.x = time * 0.2;
       meshRef.current.rotation.y = time * 0.3;
-      
-      // Escala pulsante
+
+      // Pulsating scale
       const scale = 1 + Math.sin(time * 2 + index) * 0.1;
       meshRef.current.scale.setScalar(scale);
     }

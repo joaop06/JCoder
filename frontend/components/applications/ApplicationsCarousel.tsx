@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
 import { Application } from '@/types';
 import ApplicationCard from './ApplicationCard';
+import { useState, useEffect, useRef } from 'react';
 import FeatureCard3D from '@/components/webgl/FeatureCard3D';
 
 interface ApplicationsCarouselProps {
@@ -13,10 +13,10 @@ interface ApplicationsCarouselProps {
 
 export default function ApplicationsCarousel({ applications, username, mouse }: ApplicationsCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const itemsPerView = 3; // Fixo em 3 aplicações por página
+  const itemsPerView = 3; // Fixed at 3 applications per page
   const carouselRef = useRef<HTMLDivElement>(null);
 
-  // Resetar índice quando o número de aplicações mudar
+  // Reset index when number of applications changes
   useEffect(() => {
     const maxIndex = Math.max(0, applications.length - itemsPerView);
     setCurrentIndex((prevIndex) => {
@@ -30,14 +30,14 @@ export default function ApplicationsCarousel({ applications, username, mouse }: 
 
   const goToNext = () => {
     if (canGoNext) {
-      // Avançar sempre 3 itens (uma página completa)
+      // Always advance 3 items (a complete page)
       setCurrentIndex(Math.min(currentIndex + itemsPerView, maxIndex));
     }
   };
 
   const goToPrevious = () => {
     if (canGoPrevious) {
-      // Retroceder sempre 3 itens (uma página completa)
+      // Always go back 3 items (a complete page)
       setCurrentIndex(Math.max(currentIndex - itemsPerView, 0));
     }
   };
@@ -57,7 +57,7 @@ export default function ApplicationsCarousel({ applications, username, mouse }: 
 
   return (
     <div className="relative w-full">
-      {/* Carrossel Container */}
+      {/* Carousel Container */}
       <div className="relative overflow-hidden">
         <div
           ref={carouselRef}

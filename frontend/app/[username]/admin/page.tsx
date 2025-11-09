@@ -2,10 +2,10 @@
 
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
+import { User } from '@/types/api/users/user.entity';
 import { useRouter, useParams } from 'next/navigation';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { UsersService } from '@/services/administration-by-user/users.service';
-import { User } from '@/types/api/users/user.entity';
 
 export default function AdminDashboardPage() {
   const router = useRouter();

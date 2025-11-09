@@ -1,6 +1,6 @@
 import { ApiService } from "../api.service";
-import { SignInDto, SignInResponseDto, CreateUserDto } from "@/types";
 import { User } from "@/types/api/users/user.entity";
+import { SignInDto, SignInResponseDto, CreateUserDto } from "@/types";
 
 export const AuthService = {
     /**

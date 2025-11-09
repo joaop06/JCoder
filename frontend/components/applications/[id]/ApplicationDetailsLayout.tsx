@@ -6,7 +6,6 @@ import ApplicationImagesGallery from './ApplicationImagesGallery';
 import { Application } from '@/types/api/applications/application.entity';
 import { UsersService } from '@/services/administration-by-user/users.service';
 import { ImagesService } from '@/services/administration-by-user/images.service';
-import { ApplicationService } from '@/services/administration-by-user/applications.service';
 
 interface ApplicationDetailsLayoutProps {
   application: Application;

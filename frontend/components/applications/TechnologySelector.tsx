@@ -103,16 +103,16 @@ export default function TechnologySelector({
                     <div className="flex flex-wrap gap-2">
                         {selectedTechnologies.map((tech) => {
                             const hasImage = tech.profileImage && !imageLoadErrors.has(tech.id);
-                            const showImageOnly = hasImage; // Em mobile, mostra apenas imagem se disponível
+                            const showImageOnly = hasImage; // On mobile, show only image if available
 
                             return (
                                 <div
                                     key={tech.id}
                                     className={`inline-flex items-center gap-2 px-3 py-2 bg-jcoder-gradient/10 border border-jcoder-primary rounded-lg group hover:bg-jcoder-gradient/20 transition-colors ${showImageOnly ? 'md:px-3 px-2' : ''
                                         }`}
-                                    title={tech.name} // Tooltip para mobile quando só mostra imagem
+                                    title={tech.name} // Tooltip for mobile when only showing image
                                 >
-                                    {/* Só renderiza a imagem se não houve erro ao carregar */}
+                                    {/* Only render image if there was no error loading */}
                                     {hasImage && (() => {
                                         const userSession = UsersService.getUserSession();
                                         const username = userSession?.user?.username || '';

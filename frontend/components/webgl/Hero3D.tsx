@@ -1,9 +1,9 @@
 'use client';
 
-import { useRef } from 'react';
-import { useFrame } from '@react-three/fiber';
 import { Mesh } from 'three';
 import * as THREE from 'three';
+import { useRef } from 'react';
+import { useFrame } from '@react-three/fiber';
 
 interface Hero3DProps {
   mouse: { x: number; y: number };
@@ -16,21 +16,21 @@ export default function Hero3D({ mouse, windowSize }: Hero3DProps) {
 
   useFrame(({ clock }) => {
     const time = clock.getElapsedTime();
-    
+
     if (logoRef.current) {
-      // Rotação suave baseada no tempo e mouse
+      // Smooth rotation based on time and mouse
       const mouseX = (mouse.x / windowSize.width - 0.5) * 0.5;
       const mouseY = -(mouse.y / windowSize.height - 0.5) * 0.5;
-      
+
       logoRef.current.rotation.y = time * 0.2 + mouseX;
       logoRef.current.rotation.x = Math.sin(time * 0.5) * 0.1 + mouseY;
-      
-      // Flutuação suave
+
+      // Smooth floating
       logoRef.current.position.y = Math.sin(time) * 0.2;
     }
-    
+
     if (ringRef.current) {
-      // Anel rotacionando ao redor
+      // Ring rotating around
       ringRef.current.rotation.z = time * 0.3;
       ringRef.current.rotation.x = time * 0.2;
     }
@@ -38,7 +38,7 @@ export default function Hero3D({ mouse, windowSize }: Hero3DProps) {
 
   return (
     <group position={[0, 0, 0]}>
-      {/* Anel decorativo */}
+      {/* Decorative ring */}
       <mesh ref={ringRef} position={[0, 0, -1]}>
         <torusGeometry args={[1.2, 0.05, 16, 100]} />
         <meshStandardMaterial
@@ -49,8 +49,8 @@ export default function Hero3D({ mouse, windowSize }: Hero3DProps) {
           opacity={0.3}
         />
       </mesh>
-      
-      {/* Esfera central (logo placeholder) */}
+
+      {/* Central sphere (logo placeholder) */}
       <mesh ref={logoRef}>
         <sphereGeometry args={[0.8, 32, 32]} />
         <meshStandardMaterial

@@ -3,8 +3,8 @@
 import Link from 'next/link';
 import LazyImage from './ui/LazyImage';
 import { GitHubIcon } from '@/components/theme';
-import { useSmoothScroll } from '@/hooks/useSmoothScroll';
 import { User } from '@/types/api/users/user.entity';
+import { useSmoothScroll } from '@/hooks/useSmoothScroll';
 import { ImagesService } from '@/services/administration-by-user/images.service';
 
 interface FooterProps {

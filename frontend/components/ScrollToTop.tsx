@@ -41,7 +41,7 @@ export default function ScrollToTop() {
         <button
             onClick={scrollToTop}
             className="fixed bottom-8 right-8 z-50 p-3 bg-jcoder-gradient text-black rounded-full shadow-lg hover:shadow-jcoder-primary transition-all duration-300 transform hover:scale-110"
-            aria-label="Voltar ao topo"
+            aria-label="Back to top"
         >
             <svg
                 className="w-6 h-6"

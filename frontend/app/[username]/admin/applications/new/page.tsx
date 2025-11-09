@@ -2,7 +2,9 @@
 
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
+import { MobilePlatformEnum } from '@/types';
 import { TableSkeleton } from '@/components/ui';
+import { User } from '@/types/api/users/user.entity';
 import { useParams, useRouter } from 'next/navigation';
 import { useToast } from '@/components/toast/ToastContext';
 import ImageUpload from '@/components/applications/ImageUpload';
@@ -13,8 +15,6 @@ import { UsersService } from '@/services/administration-by-user/users.service';
 import { ImagesService } from '@/services/administration-by-user/images.service';
 import { ApplicationService } from '@/services/administration-by-user/applications.service';
 import { CreateApplicationDto } from '@/types/api/applications/dtos/create-application.dto';
-import { MobilePlatformEnum } from '@/types';
-import { User } from '@/types/api/users/user.entity';
 
 export default function NewApplicationPage() {
     const router = useRouter();
@@ -181,12 +181,12 @@ export default function NewApplicationPage() {
 
     const handleSubmit = useCallback(async (e: React.FormEvent) => {
         e.preventDefault();
-        
+
         // Prevent multiple submissions
         if (isSubmittingRef.current) {
             return;
         }
-        
+
         isSubmittingRef.current = true;
         setLoading(true);
         setFormError(null);
@@ -264,7 +264,7 @@ export default function NewApplicationPage() {
                                     console.warn(`Skipping invalid data URL at index ${i}`);
                                     continue;
                                 }
-                                
+
                                 const header = image.substring(0, commaIndex);
                                 const data = image.substring(commaIndex + 1);
                                 const mimeMatch = header.match(/data:([^;]+)/);

@@ -3,8 +3,8 @@
 import { useState, useRef } from 'react';
 import LazyImage from '@/components/ui/LazyImage';
 import { useToast } from '@/components/toast/ToastContext';
-import { ImagesService } from '@/services/administration-by-user/images.service';
 import { UsersService } from '@/services/administration-by-user/users.service';
+import { ImagesService } from '@/services/administration-by-user/images.service';
 
 interface CertificateImageUploadProps {
     certificateId: number;

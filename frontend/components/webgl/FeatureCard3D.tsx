@@ -1,7 +1,7 @@
 'use client';
 
-import { useRef, useState, useEffect } from 'react';
 import * as THREE from 'three';
+import { useRef, useState, useEffect } from 'react';
 
 interface FeatureCard3DProps {
   children: React.ReactNode;
@@ -9,7 +9,7 @@ interface FeatureCard3DProps {
   index: number;
 }
 
-export default function FeatureCard3D({ children, mouse, index }: FeatureCard3DProps) {
+export default function FeatureCard3D({ children, mouse }: FeatureCard3DProps) {
   const cardRef = useRef<HTMLDivElement>(null);
   const [hovered, setHovered] = useState(false);
   const [rotation, setRotation] = useState({ x: 0, y: 0 });

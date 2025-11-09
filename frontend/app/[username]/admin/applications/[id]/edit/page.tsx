@@ -3,18 +3,18 @@
 
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
+import { User } from '@/types/api/users/user.entity';
 import { useRouter, useParams } from 'next/navigation';
-import { useState, useEffect, useCallback, useRef } from 'react';
 import { LazyImage, TableSkeleton } from '@/components/ui';
 import { useToast } from '@/components/toast/ToastContext';
 import ImageUpload from '@/components/applications/ImageUpload';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { ApplicationTypeEnum } from '@/types/enums/application-type.enum';
 import TechnologySelector from '@/components/applications/TechnologySelector';
 import { UsersService } from '@/services/administration-by-user/users.service';
 import { ImagesService } from '@/services/administration-by-user/images.service';
 import { ApplicationService } from '@/services/administration-by-user/applications.service';
 import { UpdateApplicationDto } from '@/types/api/applications/dtos/update-application.dto';
-import { User } from '@/types/api/users/user.entity';
 
 export default function EditApplicationPage() {
     const router = useRouter();

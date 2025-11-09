@@ -3,8 +3,8 @@
 import Link from 'next/link';
 import { ThemeToggle } from './theme';
 import LazyImage from './ui/LazyImage';
-import { useRouter, useParams, usePathname } from 'next/navigation';
 import { useSmoothScroll } from '@/hooks/useSmoothScroll';
+import { useRouter, useParams, usePathname } from 'next/navigation';
 import { useEffect, useState, useCallback, useMemo, memo } from 'react';
 import { UsersService } from '@/services/administration-by-user/users.service';
 import { ImagesService } from '@/services/administration-by-user/images.service';
@@ -266,7 +266,7 @@ export default function Header({
       <span className="text-xl font-semibold text-jcoder-foreground">JCoder</span>
     </Link>
   ));
-  
+
   Logo.displayName = 'Logo';
 
   // Profile section for desktop

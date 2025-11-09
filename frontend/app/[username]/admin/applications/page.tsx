@@ -2,12 +2,12 @@
 
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
+import { User } from '@/types/api/users/user.entity';
 import { useParams, useRouter } from 'next/navigation';
 import { useToast } from '@/components/toast/ToastContext';
 import { PaginationDto } from '@/types/api/pagination.dto';
 import { useState, useEffect, useMemo, useCallback, memo } from 'react';
 import { Application } from '@/types/api/applications/application.entity';
-import { User } from '@/types/api/users/user.entity';
 import { LazyImage, TableSkeleton, ManagementTable } from '@/components/ui';
 import { UsersService } from '@/services/administration-by-user/users.service';
 import { ImagesService } from '@/services/administration-by-user/images.service';

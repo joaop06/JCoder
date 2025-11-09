@@ -1,15 +1,15 @@
 'use client';
 
 import Link from 'next/link';
+import { Canvas } from '@react-three/fiber';
 import { LazyImage } from '@/components/ui';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/toast/ToastContext';
-import { useState, useCallback, useEffect, useRef, Suspense } from 'react';
-import { Canvas } from '@react-three/fiber';
-import type { CreateUserDto } from '@/types/api/auth/create-user.dto';
-import { PortfolioViewService } from '@/services/portfolio-view/portfolio-view.service';
 import WebGLBackground from '@/components/webgl/WebGLBackground';
+import type { CreateUserDto } from '@/types/api/auth/create-user.dto';
 import FloatingParticles3D from '@/components/webgl/FloatingParticles3D';
+import { useState, useCallback, useEffect, useRef, Suspense } from 'react';
+import { PortfolioViewService } from '@/services/portfolio-view/portfolio-view.service';
 
 type Step = 1 | 2 | 3;
 

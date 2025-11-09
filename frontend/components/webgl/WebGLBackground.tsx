@@ -1,11 +1,11 @@
 'use client';
 
-import { useRef, useMemo } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
-import { Mesh, ShaderMaterial } from 'three';
 import * as THREE from 'three';
+import { useRef, useMemo } from 'react';
+import { Mesh, ShaderMaterial } from 'three';
+import { Canvas, useFrame } from '@react-three/fiber';
 
-// Shader para criar uma malha 3D animada e sutil
+// Shader to create an animated and subtle 3D mesh
 const vertexShader = `
   uniform float uTime;
   uniform vec2 uMouse;
@@ -17,12 +17,12 @@ const vertexShader = `
     vNormal = normal;
     
     vec3 pos = position;
-    // Efeito de onda suave baseado no tempo e posição
+    // Smooth wave effect based on time and position
     float wave = sin(pos.x * 0.5 + uTime) * 0.1 + 
                  cos(pos.y * 0.5 + uTime * 0.8) * 0.1;
     pos.z += wave;
     
-    // Efeito sutil de interação com o mouse
+    // Subtle mouse interaction effect
     float mouseInfluence = length(uMouse - vec2(pos.x, pos.y)) * 0.01;
     pos.z += mouseInfluence * 0.2;
     
@@ -36,7 +36,7 @@ const fragmentShader = `
   varying vec3 vNormal;
   
   void main() {
-    // Cor baseada na posição e normal para criar profundidade
+    // Color based on position and normal to create depth
     vec3 color1 = vec3(0.0, 0.8, 1.0); // cyan
     vec3 color2 = vec3(0.2, 0.4, 1.0); // blue
     vec3 color3 = vec3(0.5, 0.3, 1.0); // purple
@@ -44,10 +44,10 @@ const fragmentShader = `
     float mixFactor = (vNormal.y + 1.0) * 0.5;
     vec3 color = mix(color1, mix(color2, color3, 0.5), mixFactor);
     
-    // Opacidade muito baixa para manter minimalismo
+    // Very low opacity to maintain minimalism
     float alpha = 0.08;
     
-    // Efeito de brilho sutil baseado na posição
+    // Subtle glow effect based on position
     float glow = sin(vPosition.x * 0.5 + uTime) * 0.5 + 0.5;
     alpha *= glow * 0.5 + 0.5;
     
@@ -62,7 +62,7 @@ function AnimatedMesh({ mouse, windowSize }: { mouse: { x: number; y: number }; 
   useFrame(({ clock }) => {
     if (materialRef.current) {
       materialRef.current.uniforms.uTime.value = clock.getElapsedTime();
-      // Normalizar posição do mouse para o espaço 3D
+      // Normalize mouse position to 3D space
       materialRef.current.uniforms.uMouse.value = [
         (mouse.x / windowSize.width) * 10 - 5,
         -(mouse.y / windowSize.height) * 10 + 5,

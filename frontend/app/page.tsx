@@ -1,26 +1,24 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState, Suspense } from 'react';
-import { useRouter } from 'next/navigation';
-import { Canvas } from '@react-three/fiber';
-import LazyImage from '@/components/ui/LazyImage';
 import Footer from '@/components/Footer';
+import { Canvas } from '@react-three/fiber';
+import Hero3D from '@/components/webgl/Hero3D';
+import LazyImage from '@/components/ui/LazyImage';
+import { useEffect, useState, Suspense } from 'react';
+import FeatureCard3D from '@/components/webgl/FeatureCard3D';
 import WebGLBackground from '@/components/webgl/WebGLBackground';
 import FloatingParticles3D from '@/components/webgl/FloatingParticles3D';
-import Hero3D from '@/components/webgl/Hero3D';
-import FeatureCard3D from '@/components/webgl/FeatureCard3D';
 
 export default function HomePage() {
-  const router = useRouter();
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [isVisible, setIsVisible] = useState(false);
   const [windowSize, setWindowSize] = useState({ width: 1920, height: 1080 });
 
   useEffect(() => {
     setIsVisible(true);
-    
-    // Atualizar tamanho da janela
+
+    // Update window size
     const updateWindowSize = () => {
       setWindowSize({ width: window.innerWidth, height: window.innerHeight });
     };
@@ -39,12 +37,12 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background overflow-hidden relative">
-      {/* WebGL Background - Malha 3D animada */}
+      {/* WebGL Background - Animated 3D mesh */}
       <Suspense fallback={null}>
         <WebGLBackground mouse={mousePosition} windowSize={windowSize} />
       </Suspense>
 
-      {/* Animated Background - Camadas CSS para profundidade */}
+      {/* Animated Background - CSS layers for depth */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
         {/* Gradient Orbs */}
         <div
@@ -72,7 +70,7 @@ export default function HomePage() {
       <main className="flex-1 relative z-10">
         {/* Hero Section */}
         <section className="min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8 py-20 relative">
-          {/* 3D Particles no Hero */}
+          {/* 3D Particles in Hero */}
           <div className="absolute inset-0 pointer-events-none z-0">
             <Suspense fallback={null}>
               <Canvas
@@ -85,7 +83,7 @@ export default function HomePage() {
             </Suspense>
           </div>
 
-          {/* 3D Logo Element (opcional, sutil) */}
+          {/* 3D Logo Element (optional, subtle) */}
           <div className="absolute top-20 right-10 w-32 h-32 pointer-events-none opacity-20 hidden lg:block">
             <Suspense fallback={null}>
               <Canvas
@@ -190,92 +188,92 @@ export default function HomePage() {
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
               {/* Feature 1 */}
               <FeatureCard3D mouse={mousePosition} index={0}>
-              <div className="group bg-jcoder-card border border-jcoder rounded-2xl p-8 hover:border-jcoder-primary transition-all duration-300 hover:shadow-lg hover:shadow-jcoder-primary/20 hover:-translate-y-2">
-                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
-                  </svg>
+                <div className="group bg-jcoder-card border border-jcoder rounded-2xl p-8 hover:border-jcoder-primary transition-all duration-300 hover:shadow-lg hover:shadow-jcoder-primary/20 hover:-translate-y-2">
+                  <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                    </svg>
+                  </div>
+                  <h3 className="text-2xl font-bold text-jcoder-foreground mb-4">Complete Management</h3>
+                  <p className="text-jcoder-muted leading-relaxed">
+                    Manage projects, technologies, professional experience, education and certifications all in one place.
+                  </p>
                 </div>
-                <h3 className="text-2xl font-bold text-jcoder-foreground mb-4">Complete Management</h3>
-                <p className="text-jcoder-muted leading-relaxed">
-                  Manage projects, technologies, professional experience, education and certifications all in one place.
-                </p>
-              </div>
               </FeatureCard3D>
 
               {/* Feature 2 */}
               <FeatureCard3D mouse={mousePosition} index={1}>
-              <div className="group bg-jcoder-card border border-jcoder rounded-2xl p-8 hover:border-jcoder-primary transition-all duration-300 hover:shadow-lg hover:shadow-jcoder-primary/20 hover:-translate-y-2">
-                <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
-                  </svg>
+                <div className="group bg-jcoder-card border border-jcoder rounded-2xl p-8 hover:border-jcoder-primary transition-all duration-300 hover:shadow-lg hover:shadow-jcoder-primary/20 hover:-translate-y-2">
+                  <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+                    </svg>
+                  </div>
+                  <h3 className="text-2xl font-bold text-jcoder-foreground mb-4">Custom Design</h3>
+                  <p className="text-jcoder-muted leading-relaxed">
+                    Portfolios with modern and responsive design, fully customizable to reflect your identity.
+                  </p>
                 </div>
-                <h3 className="text-2xl font-bold text-jcoder-foreground mb-4">Custom Design</h3>
-                <p className="text-jcoder-muted leading-relaxed">
-                  Portfolios with modern and responsive design, fully customizable to reflect your identity.
-                </p>
-              </div>
               </FeatureCard3D>
 
               {/* Feature 3 */}
               <FeatureCard3D mouse={mousePosition} index={2}>
-              <div className="group bg-jcoder-card border border-jcoder rounded-2xl p-8 hover:border-jcoder-primary transition-all duration-300 hover:shadow-lg hover:shadow-jcoder-primary/20 hover:-translate-y-2">
-                <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
+                <div className="group bg-jcoder-card border border-jcoder rounded-2xl p-8 hover:border-jcoder-primary transition-all duration-300 hover:shadow-lg hover:shadow-jcoder-primary/20 hover:-translate-y-2">
+                  <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-2xl font-bold text-jcoder-foreground mb-4">Fast and Efficient</h3>
+                  <p className="text-jcoder-muted leading-relaxed">
+                    Intuitive interface and optimized system so you can focus on what really matters: your projects.
+                  </p>
                 </div>
-                <h3 className="text-2xl font-bold text-jcoder-foreground mb-4">Fast and Efficient</h3>
-                <p className="text-jcoder-muted leading-relaxed">
-                  Intuitive interface and optimized system so you can focus on what really matters: your projects.
-                </p>
-              </div>
               </FeatureCard3D>
 
               {/* Feature 4 */}
               <FeatureCard3D mouse={mousePosition} index={3}>
-              <div className="group bg-jcoder-card border border-jcoder rounded-2xl p-8 hover:border-jcoder-primary transition-all duration-300 hover:shadow-lg hover:shadow-jcoder-primary/20 hover:-translate-y-2">
-                <div className="w-16 h-16 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                  </svg>
+                <div className="group bg-jcoder-card border border-jcoder rounded-2xl p-8 hover:border-jcoder-primary transition-all duration-300 hover:shadow-lg hover:shadow-jcoder-primary/20 hover:-translate-y-2">
+                  <div className="w-16 h-16 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-2xl font-bold text-jcoder-foreground mb-4">Custom URL</h3>
+                  <p className="text-jcoder-muted leading-relaxed">
+                    Your portfolio accessible through a unique URL based on your username, easy to share.
+                  </p>
                 </div>
-                <h3 className="text-2xl font-bold text-jcoder-foreground mb-4">Custom URL</h3>
-                <p className="text-jcoder-muted leading-relaxed">
-                  Your portfolio accessible through a unique URL based on your username, easy to share.
-                </p>
-              </div>
               </FeatureCard3D>
 
               {/* Feature 5 */}
               <FeatureCard3D mouse={mousePosition} index={4}>
-              <div className="group bg-jcoder-card border border-jcoder rounded-2xl p-8 hover:border-jcoder-primary transition-all duration-300 hover:shadow-lg hover:shadow-jcoder-primary/20 hover:-translate-y-2">
-                <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                  </svg>
+                <div className="group bg-jcoder-card border border-jcoder rounded-2xl p-8 hover:border-jcoder-primary transition-all duration-300 hover:shadow-lg hover:shadow-jcoder-primary/20 hover:-translate-y-2">
+                  <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-2xl font-bold text-jcoder-foreground mb-4">Admin Area</h3>
+                  <p className="text-jcoder-muted leading-relaxed">
+                    Complete panel to manage all your portfolio information in a simple and organized way.
+                  </p>
                 </div>
-                <h3 className="text-2xl font-bold text-jcoder-foreground mb-4">Admin Area</h3>
-                <p className="text-jcoder-muted leading-relaxed">
-                  Complete panel to manage all your portfolio information in a simple and organized way.
-                </p>
-              </div>
               </FeatureCard3D>
 
               {/* Feature 6 */}
               <FeatureCard3D mouse={mousePosition} index={5}>
-              <div className="group bg-jcoder-card border border-jcoder rounded-2xl p-8 hover:border-jcoder-primary transition-all duration-300 hover:shadow-lg hover:shadow-jcoder-primary/20 hover:-translate-y-2">
-                <div className="w-16 h-16 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                  </svg>
+                <div className="group bg-jcoder-card border border-jcoder rounded-2xl p-8 hover:border-jcoder-primary transition-all duration-300 hover:shadow-lg hover:shadow-jcoder-primary/20 hover:-translate-y-2">
+                  <div className="w-16 h-16 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                    </svg>
+                  </div>
+                  <h3 className="text-2xl font-bold text-jcoder-foreground mb-4">Resume Export</h3>
+                  <p className="text-jcoder-muted leading-relaxed">
+                    Generate and download your resume in PDF with all your portfolio information professionally formatted.
+                  </p>
                 </div>
-                <h3 className="text-2xl font-bold text-jcoder-foreground mb-4">Resume Export</h3>
-                <p className="text-jcoder-muted leading-relaxed">
-                  Generate and download your resume in PDF with all your portfolio information professionally formatted.
-                </p>
-              </div>
               </FeatureCard3D>
             </div>
           </div>

@@ -3,13 +3,13 @@
 import Link from 'next/link';
 import { LazyImage } from '@/components/ui';
 import { useRouter } from 'next/navigation';
-import { useState, useCallback, useEffect, Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { useToast } from '@/components/toast/ToastContext';
-import type { SignInResponseDto } from '@/types/api/auth/sign-in.dto';
-import { AuthService } from '@/services/administration-by-user/auth.service';
 import WebGLBackground from '@/components/webgl/WebGLBackground';
+import { useState, useCallback, useEffect, Suspense } from 'react';
+import type { SignInResponseDto } from '@/types/api/auth/sign-in.dto';
 import FloatingParticles3D from '@/components/webgl/FloatingParticles3D';
+import { AuthService } from '@/services/administration-by-user/auth.service';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -24,7 +24,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     setIsVisible(true);
-    
+
     // Update window size
     const updateWindowSize = () => {
       setWindowSize({ width: window.innerWidth, height: window.innerHeight });
@@ -154,7 +154,7 @@ export default function LoginPage() {
         <div className={`w-full max-w-md transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
           {/* Logo and Title */}
           <div className="text-center mb-8">
-            <div 
+            <div
               className="inline-flex items-center justify-center w-16 h-16 bg-jcoder-gradient rounded-full p-1 shadow-lg shadow-jcoder-primary/50 mb-4 transform-gpu animate-bounce-slow"
               style={{
                 transform: `perspective(1000px) rotateY(${(mousePosition.x / windowSize.width - 0.5) * 10}deg) rotateX(${-(mousePosition.y / windowSize.height - 0.5) * 10}deg)`,
@@ -182,7 +182,7 @@ export default function LoginPage() {
           </div>
 
           {/* Login Form */}
-          <div 
+          <div
             className="bg-jcoder-card/90 backdrop-blur-sm border border-jcoder rounded-2xl p-8 shadow-xl shadow-jcoder-primary/10 transform-gpu transition-all duration-300 hover:shadow-2xl hover:shadow-jcoder-primary/20"
             style={{
               transform: `perspective(1000px) rotateX(${-(mousePosition.y / windowSize.height - 0.5) * 2}deg) rotateY(${(mousePosition.x / windowSize.width - 0.5) * 2}deg) translateZ(0)`,

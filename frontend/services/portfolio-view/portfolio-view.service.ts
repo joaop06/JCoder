@@ -2,13 +2,13 @@ import {
     User,
     Technology,
     Application,
+    CreateUserDto,
     PaginationDto,
     PaginatedResponseDto,
     UserComponentAboutMe,
     UserComponentEducation,
     UserComponentExperience,
     UserComponentCertificate,
-    CreateUserDto,
 } from "@/types";
 import { ApiService } from "../api.service";
 

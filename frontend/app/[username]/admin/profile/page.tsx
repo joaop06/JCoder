@@ -13,12 +13,12 @@ import Footer from '@/components/Footer';
 import Header from '@/components/Header';
 import { useRouter } from 'next/navigation';
 import { TableSkeleton } from '@/components/ui';
-import { useState, useEffect, useCallback, useRef } from 'react';
 import { InfoField } from '@/components/profile/InfoField';
 import { StatsCard } from '@/components/profile/StatsCard';
 import { useToast } from '@/components/toast/ToastContext';
 import { SectionCard } from '@/components/profile/SectionCard';
 import { TimelineItem } from '@/components/profile/TimelineItem';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { UsersService } from '@/services/administration-by-user/users.service';
 import { ImagesService } from '@/services/administration-by-user/images.service';
 import { ProfileImageUploader } from '@/components/profile/ProfileImageUploader';
@@ -194,7 +194,7 @@ export default function ProfileManagementPage() {
         loadUserProfile();
     }, [isAuthenticated, loadUserProfile]);
 
-    // Verificação em tempo real da disponibilidade do username
+    // Real-time username availability check
     useEffect(() => {
         if (!isEditingBasicInfo) {
             setUsernameStatus({ checking: false, available: null });
@@ -208,7 +208,7 @@ export default function ProfileManagementPage() {
         const usernameTrimmed = basicInfoForm.username.trim();
         const originalUsername = user?.username || '';
 
-        // Se o username não mudou, não precisa verificar
+        // If username hasn't changed, no need to check
         if (usernameTrimmed === originalUsername) {
             setUsernameStatus({ checking: false, available: true });
             return;
@@ -241,7 +241,7 @@ export default function ProfileManagementPage() {
         };
     }, [basicInfoForm.username, isEditingBasicInfo, user?.username]);
 
-    // Verificação em tempo real da disponibilidade do email
+    // Real-time email availability check
     useEffect(() => {
         if (!isEditingBasicInfo) {
             setEmailStatus({ checking: false, available: null });
@@ -258,7 +258,7 @@ export default function ProfileManagementPage() {
         const emailTrimmed = (basicInfoForm.email || '').trim();
         const originalEmail = (user?.email || '').trim();
 
-        // Se o email não mudou, não precisa verificar
+        // If email hasn't changed, no need to check
         if (emailTrimmed === originalEmail && emailTrimmed !== '') {
             setEmailStatus({ checking: false, available: true });
             setIsEmailVerified(true);
@@ -302,12 +302,12 @@ export default function ProfileManagementPage() {
 
     const handleSendVerificationCode = useCallback(async () => {
         if (!basicInfoForm.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(basicInfoForm.email)) {
-            toast.error('Por favor, insira um email válido');
+            toast.error('Please enter a valid email');
             return;
         }
 
         if (emailStatus.available !== true) {
-            toast.error('Este email já está em uso. Por favor, use outro email.');
+            toast.error('This email is already in use. Please use another email.');
             return;
         }
 
@@ -317,12 +317,12 @@ export default function ProfileManagementPage() {
             setCodeSent(true);
             setIsEmailVerified(false);
             setVerificationCode('');
-            toast.success('Código de verificação enviado! Verifique sua caixa de entrada.');
+            toast.success('Verification code sent! Check your inbox.');
         } catch (err: any) {
             const apiMessage =
                 err?.response?.data?.message ||
                 err?.message ||
-                'Falha ao enviar código de verificação. Tente novamente.';
+                'Failed to send verification code. Please try again.';
             toast.error(apiMessage);
         } finally {
             setIsSendingCode(false);
@@ -331,7 +331,7 @@ export default function ProfileManagementPage() {
 
     const handleVerifyCode = useCallback(async () => {
         if (!verificationCode || verificationCode.length !== 6) {
-            toast.error('Por favor, insira o código de 6 dígitos');
+            toast.error('Please enter the 6-digit code');
             return;
         }
 
@@ -340,13 +340,13 @@ export default function ProfileManagementPage() {
             const result = await PortfolioViewService.verifyEmailCode(basicInfoForm.email, verificationCode);
             if (result.verified) {
                 setIsEmailVerified(true);
-                toast.success('Email verificado com sucesso!');
+                toast.success('Email verified successfully!');
             }
         } catch (err: any) {
             const apiMessage =
                 err?.response?.data?.message ||
                 err?.message ||
-                'Código inválido ou expirado. Tente novamente.';
+                'Invalid or expired code. Please try again.';
             toast.error(apiMessage);
         } finally {
             setIsVerifyingCode(false);
@@ -365,15 +365,15 @@ export default function ProfileManagementPage() {
         const usernameChanged = basicInfoForm.username.trim() !== (user.username || '');
         if (usernameChanged) {
             if (!basicInfoForm.username.trim() || basicInfoForm.username.trim().length < 3) {
-                toast.error('Username deve ter pelo menos 3 caracteres');
+                toast.error('Username must be at least 3 characters long');
                 return;
             }
             if (!/^[a-zA-Z0-9_-]+$/.test(basicInfoForm.username.trim())) {
-                toast.error('Username pode conter apenas letras, números, underscores e hífens');
+                toast.error('Username can only contain letters, numbers, underscores and hyphens');
                 return;
             }
             if (usernameStatus.available !== true) {
-                toast.error('Por favor, escolha um username disponível');
+                toast.error('Please choose an available username');
                 return;
             }
         }
@@ -382,15 +382,15 @@ export default function ProfileManagementPage() {
         const emailChanged = basicInfoForm.email.trim() !== (user.email || '');
         if (emailChanged) {
             if (!basicInfoForm.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(basicInfoForm.email.trim())) {
-                toast.error('Por favor, insira um email válido');
+                toast.error('Please enter a valid email');
                 return;
             }
             if (emailStatus.available !== true) {
-                toast.error('Por favor, use um email disponível');
+                toast.error('Please use an available email');
                 return;
             }
             if (!isEmailVerified) {
-                toast.error('Por favor, verifique seu email antes de salvar');
+                toast.error('Please verify your email before saving');
                 return;
             }
         }
@@ -468,12 +468,12 @@ export default function ProfileManagementPage() {
             // If username changed, update localStorage and redirect
             if (usernameChanged && updatedUser.username) {
                 localStorage.setItem('user', JSON.stringify(updatedUser));
-                toast.success('Perfil atualizado com sucesso! Redirecionando...');
+                toast.success('Profile updated successfully! Redirecting...');
                 setTimeout(() => {
                     router.push(`/${updatedUser.username}/admin/profile`);
                 }, 1500);
             } else {
-                toast.success('Perfil atualizado com sucesso!');
+                toast.success('Profile updated successfully!');
             }
         } catch (err: any) {
             toast.error(err.message || 'Failed to update profile. Please try again.');
@@ -1126,7 +1126,7 @@ export default function ProfileManagementPage() {
                 issueDate: new Date(certificateForm.issueDate).toISOString(),
                 registrationNumber: certificateForm.registrationNumber?.trim() || undefined,
                 verificationUrl: certificateForm.verificationUrl?.trim() || undefined,
-                // Sempre enviar o array, mesmo que vazio, para permitir remover vínculos
+                // Always send the array, even if empty, to allow removing links
                 educationIds: certificateForm.educationIds,
             };
 
@@ -1338,15 +1338,14 @@ export default function ProfileManagementPage() {
                                                     value={basicInfoForm.username}
                                                     onChange={handleBasicInfoInputChange}
                                                     placeholder="johndoe"
-                                                    className={`w-full px-4 py-2 pr-10 bg-jcoder-secondary border rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none ${
-                                                        basicInfoForm.username.trim() !== (user?.username || '') && basicInfoForm.username.trim().length >= 3
-                                                            ? usernameStatus.available === true
-                                                                ? 'border-green-400'
-                                                                : usernameStatus.available === false
+                                                    className={`w-full px-4 py-2 pr-10 bg-jcoder-secondary border rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none ${basicInfoForm.username.trim() !== (user?.username || '') && basicInfoForm.username.trim().length >= 3
+                                                        ? usernameStatus.available === true
+                                                            ? 'border-green-400'
+                                                            : usernameStatus.available === false
                                                                 ? 'border-red-400'
                                                                 : 'border-jcoder'
-                                                            : 'border-jcoder'
-                                                    }`}
+                                                        : 'border-jcoder'
+                                                        }`}
                                                 />
                                                 {basicInfoForm.username.trim() !== (user?.username || '') && basicInfoForm.username.trim().length >= 3 && (
                                                     <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
@@ -1370,13 +1369,13 @@ export default function ProfileManagementPage() {
                                             {basicInfoForm.username.trim() !== (user?.username || '') && (
                                                 <>
                                                     {usernameStatus.available === true && basicInfoForm.username.trim().length >= 3 && (
-                                                        <p className="mt-1 text-sm text-green-400">Username disponível!</p>
+                                                        <p className="mt-1 text-sm text-green-400">Username available!</p>
                                                     )}
                                                     {usernameStatus.available === false && (
-                                                        <p className="mt-1 text-sm text-red-400">Este username já está em uso</p>
+                                                        <p className="mt-1 text-sm text-red-400">This username is already in use</p>
                                                     )}
                                                     <p className="mt-1 text-xs text-jcoder-muted">
-                                                        Mínimo de 3 caracteres. Apenas letras, números, underscores e hífens.
+                                                        Minimum of 3 characters. Only letters, numbers, underscores and hyphens.
                                                     </p>
                                                 </>
                                             )}
@@ -1409,15 +1408,14 @@ export default function ProfileManagementPage() {
                                                     name="email"
                                                     value={basicInfoForm.email || ''}
                                                     onChange={handleBasicInfoInputChange}
-                                                    className={`w-full px-4 py-2 pr-10 bg-jcoder-secondary border rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none ${
-                                                        basicInfoForm.email.trim() !== (user?.email || '') && basicInfoForm.email.trim()
-                                                            ? emailStatus.available === true
-                                                                ? 'border-green-400'
-                                                                : emailStatus.available === false
+                                                    className={`w-full px-4 py-2 pr-10 bg-jcoder-secondary border rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none ${basicInfoForm.email.trim() !== (user?.email || '') && basicInfoForm.email.trim()
+                                                        ? emailStatus.available === true
+                                                            ? 'border-green-400'
+                                                            : emailStatus.available === false
                                                                 ? 'border-red-400'
                                                                 : 'border-jcoder'
-                                                            : 'border-jcoder'
-                                                    }`}
+                                                        : 'border-jcoder'
+                                                        }`}
                                                 />
                                                 {basicInfoForm.email.trim() !== (user?.email || '') && basicInfoForm.email.trim() && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(basicInfoForm.email.trim()) && (
                                                     <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
@@ -1449,15 +1447,15 @@ export default function ProfileManagementPage() {
                                                 {basicInfoForm.email.trim() !== (user?.email || '') && (
                                                     <>
                                                         {emailStatus.available === true && basicInfoForm.email.trim() && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(basicInfoForm.email.trim()) && (
-                                                            <p className="mt-1 text-sm text-green-400">Email disponível!</p>
+                                                            <p className="mt-1 text-sm text-green-400">Email available!</p>
                                                         )}
                                                         {emailStatus.available === false && (
-                                                            <p className="mt-1 text-sm text-red-400">Este email já está em uso</p>
+                                                            <p className="mt-1 text-sm text-red-400">This email is already in use</p>
                                                         )}
                                                     </>
                                                 )}
                                                 {isEmailVerified && basicInfoForm.email.trim() === (user?.email || '') && (
-                                                    <p className="mt-1 text-sm text-green-400">Email verificado</p>
+                                                    <p className="mt-1 text-sm text-green-400">Email verified</p>
                                                 )}
 
                                                 {/* Email Verification Section - Compact */}
@@ -1472,7 +1470,7 @@ export default function ProfileManagementPage() {
                                                                         disabled={isSendingCode || emailStatus.available !== true}
                                                                         className="text-sm px-3 py-1.5 bg-jcoder-primary/10 text-jcoder-primary rounded-lg hover:bg-jcoder-primary/20 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                                                                     >
-                                                                        {isSendingCode ? 'Enviando...' : 'Enviar código'}
+                                                                        {isSendingCode ? 'Sending...' : 'Send code'}
                                                                     </button>
                                                                 ) : (
                                                                     <div className="space-y-2">
@@ -1492,7 +1490,7 @@ export default function ProfileManagementPage() {
                                                                                 disabled={isVerifyingCode || verificationCode.length !== 6 || isEmailVerified}
                                                                                 className="px-3 py-1.5 bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
                                                                             >
-                                                                                {isVerifyingCode ? 'Verificando...' : 'Verificar'}
+                                                                                {isVerifyingCode ? 'Verifying...' : 'Verify'}
                                                                             </button>
                                                                             <button
                                                                                 type="button"
@@ -1500,7 +1498,7 @@ export default function ProfileManagementPage() {
                                                                                 disabled={isSendingCode}
                                                                                 className="text-xs text-jcoder-primary hover:text-jcoder-accent transition-colors disabled:opacity-50"
                                                                             >
-                                                                                {isSendingCode ? 'Enviando...' : 'Reenviar'}
+                                                                                {isSendingCode ? 'Sending...' : 'Resend'}
                                                                             </button>
                                                                         </div>
                                                                     </div>
@@ -1512,7 +1510,7 @@ export default function ProfileManagementPage() {
                                                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                                                 </svg>
-                                                                <span>Email verificado</span>
+                                                                <span>Email verified</span>
                                                             </div>
                                                         )}
                                                     </div>
