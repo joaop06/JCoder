@@ -22,8 +22,8 @@ export class GetEducationsUseCase {
   ) { }
 
   /**
-   * Busca educações do usuário
-   * Rotas separadas para carregamento sob demanda (lazy loading)
+   * Fetches user educations
+   * Separate routes for on-demand loading (lazy loading)
    */
   async execute(
     username: string,
@@ -32,7 +32,7 @@ export class GetEducationsUseCase {
     const { page = 1, limit = 10, sortBy = 'startDate', sortOrder = 'DESC' } = paginationDto;
     const skip = (page - 1) * limit;
 
-    // Validar sortBy - apenas campos válidos da entidade
+    // Validate sortBy - only valid entity fields
     const validSortFields = ['id', 'userId', 'institutionName', 'courseName', 'degree', 'startDate', 'endDate', 'isCurrentlyStudying'];
     const validatedSortBy = validSortFields.includes(sortBy) ? sortBy : 'startDate';
 
@@ -49,7 +49,7 @@ export class GetEducationsUseCase {
     const result = await this.cacheService.getOrSet(
       cacheKey,
       async () => {
-        // Verificar se usuário existe
+        // Check if user exists
         const user = await this.userRepository.findOneBy({ username });
         if (!user) throw new UserNotFoundException();
 

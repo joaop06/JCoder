@@ -14,9 +14,9 @@ import {
 } from '@nestjs/common';
 import { Technology } from './entities/technology.entity';
 import { TechnologiesService } from './technologies.service';
-import { JwtAuthGuard } from '../../@common/guards/jwt-auth.guard';
 import { CreateTechnologyDto } from './dto/create-technology.dto';
 import { UpdateTechnologyDto } from './dto/update-technology.dto';
+import { JwtAuthGuard } from '../../@common/guards/jwt-auth.guard';
 import { ReorderTechnologyDto } from './dto/reorder-technology.dto';
 import { TechnologiesStatsDto } from './dto/technologies-stats.dto';
 import { CreateTechnologyUseCase } from './use-cases/create-technology.use-case';
@@ -37,8 +37,8 @@ export class TechnologiesController {
     constructor(
         private readonly technologiesService: TechnologiesService,
         private readonly createTechnologyUseCase: CreateTechnologyUseCase,
-        private readonly updateTechnologyUseCase: UpdateTechnologyUseCase,
         private readonly deleteTechnologyUseCase: DeleteTechnologyUseCase,
+        private readonly updateTechnologyUseCase: UpdateTechnologyUseCase,
         private readonly reorderTechnologyUseCase: ReorderTechnologyUseCase,
     ) { }
 

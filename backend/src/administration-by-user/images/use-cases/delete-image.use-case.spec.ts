@@ -1,29 +1,29 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { getRepositoryToken } from '@nestjs/typeorm';
+import { Test, TestingModule } from '@nestjs/testing';
+import { ResourceType } from '../enums/resource-type.enum';
 import { DeleteImageUseCase } from './delete-image.use-case';
-import { Application } from '../../applications/entities/application.entity';
-import { ApplicationNotFoundException } from '../../applications/exceptions/application-not-found.exception';
 import { CacheService } from '../../../@common/services/cache.service';
 import { ImageStorageService } from '../services/image-storage.service';
-import { ResourceType } from '../enums/resource-type.enum';
+import { Application } from '../../applications/entities/application.entity';
+import { ApplicationNotFoundException } from '../../applications/exceptions/application-not-found.exception';
 
 describe('DeleteImageUseCase', () => {
     let useCase: DeleteImageUseCase;
-    let applicationRepository: jest.Mocked<Repository<Application>>;
-    let imageStorageService: jest.Mocked<ImageStorageService>;
     let cacheService: jest.Mocked<CacheService>;
+    let imageStorageService: jest.Mocked<ImageStorageService>;
+    let applicationRepository: jest.Mocked<Repository<Application>>;
 
     const mockApplication1: Partial<Application> = {
         id: 1,
-        username: 'user1',
+        userId: 1,
         name: 'Application 1',
         images: ['image1.jpg', 'image2.jpg', 'image3.jpg'],
     };
 
     const mockApplication2: Partial<Application> = {
         id: 2,
-        username: 'user2',
+        userId: 2,
         name: 'Application 2',
         images: ['image4.jpg', 'image5.jpg'],
     };

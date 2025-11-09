@@ -3,6 +3,7 @@ import { ConfigService } from "@nestjs/config";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { User } from "../../administration-by-user/users/entities/user.entity";
 import { Message } from "../../administration-by-user/messages/entities/message.entity";
+import { EmailVerification } from "../../portfolio-view/entities/email-verification.entity";
 import { Technology } from "../../administration-by-user/technologies/entities/technology.entity";
 import { Application } from "../../administration-by-user/applications/entities/application.entity";
 import { UserComponentAboutMe } from "../../administration-by-user/users/user-components/entities/user-component-about-me.entity";
@@ -15,7 +16,6 @@ import { UserComponentExperiencePosition } from "../../administration-by-user/us
 import { ApplicationComponentMobile } from "../../administration-by-user/applications/application-components/entities/application-component-mobile.entity";
 import { ApplicationComponentLibrary } from "../../administration-by-user/applications/application-components/entities/application-component-library.entity";
 import { ApplicationComponentFrontend } from "../../administration-by-user/applications/application-components/entities/application-component-frontend.entity";
-import { EmailVerification } from "../../portfolio-view/entities/email-verification.entity";
 
 config();
 const configService = new ConfigService();
@@ -27,6 +27,7 @@ export const TypeormMysqlModule = TypeOrmModule.forRoot({
     Message,
     Technology,
     Application,
+    EmailVerification,
     UserComponentAboutMe,
     UserComponentEducation,
     ApplicationComponentApi,
@@ -37,7 +38,6 @@ export const TypeormMysqlModule = TypeOrmModule.forRoot({
     ApplicationComponentFrontend,
     UserComponentAboutMeHighlight,
     UserComponentExperiencePosition,
-    EmailVerification,
   ],
   username: configService.get("DATABASE_USER") || 'root',
   database: configService.get("DATABASE_NAME") || 'jcoder',

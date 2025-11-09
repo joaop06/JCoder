@@ -1,28 +1,28 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { GetTechnologyProfileImageUseCase } from './get-technology-profile-image.use-case';
-import { Technology } from '../../technologies/entities/technology.entity';
-import { TechnologyNotFoundException } from '../../technologies/exceptions/technology-not-found.exception';
-import { ImageStorageService } from '../services/image-storage.service';
+import { getRepositoryToken } from '@nestjs/typeorm';
+import { Test, TestingModule } from '@nestjs/testing';
 import { ResourceType } from '../enums/resource-type.enum';
+import { ImageStorageService } from '../services/image-storage.service';
+import { Technology } from '../../technologies/entities/technology.entity';
+import { GetTechnologyProfileImageUseCase } from './get-technology-profile-image.use-case';
+import { TechnologyNotFoundException } from '../../technologies/exceptions/technology-not-found.exception';
 
 describe('GetTechnologyProfileImageUseCase', () => {
     let useCase: GetTechnologyProfileImageUseCase;
-    let technologyRepository: jest.Mocked<Repository<Technology>>;
     let imageStorageService: jest.Mocked<ImageStorageService>;
+    let technologyRepository: jest.Mocked<Repository<Technology>>;
 
     const mockTechnology1: Partial<Technology> = {
         id: 1,
+        userId: 1,
         name: 'Node.js',
-        username: 'user1',
         profileImage: 'nodejs-profile.jpg',
     };
 
     const mockTechnology2: Partial<Technology> = {
         id: 2,
+        userId: 2,
         name: 'React',
-        username: 'user2',
         profileImage: 'react-profile.jpg',
     };
 

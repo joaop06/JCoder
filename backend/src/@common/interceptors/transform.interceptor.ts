@@ -23,8 +23,8 @@ export class TransformInterceptor<T> implements NestInterceptor<T, Response<T>> 
             map((data) => ({
                 data,
                 success: true,
-                timestamp: new Date().toISOString(),
                 path: request.url,
+                timestamp: new Date().toISOString(),
             })),
         );
     }

@@ -24,7 +24,7 @@ export class MessagesController {
     ) { }
 
     /**
-     * Listar todas as mensagens recebidas (apenas para o administrador autenticado)
+     * List all received messages (only for authenticated administrator)
      */
     @Get()
     @UseGuards(JwtAuthGuard, OwnerGuard)
@@ -35,7 +35,7 @@ export class MessagesController {
     }
 
     /**
-     * Buscar uma mensagem específica por ID (apenas para o administrador autenticado)
+     * Find a specific message by ID (only for authenticated administrator)
      */
     @Get(':id')
     @UseGuards(JwtAuthGuard, OwnerGuard)
@@ -50,7 +50,7 @@ export class MessagesController {
     }
 
     /**
-     * Deletar uma mensagem (soft delete) - apenas para o administrador autenticado
+     * Delete a message (soft delete) - only for authenticated administrator
      */
     @Delete(':id')
     @HttpCode(HttpStatus.NO_CONTENT)

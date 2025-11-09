@@ -1,12 +1,12 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { UploadTechnologyProfileImageUseCase } from './upload-technology-profile-image.use-case';
-import { Technology } from '../../technologies/entities/technology.entity';
-import { TechnologyNotFoundException } from '../../technologies/exceptions/technology-not-found.exception';
-import { ImageStorageService } from '../services/image-storage.service';
-import { ResourceType } from '../enums/resource-type.enum';
+import { getRepositoryToken } from '@nestjs/typeorm';
 import { ImageType } from '../enums/image-type.enum';
+import { Test, TestingModule } from '@nestjs/testing';
+import { ResourceType } from '../enums/resource-type.enum';
+import { ImageStorageService } from '../services/image-storage.service';
+import { Technology } from '../../technologies/entities/technology.entity';
+import { UploadTechnologyProfileImageUseCase } from './upload-technology-profile-image.use-case';
+import { TechnologyNotFoundException } from '../../technologies/exceptions/technology-not-found.exception';
 
 describe('UploadTechnologyProfileImageUseCase', () => {
     let useCase: UploadTechnologyProfileImageUseCase;
@@ -28,15 +28,15 @@ describe('UploadTechnologyProfileImageUseCase', () => {
 
     const mockTechnology1: Partial<Technology> = {
         id: 1,
+        userId: 1,
         name: 'Node.js',
-        username: 'user1',
         profileImage: 'old-profile.jpg',
     };
 
     const mockTechnology2: Partial<Technology> = {
         id: 2,
+        userId: 2,
         name: 'React',
-        username: 'user2',
         profileImage: null,
     };
 

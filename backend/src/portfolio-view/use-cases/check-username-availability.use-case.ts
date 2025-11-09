@@ -13,11 +13,11 @@ export class CheckUsernameAvailabilityUseCase {
   ) { }
 
   /**
-   * Verifica disponibilidade do username
-   * Retorna true se o username estiver disponível (não existe)
+   * Checks username availability
+   * Returns true if the username is available (does not exist)
    */
   async execute(username: string): Promise<CheckUsernameAvailabilityDto> {
-    // Validação básica do formato do username
+    // Basic username format validation
     if (!username || username.length < 3) {
       return plainToInstance(CheckUsernameAvailabilityDto, {
         available: false,
@@ -25,7 +25,7 @@ export class CheckUsernameAvailabilityUseCase {
       });
     }
 
-    // Verificar se o username já existe
+    // Check if the username already exists
     const userExists = await this.userRepository.findOneBy({ username });
 
     return plainToInstance(CheckUsernameAvailabilityDto, {

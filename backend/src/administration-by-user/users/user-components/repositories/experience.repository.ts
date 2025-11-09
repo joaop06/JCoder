@@ -25,7 +25,7 @@ export class ExperienceRepository {
         const { page = 1, limit = 10, sortBy = 'companyName', sortOrder = 'ASC' } = paginationDto;
         const skip = (page - 1) * limit;
 
-        // Validar sortBy - apenas campos válidos da entidade
+        // Validate sortBy - only valid entity fields
         const validSortFields = ['id', 'userId', 'companyName'];
         const validatedSortBy = validSortFields.includes(sortBy) ? sortBy : 'companyName';
 

@@ -1,5 +1,5 @@
-import { UsersService } from '../../administration-by-user/users/users.service';
 import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
+import { UsersService } from '../../administration-by-user/users/users.service';
 import { UnauthorizedAccessException } from '../../administration-by-user/users/exceptions/unauthorized-access.exception';
 
 @Injectable()

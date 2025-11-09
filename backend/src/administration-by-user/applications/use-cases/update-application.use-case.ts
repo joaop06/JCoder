@@ -13,10 +13,10 @@ export class UpdateApplicationUseCase {
     ) { }
 
     async execute(username: string, id: Application['id'], updateApplicationDto: UpdateApplicationDto): Promise<Application> {
-        // Verify if exists the application for this user
+        // Verify whether the application exists for this user
         const application = await this.applicationsService.findById(id, username);
 
-        // Verify if already exists the Application name for this user
+        // Verify whether the Application name already exists for this user
         await this.existsApplicationName(username, id, updateApplicationDto.name);
 
         // Update application

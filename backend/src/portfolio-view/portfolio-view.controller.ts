@@ -10,41 +10,41 @@ import {
   ParseIntPipe,
 } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
-import { PaginationDto } from '../@common/dto/pagination.dto';
+import { CreateUserDto } from './dto/create-user.dto';
 import { GetEducationsDto } from './dto/get-educations.dto';
+import { PaginationDto } from '../@common/dto/pagination.dto';
 import { GetExperiencesDto } from './dto/get-experiences.dto';
-import { GetCertificatesDto } from './dto/get-certificates.dto';
 import { GetApplicationsDto } from './dto/get-applications.dto';
+import { GetCertificatesDto } from './dto/get-certificates.dto';
 import { GetTechnologiesDto } from './dto/get-technologies.dto';
+import { VerifyEmailCodeDto } from './dto/verify-email-code.dto';
+import { CreateUserUseCase } from './use-cases/create-user.use-case';
 import { GetEducationsUseCase } from './use-cases/get-educations.use-case';
+import { User } from '../administration-by-user/users/entities/user.entity';
 import { GetApplicationDetailsDto } from './dto/get-application-details.dto';
 import { GetExperiencesUseCase } from './use-cases/get-experiences.use-case';
+import { SendEmailVerificationDto } from './dto/send-email-verification.dto';
 import { ApiTags, ApiOkResponse, ApiNoContentResponse } from '@nestjs/swagger';
+import { CheckEmailAvailabilityDto } from './dto/check-email-availability.dto';
 import { GetApplicationsUseCase } from './use-cases/get-applications.use-case';
 import { GetCertificatesUseCase } from './use-cases/get-certificates.use-case';
-import { GetTechnologiesUseCase } from './use-cases/get-technologies.use-case';
 import { GetProfileWithAboutMeDto } from './dto/get-profile-with-about-me.dto';
+import { GetTechnologiesUseCase } from './use-cases/get-technologies.use-case';
+import { VerifyEmailCodeUseCase } from './use-cases/verify-email-code.use-case';
 import { CheckUsernameAvailabilityDto } from './dto/check-username-availability.dto';
 import { GetApplicationDetailsUseCase } from './use-cases/get-application-details.use-case';
+import { SendEmailVerificationUseCase } from './use-cases/send-email-verification.use-case';
 import { CreateMessageDto } from '../administration-by-user/messages/dto/create-message.dto';
+import { CheckEmailAvailabilityUseCase } from './use-cases/check-email-availability.use-case';
 import { GetProfileWithAboutMeUseCase } from './use-cases/get-profile-with-about-me.use-case';
 import { CheckUsernameAvailabilityUseCase } from './use-cases/check-username-availability.use-case';
-import { CreateUserUseCase } from './use-cases/create-user.use-case';
 import { ApiExceptionResponse } from '../@common/decorators/documentation/api-exception-response.decorator';
-import { UserNotFoundException } from '../administration-by-user/users/exceptions/user-not-found.exception';
 import { CreateMessageUseCase } from '../administration-by-user/messages/use-cases/create-message.use-case';
-import { TechnologyNotFoundException } from '../administration-by-user/technologies/exceptions/technology-not-found.exception';
-import { ApplicationNotFoundException } from '../administration-by-user/applications/exceptions/application-not-found.exception';
-import { CreateUserDto } from './dto/create-user.dto';
-import { User } from '../administration-by-user/users/entities/user.entity';
+import { UserNotFoundException } from '../administration-by-user/users/exceptions/user-not-found.exception';
 import { EmailAlreadyExistsException } from '../administration-by-user/users/exceptions/email-already-exists.exception';
 import { UsernameAlreadyExistsException } from '../administration-by-user/users/exceptions/username-already-exists.exception';
-import { SendEmailVerificationUseCase } from './use-cases/send-email-verification.use-case';
-import { VerifyEmailCodeUseCase } from './use-cases/verify-email-code.use-case';
-import { CheckEmailAvailabilityUseCase } from './use-cases/check-email-availability.use-case';
-import { SendEmailVerificationDto } from './dto/send-email-verification.dto';
-import { VerifyEmailCodeDto } from './dto/verify-email-code.dto';
-import { CheckEmailAvailabilityDto } from './dto/check-email-availability.dto';
+import { TechnologyNotFoundException } from '../administration-by-user/technologies/exceptions/technology-not-found.exception';
+import { ApplicationNotFoundException } from '../administration-by-user/applications/exceptions/application-not-found.exception';
 
 @ApiTags('Portfolio View')
 @Controller('portfolio')
@@ -66,9 +66,9 @@ export class PortfolioViewController {
   ) { }
 
   /**
-   * Verifica disponibilidade do username
-   * Usado para validação em tempo real durante o cadastro
-   * Deve estar antes das rotas dinâmicas :username para evitar conflitos
+   * Checks username availability
+   * Used for real-time validation during registration
+   * Must be before dynamic :username routes to avoid conflicts
    */
   @Get('check-username/:username')
   @HttpCode(HttpStatus.OK)
@@ -80,8 +80,8 @@ export class PortfolioViewController {
   }
 
   /**
-   * Verifica disponibilidade do email
-   * Usado para validação em tempo real durante o cadastro
+   * Checks email availability
+   * Used for real-time validation during registration
    */
   @Get('check-email/:email')
   @HttpCode(HttpStatus.OK)
@@ -93,12 +93,12 @@ export class PortfolioViewController {
   }
 
   /**
-   * Envia código de verificação para o email
-   * Usado durante o processo de cadastro
+   * Sends verification code to email
+   * Used during registration process
    */
   @Post('send-email-verification')
   @HttpCode(HttpStatus.OK)
-  @Throttle({ short: { limit: 3, ttl: 60000 } }) // 3 tentativas por minuto
+  @Throttle({ short: { limit: 3, ttl: 60000 } }) // 3 attempts per minute
   @ApiOkResponse({ schema: { type: 'object', properties: { message: { type: 'string' } } } })
   @ApiExceptionResponse(() => EmailAlreadyExistsException)
   async sendEmailVerification(
@@ -108,12 +108,12 @@ export class PortfolioViewController {
   }
 
   /**
-   * Verifica o código de verificação do email
-   * Usado durante o processo de cadastro
+   * Verifies email verification code
+   * Used during registration process
    */
   @Post('verify-email-code')
   @HttpCode(HttpStatus.OK)
-  @Throttle({ short: { limit: 5, ttl: 60000 } }) // 5 tentativas por minuto
+  @Throttle({ short: { limit: 5, ttl: 60000 } }) // 5 attempts per minute
   @ApiOkResponse({ schema: { type: 'object', properties: { verified: { type: 'boolean' }, message: { type: 'string' } } } })
   async verifyEmailCode(
     @Body() dto: VerifyEmailCodeDto,
@@ -122,12 +122,12 @@ export class PortfolioViewController {
   }
 
   /**
-   * Cadastro de novo usuário administrador
-   * Permite que novos usuários criem suas contas e comecem a gerenciar seus portfólios
+   * New administrator user registration
+   * Allows new users to create their accounts and start managing their portfolios
    */
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
-  @Throttle({ short: { limit: 3, ttl: 60000 } }) // 3 tentativas por minuto para prevenir spam
+  @Throttle({ short: { limit: 3, ttl: 60000 } }) // 3 attempts per minute to prevent spam
   @ApiOkResponse({ type: () => User })
   @ApiExceptionResponse(() => [EmailAlreadyExistsException, UsernameAlreadyExistsException])
   async createUser(@Body() createUserDto: CreateUserDto): Promise<User> {
@@ -135,11 +135,11 @@ export class PortfolioViewController {
   }
 
   /**
-   * Endpoint público para usuários comuns enviarem mensagens ao administrador
+   * Public endpoint for regular users to send messages to the administrator
    */
   @Post(':username/messages')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @Throttle({ short: { limit: 5, ttl: 60000 } }) // 5 mensagens por minuto para prevenir spam
+  @Throttle({ short: { limit: 5, ttl: 60000 } }) // 5 messages per minute to prevent spam
   @ApiNoContentResponse()
   async createMessage(
     @Param('username') username: string,
@@ -149,8 +149,8 @@ export class PortfolioViewController {
   }
 
   /**
-   * Busca dados básicos do perfil com About Me
-   * Rota otimizada para carregamento inicial do portfólio
+   * Fetches basic profile data with About Me
+   * Optimized route for initial portfolio loading
    */
   @Get(':username/profile')
   @HttpCode(HttpStatus.OK)
@@ -163,8 +163,8 @@ export class PortfolioViewController {
   }
 
   /**
-   * Busca educações do usuário
-   * Carregamento sob demanda para melhor performance mobile
+   * Fetches user educations
+   * On-demand loading for better mobile performance
    */
   @Get(':username/educations')
   @HttpCode(HttpStatus.OK)
@@ -178,7 +178,7 @@ export class PortfolioViewController {
   }
 
   /**
-   * Busca experiências do usuário
+   * Fetches user experiences
    */
   @Get(':username/experiences')
   @HttpCode(HttpStatus.OK)
@@ -192,7 +192,7 @@ export class PortfolioViewController {
   }
 
   /**
-   * Busca certificados do usuário
+   * Fetches user certificates
    */
   @Get(':username/certificates')
   @HttpCode(HttpStatus.OK)
@@ -206,8 +206,8 @@ export class PortfolioViewController {
   }
 
   /**
-   * Busca todas as aplicações do usuário (sem componentes)
-   * Listagem otimizada para performance
+   * Fetches all user applications (without components)
+   * Optimized listing for performance
    */
   @Get(':username/applications')
   @HttpCode(HttpStatus.OK)
@@ -221,8 +221,8 @@ export class PortfolioViewController {
   }
 
   /**
-   * Busca detalhes de uma aplicação específica (com componentes)
-   * Carregamento sob demanda quando usuário clica em uma aplicação
+   * Fetches details of a specific application (with components)
+   * On-demand loading when user clicks on an application
    */
   @Get(':username/applications/:id')
   @HttpCode(HttpStatus.OK)
@@ -236,7 +236,7 @@ export class PortfolioViewController {
   }
 
   /**
-   * Busca tecnologias do usuário
+   * Fetches user technologies
    */
   @Get(':username/technologies')
   @HttpCode(HttpStatus.OK)

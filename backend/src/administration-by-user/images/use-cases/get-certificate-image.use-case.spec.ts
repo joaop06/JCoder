@@ -1,27 +1,27 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { getRepositoryToken } from '@nestjs/typeorm';
+import { Test, TestingModule } from '@nestjs/testing';
+import { ResourceType } from '../enums/resource-type.enum';
+import { ImageStorageService } from '../services/image-storage.service';
 import { GetCertificateImageUseCase } from './get-certificate-image.use-case';
 import { UserComponentCertificate } from '../../users/user-components/entities/user-component-certificate.entity';
 import { ComponentNotFoundException } from '../../users/user-components/exceptions/component-not-found.exceptions';
-import { ImageStorageService } from '../services/image-storage.service';
-import { ResourceType } from '../enums/resource-type.enum';
 
 describe('GetCertificateImageUseCase', () => {
     let useCase: GetCertificateImageUseCase;
-    let certificateRepository: jest.Mocked<Repository<UserComponentCertificate>>;
     let imageStorageService: jest.Mocked<ImageStorageService>;
+    let certificateRepository: jest.Mocked<Repository<UserComponentCertificate>>;
 
     const mockCertificate1: Partial<UserComponentCertificate> = {
         id: 1,
-        username: 'user1',
+        userId: 1,
         certificateName: 'AWS Certified Solutions Architect',
         profileImage: 'certificate-1.jpg',
     };
 
     const mockCertificate2: Partial<UserComponentCertificate> = {
         id: 2,
-        username: 'user2',
+        userId: 2,
         certificateName: 'Google Cloud Professional',
         profileImage: 'certificate-2.jpg',
     };

@@ -6,7 +6,7 @@ export class GetTechnologiesDto extends PaginatedResponseDto<Technology> {
   @ApiProperty({
     isArray: true,
     type: () => Technology,
-    description: 'Lista de tecnologias do usuário',
+    description: 'List of user technologies',
   })
   override data!: Technology[];
 };

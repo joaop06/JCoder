@@ -1,19 +1,19 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { getRepositoryToken } from '@nestjs/typeorm';
+import { ImageType } from '../enums/image-type.enum';
+import { Test, TestingModule } from '@nestjs/testing';
+import { ResourceType } from '../enums/resource-type.enum';
+import { CacheService } from '../../../@common/services/cache.service';
+import { ImageStorageService } from '../services/image-storage.service';
 import { UploadProfileImageUseCase } from './upload-profile-image.use-case';
 import { Application } from '../../applications/entities/application.entity';
 import { ApplicationNotFoundException } from '../../applications/exceptions/application-not-found.exception';
-import { CacheService } from '../../../@common/services/cache.service';
-import { ImageStorageService } from '../services/image-storage.service';
-import { ResourceType } from '../enums/resource-type.enum';
-import { ImageType } from '../enums/image-type.enum';
 
 describe('UploadProfileImageUseCase', () => {
     let useCase: UploadProfileImageUseCase;
-    let applicationRepository: jest.Mocked<Repository<Application>>;
-    let imageStorageService: jest.Mocked<ImageStorageService>;
     let cacheService: jest.Mocked<CacheService>;
+    let imageStorageService: jest.Mocked<ImageStorageService>;
+    let applicationRepository: jest.Mocked<Repository<Application>>;
 
     const mockFile: Express.Multer.File = {
         fieldname: 'profileImage',
@@ -30,14 +30,14 @@ describe('UploadProfileImageUseCase', () => {
 
     const mockApplication1: Partial<Application> = {
         id: 1,
-        username: 'user1',
+        userId: 1,
         name: 'Application 1',
         profileImage: 'old-profile.jpg',
     };
 
     const mockApplication2: Partial<Application> = {
         id: 2,
-        username: 'user2',
+        userId: 2,
         name: 'Application 2',
         profileImage: null,
     };

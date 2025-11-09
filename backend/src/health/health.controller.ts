@@ -1,21 +1,21 @@
+import {
+    HealthCheck,
+    HealthCheckService,
+    DiskHealthIndicator,
+    MemoryHealthIndicator,
+    TypeOrmHealthIndicator,
+} from '@nestjs/terminus';
 import { Controller, Get } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
-import {
-    HealthCheckService,
-    HealthCheck,
-    TypeOrmHealthIndicator,
-    MemoryHealthIndicator,
-    DiskHealthIndicator,
-} from '@nestjs/terminus';
 
 @ApiTags('Health')
 @Controller('health')
 export class HealthController {
     constructor(
-        private health: HealthCheckService,
-        private db: TypeOrmHealthIndicator,
-        private memory: MemoryHealthIndicator,
-        private disk: DiskHealthIndicator,
+        private readonly disk: DiskHealthIndicator,
+        private readonly db: TypeOrmHealthIndicator,
+        private readonly health: HealthCheckService,
+        private readonly memory: MemoryHealthIndicator,
     ) { }
 
     @Get()

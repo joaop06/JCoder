@@ -6,7 +6,7 @@ export class GetExperiencesDto extends PaginatedResponseDto<UserComponentExperie
   @ApiProperty({
     isArray: true,
     type: () => UserComponentExperience,
-    description: 'Lista de experiências do usuário',
+    description: 'List of user experiences',
   })
   override data!: UserComponentExperience[];
 };

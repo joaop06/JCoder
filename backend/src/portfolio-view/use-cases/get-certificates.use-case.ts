@@ -22,7 +22,7 @@ export class GetCertificatesUseCase {
   ) { }
 
   /**
-   * Busca certificados do usuário
+   * Fetches user certificates
    */
   async execute(
     username: string,
@@ -31,7 +31,7 @@ export class GetCertificatesUseCase {
     const { page = 1, limit = 10, sortBy = 'issueDate', sortOrder = 'DESC' } = paginationDto;
     const skip = (page - 1) * limit;
 
-    // Validar sortBy - apenas campos válidos da entidade
+    // Validate sortBy - only valid entity fields
     const validSortFields = ['id', 'userId', 'certificateName', 'registrationNumber', 'verificationUrl', 'issueDate', 'issuedTo', 'profileImage'];
     const validatedSortBy = validSortFields.includes(sortBy) ? sortBy : 'issueDate';
 

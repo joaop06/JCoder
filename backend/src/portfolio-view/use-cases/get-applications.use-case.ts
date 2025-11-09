@@ -22,8 +22,8 @@ export class GetApplicationsUseCase {
   ) { }
 
   /**
-   * Busca todas as aplicações do usuário (sem componentes)
-   * Otimizado para listagem rápida
+   * Fetches all user applications (without components)
+   * Optimized for fast listing
    */
   async execute(
     username: string,

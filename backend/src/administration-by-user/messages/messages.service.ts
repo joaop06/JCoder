@@ -18,7 +18,7 @@ export class MessagesService {
         const user = await this.usersService.findOneBy({ username });
 
         if (!user) {
-            throw new Error(`Usuário com username '${username}' não encontrado`);
+            throw new Error(`User with username '${username}' not found`);
         }
 
         const message = this.repository.create({

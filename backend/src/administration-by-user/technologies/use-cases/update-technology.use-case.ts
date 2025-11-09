@@ -13,10 +13,10 @@ export class UpdateTechnologyUseCase {
         username: string,
         updateTechnologyDto: UpdateTechnologyDto,
     ): Promise<Technology> {
-        // Verify if exists the technology for this user
+        // Verify whether the technology exists for this user
         await this.technologiesService.findById(id, username);
 
-        // Verify if already exists the Application name for this user
+        // Verify whether the Technology name already exists for this user
         await this.existsTechnologyName(username, id, updateTechnologyDto.name);
 
         // Update the technology

@@ -6,7 +6,7 @@ export class GetEducationsDto extends PaginatedResponseDto<UserComponentEducatio
   @ApiProperty({
     isArray: true,
     type: () => UserComponentEducation,
-    description: 'Lista de educações do usuário',
+    description: 'List of user educations',
   })
   override data!: UserComponentEducation[];
 };

@@ -56,11 +56,11 @@ import { UserComponentCertificate } from '../administration-by-user/users/user-c
       User,
       Technology,
       Application,
+      EmailVerification,
       UserComponentAboutMe,
       UserComponentEducation,
       UserComponentExperience,
       UserComponentCertificate,
-      EmailVerification,
     ]),
     CacheModule.register({
       ttl: 300, // 5 minutes default

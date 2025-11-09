@@ -6,7 +6,7 @@ export class GetApplicationsDto extends PaginatedResponseDto<Application> {
   @ApiProperty({
     isArray: true,
     type: () => Application,
-    description: 'Lista de aplicações do usuário',
+    description: 'List of user applications',
   })
   override data!: Application[];
 };

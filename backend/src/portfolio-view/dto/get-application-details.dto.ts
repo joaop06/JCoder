@@ -4,7 +4,7 @@ import { Application } from '../../administration-by-user/applications/entities/
 export class GetApplicationDetailsDto extends Application {
   @ApiProperty({
     type: Application,
-    description: 'Detalhes completos da aplicação com todos os componentes',
+    description: 'Complete application details with all components',
   })
   declare id: number;
 };

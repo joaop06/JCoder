@@ -1,17 +1,17 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { getRepositoryToken } from '@nestjs/typeorm';
+import { ImageType } from '../enums/image-type.enum';
+import { Test, TestingModule } from '@nestjs/testing';
+import { ResourceType } from '../enums/resource-type.enum';
+import { ImageStorageService } from '../services/image-storage.service';
 import { UploadCertificateImageUseCase } from './upload-certificate-image.use-case';
 import { UserComponentCertificate } from '../../users/user-components/entities/user-component-certificate.entity';
 import { ComponentNotFoundException } from '../../users/user-components/exceptions/component-not-found.exceptions';
-import { ImageStorageService } from '../services/image-storage.service';
-import { ResourceType } from '../enums/resource-type.enum';
-import { ImageType } from '../enums/image-type.enum';
 
 describe('UploadCertificateImageUseCase', () => {
     let useCase: UploadCertificateImageUseCase;
-    let certificateRepository: jest.Mocked<Repository<UserComponentCertificate>>;
     let imageStorageService: jest.Mocked<ImageStorageService>;
+    let certificateRepository: jest.Mocked<Repository<UserComponentCertificate>>;
 
     const mockFile: Express.Multer.File = {
         fieldname: 'profileImage',
@@ -28,14 +28,14 @@ describe('UploadCertificateImageUseCase', () => {
 
     const mockCertificate1: Partial<UserComponentCertificate> = {
         id: 1,
-        username: 'user1',
+        userId: 1,
         certificateName: 'AWS Certified Solutions Architect',
         profileImage: 'old-certificate.jpg',
     };
 
     const mockCertificate2: Partial<UserComponentCertificate> = {
         id: 2,
-        username: 'user2',
+        userId: 2,
         certificateName: 'Google Cloud Professional',
         profileImage: null,
     };

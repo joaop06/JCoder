@@ -7,7 +7,7 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 
 @Injectable()
 export class ImageUploadService {
-    // Path fixo relativo ao módulo de imagens
+    // Fixed path relative to the images module
     private static readonly STORAGE_BASE_PATH = path.resolve(__dirname, '../../storage');
     private static readonly APPLICATIONS_PATH = path.join(ImageUploadService.STORAGE_BASE_PATH, 'applications');
 

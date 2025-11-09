@@ -28,17 +28,17 @@ export class EducationRepository {
         where: FindOptionsWhere<UserComponentEducation>,
         includeComponents: boolean = false
     ): Promise<UserComponentEducation> {
-        // Se não precisa de relacionamentos, usar findOneBy do repository (mais eficiente)
+        // If relationships are not needed, use repository findOneBy (more efficient)
         if (!includeComponents) {
             const education = await this.educationRepository.findOneBy(where);
             if (!education) throw new EducationNotFoundException();
             return education;
         }
 
-        // Caso contrário, usar QueryBuilder para incluir relacionamentos
+        // Otherwise, use QueryBuilder to include relationships
         const queryBuilder = this.educationRepository.createQueryBuilder('users_components_educations');
 
-        // Construir condições WHERE dinamicamente
+        // Build WHERE conditions dynamically
         const whereKeys = Object.keys(where) as Array<keyof FindOptionsWhere<UserComponentEducation>>;
         whereKeys.forEach((key, index) => {
             const paramKey = `param${index}`;
@@ -50,7 +50,7 @@ export class EducationRepository {
             }
         });
 
-        // Adicionar relacionamentos
+        // Add relationships
         queryBuilder
             .leftJoinAndSelect('users_components_educations.certificates', 'certificates');
 
@@ -64,7 +64,7 @@ export class EducationRepository {
         const { page = 1, limit = 10, sortBy = 'startDate', sortOrder = 'DESC' } = paginationDto;
         const skip = (page - 1) * limit;
 
-        // Validar sortBy - apenas campos válidos da entidade
+        // Validate sortBy - only valid entity fields
         const validSortFields = ['id', 'userId', 'institutionName', 'courseName', 'degree', 'startDate', 'endDate', 'isCurrentlyStudying'];
         const validatedSortBy = validSortFields.includes(sortBy) ? sortBy : 'startDate';
 

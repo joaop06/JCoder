@@ -22,8 +22,8 @@ export class GetApplicationDetailsUseCase {
   ) { }
 
   /**
-   * Busca detalhes de uma aplicação específica (com componentes)
-   * Carregamento sob demanda quando o usuário clica em uma aplicação
+   * Fetches details of a specific application (with components)
+   * On-demand loading when user clicks on an application
    */
   async execute(id: number, username: string): Promise<GetApplicationDetailsDto> {
     const cacheKey = this.cacheService.generateKey('portfolio', 'application', id, username);

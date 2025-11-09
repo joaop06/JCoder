@@ -24,7 +24,7 @@ export class CreateApplicationUseCase {
         // Validate whether components are present based on type
         this.validateDetailsForType(createApplicationDto);
 
-        // Verify if already exists the Application name for this user
+        // Verify whether the Application name already exists for this user
         const exists = await this.applicationsService.existsByApplicationNameAndUsername(username, createApplicationDto.name);
         if (exists) throw new AlreadyExistsApplicationException();
 

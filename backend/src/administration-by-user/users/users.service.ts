@@ -24,17 +24,17 @@ export class UsersService {
         where: FindOptionsWhere<User>,
         includeComponents: boolean = false
     ): Promise<User> {
-        // Se não precisa de relacionamentos, usar findOneBy do repository (mais eficiente)
+        // If relationships are not needed, use repository findOneBy (more efficient)
         if (!includeComponents) {
             const user = await this.repository.findOneBy(where);
             if (!user) throw new UserNotFoundException();
             return user;
         }
 
-        // Caso contrário, usar QueryBuilder para incluir relacionamentos
+        // Otherwise, use QueryBuilder to include relationships
         const queryBuilder = this.repository.createQueryBuilder('user');
 
-        // Construir condições WHERE dinamicamente
+        // Build WHERE conditions dynamically
         const whereKeys = Object.keys(where) as Array<keyof FindOptionsWhere<User>>;
         whereKeys.forEach((key, index) => {
             const paramKey = `param${index}`;
@@ -46,7 +46,7 @@ export class UsersService {
             }
         });
 
-        // Adicionar relacionamentos
+        // Add relationships
         queryBuilder
             .leftJoinAndSelect('user.userComponentAboutMe', 'aboutMe')
             .leftJoinAndSelect('aboutMe.highlights', 'highlights')

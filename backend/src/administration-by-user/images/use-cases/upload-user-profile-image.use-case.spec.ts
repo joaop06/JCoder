@@ -1,12 +1,12 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { UploadUserProfileImageUseCase } from './upload-user-profile-image.use-case';
-import { User } from '../../users/entities/user.entity';
-import { UserNotFoundException } from '../../users/exceptions/user-not-found.exception';
-import { ImageStorageService } from '../services/image-storage.service';
-import { ResourceType } from '../enums/resource-type.enum';
+import { getRepositoryToken } from '@nestjs/typeorm';
 import { ImageType } from '../enums/image-type.enum';
+import { Test, TestingModule } from '@nestjs/testing';
+import { User } from '../../users/entities/user.entity';
+import { ResourceType } from '../enums/resource-type.enum';
+import { ImageStorageService } from '../services/image-storage.service';
+import { UploadUserProfileImageUseCase } from './upload-user-profile-image.use-case';
+import { UserNotFoundException } from '../../users/exceptions/user-not-found.exception';
 
 describe('UploadUserProfileImageUseCase', () => {
     let useCase: UploadUserProfileImageUseCase;

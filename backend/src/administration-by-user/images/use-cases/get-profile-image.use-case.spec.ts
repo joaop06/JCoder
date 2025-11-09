@@ -1,12 +1,12 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { getRepositoryToken } from '@nestjs/typeorm';
+import { Test, TestingModule } from '@nestjs/testing';
+import { ResourceType } from '../enums/resource-type.enum';
 import { GetProfileImageUseCase } from './get-profile-image.use-case';
-import { Application } from '../../applications/entities/application.entity';
-import { ApplicationNotFoundException } from '../../applications/exceptions/application-not-found.exception';
 import { CacheService } from '../../../@common/services/cache.service';
 import { ImageStorageService } from '../services/image-storage.service';
-import { ResourceType } from '../enums/resource-type.enum';
+import { Application } from '../../applications/entities/application.entity';
+import { ApplicationNotFoundException } from '../../applications/exceptions/application-not-found.exception';
 
 describe('GetProfileImageUseCase', () => {
     let useCase: GetProfileImageUseCase;
@@ -16,14 +16,14 @@ describe('GetProfileImageUseCase', () => {
 
     const mockApplication1: Partial<Application> = {
         id: 1,
-        username: 'user1',
+        userId: 1,
         name: 'Application 1',
         profileImage: 'profile-image-1.jpg',
     };
 
     const mockApplication2: Partial<Application> = {
         id: 2,
-        username: 'user2',
+        userId: 2,
         name: 'Application 2',
         profileImage: 'profile-image-2.jpg',
     };

@@ -1,8 +1,8 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, LessThan } from 'typeorm';
-import { EmailVerification } from '../entities/email-verification.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { VerifyEmailCodeDto } from '../dto/verify-email-code.dto';
+import { EmailVerification } from '../entities/email-verification.entity';
 
 @Injectable()
 export class VerifyEmailCodeUseCase {
@@ -14,12 +14,12 @@ export class VerifyEmailCodeUseCase {
   async execute(dto: VerifyEmailCodeDto): Promise<{ verified: boolean; message: string }> {
     const { email, code } = dto;
 
-    // Limpar verificações expiradas
+    // Clear expired verifications
     await this.emailVerificationRepository.delete({
       expiresAt: LessThan(new Date()),
     });
 
-    // Buscar verificação não expirada e não verificada
+    // Find non-expired and unverified verification
     const verification = await this.emailVerificationRepository.findOne({
       where: {
         email,
@@ -32,21 +32,21 @@ export class VerifyEmailCodeUseCase {
     });
 
     if (!verification) {
-      throw new BadRequestException('Código inválido ou expirado');
+      throw new BadRequestException('Invalid or expired code');
     }
 
-    // Verificar se expirou
+    // Check if expired
     if (verification.expiresAt < new Date()) {
-      throw new BadRequestException('Código expirado. Solicite um novo código.');
+      throw new BadRequestException('Expired code. Request a new code.');
     }
 
-    // Marcar como verificado
+    // Mark as verified
     verification.verified = true;
     await this.emailVerificationRepository.save(verification);
 
     return {
       verified: true,
-      message: 'Email verificado com sucesso',
+      message: 'Email verified successfully',
     };
   }
 }

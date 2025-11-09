@@ -25,7 +25,7 @@ export class Message {
         example: 1,
         type: 'number',
         nullable: false,
-        description: 'ID do usuário administrador que receberá a mensagem',
+        description: 'ID of the administrator user who will receive the message',
     })
     @Column({ nullable: false })
     userId: number;
@@ -40,7 +40,7 @@ export class Message {
         type: 'string',
         nullable: false,
         example: 'João Silva',
-        description: 'Nome do remetente da mensagem',
+        description: 'Message sender name',
     })
     @Column({ nullable: false })
     senderName: string;
@@ -49,7 +49,7 @@ export class Message {
         type: 'string',
         nullable: false,
         example: 'joao@example.com',
-        description: 'E-mail do remetente da mensagem',
+        description: 'Message sender email',
     })
     @Column({ nullable: false })
     senderEmail: string;
@@ -57,8 +57,8 @@ export class Message {
     @ApiProperty({
         type: 'string',
         nullable: false,
-        example: 'Olá! Gostaria de entrar em contato sobre uma oportunidade...',
-        description: 'Conteúdo da mensagem',
+        example: 'Hello! I would like to get in touch about an opportunity...',
+        description: 'Message content',
     })
     @Column('text', { nullable: false })
     message: string;

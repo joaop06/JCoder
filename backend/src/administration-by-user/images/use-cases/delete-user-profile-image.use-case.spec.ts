@@ -1,11 +1,11 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { DeleteUserProfileImageUseCase } from './delete-user-profile-image.use-case';
+import { getRepositoryToken } from '@nestjs/typeorm';
+import { Test, TestingModule } from '@nestjs/testing';
 import { User } from '../../users/entities/user.entity';
-import { UserNotFoundException } from '../../users/exceptions/user-not-found.exception';
-import { ImageStorageService } from '../services/image-storage.service';
 import { ResourceType } from '../enums/resource-type.enum';
+import { ImageStorageService } from '../services/image-storage.service';
+import { DeleteUserProfileImageUseCase } from './delete-user-profile-image.use-case';
+import { UserNotFoundException } from '../../users/exceptions/user-not-found.exception';
 
 describe('DeleteUserProfileImageUseCase', () => {
     let useCase: DeleteUserProfileImageUseCase;

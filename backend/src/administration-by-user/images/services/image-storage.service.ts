@@ -1,15 +1,15 @@
-import sharp from 'sharp';
-import * as path from 'path';
-import { v4 as uuidv4 } from 'uuid';
-import * as fs from 'fs/promises';
-import { Injectable, BadRequestException } from '@nestjs/common';
 import {
+    ResourceImageConfig,
     ImageProcessingConfig,
     DEFAULT_IMAGE_CONFIGS,
-    ResourceImageConfig,
 } from '../types/image-config.interface';
-import { ResourceType } from '../enums/resource-type.enum';
+import sharp from 'sharp';
+import * as path from 'path';
+import * as fs from 'fs/promises';
+import { v4 as uuidv4 } from 'uuid';
 import { ImageType } from '../enums/image-type.enum';
+import { ResourceType } from '../enums/resource-type.enum';
+import { Injectable, BadRequestException } from '@nestjs/common';
 
 /**
  * Generic image storage service that handles image upload, processing, and deletion
@@ -21,8 +21,8 @@ export class ImageStorageService {
     private readonly resourceConfigs: Map<string, ResourceImageConfig>;
 
     constructor() {
-        // Usar path absoluto baseado em process.cwd() para garantir que funcione em qualquer ambiente
-        // O storage sempre está em src/administration-by-user/images/storage, mesmo quando o código está compilado em dist/
+        // Use absolute path based on process.cwd() to ensure it works in any environment
+        // Storage is always in src/administration-by-user/images/storage, even when code is compiled in dist/
         this.uploadBasePath = path.resolve(process.cwd(), 'src', 'administration-by-user', 'images', 'storage');
         this.resourceConfigs = new Map(Object.entries(DEFAULT_IMAGE_CONFIGS));
     }

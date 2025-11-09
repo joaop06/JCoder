@@ -6,7 +6,7 @@ export class GetCertificatesDto extends PaginatedResponseDto<UserComponentCertif
   @ApiProperty({
     isArray: true,
     type: () => UserComponentCertificate,
-    description: 'Lista de certificados do usuário',
+    description: 'List of user certificates',
   })
   override data!: UserComponentCertificate[];
 };

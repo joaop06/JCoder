@@ -1,30 +1,30 @@
-# Configuração de Envio de E-mails
+# Email Sending Configuration
 
-Este documento explica como configurar o sistema de envio de e-mails do JCoder.
+This document explains how to configure the JCoder email sending system.
 
-## Variáveis de Ambiente Necessárias
+## Required Environment Variables
 
-O sistema utiliza as seguintes variáveis de ambiente para configurar o servidor SMTP:
+The system uses the following environment variables to configure the SMTP server:
 
-### Variáveis Obrigatórias
+### Required Variables
 
 #### `SMTP_USER`
-- **Descrição**: E-mail do remetente (conta que enviará os e-mails)
-- **Exemplo**: `seu-email@gmail.com`
-- **Uso**: Usado para autenticação no servidor SMTP
+- **Description**: Sender email address (account that will send emails)
+- **Example**: `your-email@gmail.com`
+- **Usage**: Used for SMTP server authentication
 
 #### `SMTP_PASS`
-- **Descrição**: Senha ou token de autenticação para o e-mail
-- **Exemplo**: `sua-senha-de-app` (para Gmail) ou `sua-senha-normal` (para outros provedores)
-- **Uso**: Usado junto com `SMTP_USER` para autenticação no servidor SMTP
-- **⚠️ Importante**: Para Gmail, você precisa usar uma **Senha de App**, não a senha normal da conta
+- **Description**: Password or authentication token for the email
+- **Example**: `your-app-password` (for Gmail) or `your-normal-password` (for other providers)
+- **Usage**: Used together with `SMTP_USER` for SMTP server authentication
+- **⚠️ Important**: For Gmail, you need to use an **App Password**, not the normal account password
 
-### Variáveis Opcionais (com valores padrão)
+### Optional Variables (with default values)
 
 #### `SMTP_HOST`
-- **Descrição**: Endereço do servidor SMTP
-- **Padrão**: `smtp.gmail.com` (se não especificado)
-- **Exemplos por provedor**:
+- **Description**: SMTP server address
+- **Default**: `smtp.gmail.com` (if not specified)
+- **Examples by provider**:
   - Gmail: `smtp.gmail.com`
   - Outlook/Hotmail: `smtp-mail.outlook.com`
   - Yahoo: `smtp.mail.yahoo.com`
@@ -32,121 +32,121 @@ O sistema utiliza as seguintes variáveis de ambiente para configurar o servidor
   - Amazon SES: `email-smtp.us-east-1.amazonaws.com`
 
 #### `SMTP_PORT`
-- **Descrição**: Porta do servidor SMTP
-- **Padrão**: `587` (se não especificado)
-- **Valores comuns**:
-  - `587`: Porta padrão para TLS/STARTTLS (recomendado)
-  - `465`: Porta para SSL (requer `SMTP_SECURE=true`)
-  - `25`: Porta não criptografada (não recomendado)
+- **Description**: SMTP server port
+- **Default**: `587` (if not specified)
+- **Common values**:
+  - `587`: Default port for TLS/STARTTLS (recommended)
+  - `465`: Port for SSL (requires `SMTP_SECURE=true`)
+  - `25`: Unencrypted port (not recommended)
 
 #### `SMTP_SECURE`
-- **Descrição**: Define se a conexão deve usar SSL/TLS
-- **Padrão**: `false` (se não especificado)
-- **Valores**:
-  - `false`: Usa STARTTLS na porta 587 (recomendado)
-  - `true`: Usa SSL direto na porta 465
-- **⚠️ Nota**: Se usar porta 465, defina como `true`
+- **Description**: Defines whether the connection should use SSL/TLS
+- **Default**: `false` (if not specified)
+- **Values**:
+  - `false`: Uses STARTTLS on port 587 (recommended)
+  - `true`: Uses direct SSL on port 465
+- **⚠️ Note**: If using port 465, set to `true`
 
 #### `SMTP_FROM`
-- **Descrição**: Endereço de e-mail que aparecerá como remetente
-- **Padrão**: Usa o valor de `SMTP_USER` se não especificado
-- **Exemplo**: `noreply@seudominio.com`
-- **Uso**: Aparece no campo "De:" dos e-mails enviados
+- **Description**: Email address that will appear as sender
+- **Default**: Uses the value of `SMTP_USER` if not specified
+- **Example**: `noreply@yourdomain.com`
+- **Usage**: Appears in the "From:" field of sent emails
 
-### Variável Adicional (para links no e-mail)
+### Additional Variable (for email links)
 
 #### `FRONTEND_BASE_URL`
-- **Descrição**: URL base do frontend para gerar links no e-mail
-- **Exemplo**: `http://localhost:3000` ou `https://seudominio.com`
-- **Uso**: Usado para criar o link "Ver Portfólio" nos e-mails de notificação
+- **Description**: Frontend base URL to generate links in emails
+- **Example**: `http://localhost:3000` or `https://yourdomain.com`
+- **Usage**: Used to create the "View Portfolio" link in notification emails
 
-## Exemplo de Arquivo .env
+## Example .env File
 
 ```env
-# Configuração SMTP
+# SMTP Configuration
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
 SMTP_SECURE=false
-SMTP_USER=seu-email@gmail.com
-SMTP_PASS=sua-senha-de-app-aqui
-SMTP_FROM=seu-email@gmail.com
+SMTP_USER=your-email@gmail.com
+SMTP_PASS=your-app-password-here
+SMTP_FROM=your-email@gmail.com
 
-# URL do Frontend (para links nos e-mails)
+# Frontend URL (for links in emails)
 FRONTEND_BASE_URL=http://localhost:3000
 ```
 
-## Configurações Externas Necessárias
+## Required External Configurations
 
-### Para Gmail
+### For Gmail
 
-O Gmail requer configurações especiais por questões de segurança:
+Gmail requires special configurations for security reasons:
 
-#### 1. Habilitar Verificação em 2 Etapas
-1. Acesse [Google Account Security](https://myaccount.google.com/security)
-2. Ative a "Verificação em duas etapas"
+#### 1. Enable 2-Step Verification
+1. Go to [Google Account Security](https://myaccount.google.com/security)
+2. Enable "2-Step Verification"
 
-#### 2. Gerar Senha de App
-1. Acesse [App Passwords](https://myaccount.google.com/apppasswords)
-2. Selecione "E-mail" e "Outro (nome personalizado)"
-3. Digite um nome (ex: "JCoder Backend")
-4. Clique em "Gerar"
-5. **Copie a senha gerada** (16 caracteres sem espaços)
-6. Use essa senha no `SMTP_PASS`
+#### 2. Generate App Password
+1. Go to [App Passwords](https://myaccount.google.com/apppasswords)
+2. Select "Mail" and "Other (custom name)"
+3. Enter a name (e.g., "JCoder Backend")
+4. Click "Generate"
+5. **Copy the generated password** (16 characters without spaces)
+6. Use this password in `SMTP_PASS`
 
-**⚠️ Importante**: 
-- Não use sua senha normal do Gmail
-- A senha de app é diferente da senha da conta
-- Guarde a senha de app com segurança
+**⚠️ Important**: 
+- Do not use your normal Gmail password
+- The app password is different from the account password
+- Keep the app password secure
 
-#### 3. Permitir Aplicativos Menos Seguros (NÃO RECOMENDADO)
-- Esta opção foi descontinuada pelo Google
-- Use sempre Senhas de App
+#### 3. Allow Less Secure Apps (NOT RECOMMENDED)
+- This option has been discontinued by Google
+- Always use App Passwords
 
-### Para Outlook/Hotmail
+### For Outlook/Hotmail
 
-1. Use sua senha normal da conta Microsoft
-2. Pode ser necessário habilitar "Aplicativos menos seguros" nas configurações
-3. Configuração recomendada:
+1. Use your normal Microsoft account password
+2. You may need to enable "Less secure apps" in settings
+3. Recommended configuration:
    ```env
    SMTP_HOST=smtp-mail.outlook.com
    SMTP_PORT=587
    SMTP_SECURE=false
    ```
 
-### Para SendGrid
+### For SendGrid
 
-1. Crie uma conta em [SendGrid](https://sendgrid.com/)
-2. Gere uma API Key nas configurações
-3. Use a API Key como `SMTP_PASS`
-4. Configuração:
+1. Create an account at [SendGrid](https://sendgrid.com/)
+2. Generate an API Key in settings
+3. Use the API Key as `SMTP_PASS`
+4. Configuration:
    ```env
    SMTP_HOST=smtp.sendgrid.net
    SMTP_PORT=587
    SMTP_SECURE=false
    SMTP_USER=apikey
-   SMTP_PASS=sua-api-key-aqui
+   SMTP_PASS=your-api-key-here
    ```
 
-### Para Amazon SES
+### For Amazon SES
 
-1. Configure o Amazon SES na AWS
-2. Verifique seu domínio ou e-mail
-3. Crie credenciais SMTP
-4. Configuração:
+1. Configure Amazon SES on AWS
+2. Verify your domain or email
+3. Create SMTP credentials
+4. Configuration:
    ```env
    SMTP_HOST=email-smtp.us-east-1.amazonaws.com
    SMTP_PORT=587
    SMTP_SECURE=false
-   SMTP_USER=sua-access-key-id
-   SMTP_PASS=sua-secret-access-key
+   SMTP_USER=your-access-key-id
+   SMTP_PASS=your-secret-access-key
    ```
 
-## Como Funciona no Código
+## How It Works in the Code
 
-### Inicialização do Transportador
+### Transporter Initialization
 
 ```typescript
-// backend/src/email/email.service.ts (linhas 10-19)
+// backend/src/email/email.service.ts (lines 10-19)
 this.transporter = nodemailer.createTransport({
     host: this.configService.get<string>('SMTP_HOST') || 'smtp.gmail.com',
     port: this.configService.get<number>('SMTP_PORT') || 587,
@@ -158,10 +158,10 @@ this.transporter = nodemailer.createTransport({
 });
 ```
 
-### Envio de E-mail
+### Sending Email
 
 ```typescript
-// backend/src/email/email.service.ts (linhas 127-136)
+// backend/src/email/email.service.ts (lines 127-136)
 const from = this.configService.get<string>('SMTP_FROM') || this.configService.get<string>('SMTP_USER');
 
 await this.transporter.sendMail({
@@ -173,69 +173,68 @@ await this.transporter.sendMail({
 });
 ```
 
-## Testando a Configuração
+## Testing the Configuration
 
-### 1. Verificar Variáveis de Ambiente
+### 1. Verify Environment Variables
 
-Certifique-se de que todas as variáveis estão definidas no arquivo `.env` na raiz do projeto.
+Make sure all variables are defined in the `.env` file at the project root.
 
-### 2. Testar Envio
+### 2. Test Sending
 
-Quando uma mensagem for criada através do endpoint:
+When a message is created through the endpoint:
 ```
 POST /api/v1/:username/messages
 ```
 
-O sistema automaticamente:
-1. Salva a mensagem no banco de dados
-2. Envia um e-mail de notificação para o administrador
+The system automatically:
+1. Saves the message to the database
+2. Sends a notification email to the administrator
 
-### 3. Verificar Logs
+### 3. Check Logs
 
-Se houver erro no envio, verifique os logs do backend. Erros comuns:
+If there is an error sending, check the backend logs. Common errors:
 
-- **"Invalid login"**: Credenciais incorretas
-- **"Connection timeout"**: Problema de rede ou host/porta incorretos
-- **"Authentication failed"**: Para Gmail, certifique-se de usar Senha de App
+- **"Invalid login"**: Incorrect credentials
+- **"Connection timeout"**: Network issue or incorrect host/port
+- **"Authentication failed"**: For Gmail, make sure to use App Password
 
-## Segurança
+## Security
 
-### Boas Práticas
+### Best Practices
 
-1. **Nunca commite o arquivo `.env`** no Git
-2. **Use Senhas de App** para Gmail (não a senha normal)
-3. **Rotacione credenciais** periodicamente
-4. **Use variáveis de ambiente** em produção (não arquivo .env)
-5. **Limite permissões** da conta de e-mail usada
+1. **Never commit the `.env` file** to Git
+2. **Use App Passwords** for Gmail (not the normal password)
+3. **Rotate credentials** periodically
+4. **Use environment variables** in production (not .env file)
+5. **Limit permissions** of the email account used
 
-### Em Produção
+### In Production
 
-- Use serviços de e-mail transacional (SendGrid, Amazon SES, Mailgun)
-- Configure SPF, DKIM e DMARC no seu domínio
-- Monitore taxas de entrega e spam
-- Implemente rate limiting (já implementado: 5 mensagens/minuto)
+- Use transactional email services (SendGrid, Amazon SES, Mailgun)
+- Configure SPF, DKIM and DMARC on your domain
+- Monitor delivery rates and spam
+- Implement rate limiting (already implemented: 5 messages/minute)
 
 ## Troubleshooting
 
-### E-mails não estão sendo enviados
+### Emails are not being sent
 
-1. Verifique se todas as variáveis estão definidas
-2. Teste as credenciais manualmente
-3. Verifique logs de erro no console
-4. Confirme que o servidor SMTP está acessível
-5. Para Gmail, verifique se a Senha de App está correta
+1. Verify that all variables are defined
+2. Test credentials manually
+3. Check error logs in the console
+4. Confirm that the SMTP server is accessible
+5. For Gmail, verify that the App Password is correct
 
-### E-mails vão para spam
+### Emails going to spam
 
-1. Configure SPF no seu domínio
+1. Configure SPF on your domain
 2. Configure DKIM
-3. Use um serviço de e-mail transacional
-4. Evite palavras que triggeram spam no assunto/corpo
+3. Use a transactional email service
+4. Avoid words that trigger spam in subject/body
 
-### Erro de autenticação
+### Authentication error
 
-- Gmail: Use Senha de App, não senha normal
-- Outlook: Pode precisar habilitar "Aplicativos menos seguros"
-- Verifique se `SMTP_USER` e `SMTP_PASS` estão corretos
-- Confirme que a porta e `SMTP_SECURE` estão corretos
-
+- Gmail: Use App Password, not normal password
+- Outlook: May need to enable "Less secure apps"
+- Verify that `SMTP_USER` and `SMTP_PASS` are correct
+- Confirm that the port and `SMTP_SECURE` are correct

@@ -1,6 +1,7 @@
 import {
   Column,
   Entity,
+  Unique,
   OneToOne,
   ManyToOne,
   JoinTable,
@@ -10,7 +11,6 @@ import {
   DeleteDateColumn,
   UpdateDateColumn,
   PrimaryGeneratedColumn,
-  Unique,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
@@ -135,7 +135,7 @@ export class Application {
   @ApiPropertyOptional({
     nullable: true,
     type: () => ApplicationComponentMobile,
-    description: 'API application component',
+    description: 'Mobile application component',
   })
   @OneToOne(() => ApplicationComponentMobile, (applicationComponentMobile) => applicationComponentMobile.application)
   applicationComponentMobile?: ApplicationComponentMobile;
@@ -143,7 +143,7 @@ export class Application {
   @ApiPropertyOptional({
     nullable: true,
     type: () => ApplicationComponentLibrary,
-    description: 'API application component',
+    description: 'Library application component',
   })
   @OneToOne(() => ApplicationComponentLibrary, (applicationComponentLibrary) => applicationComponentLibrary.application)
   applicationComponentLibrary?: ApplicationComponentLibrary;
@@ -151,7 +151,7 @@ export class Application {
   @ApiPropertyOptional({
     nullable: true,
     type: () => ApplicationComponentFrontend,
-    description: 'API application component',
+    description: 'Frontend application component',
   })
   @OneToOne(() => ApplicationComponentFrontend, (applicationComponentFrontend) => applicationComponentFrontend.application)
   applicationComponentFrontend?: ApplicationComponentFrontend;

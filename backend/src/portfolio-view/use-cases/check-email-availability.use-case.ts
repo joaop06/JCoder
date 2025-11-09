@@ -13,11 +13,11 @@ export class CheckEmailAvailabilityUseCase {
   ) { }
 
   /**
-   * Verifica disponibilidade do email
-   * Retorna true se o email estiver disponível (não existe)
+   * Checks email availability
+   * Returns true if the email is available (does not exist)
    */
   async execute(email: string): Promise<CheckEmailAvailabilityDto> {
-    // Validação básica do formato do email
+    // Basic email format validation
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return plainToInstance(CheckEmailAvailabilityDto, {
         available: false,
@@ -25,7 +25,7 @@ export class CheckEmailAvailabilityUseCase {
       });
     }
 
-    // Verificar se o email já existe
+    // Check if the email already exists
     const userExists = await this.userRepository.findOneBy({ email });
 
     return plainToInstance(CheckEmailAvailabilityDto, {

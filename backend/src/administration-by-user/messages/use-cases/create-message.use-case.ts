@@ -15,13 +15,13 @@ export class CreateMessageUseCase {
     ) { }
 
     async execute(username: string, createMessageDto: CreateMessageDto): Promise<void> {
-        // Criar a mensagem no banco de dados
+        // Create the message in the database
         await this.messagesService.create(username, createMessageDto);
 
-        // Buscar o usuário administrador para obter informações para o e-mail
+        // Find the administrator user to get information for the email
         const user = await this.usersService.findOneBy({ username });
 
-        // Enviar e-mail de notificação para o administrador
+        // Send notification email to the administrator
         if (user?.email) {
             try {
                 const frontendBaseUrl = this.configService.get<string>('FRONTEND_BASE_URL') || '';
@@ -37,8 +37,8 @@ export class CreateMessageUseCase {
                 });
             } catch (error) {
                 // Log error but don't fail the message creation
-                console.error('Erro ao enviar e-mail de notificação:', error);
-                // A mensagem já foi criada, então não lançamos o erro
+                console.error('Error sending notification email:', error);
+                // Message has already been created, so we don't throw the error
             }
         }
     }

@@ -12,7 +12,7 @@ export class CreateMessageDto {
         required: true,
         nullable: false,
         example: 'João Silva',
-        description: 'Nome do remetente da mensagem',
+        description: 'Message sender name',
     })
     @IsNotEmpty()
     @IsString()
@@ -24,7 +24,7 @@ export class CreateMessageDto {
         required: true,
         nullable: false,
         example: 'joao@example.com',
-        description: 'E-mail do remetente da mensagem',
+        description: 'Message sender email',
     })
     @IsNotEmpty()
     @IsEmail()
@@ -35,8 +35,8 @@ export class CreateMessageDto {
         type: 'string',
         required: true,
         nullable: false,
-        description: 'Conteúdo da mensagem',
-        example: 'Olá! Gostaria de entrar em contato sobre uma oportunidade de trabalho...',
+        description: 'Message content',
+        example: 'Hello! I would like to get in touch about a job opportunity...',
     })
     @IsNotEmpty()
     @IsString()

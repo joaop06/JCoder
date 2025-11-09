@@ -9,8 +9,8 @@ import { TechnologiesService } from './technologies.service';
 import { CacheService } from '../../@common/services/cache.service';
 import { TechnologiesController } from './technologies.controller';
 import { CreateTechnologyUseCase } from './use-cases/create-technology.use-case';
-import { UpdateTechnologyUseCase } from './use-cases/update-technology.use-case';
 import { DeleteTechnologyUseCase } from './use-cases/delete-technology.use-case';
+import { UpdateTechnologyUseCase } from './use-cases/update-technology.use-case';
 import { ReorderTechnologyUseCase } from './use-cases/reorder-technology.use-case';
 
 @Module({
@@ -18,8 +18,8 @@ import { ReorderTechnologyUseCase } from './use-cases/reorder-technology.use-cas
         CacheService,
         TechnologiesService,
         CreateTechnologyUseCase,
-        UpdateTechnologyUseCase,
         DeleteTechnologyUseCase,
+        UpdateTechnologyUseCase,
         ReorderTechnologyUseCase,
     ],
     controllers: [TechnologiesController],
@@ -36,4 +36,3 @@ import { ReorderTechnologyUseCase } from './use-cases/reorder-technology.use-cas
     exports: [TechnologiesService],
 })
 export class TechnologiesModule { }
-

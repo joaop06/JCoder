@@ -25,17 +25,17 @@ export class CertificateRepository {
         where: FindOptionsWhere<UserComponentCertificate>,
         includeComponents: boolean = false
     ): Promise<UserComponentCertificate> {
-        // Se não precisa de relacionamentos, usar findOneBy do repository (mais eficiente)
+        // If relationships are not needed, use repository findOneBy (more efficient)
         if (!includeComponents) {
             const certificate = await this.certificateRepository.findOneBy(where);
             if (!certificate) throw new CertificateNotFoundException();
             return certificate;
         }
 
-        // Caso contrário, usar QueryBuilder para incluir relacionamentos
+        // Otherwise, use QueryBuilder to include relationships
         const queryBuilder = this.certificateRepository.createQueryBuilder('users_components_certificates');
 
-        // Construir condições WHERE dinamicamente
+        // Build WHERE conditions dynamically
         const whereKeys = Object.keys(where) as Array<keyof FindOptionsWhere<UserComponentCertificate>>;
         whereKeys.forEach((key, index) => {
             const paramKey = `param${index}`;
@@ -47,7 +47,7 @@ export class CertificateRepository {
             }
         });
 
-        // Adicionar relacionamentos
+        // Add relationships
         queryBuilder
             .leftJoinAndSelect('users_components_certificates.educations', 'educations');
 
@@ -61,7 +61,7 @@ export class CertificateRepository {
         const { page = 1, limit = 10, sortBy = 'issueDate', sortOrder = 'DESC' } = paginationDto;
         const skip = (page - 1) * limit;
 
-        // Validar sortBy - apenas campos válidos da entidade
+        // Validate sortBy - only valid entity fields
         const validSortFields = ['id', 'userId', 'certificateName', 'registrationNumber', 'verificationUrl', 'issueDate', 'issuedTo', 'profileImage'];
         const validatedSortBy = validSortFields.includes(sortBy) ? sortBy : 'issueDate';
 

@@ -22,7 +22,7 @@ describe('UpdateProfileImageUseCase', () => {
 
     const mockApplication: Partial<Application> = {
         id: 1,
-        username: 'user1',
+        userId: 1,
         name: 'Application 1',
         profileImage: 'updated-profile.jpg',
     };

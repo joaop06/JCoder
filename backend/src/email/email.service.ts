@@ -11,16 +11,16 @@ export class EmailService {
         const smtpSecure = this.configService.get<string>('SMTP_SECURE');
         const port = this.configService.get<number>('SMTP_PORT') || 587;
 
-        // Determina se deve usar SSL direto baseado na porta e configuração
-        // Porta 465 sempre usa SSL direto (secure: true)
-        // Porta 587 sempre usa STARTTLS (secure: false)
+        // Determines whether to use direct SSL based on port and configuration
+        // Port 465 always uses direct SSL (secure: true)
+        // Port 587 always uses STARTTLS (secure: false)
         let isSecure: boolean;
         if (port === 465) {
-            isSecure = true; // SSL direto
+            isSecure = true; // Direct SSL
         } else if (port === 587) {
             isSecure = false; // STARTTLS
         } else {
-            // Para outras portas, usa a configuração explícita
+            // For other ports, use explicit configuration
             isSecure = smtpSecure === 'true' || smtpSecure === '1';
         }
 
@@ -36,14 +36,14 @@ export class EmailService {
     }
 
     /**
-     * Envia e-mail de notificação quando um usuário comum envia uma mensagem para o administrador
+     * Sends notification email when a regular user sends a message to the administrator
      */
     async sendMessageNotificationEmail(
         params: SendMessageNotificationEmailParams,
     ): Promise<void> {
         const { to, adminName, senderName, senderEmail, message, portfolioUrl } = params;
 
-        const subject = `Nova mensagem recebida no seu portfólio - ${senderName}`;
+        const subject = `New message received on your portfolio - ${senderName}`;
 
         const htmlContent = `
             <!DOCTYPE html>
@@ -97,47 +97,47 @@ export class EmailService {
             </head>
             <body>
                 <div class="header">
-                <h2>Nova Mensagem Recebida</h2>
+                <h2>New Message Received</h2>
                 </div>
                 <div class="content">
-                <p>Olá <strong>${adminName}</strong>,</p>
-                <p>Você recebeu uma nova mensagem através do seu portfólio:</p>
+                <p>Hello <strong>${adminName}</strong>,</p>
+                <p>You have received a new message through your portfolio:</p>
                 
                 <div class="message-box">
-                    <p><strong>De:</strong> ${senderName} (${senderEmail})</p>
-                    <p><strong>Mensagem:</strong></p>
+                    <p><strong>From:</strong> ${senderName} (${senderEmail})</p>
+                    <p><strong>Message:</strong></p>
                     <p>${message.replace(/\n/g, '<br>')}</p>
                 </div>
                 
                 ${portfolioUrl ? `
                     <p style="text-align: center;">
-                    <a href="${portfolioUrl}" class="button">Ver Portfólio</a>
+                    <a href="${portfolioUrl}" class="button">View Portfolio</a>
                     </p>
                 ` : ''}
                 </div>
                 <div class="footer">
-                <p>Esta é uma notificação automática do sistema JCoder.</p>
-                <p>Por favor, não responda este e-mail diretamente.</p>
+                <p>This is an automatic notification from the JCoder system.</p>
+                <p>Please do not reply to this email directly.</p>
                 </div>
             </body>
             </html>
         `;
 
         const textContent = `
-            Olá ${adminName},
+            Hello ${adminName},
 
-            Você recebeu uma nova mensagem através do seu portfólio:
+            You have received a new message through your portfolio:
 
-            De: ${senderName} (${senderEmail})
+            From: ${senderName} (${senderEmail})
 
-            Mensagem:
+            Message:
             ${message}
 
-            ${portfolioUrl ? `Acesse seu portfólio: ${portfolioUrl}` : ''}
+            ${portfolioUrl ? `Access your portfolio: ${portfolioUrl}` : ''}
 
             ---
-            Esta é uma notificação automática do sistema JCoder.
-            Por favor, não responda este e-mail diretamente.
+            This is an automatic notification from the JCoder system.
+            Please do not reply to this email directly.
         `;
 
         try {
@@ -152,13 +152,13 @@ export class EmailService {
             });
         } catch (error) {
             // Log error but don't throw to avoid breaking the message creation flow
-            console.error('Erro ao enviar e-mail de notificação:', error);
+            console.error('Error sending notification email:', error);
             throw error;
         }
     }
 
     /**
-     * Método genérico para enviar e-mails
+     * Generic method to send emails
      */
     async sendEmail(
         to: string,
@@ -177,7 +177,7 @@ export class EmailService {
                 from: `"JCoder" <${from}>`,
             });
         } catch (error) {
-            console.error('Erro ao enviar e-mail:', error);
+            console.error('Error sending email:', error);
             throw error;
         }
     }

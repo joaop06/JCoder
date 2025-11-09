@@ -22,7 +22,7 @@ export class GetTechnologiesUseCase {
   ) { }
 
   /**
-   * Busca tecnologias do usuário
+   * Fetches user technologies
    */
   async execute(
     username: string,
