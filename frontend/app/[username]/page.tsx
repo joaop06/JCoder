@@ -23,6 +23,7 @@ import { useSmoothScroll } from '@/hooks/useSmoothScroll';
 import { useToast } from '@/components/toast/ToastContext';
 import FeatureCard3D from '@/components/webgl/FeatureCard3D';
 import WebGLBackground from '@/components/webgl/WebGLBackground';
+import Hero3D from '@/components/webgl/Hero3D';
 import { useEffect, useState, useMemo, Suspense, useRef } from 'react';
 import FloatingParticles3D from '@/components/webgl/FloatingParticles3D';
 import { ImagesService } from '@/services/administration-by-user/images.service';
@@ -443,7 +444,7 @@ export default function PortfolioPage() {
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
         {/* Gradient Orbs */}
         <div
-          className="absolute w-96 h-96 bg-jcoder-cyan/15 rounded-full blur-3xl animate-pulse"
+          className="absolute w-96 h-96 bg-jcoder-cyan/20 rounded-full blur-3xl animate-pulse"
           style={{
             left: `${mousePosition.x / 20}px`,
             top: `${mousePosition.y / 20}px`,
@@ -451,7 +452,7 @@ export default function PortfolioPage() {
           }}
         />
         <div
-          className="absolute w-96 h-96 bg-jcoder-blue/15 rounded-full blur-3xl animate-pulse delay-1000"
+          className="absolute w-96 h-96 bg-jcoder-blue/20 rounded-full blur-3xl animate-pulse delay-1000"
           style={{
             right: `${mousePosition.x / 25}px`,
             bottom: `${mousePosition.y / 25}px`,
@@ -481,55 +482,73 @@ export default function PortfolioPage() {
             </Suspense>
           </div>
 
+          {/* 3D Logo Element (optional, subtle) - Desktop only */}
+          <div className="absolute top-20 right-10 w-32 h-32 pointer-events-none opacity-20 hidden lg:block">
+            <Suspense fallback={null}>
+              <Canvas
+                camera={{ position: [0, 0, 3], fov: 75 }}
+                gl={{ alpha: true, antialias: true }}
+                style={{ width: '100%', height: '100%' }}
+              >
+                <Hero3D mouse={mousePosition} windowSize={windowSize} />
+              </Canvas>
+            </Suspense>
+          </div>
+
           <div className={`relative z-10 text-center max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
             {/* Profile Image */}
             <div className="mb-8">
               <div
-                className="w-32 h-32 mx-auto rounded-full bg-jcoder-gradient p-1 shadow-lg shadow-jcoder-primary/50 transform-gpu animate-bounce-slow"
+                className="w-32 h-32 md:w-40 md:h-40 mx-auto rounded-full bg-jcoder-gradient p-0.5 shadow-lg shadow-jcoder-primary/50 transform-gpu animate-bounce-slow"
                 style={{
                   transform: `perspective(1000px) rotateY(${(mousePosition.x / windowSize.width - 0.5) * 10}deg) rotateX(${-(mousePosition.y / windowSize.height - 0.5) * 10}deg)`,
                 }}
               >
-                <div className="w-full h-full rounded-full bg-jcoder-card flex items-center justify-center">
-                  {user?.profileImage ? (
-                    <LazyImage
-                      src={ImagesService.getUserProfileImageUrl(username, user.id)}
-                      alt={user.fullName || username}
-                      fallback={username.charAt(0).toUpperCase()}
-                      size="custom"
-                      width="w-20"
-                      height="h-20"
-                      rounded="rounded-full"
-                      rootMargin="200px"
-                    />
-                  ) : (
-                    <LazyImage
-                      src="/images/jcoder-logo.png"
-                      alt="JCoder"
-                      fallback="JC"
-                      size="custom"
-                      width="w-20"
-                      height="h-20"
-                      rounded="rounded-full"
-                      rootMargin="200px"
-                    />
-                  )}
+                <div className="w-full h-full rounded-full bg-jcoder-card flex items-center justify-center overflow-hidden">
+                  <div className="w-[90%] h-[90%] flex items-center justify-center">
+                    {user?.profileImage ? (
+                      <LazyImage
+                        src={ImagesService.getUserProfileImageUrl(username, user.id)}
+                        alt={user.fullName || username}
+                        fallback={username.charAt(0).toUpperCase()}
+                        className="object-contain w-full h-full"
+                        size="custom"
+                        width="w-full"
+                        height="h-full"
+                        rounded="rounded-full"
+                        rootMargin="200px"
+                      />
+                    ) : (
+                      <LazyImage
+                        src="/images/jcoder-logo.png"
+                        alt="JCoder"
+                        fallback="JC"
+                        className="object-contain w-full h-full"
+                        size="custom"
+                        width="w-full"
+                        height="h-full"
+                        rounded="rounded-full"
+                        rootMargin="200px"
+                      />
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
 
             {/* Main Title */}
-            <h1 className="text-5xl md:text-7xl font-bold mb-6">
+            <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold mb-6">
               <span className="relative inline-block">
                 {/* Base text visible as fallback */}
                 <span className="text-jcoder-foreground opacity-100">
                   {user?.fullName || user?.firstName || username}
                 </span>
-                {/* Gradient on top */}
+                {/* Gradient on top with animation */}
                 <span
-                  className="absolute inset-0 inline-block"
+                  className="absolute inset-0 inline-block animate-gradient"
                   style={{
                     background: 'linear-gradient(to right, #00c8ff, #00c8ff, #0050a0)',
+                    backgroundSize: '200% 200%',
                     WebkitBackgroundClip: 'text',
                     WebkitTextFillColor: 'transparent',
                     backgroundClip: 'text',
@@ -542,7 +561,7 @@ export default function PortfolioPage() {
 
             {/* Subtitle */}
             {aboutMe?.occupation && (
-              <h2 className="text-2xl md:text-3xl font-semibold text-jcoder-foreground mb-4">
+              <h2 className="text-2xl md:text-3xl lg:text-4xl font-semibold text-jcoder-foreground mb-4">
                 {aboutMe.occupation}
               </h2>
             )}
@@ -562,14 +581,17 @@ export default function PortfolioPage() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <button
                 onClick={() => scrollToSection('projects')}
-                className="px-8 py-4 bg-jcoder-gradient text-black font-semibold rounded-lg hover:shadow-jcoder-primary hover:shadow-xl transition-all duration-300 transform-gpu hover:scale-105 active:scale-95"
+                className="px-8 py-4 bg-jcoder-gradient text-black font-semibold rounded-lg hover:shadow-jcoder-primary hover:shadow-xl transition-all duration-300 transform-gpu hover:scale-105 active:scale-95 flex items-center gap-2 group"
               >
                 View Projects
+                <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
               </button>
               <button
                 onClick={handleDownloadResume}
                 disabled={generatingPDF}
-                className="px-8 py-4 bg-jcoder-card border-2 border-jcoder-primary text-jcoder-primary font-semibold rounded-lg hover:bg-jcoder-primary hover:text-black transition-all duration-300 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transform-gpu hover:scale-105 active:scale-95"
+                className="px-8 py-4 bg-jcoder-card border-2 border-jcoder-primary text-jcoder-primary font-semibold rounded-lg hover:bg-jcoder-primary hover:text-black transition-all duration-300 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transform-gpu hover:scale-105 active:scale-95 group"
               >
                 {generatingPDF ? (
                   <>
@@ -582,7 +604,7 @@ export default function PortfolioPage() {
                 ) : (
                   <>
                     <svg
-                      className="w-4 h-4"
+                      className="w-4 h-4 group-hover:scale-110 transition-transform"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -601,11 +623,11 @@ export default function PortfolioPage() {
               </button>
               <button
                 onClick={() => scrollToSection('contact')}
-                className="px-8 py-4 border-2 border-jcoder-primary text-jcoder-primary font-semibold rounded-lg hover:bg-jcoder-primary hover:text-black transition-all duration-300 flex items-center gap-2 transform-gpu hover:scale-105 active:scale-95"
+                className="px-8 py-4 border-2 border-jcoder-primary text-jcoder-primary font-semibold rounded-lg hover:bg-jcoder-primary hover:text-black transition-all duration-300 flex items-center gap-2 transform-gpu hover:scale-105 active:scale-95 group"
               >
                 Get in Touch
                 <svg
-                  className="w-4 h-4"
+                  className="w-4 h-4 group-hover:translate-x-1 transition-transform"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -1068,7 +1090,7 @@ export default function PortfolioPage() {
 
               <div className="max-w-2xl mx-auto">
                 <div
-                  className="bg-jcoder-card/90 backdrop-blur-sm border border-jcoder rounded-2xl p-8 shadow-xl shadow-jcoder-primary/10 transform-gpu transition-all duration-300 hover:shadow-2xl hover:shadow-jcoder-primary/20"
+                  className="bg-jcoder-card/90 backdrop-blur-sm border border-jcoder rounded-2xl p-6 md:p-8 shadow-xl shadow-jcoder-primary/10 transform-gpu transition-all duration-300 hover:shadow-2xl hover:shadow-jcoder-primary/20 hover:-translate-y-1"
                   style={{
                     transform: `perspective(1000px) rotateX(${-(mousePosition.y / windowSize.height - 0.5) * 2}deg) rotateY(${(mousePosition.x / windowSize.width - 0.5) * 2}deg) translateZ(0)`,
                   }}
@@ -1116,7 +1138,7 @@ export default function PortfolioPage() {
                     <button
                       type="submit"
                       disabled={sendingMessage}
-                      className="w-full px-8 py-4 bg-jcoder-gradient text-black font-semibold rounded-lg hover:shadow-jcoder-primary hover:shadow-xl transition-all duration-300 transform-gpu hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2"
+                      className="w-full px-8 py-4 bg-jcoder-gradient text-black font-semibold rounded-lg hover:shadow-jcoder-primary hover:shadow-xl transition-all duration-300 transform-gpu hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2 group"
                     >
                       {sendingMessage ? (
                         <>
@@ -1129,7 +1151,7 @@ export default function PortfolioPage() {
                       ) : (
                         <>
                           <svg
-                            className="w-5 h-5"
+                            className="w-5 h-5 group-hover:translate-y-[-2px] transition-transform"
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -1166,8 +1188,23 @@ export default function PortfolioPage() {
             transform: translateY(-10px);
           }
         }
+        @keyframes gradient {
+          0%, 100% {
+            background-position: 0% 50%;
+          }
+          50% {
+            background-position: 100% 50%;
+          }
+        }
         .animate-bounce-slow {
           animation: bounce-slow 3s ease-in-out infinite;
+        }
+        .animate-gradient {
+          background-size: 200% 200%;
+          animation: gradient 3s ease infinite;
+        }
+        .delay-1000 {
+          animation-delay: 1s;
         }
       `}</style>
 

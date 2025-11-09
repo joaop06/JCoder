@@ -11,12 +11,14 @@ interface TechnologySelectorProps {
     selectedTechnologyIds: number[];
     onSelectionChange: (technologyIds: number[]) => void;
     disabled?: boolean;
+    refreshKey?: number | string;
 }
 
 export default function TechnologySelector({
     selectedTechnologyIds,
     onSelectionChange,
     disabled = false,
+    refreshKey,
 }: TechnologySelectorProps) {
     const [technologies, setTechnologies] = useState<Technology[]>([]);
     const [loading, setLoading] = useState(true);
@@ -46,7 +48,7 @@ export default function TechnologySelector({
         };
 
         loadTechnologies();
-    }, []);
+    }, [refreshKey]);
 
     const filteredTechnologies = useMemo(() => {
         if (!searchTerm.trim()) return technologies;

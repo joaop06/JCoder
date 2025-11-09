@@ -6,6 +6,7 @@ import { LazyImage } from '@/components/ui';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/toast/ToastContext';
 import WebGLBackground from '@/components/webgl/WebGLBackground';
+import Hero3D from '@/components/webgl/Hero3D';
 import type { CreateUserDto } from '@/types/api/auth/create-user.dto';
 import FloatingParticles3D from '@/components/webgl/FloatingParticles3D';
 import { useState, useCallback, useEffect, useRef, Suspense } from 'react';
@@ -42,6 +43,7 @@ export default function RegisterPage() {
   const [isVerifyingCode, setIsVerifyingCode] = useState(false);
   const [codeSent, setCodeSent] = useState(false);
   const emailDebounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastVerifiedCodeRef = useRef<string>('');
 
   // Step 3: Password and About Me
   const [password, setPassword] = useState('');
@@ -228,6 +230,7 @@ export default function RegisterPage() {
       setCodeSent(true);
       setIsEmailVerified(false);
       setVerificationCode('');
+      lastVerifiedCodeRef.current = '';
       toast.success('Verification code sent! Check your inbox.');
     } catch (err: any) {
       const apiMessage =
@@ -267,6 +270,25 @@ export default function RegisterPage() {
       setIsVerifyingCode(false);
     }
   }, [email, verificationCode, toast]);
+
+  // Auto-verify when 6 digits are entered
+  useEffect(() => {
+    if (
+      verificationCode.length === 6 &&
+      codeSent &&
+      !isEmailVerified &&
+      !isVerifyingCode &&
+      !isLoading &&
+      verificationCode !== lastVerifiedCodeRef.current
+    ) {
+      lastVerifiedCodeRef.current = verificationCode;
+      handleVerifyCode();
+    }
+    // Reset ref when code is cleared or email changes
+    if (verificationCode.length === 0) {
+      lastVerifiedCodeRef.current = '';
+    }
+  }, [verificationCode, codeSent, isEmailVerified, isVerifyingCode, isLoading, handleVerifyCode]);
 
   const handleSubmit = useCallback(async () => {
     const newErrors: Record<string, string> = {};
@@ -323,7 +345,7 @@ export default function RegisterPage() {
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
         {/* Gradient Orbs */}
         <div
-          className="absolute w-96 h-96 bg-jcoder-cyan/15 rounded-full blur-3xl animate-pulse"
+          className="absolute w-96 h-96 bg-jcoder-cyan/20 rounded-full blur-3xl animate-pulse"
           style={{
             left: `${mousePosition.x / 20}px`,
             top: `${mousePosition.y / 20}px`,
@@ -331,7 +353,7 @@ export default function RegisterPage() {
           }}
         />
         <div
-          className="absolute w-96 h-96 bg-jcoder-blue/15 rounded-full blur-3xl animate-pulse delay-1000"
+          className="absolute w-96 h-96 bg-jcoder-blue/20 rounded-full blur-3xl animate-pulse delay-1000"
           style={{
             right: `${mousePosition.x / 25}px`,
             bottom: `${mousePosition.y / 25}px`,
@@ -380,32 +402,48 @@ export default function RegisterPage() {
           </Suspense>
         </div>
 
+        {/* 3D Logo Element (optional, subtle) - Desktop only */}
+        <div className="absolute top-20 right-10 w-32 h-32 pointer-events-none opacity-20 hidden lg:block">
+          <Suspense fallback={null}>
+            <Canvas
+              camera={{ position: [0, 0, 3], fov: 75 }}
+              gl={{ alpha: true, antialias: true }}
+              style={{ width: '100%', height: '100%' }}
+            >
+              <Hero3D mouse={mousePosition} windowSize={windowSize} />
+            </Canvas>
+          </Suspense>
+        </div>
+
         <div className={`w-full max-w-2xl transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
           {/* Logo and Title */}
           <div className="text-center mb-8">
             <div
-              className="inline-flex items-center justify-center w-16 h-16 bg-jcoder-gradient rounded-full p-1 shadow-lg shadow-jcoder-primary/50 mb-4 transform-gpu animate-bounce-slow"
+              className="inline-flex items-center justify-center w-20 h-20 md:w-24 md:h-24 bg-jcoder-gradient rounded-full p-0.5 shadow-lg shadow-jcoder-primary/50 mb-6 transform-gpu animate-bounce-slow"
               style={{
                 transform: `perspective(1000px) rotateY(${(mousePosition.x / windowSize.width - 0.5) * 10}deg) rotateX(${-(mousePosition.y / windowSize.height - 0.5) * 10}deg)`,
               }}
             >
-              <div className="w-full h-full rounded-full bg-jcoder-card flex items-center justify-center">
-                <LazyImage
-                  src="/images/jcoder-logo.png"
-                  alt="JCoder"
-                  fallback="JC"
-                  className="object-contain"
-                  size="custom"
-                  width="w-12"
-                  height="h-12"
-                  rounded="rounded-full"
-                />
+              <div className="w-full h-full rounded-full bg-jcoder-card flex items-center justify-center overflow-hidden">
+                <div className="w-[90%] h-[90%] flex items-center justify-center">
+                  <LazyImage
+                    src="/images/jcoder-logo.png"
+                    alt="JCoder"
+                    fallback="JC"
+                    className="object-contain w-full h-full"
+                    size="custom"
+                    width="w-full"
+                    height="h-full"
+                    rounded="rounded-full"
+                    rootMargin="200px"
+                  />
+                </div>
               </div>
             </div>
-            <h1 className="text-2xl font-bold text-jcoder-foreground mb-2 bg-clip-text text-transparent bg-gradient-to-r from-jcoder-cyan via-jcoder-primary to-jcoder-blue">
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-3 bg-clip-text text-transparent bg-gradient-to-r from-jcoder-cyan via-jcoder-primary to-jcoder-blue animate-gradient">
               Create your account
             </h1>
-            <p className="text-jcoder-muted">
+            <p className="text-base md:text-lg text-jcoder-muted">
               Start building your professional portfolio
             </p>
           </div>
@@ -417,11 +455,11 @@ export default function RegisterPage() {
                 <div key={step.number} className="flex-1 flex items-center">
                   <div className="flex flex-col items-center flex-1">
                     <div
-                      className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-colors ${currentStep === step.number
-                        ? 'bg-jcoder-primary text-black'
+                      className={`rounded-full flex items-center justify-center font-bold transition-all duration-300 ${currentStep === step.number
+                        ? 'w-14 h-14 bg-jcoder-gradient text-black shadow-lg shadow-jcoder-primary/50 scale-110 ring-4 ring-jcoder-primary/30'
                         : currentStep > step.number
-                          ? 'bg-green-500 text-white'
-                          : 'bg-jcoder-secondary text-jcoder-muted border-2 border-jcoder'
+                          ? 'w-10 h-10 bg-green-500 text-white'
+                          : 'w-10 h-10 bg-jcoder-secondary text-jcoder-muted border-2 border-jcoder'
                         }`}
                     >
                       {currentStep > step.number ? (
@@ -429,18 +467,23 @@ export default function RegisterPage() {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                         </svg>
                       ) : (
-                        step.number
+                        <span className={currentStep === step.number ? 'text-lg' : ''}>{step.number}</span>
                       )}
                     </div>
                     <div className="mt-2 text-center">
-                      <p className={`text-xs font-medium ${currentStep === step.number ? 'text-jcoder-foreground' : 'text-jcoder-muted'}`}>
+                      <p className={`transition-all duration-300 ${currentStep === step.number
+                        ? 'text-sm md:text-base font-bold text-jcoder-primary drop-shadow-[0_0_8px_rgba(59,130,246,0.5)]'
+                        : 'text-xs font-medium text-jcoder-muted'
+                        }`}>
                         {step.title}
                       </p>
                     </div>
                   </div>
                   {index < steps.length - 1 && (
                     <div
-                      className={`flex-1 h-0.5 mx-2 ${currentStep > step.number ? 'bg-green-500' : 'bg-jcoder'
+                      className={`flex-1 h-0.5 mx-2 transition-colors duration-300 ${currentStep > step.number ? 'bg-green-500' :
+                        currentStep === step.number ? 'bg-jcoder-primary/50' :
+                          'bg-jcoder'
                         }`}
                     />
                   )}
@@ -451,22 +494,19 @@ export default function RegisterPage() {
 
           {/* Registration Form */}
           <div
-            className="bg-jcoder-card/90 backdrop-blur-sm border border-jcoder rounded-2xl p-8 shadow-xl shadow-jcoder-primary/10 transform-gpu transition-all duration-300 hover:shadow-2xl hover:shadow-jcoder-primary/20"
-            style={{
-              transform: `perspective(1000px) rotateX(${-(mousePosition.y / windowSize.height - 0.5) * 2}deg) rotateY(${(mousePosition.x / windowSize.width - 0.5) * 2}deg) translateZ(0)`,
-            }}
+            className="bg-jcoder-card/90 backdrop-blur-sm border border-jcoder rounded-2xl p-6 md:p-8 shadow-xl shadow-jcoder-primary/10 transition-all duration-300 hover:shadow-2xl hover:shadow-jcoder-primary/20"
           >
             {/* Step 1: Username */}
             {currentStep === 1 && (
-              <div className="space-y-4">
+              <div className="space-y-5">
                 <div>
-                  <h2 className="text-lg font-semibold mb-1 text-jcoder-foreground">Choose your username</h2>
-                  <p className="text-sm text-jcoder-muted mb-4">
+                  <h2 className="text-xl md:text-2xl font-bold mb-2 text-jcoder-foreground">Choose your username</h2>
+                  <p className="text-sm md:text-base text-jcoder-muted mb-4">
                     This will be your unique identifier on JCoder
                   </p>
                 </div>
 
-                <div className="transform-gpu transition-transform duration-200 hover:scale-[1.01]">
+                <div>
                   <label htmlFor="username" className="block text-sm font-medium text-jcoder-muted mb-2">
                     Username <span className="text-red-400">*</span>
                   </label>
@@ -525,10 +565,10 @@ export default function RegisterPage() {
                 <button
                   onClick={handleNextStep}
                   disabled={isLoading || usernameStatus.available !== true}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed font-medium transform-gpu hover:scale-105 hover:shadow-lg hover:shadow-jcoder-primary/50 active:scale-95"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3 mt-6 bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity duration-300 disabled:opacity-50 disabled:cursor-not-allowed font-semibold group"
                 >
                   Continue
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
                 </button>
@@ -537,15 +577,15 @@ export default function RegisterPage() {
 
             {/* Step 2: Email Verification */}
             {currentStep === 2 && (
-              <div className="space-y-4">
+              <div className="space-y-5">
                 <div>
-                  <h2 className="text-lg font-semibold mb-1 text-jcoder-foreground">Verify your email</h2>
-                  <p className="text-sm text-jcoder-muted mb-4">
+                  <h2 className="text-xl md:text-2xl font-bold mb-2 text-jcoder-foreground">Verify your email</h2>
+                  <p className="text-sm md:text-base text-jcoder-muted mb-4">
                     We'll send a verification code to your email
                   </p>
                 </div>
 
-                <div className="transform-gpu transition-transform duration-200 hover:scale-[1.01]">
+                <div>
                   <label htmlFor="email" className="block text-sm font-medium text-jcoder-muted mb-2">
                     Email <span className="text-red-400">*</span>
                   </label>
@@ -596,7 +636,7 @@ export default function RegisterPage() {
                     <button
                       onClick={handleSendVerificationCode}
                       disabled={isLoading || isSendingCode || isEmailVerified || !email || emailStatus.available !== true}
-                      className="px-4 py-3 bg-jcoder-secondary border border-jcoder rounded-lg hover:bg-jcoder hover:border-jcoder-primary transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-jcoder-foreground font-medium whitespace-nowrap transform-gpu hover:scale-105 active:scale-95"
+                      className="px-4 py-3 bg-jcoder-secondary border border-jcoder rounded-lg hover:bg-jcoder hover:border-jcoder-primary transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-jcoder-foreground font-medium whitespace-nowrap"
                     >
                       {isSendingCode ? (
                         <span className="flex items-center gap-2">
@@ -628,18 +668,29 @@ export default function RegisterPage() {
                     <div className="flex gap-2">
                       <input
                         id="code"
-                        type="text"
+                        type="tel"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
                         value={verificationCode}
                         disabled={isLoading || isVerifyingCode}
                         placeholder="000000"
                         maxLength={6}
                         onChange={(e) => {
-                          setVerificationCode(e.target.value.replace(/\D/g, ''));
+                          const numericValue = e.target.value.replace(/\D/g, '');
+                          setVerificationCode(numericValue);
                           setErrors(prev => {
                             const newErrors = { ...prev };
                             delete newErrors.code;
                             return newErrors;
                           });
+                        }}
+                        onKeyDown={(e) => {
+                          // Prevent non-numeric keys (except backspace, delete, tab, escape, enter)
+                          if (!/[0-9]/.test(e.key) &&
+                            !['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key) &&
+                            !(e.ctrlKey || e.metaKey)) {
+                            e.preventDefault();
+                          }
                         }}
                         className={`flex-1 px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-transparent disabled:opacity-60 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted text-center text-2xl tracking-widest ${errors.code ? 'border-red-400' : 'border-jcoder'
                           }`}
@@ -669,10 +720,10 @@ export default function RegisterPage() {
                   <button
                     onClick={handleNextStep}
                     disabled={isLoading || !isEmailVerified}
-                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed font-semibold group"
                   >
                     Continue
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
                   </button>
@@ -682,10 +733,10 @@ export default function RegisterPage() {
 
             {/* Step 3: Password and About Me */}
             {currentStep === 3 && (
-              <div className="space-y-4">
+              <div className="space-y-5">
                 <div>
-                  <h2 className="text-lg font-semibold mb-1 text-jcoder-foreground">Complete your profile</h2>
-                  <p className="text-sm text-jcoder-muted mb-4">
+                  <h2 className="text-xl md:text-2xl font-bold mb-2 text-jcoder-foreground">Complete your profile</h2>
+                  <p className="text-sm md:text-base text-jcoder-muted mb-4">
                     Set your password and basic information (optional)
                   </p>
                 </div>
@@ -789,13 +840,19 @@ export default function RegisterPage() {
                   <button
                     onClick={handleSubmit}
                     disabled={isLoading}
-                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed font-semibold group"
                   >
                     {isLoading ? (
-                      <span>Creating account...</span>
+                      <span className="flex items-center gap-2">
+                        <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Creating account...
+                      </span>
                     ) : (
                       <>
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
                         </svg>
                         Create Account
@@ -820,9 +877,9 @@ export default function RegisterPage() {
             </p>
             <Link
               href="/"
-              className="text-sm text-jcoder-muted hover:text-jcoder-primary transition-colors inline-flex items-center gap-1 mt-4"
+              className="text-sm text-jcoder-muted hover:text-jcoder-primary transition-all duration-200 inline-flex items-center gap-1 hover:gap-2 mt-4 group"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
               </svg>
               Back to home
@@ -830,6 +887,35 @@ export default function RegisterPage() {
           </div>
         </div>
       </main>
+
+      <style jsx>{`
+        @keyframes bounce-slow {
+          0%, 100% {
+            transform: translateY(0);
+          }
+          50% {
+            transform: translateY(-10px);
+          }
+        }
+        @keyframes gradient {
+          0%, 100% {
+            background-position: 0% 50%;
+          }
+          50% {
+            background-position: 100% 50%;
+          }
+        }
+        .animate-bounce-slow {
+          animation: bounce-slow 3s ease-in-out infinite;
+        }
+        .animate-gradient {
+          background-size: 200% 200%;
+          animation: gradient 3s ease infinite;
+        }
+        .delay-1000 {
+          animation-delay: 1s;
+        }
+      `}</style>
     </div>
   );
 }

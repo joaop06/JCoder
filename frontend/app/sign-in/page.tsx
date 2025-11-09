@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { LazyImage } from '@/components/ui';
 import { useRouter } from 'next/navigation';
 import { Canvas } from '@react-three/fiber';
+import Hero3D from '@/components/webgl/Hero3D';
 import { useToast } from '@/components/toast/ToastContext';
 import WebGLBackground from '@/components/webgl/WebGLBackground';
 import { useState, useCallback, useEffect, Suspense } from 'react';
@@ -94,7 +95,7 @@ export default function LoginPage() {
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
         {/* Gradient Orbs */}
         <div
-          className="absolute w-96 h-96 bg-jcoder-cyan/15 rounded-full blur-3xl animate-pulse"
+          className="absolute w-96 h-96 bg-jcoder-cyan/20 rounded-full blur-3xl animate-pulse"
           style={{
             left: `${mousePosition.x / 20}px`,
             top: `${mousePosition.y / 20}px`,
@@ -102,7 +103,7 @@ export default function LoginPage() {
           }}
         />
         <div
-          className="absolute w-96 h-96 bg-jcoder-blue/15 rounded-full blur-3xl animate-pulse delay-1000"
+          className="absolute w-96 h-96 bg-jcoder-blue/20 rounded-full blur-3xl animate-pulse delay-1000"
           style={{
             right: `${mousePosition.x / 25}px`,
             bottom: `${mousePosition.y / 25}px`,
@@ -151,51 +152,67 @@ export default function LoginPage() {
           </Suspense>
         </div>
 
+        {/* 3D Logo Element (optional, subtle) - Desktop only */}
+        <div className="absolute top-20 right-10 w-32 h-32 pointer-events-none opacity-20 hidden lg:block">
+          <Suspense fallback={null}>
+            <Canvas
+              camera={{ position: [0, 0, 3], fov: 75 }}
+              gl={{ alpha: true, antialias: true }}
+              style={{ width: '100%', height: '100%' }}
+            >
+              <Hero3D mouse={mousePosition} windowSize={windowSize} />
+            </Canvas>
+          </Suspense>
+        </div>
+
         <div className={`w-full max-w-md transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
           {/* Logo and Title */}
           <div className="text-center mb-8">
             <div
-              className="inline-flex items-center justify-center w-16 h-16 bg-jcoder-gradient rounded-full p-1 shadow-lg shadow-jcoder-primary/50 mb-4 transform-gpu animate-bounce-slow"
+              className="inline-flex items-center justify-center w-20 h-20 md:w-24 md:h-24 bg-jcoder-gradient rounded-full p-0.5 shadow-lg shadow-jcoder-primary/50 mb-6 transform-gpu animate-bounce-slow"
               style={{
                 transform: `perspective(1000px) rotateY(${(mousePosition.x / windowSize.width - 0.5) * 10}deg) rotateX(${-(mousePosition.y / windowSize.height - 0.5) * 10}deg)`,
               }}
             >
-              <div className="w-full h-full rounded-full bg-jcoder-card flex items-center justify-center">
-                <LazyImage
-                  src="/images/jcoder-logo.png"
-                  alt="JCoder"
-                  fallback="JC"
-                  className="object-contain"
-                  size="custom"
-                  width="w-12"
-                  height="h-12"
-                  rounded="rounded-full"
-                />
+              <div className="w-full h-full rounded-full bg-jcoder-card flex items-center justify-center overflow-hidden">
+                <div className="w-[90%] h-[90%] flex items-center justify-center">
+                  <LazyImage
+                    src="/images/jcoder-logo.png"
+                    alt="JCoder"
+                    fallback="JC"
+                    className="object-contain w-full h-full"
+                    size="custom"
+                    width="w-full"
+                    height="h-full"
+                    rounded="rounded-full"
+                    rootMargin="200px"
+                  />
+                </div>
               </div>
             </div>
-            <h1 className="text-2xl font-bold text-jcoder-foreground mb-2 bg-clip-text text-transparent bg-gradient-to-r from-jcoder-cyan via-jcoder-primary to-jcoder-blue">
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-3 bg-clip-text text-transparent bg-gradient-to-r from-jcoder-cyan via-jcoder-primary to-jcoder-blue animate-gradient">
               Log in to your account
             </h1>
-            <p className="text-jcoder-muted">
+            <p className="text-base md:text-lg text-jcoder-muted">
               Access the administrative panel
             </p>
           </div>
 
           {/* Login Form */}
           <div
-            className="bg-jcoder-card/90 backdrop-blur-sm border border-jcoder rounded-2xl p-8 shadow-xl shadow-jcoder-primary/10 transform-gpu transition-all duration-300 hover:shadow-2xl hover:shadow-jcoder-primary/20"
+            className="bg-jcoder-card/90 backdrop-blur-sm border border-jcoder rounded-2xl p-6 md:p-8 shadow-xl shadow-jcoder-primary/10 transform-gpu transition-all duration-300 hover:shadow-2xl hover:shadow-jcoder-primary/20 hover:-translate-y-1"
             style={{
               transform: `perspective(1000px) rotateX(${-(mousePosition.y / windowSize.height - 0.5) * 2}deg) rotateY(${(mousePosition.x / windowSize.width - 0.5) * 2}deg) translateZ(0)`,
             }}
           >
             <div className="mb-6 text-center">
-              <h2 className="text-lg font-semibold mb-1 text-jcoder-foreground">Sign in</h2>
-              <p className="text-sm text-jcoder-muted">
+              <h2 className="text-xl md:text-2xl font-bold mb-2 text-jcoder-foreground">Sign in</h2>
+              <p className="text-sm md:text-base text-jcoder-muted">
                 Enter your credentials to access the system
               </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-5">
               <div className="transform-gpu transition-transform duration-200 hover:scale-[1.02]">
                 <label htmlFor="username" className="block text-sm font-medium text-jcoder-muted mb-2">
                   Username
@@ -212,7 +229,7 @@ export default function LoginPage() {
                 />
               </div>
 
-              <div className="transform-gpu transition-transform duration-200 hover:scale-[1.02]">
+              <div className="transform-gpu transition-transform duration-200 hover:scale-[1.02] mt-4">
                 <label htmlFor="password" className="block text-sm font-medium text-jcoder-muted mb-2">
                   Password
                 </label>
@@ -231,7 +248,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed font-medium transform-gpu hover:scale-105 hover:shadow-lg hover:shadow-jcoder-primary/50 active:scale-95"
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 mt-8 bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed font-semibold transform-gpu hover:scale-105 hover:shadow-lg hover:shadow-jcoder-primary/50 active:scale-95 group"
               >
                 {isLoading ? (
                   <span className="flex items-center gap-2">
@@ -243,7 +260,7 @@ export default function LoginPage() {
                   </span>
                 ) : (
                   <>
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
                     </svg>
                     Sign in
@@ -286,8 +303,23 @@ export default function LoginPage() {
             transform: translateY(-10px);
           }
         }
+        @keyframes gradient {
+          0%, 100% {
+            background-position: 0% 50%;
+          }
+          50% {
+            background-position: 100% 50%;
+          }
+        }
         .animate-bounce-slow {
           animation: bounce-slow 3s ease-in-out infinite;
+        }
+        .animate-gradient {
+          background-size: 200% 200%;
+          animation: gradient 3s ease infinite;
+        }
+        .delay-1000 {
+          animation-delay: 1s;
         }
       `}</style>
     </div>

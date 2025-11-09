@@ -72,9 +72,11 @@ export function ManagementTable<T>({
                     {actionButton && (
                         <button
                             onClick={actionButton.onClick}
-                            className="inline-flex items-center gap-2 px-4 py-2 bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity font-medium"
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-all duration-200 font-semibold transform-gpu hover:scale-105 hover:shadow-lg hover:shadow-jcoder-primary/50 active:scale-95 group"
                         >
-                            {actionButton.icon}
+                            <span className="group-hover:rotate-90 transition-transform">
+                                {actionButton.icon}
+                            </span>
                             {actionButton.label}
                         </button>
                     )}

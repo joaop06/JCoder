@@ -8,13 +8,17 @@ import { useToast } from '@/components/toast/ToastContext';
 import { PaginationDto } from '@/types/api/pagination.dto';
 import { ExpertiseLevel } from '@/types/enums/expertise-level.enum';
 import { Technology } from '@/types/api/technologies/technology.entity';
-import { useState, useEffect, useMemo, useCallback, memo } from 'react';
+import { useState, useEffect, useMemo, useCallback, memo, Suspense } from 'react';
 import { LazyImage, TableSkeleton, ManagementTable } from '@/components/ui';
 import { UsersService } from '@/services/administration-by-user/users.service';
 import { ImagesService } from '@/services/administration-by-user/images.service';
 import { CreateTechnologyDto } from '@/types/api/technologies/dtos/create-technology.dto';
 import { UpdateTechnologyDto } from '@/types/api/technologies/dtos/update-technology.dto';
 import { TechnologiesService } from '@/services/administration-by-user/technologies.service';
+import { Canvas } from '@react-three/fiber';
+import WebGLBackground from '@/components/webgl/WebGLBackground';
+import Hero3D from '@/components/webgl/Hero3D';
+import FloatingParticles3D from '@/components/webgl/FloatingParticles3D';
 
 // Helper to get expertise level label
 const getExpertiseLevelLabel = (level: ExpertiseLevel): string => {
@@ -333,10 +337,35 @@ export default function TechnologiesManagementPage() {
     const [totalActive, setTotalActive] = useState<number>(0);
     const [totalInactive, setTotalInactive] = useState<number>(0);
 
+    // WebGL and animation states
+    const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+    const [windowSize, setWindowSize] = useState({ width: 1920, height: 1080 });
+    const [isVisible, setIsVisible] = useState(false);
+
     const toast = useToast();
 
     // Use temp array during drag, otherwise use the original
     const displayTechnologies = isDragging ? tempTechnologies : technologies;
+
+    useEffect(() => {
+        setIsVisible(true);
+
+        // Update window size
+        const updateWindowSize = () => {
+            setWindowSize({ width: window.innerWidth, height: window.innerHeight });
+        };
+        updateWindowSize();
+        window.addEventListener('resize', updateWindowSize);
+        return () => window.removeEventListener('resize', updateWindowSize);
+    }, []);
+
+    useEffect(() => {
+        const handleMouseMove = (e: MouseEvent) => {
+            setMousePosition({ x: e.clientX, y: e.clientY });
+        };
+        window.addEventListener('mousemove', handleMouseMove);
+        return () => window.removeEventListener('mousemove', handleMouseMove);
+    }, []);
 
     useEffect(() => {
         const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
@@ -721,9 +750,38 @@ export default function TechnologiesManagementPage() {
 
     if (checkingAuth || !isAuthenticated) {
         return (
-            <div className="min-h-screen flex flex-col bg-background">
+            <div className="min-h-screen flex flex-col bg-background overflow-hidden relative">
+                {/* WebGL Background - Animated 3D mesh */}
+                <Suspense fallback={null}>
+                    <WebGLBackground mouse={mousePosition} windowSize={windowSize} />
+                </Suspense>
+
+                {/* Animated Background - CSS layers for depth */}
+                <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+                    {/* Gradient Orbs */}
+                    <div
+                        className="absolute w-96 h-96 bg-jcoder-cyan/20 rounded-full blur-3xl animate-pulse"
+                        style={{
+                            left: `${mousePosition.x / 20}px`,
+                            top: `${mousePosition.y / 20}px`,
+                            transition: 'all 0.3s ease-out',
+                        }}
+                    />
+                    <div
+                        className="absolute w-96 h-96 bg-jcoder-blue/20 rounded-full blur-3xl animate-pulse delay-1000"
+                        style={{
+                            right: `${mousePosition.x / 25}px`,
+                            bottom: `${mousePosition.y / 25}px`,
+                            transition: 'all 0.3s ease-out',
+                        }}
+                    />
+
+                    {/* Grid Pattern */}
+                    <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]" />
+                </div>
+
                 <Header isAdmin={true} onLogout={handleLogout} />
-                <main className="flex-1 container mx-auto px-4 pt-24 pb-12">
+                <main className="flex-1 container mx-auto px-4 pt-24 pb-12 relative z-10">
                     <div className="max-w-7xl mx-auto">
                         <div className="mb-8">
                             <div className="h-10 w-72 bg-jcoder-secondary rounded-lg mb-2 animate-pulse"></div>
@@ -748,17 +806,72 @@ export default function TechnologiesManagementPage() {
     }
 
     return (
-        <div className="min-h-screen flex flex-col bg-background">
+        <div className="min-h-screen flex flex-col bg-background overflow-hidden relative">
+            {/* WebGL Background - Animated 3D mesh */}
+            <Suspense fallback={null}>
+                <WebGLBackground mouse={mousePosition} windowSize={windowSize} />
+            </Suspense>
+
+            {/* Animated Background - CSS layers for depth */}
+            <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+                {/* Gradient Orbs */}
+                <div
+                    className="absolute w-96 h-96 bg-jcoder-cyan/20 rounded-full blur-3xl animate-pulse"
+                    style={{
+                        left: `${mousePosition.x / 20}px`,
+                        top: `${mousePosition.y / 20}px`,
+                        transition: 'all 0.3s ease-out',
+                    }}
+                />
+                <div
+                    className="absolute w-96 h-96 bg-jcoder-blue/20 rounded-full blur-3xl animate-pulse delay-1000"
+                    style={{
+                        right: `${mousePosition.x / 25}px`,
+                        bottom: `${mousePosition.y / 25}px`,
+                        transition: 'all 0.3s ease-out',
+                    }}
+                />
+
+                {/* Grid Pattern */}
+                <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]" />
+            </div>
+
             <Header isAdmin={true} onLogout={handleLogout} />
 
-            <main className="flex-1 container mx-auto px-4 pt-24 pb-12">
-                <div className="max-w-7xl mx-auto">
+            <main className="flex-1 container mx-auto px-4 pt-24 pb-12 relative z-10">
+                {/* 3D Particles in Background */}
+                <div className="fixed inset-0 pointer-events-none z-0">
+                    <Suspense fallback={null}>
+                        <Canvas
+                            camera={{ position: [0, 0, 5], fov: 75 }}
+                            gl={{ alpha: true, antialias: true }}
+                            style={{ width: '100%', height: '100%' }}
+                        >
+                            <FloatingParticles3D />
+                        </Canvas>
+                    </Suspense>
+                </div>
+
+                {/* 3D Logo Element (optional, subtle) - Desktop only */}
+                <div className="absolute top-20 right-10 w-32 h-32 pointer-events-none opacity-20 hidden lg:block">
+                    <Suspense fallback={null}>
+                        <Canvas
+                            camera={{ position: [0, 0, 3], fov: 75 }}
+                            gl={{ alpha: true, antialias: true }}
+                            style={{ width: '100%', height: '100%' }}
+                        >
+                            <Hero3D mouse={mousePosition} windowSize={windowSize} />
+                        </Canvas>
+                    </Suspense>
+                </div>
+
+                <div className={`max-w-7xl mx-auto transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
                     {/* Breadcrumb */}
                     <nav className="mb-6">
                         <ol className="flex items-center gap-2 text-sm text-jcoder-muted">
                             <li>
-                                <button onClick={() => router.push('/admin')} className="hover:text-jcoder-primary transition-colors">
-                                    Admin
+                                <button onClick={() => router.push('/admin')} className="hover:text-jcoder-primary transition-colors group">
+                                    <span className="group-hover:underline">Admin</span>
                                 </button>
                             </li>
                             <li>
@@ -772,20 +885,27 @@ export default function TechnologiesManagementPage() {
 
                     {/* Page Header */}
                     <div className="mb-8">
-                        <h1 className="text-3xl font-bold text-jcoder-foreground mb-2">Technologies Management</h1>
-                        <p className="text-jcoder-muted">Manage technologies and tech stack for your portfolio</p>
+                        <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-jcoder-cyan via-jcoder-primary to-jcoder-blue animate-gradient">
+                            Technologies Management
+                        </h1>
+                        <p className="text-base md:text-lg text-jcoder-muted">Manage technologies and tech stack for your portfolio</p>
                     </div>
 
                     {/* Stats Cards */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                         {/* Total Technologies Card */}
-                        <div className="bg-jcoder-card border border-jcoder rounded-lg p-6 hover:border-jcoder-primary transition-colors">
+                        <div
+                            className="bg-jcoder-card/90 backdrop-blur-sm border border-jcoder rounded-2xl p-6 shadow-xl shadow-jcoder-primary/10 transform-gpu transition-all duration-300 hover:shadow-2xl hover:shadow-jcoder-primary/20 hover:-translate-y-1"
+                            style={{
+                                transform: `perspective(1000px) rotateX(${-(mousePosition.y / windowSize.height - 0.5) * 1}deg) rotateY(${(mousePosition.x / windowSize.width - 0.5) * 1}deg) translateZ(0)`,
+                            }}
+                        >
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-jcoder-muted text-sm mb-1">Total Technologies</p>
                                     <p className="text-3xl font-bold text-jcoder-foreground">{paginationMeta?.total || 0}</p>
                                 </div>
-                                <div className="w-12 h-12 bg-jcoder-gradient rounded-lg flex items-center justify-center">
+                                <div className="w-12 h-12 bg-jcoder-gradient rounded-lg flex items-center justify-center transform-gpu hover:scale-110 transition-transform">
                                     <svg className="w-6 h-6 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
                                     </svg>
@@ -794,7 +914,12 @@ export default function TechnologiesManagementPage() {
                         </div>
 
                         {/* Status Card */}
-                        <div className="bg-jcoder-card border border-jcoder rounded-lg p-6 hover:border-jcoder-primary transition-colors">
+                        <div
+                            className="bg-jcoder-card/90 backdrop-blur-sm border border-jcoder rounded-2xl p-6 shadow-xl shadow-jcoder-primary/10 transform-gpu transition-all duration-300 hover:shadow-2xl hover:shadow-jcoder-primary/20 hover:-translate-y-1"
+                            style={{
+                                transform: `perspective(1000px) rotateX(${-(mousePosition.y / windowSize.height - 0.5) * 1}deg) rotateY(${(mousePosition.x / windowSize.width - 0.5) * 1}deg) translateZ(0)`,
+                            }}
+                        >
                             <div>
                                 <p className="text-jcoder-muted text-sm mb-3">Status</p>
                                 <div className="flex items-center justify-between gap-4">
@@ -826,13 +951,18 @@ export default function TechnologiesManagementPage() {
                         </div>
 
                         {/* Last Update Card */}
-                        <div className="bg-jcoder-card border border-jcoder rounded-lg p-6 hover:border-jcoder-primary transition-colors">
+                        <div
+                            className="bg-jcoder-card/90 backdrop-blur-sm border border-jcoder rounded-2xl p-6 shadow-xl shadow-jcoder-primary/10 transform-gpu transition-all duration-300 hover:shadow-2xl hover:shadow-jcoder-primary/20 hover:-translate-y-1"
+                            style={{
+                                transform: `perspective(1000px) rotateX(${-(mousePosition.y / windowSize.height - 0.5) * 1}deg) rotateY(${(mousePosition.x / windowSize.width - 0.5) * 1}deg) translateZ(0)`,
+                            }}
+                        >
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-jcoder-muted text-sm mb-1">Last Update</p>
                                     <p className="text-3xl font-bold text-jcoder-foreground">{lastUpdate}</p>
                                 </div>
-                                <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                                <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center transform-gpu hover:scale-110 transition-transform">
                                     <svg className="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
@@ -945,6 +1075,24 @@ export default function TechnologiesManagementPage() {
             )}
 
             <Footer user={user} username={urlUsername || user?.username} />
+
+            <style jsx>{`
+                @keyframes gradient {
+                    0%, 100% {
+                        background-position: 0% 50%;
+                    }
+                    50% {
+                        background-position: 100% 50%;
+                    }
+                }
+                .animate-gradient {
+                    background-size: 200% 200%;
+                    animation: gradient 3s ease infinite;
+                }
+                .delay-1000 {
+                    animation-delay: 1s;
+                }
+            `}</style>
         </div>
     );
 }
@@ -1022,17 +1170,45 @@ function TechnologyFormModal({ title, technology, onClose, onSubmit, submitting 
         onSubmit(payload, selectedFile, deleteImage);
     };
 
+    // Get mouse position and window size from parent component context or use defaults
+    const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+    const [windowSize, setWindowSize] = useState({ width: 1920, height: 1080 });
+
+    useEffect(() => {
+        const handleMouseMove = (e: MouseEvent) => {
+            setMousePosition({ x: e.clientX, y: e.clientY });
+        };
+        const updateWindowSize = () => {
+            setWindowSize({ width: window.innerWidth, height: window.innerHeight });
+        };
+        updateWindowSize();
+        window.addEventListener('mousemove', handleMouseMove);
+        window.addEventListener('resize', updateWindowSize);
+        return () => {
+            window.removeEventListener('mousemove', handleMouseMove);
+            window.removeEventListener('resize', updateWindowSize);
+        };
+    }, []);
+
     return (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-jcoder-card border border-jcoder rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div
+                className="bg-jcoder-card/95 backdrop-blur-sm border border-jcoder rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-xl shadow-jcoder-primary/20 transform-gpu transition-all duration-300"
+                style={{
+                    transform: `perspective(1000px) rotateX(${-(mousePosition.y / windowSize.height - 0.5) * 2}deg) rotateY(${(mousePosition.x / windowSize.width - 0.5) * 2}deg) translateZ(0)`,
+                }}
+            >
                 <div className="p-6 border-b border-jcoder">
                     <div className="flex items-center justify-between">
-                        <h2 className="text-2xl font-bold text-jcoder-foreground">{title}</h2>
+                        <h2 className="text-xl md:text-2xl font-bold text-jcoder-foreground bg-clip-text text-transparent bg-gradient-to-r from-jcoder-cyan via-jcoder-primary to-jcoder-blue">
+                            {title}
+                        </h2>
                         <button
                             onClick={onClose}
-                            className="p-2 hover:bg-jcoder-secondary rounded-lg transition-colors"
+                            className="p-2 hover:bg-jcoder-secondary rounded-lg transition-all duration-200 group"
+                            disabled={submitting}
                         >
-                            <svg className="w-6 h-6 text-jcoder-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-6 h-6 text-jcoder-muted group-hover:rotate-90 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                             </svg>
                         </button>
@@ -1049,7 +1225,7 @@ function TechnologyFormModal({ title, technology, onClose, onSubmit, submitting 
                             required
                             value={formData.name}
                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                            className="w-full px-4 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:outline-none focus:border-jcoder-primary"
+                            className="w-full px-4 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-transparent transition-all duration-200 hover:border-jcoder-primary/50"
                             placeholder="e.g., Node.js"
                         />
                     </div>
@@ -1062,7 +1238,7 @@ function TechnologyFormModal({ title, technology, onClose, onSubmit, submitting 
                             required
                             value={formData.expertiseLevel}
                             onChange={(e) => setFormData({ ...formData, expertiseLevel: e.target.value as ExpertiseLevel })}
-                            className="w-full px-4 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:outline-none focus:border-jcoder-primary"
+                            className="w-full px-4 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-transparent transition-all duration-200 hover:border-jcoder-primary/50"
                         >
                             <option value={ExpertiseLevel.BASIC}>Basic</option>
                             <option value={ExpertiseLevel.INTERMEDIATE}>Intermediate</option>
@@ -1185,9 +1361,24 @@ function TechnologyFormModal({ title, technology, onClose, onSubmit, submitting 
                         <button
                             type="submit"
                             disabled={submitting}
-                            className="flex-1 px-6 py-3 bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 font-medium"
+                            className="flex-1 px-6 py-3 bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-all duration-200 disabled:opacity-50 font-semibold transform-gpu hover:scale-105 hover:shadow-lg hover:shadow-jcoder-primary/50 active:scale-95 disabled:transform-none flex items-center justify-center gap-2 group"
                         >
-                            {submitting ? 'Saving...' : technology ? 'Update' : 'Create'}
+                            {submitting ? (
+                                <>
+                                    <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    Saving...
+                                </>
+                            ) : (
+                                <>
+                                    <svg className="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                    </svg>
+                                    {technology ? 'Update' : 'Create'}
+                                </>
+                            )}
                         </button>
                     </div>
                 </form>

@@ -18,11 +18,15 @@ import { StatsCard } from '@/components/profile/StatsCard';
 import { useToast } from '@/components/toast/ToastContext';
 import { SectionCard } from '@/components/profile/SectionCard';
 import { TimelineItem } from '@/components/profile/TimelineItem';
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, Suspense } from 'react';
 import { UsersService } from '@/services/administration-by-user/users.service';
 import { ImagesService } from '@/services/administration-by-user/images.service';
 import { ProfileImageUploader } from '@/components/profile/ProfileImageUploader';
 import { PortfolioViewService } from '@/services/portfolio-view/portfolio-view.service';
+import { Canvas } from '@react-three/fiber';
+import WebGLBackground from '@/components/webgl/WebGLBackground';
+import Hero3D from '@/components/webgl/Hero3D';
+import FloatingParticles3D from '@/components/webgl/FloatingParticles3D';
 
 export default function ProfileManagementPage() {
     const toast = useToast();
@@ -32,6 +36,11 @@ export default function ProfileManagementPage() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [checkingAuth, setCheckingAuth] = useState(true);
     const [user, setUser] = useState<User | null>(null);
+    
+    // WebGL and animation states
+    const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+    const [windowSize, setWindowSize] = useState({ width: 1920, height: 1080 });
+    const [isVisible, setIsVisible] = useState(false);
 
     // Component states
     const [aboutMe, setAboutMe] = useState<UserComponentAboutMe | null>(null);
@@ -126,6 +135,26 @@ export default function ProfileManagementPage() {
         localStorage.removeItem('accessToken');
         router.push('/');
     }, [router]);
+
+    useEffect(() => {
+        setIsVisible(true);
+
+        // Update window size
+        const updateWindowSize = () => {
+            setWindowSize({ width: window.innerWidth, height: window.innerHeight });
+        };
+        updateWindowSize();
+        window.addEventListener('resize', updateWindowSize);
+        return () => window.removeEventListener('resize', updateWindowSize);
+    }, []);
+
+    useEffect(() => {
+        const handleMouseMove = (e: MouseEvent) => {
+            setMousePosition({ x: e.clientX, y: e.clientY });
+        };
+        window.addEventListener('mousemove', handleMouseMove);
+        return () => window.removeEventListener('mousemove', handleMouseMove);
+    }, []);
 
     useEffect(() => {
         const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
@@ -1203,9 +1232,38 @@ export default function ProfileManagementPage() {
 
     if (checkingAuth || !isAuthenticated || loading) {
         return (
-            <div className="min-h-screen flex flex-col bg-background">
+            <div className="min-h-screen flex flex-col bg-background overflow-hidden relative">
+                {/* WebGL Background - Animated 3D mesh */}
+                <Suspense fallback={null}>
+                    <WebGLBackground mouse={mousePosition} windowSize={windowSize} />
+                </Suspense>
+
+                {/* Animated Background - CSS layers for depth */}
+                <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+                    {/* Gradient Orbs */}
+                    <div
+                        className="absolute w-96 h-96 bg-jcoder-cyan/20 rounded-full blur-3xl animate-pulse"
+                        style={{
+                            left: `${mousePosition.x / 20}px`,
+                            top: `${mousePosition.y / 20}px`,
+                            transition: 'all 0.3s ease-out',
+                        }}
+                    />
+                    <div
+                        className="absolute w-96 h-96 bg-jcoder-blue/20 rounded-full blur-3xl animate-pulse delay-1000"
+                        style={{
+                            right: `${mousePosition.x / 25}px`,
+                            bottom: `${mousePosition.y / 25}px`,
+                            transition: 'all 0.3s ease-out',
+                        }}
+                    />
+
+                    {/* Grid Pattern */}
+                    <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]" />
+                </div>
+
                 <Header isAdmin={true} onLogout={handleLogout} />
-                <main className="flex-1 container mx-auto px-4 pt-24 pb-12">
+                <main className="flex-1 container mx-auto px-4 pt-24 pb-12 relative z-10">
                     <div className="max-w-6xl mx-auto">
                         <TableSkeleton />
                     </div>
@@ -1216,17 +1274,72 @@ export default function ProfileManagementPage() {
     }
 
     return (
-        <div className="min-h-screen flex flex-col bg-background">
+        <div className="min-h-screen flex flex-col bg-background overflow-hidden relative">
+            {/* WebGL Background - Animated 3D mesh */}
+            <Suspense fallback={null}>
+                <WebGLBackground mouse={mousePosition} windowSize={windowSize} />
+            </Suspense>
+
+            {/* Animated Background - CSS layers for depth */}
+            <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+                {/* Gradient Orbs */}
+                <div
+                    className="absolute w-96 h-96 bg-jcoder-cyan/20 rounded-full blur-3xl animate-pulse"
+                    style={{
+                        left: `${mousePosition.x / 20}px`,
+                        top: `${mousePosition.y / 20}px`,
+                        transition: 'all 0.3s ease-out',
+                    }}
+                />
+                <div
+                    className="absolute w-96 h-96 bg-jcoder-blue/20 rounded-full blur-3xl animate-pulse delay-1000"
+                    style={{
+                        right: `${mousePosition.x / 25}px`,
+                        bottom: `${mousePosition.y / 25}px`,
+                        transition: 'all 0.3s ease-out',
+                    }}
+                />
+
+                {/* Grid Pattern */}
+                <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]" />
+            </div>
+
             <Header isAdmin={true} onLogout={handleLogout} />
 
-            <main className="flex-1 container mx-auto px-4 pt-24 pb-12">
-                <div className="max-w-6xl mx-auto">
+            <main className="flex-1 container mx-auto px-4 pt-24 pb-12 relative z-10">
+                {/* 3D Particles in Background */}
+                <div className="fixed inset-0 pointer-events-none z-0">
+                    <Suspense fallback={null}>
+                        <Canvas
+                            camera={{ position: [0, 0, 5], fov: 75 }}
+                            gl={{ alpha: true, antialias: true }}
+                            style={{ width: '100%', height: '100%' }}
+                        >
+                            <FloatingParticles3D />
+                        </Canvas>
+                    </Suspense>
+                </div>
+
+                {/* 3D Logo Element (optional, subtle) - Desktop only */}
+                <div className="absolute top-20 right-10 w-32 h-32 pointer-events-none opacity-20 hidden lg:block">
+                    <Suspense fallback={null}>
+                        <Canvas
+                            camera={{ position: [0, 0, 3], fov: 75 }}
+                            gl={{ alpha: true, antialias: true }}
+                            style={{ width: '100%', height: '100%' }}
+                        >
+                            <Hero3D mouse={mousePosition} windowSize={windowSize} />
+                        </Canvas>
+                    </Suspense>
+                </div>
+
+                <div className={`max-w-6xl mx-auto transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
                     {/* Breadcrumb */}
                     <nav className="mb-6">
                         <ol className="flex items-center gap-2 text-sm text-jcoder-muted">
                             <li>
-                                <button onClick={() => router.push('/admin')} className="hover:text-jcoder-primary transition-colors">
-                                    Admin
+                                <button onClick={() => router.push('/admin')} className="hover:text-jcoder-primary transition-colors group">
+                                    <span className="group-hover:underline">Admin</span>
                                 </button>
                             </li>
                             <li>
@@ -1240,12 +1353,19 @@ export default function ProfileManagementPage() {
 
                     {/* Page Header */}
                     <div className="mb-8">
-                        <h1 className="text-2xl md:text-3xl font-bold text-jcoder-foreground mb-2">My Profile</h1>
-                        <p className="text-sm md:text-base text-jcoder-muted">Manage your profile and portfolio information</p>
+                        <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-jcoder-cyan via-jcoder-primary to-jcoder-blue animate-gradient">
+                            My Profile
+                        </h1>
+                        <p className="text-base md:text-lg text-jcoder-muted">Manage your profile and portfolio information</p>
                     </div>
 
                     {/* Profile Header Card */}
-                    <div className="bg-jcoder-card border border-jcoder rounded-lg overflow-hidden mb-6">
+                    <div
+                        className="bg-jcoder-card/90 backdrop-blur-sm border border-jcoder rounded-2xl overflow-hidden mb-6 shadow-xl shadow-jcoder-primary/10 transform-gpu transition-all duration-300 hover:shadow-2xl hover:shadow-jcoder-primary/20 hover:-translate-y-1"
+                        style={{
+                            transform: `perspective(1000px) rotateX(${-(mousePosition.y / windowSize.height - 0.5) * 1}deg) rotateY(${(mousePosition.x / windowSize.width - 0.5) * 1}deg) translateZ(0)`,
+                        }}
+                    >
                         {/* Gradient Header */}
                         <div className="h-24 md:h-32 bg-gradient-to-r from-purple-500 via-pink-500 to-purple-600"></div>
 
@@ -2456,6 +2576,24 @@ export default function ProfileManagementPage() {
             </main>
 
             <Footer user={user} username={user?.username} />
+
+            <style jsx>{`
+                @keyframes gradient {
+                    0%, 100% {
+                        background-position: 0% 50%;
+                    }
+                    50% {
+                        background-position: 100% 50%;
+                    }
+                }
+                .animate-gradient {
+                    background-size: 200% 200%;
+                    animation: gradient 3s ease infinite;
+                }
+                .delay-1000 {
+                    animation-delay: 1s;
+                }
+            `}</style>
         </div>
     );
 }
