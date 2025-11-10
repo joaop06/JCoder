@@ -17,7 +17,10 @@ export class UploadTechnologyProfileImageUseCase {
     ) { }
 
     async execute(id: number, file: Express.Multer.File): Promise<Technology> {
-        const technology = await this.technologyRepository.findOne({ where: { id } });
+        const technology = await this.technologyRepository.findOne({
+            where: { id },
+            relations: ['user'],
+        });
 
         if (!technology) {
             throw new TechnologyNotFoundException();
@@ -29,15 +32,19 @@ export class UploadTechnologyProfileImageUseCase {
                 ResourceType.Technology,
                 id,
                 technology.profileImage,
+                undefined,
+                technology.user.username,
             );
         }
 
-        // Upload new profile image
+        // Upload new profile image with username segmentation
         const filename = await this.imageStorageService.uploadImage(
             file,
             ResourceType.Technology,
             id,
             ImageType.Profile,
+            undefined,
+            technology.user.username,
         );
 
         // Update technology with new profile image

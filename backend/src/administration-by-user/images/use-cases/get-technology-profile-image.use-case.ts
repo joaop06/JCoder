@@ -16,7 +16,10 @@ export class GetTechnologyProfileImageUseCase {
     ) { }
 
     async execute(id: number): Promise<string> {
-        const technology = await this.technologyRepository.findOne({ where: { id } });
+        const technology = await this.technologyRepository.findOne({ 
+            where: { id },
+            relations: ['user'],
+        });
 
         if (!technology) {
             throw new TechnologyNotFoundException();
@@ -30,6 +33,8 @@ export class GetTechnologyProfileImageUseCase {
             ResourceType.Technology,
             id,
             technology.profileImage,
+            undefined,
+            technology.user.username,
         );
     }
 };

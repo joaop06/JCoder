@@ -16,7 +16,10 @@ export class DeleteTechnologyProfileImageUseCase {
     ) { }
 
     async execute(id: number): Promise<Technology> {
-        const technology = await this.technologyRepository.findOne({ where: { id } });
+        const technology = await this.technologyRepository.findOne({
+            where: { id },
+            relations: ['user'],
+        });
 
         if (!technology) {
             throw new TechnologyNotFoundException();
@@ -27,11 +30,13 @@ export class DeleteTechnologyProfileImageUseCase {
             return technology;
         }
 
-        // Delete profile image file
+        // Delete profile image file with username segmentation
         await this.imageStorageService.deleteImage(
             ResourceType.Technology,
             id,
             technology.profileImage,
+            undefined,
+            technology.user.username,
         );
 
         // Update technology removing profile image reference
