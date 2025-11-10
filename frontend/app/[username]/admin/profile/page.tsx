@@ -11,22 +11,22 @@ import {
 } from '@/types';
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
+import { Canvas } from '@react-three/fiber';
 import { useRouter } from 'next/navigation';
+import Hero3D from '@/components/webgl/Hero3D';
 import { TableSkeleton } from '@/components/ui';
 import { InfoField } from '@/components/profile/InfoField';
 import { StatsCard } from '@/components/profile/StatsCard';
 import { useToast } from '@/components/toast/ToastContext';
 import { SectionCard } from '@/components/profile/SectionCard';
 import { TimelineItem } from '@/components/profile/TimelineItem';
-import { useState, useEffect, useCallback, useRef, Suspense } from 'react';
+import WebGLBackground from '@/components/webgl/WebGLBackground';
+import FloatingParticles3D from '@/components/webgl/FloatingParticles3D';
 import { UsersService } from '@/services/administration-by-user/users.service';
 import { ImagesService } from '@/services/administration-by-user/images.service';
 import { ProfileImageUploader } from '@/components/profile/ProfileImageUploader';
+import { useState, useEffect, useCallback, useRef, Suspense, useMemo } from 'react';
 import { PortfolioViewService } from '@/services/portfolio-view/portfolio-view.service';
-import { Canvas } from '@react-three/fiber';
-import WebGLBackground from '@/components/webgl/WebGLBackground';
-import Hero3D from '@/components/webgl/Hero3D';
-import FloatingParticles3D from '@/components/webgl/FloatingParticles3D';
 
 export default function ProfileManagementPage() {
     const toast = useToast();
@@ -36,7 +36,7 @@ export default function ProfileManagementPage() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [checkingAuth, setCheckingAuth] = useState(true);
     const [user, setUser] = useState<User | null>(null);
-    
+
     // WebGL and animation states
     const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
     const [windowSize, setWindowSize] = useState({ width: 1920, height: 1080 });
@@ -1230,6 +1230,19 @@ export default function ProfileManagementPage() {
         return new Date(date).toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
     };
 
+    // Calcular URL da imagem de perfil
+    const profileImageUrl = useMemo(() => {
+        // Verificar se o usuário tem profileImage (pode ser string vazia, null, undefined)
+        const hasProfileImage = user?.profileImage &&
+            typeof user.profileImage === 'string' &&
+            user.profileImage.trim() !== '';
+
+        if (!hasProfileImage || !user?.id || !user?.username) {
+            return null;
+        }
+        return ImagesService.getUserProfileImageUrl(user.username, user.id);
+    }, [user?.profileImage, user?.id, user?.username]);
+
     if (checkingAuth || !isAuthenticated || loading) {
         return (
             <div className="min-h-screen flex flex-col bg-background overflow-hidden relative">
@@ -1374,12 +1387,9 @@ export default function ProfileManagementPage() {
                                 <div className="flex flex-col sm:flex-row items-center sm:items-end gap-4 mb-4 md:mb-0">
                                     <ProfileImageUploader
                                         userId={user?.id || 0}
-                                        currentImage={user?.profileImage ? (() => {
-                                            const userSession = UsersService.getUserSession();
-                                            const username = userSession?.user?.username || '';
-                                            return username && user?.id ? ImagesService.getUserProfileImageUrl(username, user.id) : null;
-                                        })() : null}
-                                        userName={user?.fullName || user?.firstName}
+                                        currentImage={profileImageUrl}
+                                        userName={user?.username || ''}
+                                        displayName={user?.fullName || user?.firstName}
                                         onImageUpdate={(url) => {
                                             if (user) {
                                                 setUser({ ...user, profileImage: url || undefined });

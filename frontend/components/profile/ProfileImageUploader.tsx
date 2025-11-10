@@ -1,26 +1,105 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useToast } from '../toast/ToastContext';
 import { ImagesService } from '@/services/administration-by-user/images.service';
 
 interface ProfileImageUploaderProps {
     userId: number;
     currentImage?: string | null;
-    userName?: string;
+    userName: string; // username (unique identifier) for API requests
+    displayName?: string; // display name for initials and alt text
     onImageUpdate?: (imageUrl: string | null) => void;
 }
 
 export const ProfileImageUploader: React.FC<ProfileImageUploaderProps> = ({
     userId,
     userName,
+    displayName,
     currentImage,
     onImageUpdate,
 }) => {
     const toast = useToast();
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const blobUrlRef = useRef<string | null>(null);
     const [isUploading, setIsUploading] = useState(false);
     const [imageUrl, setImageUrl] = useState<string | null>(currentImage || null);
+    const [imageError, setImageError] = useState(false);
+    const [blobUrl, setBlobUrl] = useState<string | null>(null);
+
+    // Carregar imagem com autenticação e converter para blob URL
+    useEffect(() => {
+        // Verificar se temos todos os dados necessários e se currentImage é uma URL válida
+        if (!currentImage || typeof currentImage !== 'string' || currentImage.trim() === '' || !userName || !userId) {
+            // Revogar blob URL anterior se existir
+            if (blobUrlRef.current) {
+                URL.revokeObjectURL(blobUrlRef.current);
+                blobUrlRef.current = null;
+            }
+            setBlobUrl(null);
+            return;
+        }
+
+        const loadImageWithAuth = async () => {
+            try {
+                const token = localStorage.getItem('accessToken');
+                if (!token) {
+                    setImageError(true);
+                    return;
+                }
+
+                const url = ImagesService.getUserProfileImageUrl(userName, userId);
+                const response = await fetch(url, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                    },
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to load image');
+                }
+
+                const blob = await response.blob();
+                const newBlobUrl = URL.createObjectURL(blob);
+
+                // Revogar blob URL anterior se existir
+                if (blobUrlRef.current) {
+                    URL.revokeObjectURL(blobUrlRef.current);
+                }
+
+                blobUrlRef.current = newBlobUrl;
+                setBlobUrl(newBlobUrl);
+                setImageError(false);
+            } catch (error) {
+                console.error('Error loading profile image:', error);
+                setImageError(true);
+                setBlobUrl(null);
+            }
+        };
+
+        loadImageWithAuth();
+
+        // Cleanup: revogar blob URL quando componente desmontar ou imagem mudar
+        return () => {
+            if (blobUrlRef.current) {
+                URL.revokeObjectURL(blobUrlRef.current);
+                blobUrlRef.current = null;
+            }
+        };
+    }, [currentImage, userName, userId]);
+
+    // Sincronizar imageUrl com currentImage quando mudar
+    useEffect(() => {
+        if (currentImage !== undefined) {
+            setImageUrl(currentImage);
+            setImageError(false); // Resetar erro quando a imagem mudar
+        }
+    }, [currentImage]);
+
+    const handleImageError = () => {
+        setImageError(true);
+        setBlobUrl(null);
+    };
 
     const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -39,7 +118,7 @@ export const ProfileImageUploader: React.FC<ProfileImageUploaderProps> = ({
         }
 
         if (!userName) {
-            toast.error('User name is required');
+            toast.error('Username is required');
             return;
         }
 
@@ -52,7 +131,16 @@ export const ProfileImageUploader: React.FC<ProfileImageUploaderProps> = ({
         try {
             await ImagesService.uploadUserProfileImage(userName, userId, file);
             const newImageUrl = ImagesService.getUserProfileImageUrl(userName, userId);
-            setImageUrl(`${newImageUrl}?t=${Date.now()}`);
+
+            // Limpar blob URL anterior
+            if (blobUrlRef.current) {
+                URL.revokeObjectURL(blobUrlRef.current);
+                blobUrlRef.current = null;
+            }
+
+            setImageError(false); // Resetar erro ao fazer upload
+            setImageUrl(newImageUrl);
+            setBlobUrl(null); // Forçar recarregamento
             onImageUpdate?.(newImageUrl);
             toast.success('Profile image updated successfully!');
         } catch (error: any) {
@@ -67,7 +155,7 @@ export const ProfileImageUploader: React.FC<ProfileImageUploaderProps> = ({
 
     const handleDeleteImage = async () => {
         if (!userName) {
-            toast.error('User name is required');
+            toast.error('Username is required');
             return;
         }
 
@@ -88,7 +176,16 @@ export const ProfileImageUploader: React.FC<ProfileImageUploaderProps> = ({
         setIsUploading(true);
         try {
             await ImagesService.deleteUserProfileImage(userName, userId);
+
+            // Limpar blob URL
+            if (blobUrlRef.current) {
+                URL.revokeObjectURL(blobUrlRef.current);
+                blobUrlRef.current = null;
+            }
+
             setImageUrl(null);
+            setBlobUrl(null);
+            setImageError(false);
             onImageUpdate?.(null);
             toast.success('Profile image deleted successfully!');
         } catch (error: any) {
@@ -99,7 +196,8 @@ export const ProfileImageUploader: React.FC<ProfileImageUploaderProps> = ({
     };
 
     const getInitials = () => {
-        return userName?.charAt(0)?.toUpperCase() || 'U';
+        const name = displayName || userName;
+        return name?.charAt(0)?.toUpperCase() || 'U';
     };
 
     return (
@@ -113,11 +211,12 @@ export const ProfileImageUploader: React.FC<ProfileImageUploaderProps> = ({
             />
 
             <div className="relative w-32 h-32 rounded-full overflow-hidden border-4 border-jcoder-card bg-gradient-to-br from-purple-500 to-pink-500">
-                {imageUrl ? (
+                {blobUrl && !imageError ? (
                     <img
-                        src={imageUrl}
-                        alt={userName}
+                        src={blobUrl}
+                        alt={displayName || userName || 'Profile'}
                         className="w-full h-full object-cover"
+                        onError={handleImageError}
                     />
                 ) : (
                     <div className="w-full h-full flex items-center justify-center">
@@ -145,7 +244,7 @@ export const ProfileImageUploader: React.FC<ProfileImageUploaderProps> = ({
                                 </svg>
                             )}
                         </button>
-                        {imageUrl && (
+                        {blobUrl && (
                             <button
                                 onClick={handleDeleteImage}
                                 disabled={isUploading}

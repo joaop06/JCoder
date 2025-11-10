@@ -41,7 +41,7 @@ start.b:
 start.f:
 	make env
 	make down.f
-	cd frontend && pnpm install && pnpm run build && pnpm run start
+	cd frontend && pnpm install && pnpm run build && pnpm run dev
 
 .PHONY: env
 
