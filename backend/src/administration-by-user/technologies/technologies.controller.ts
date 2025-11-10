@@ -51,6 +51,14 @@ export class TechnologiesController {
         return await this.technologiesService.findAll(username, paginationDto);
     }
 
+    @Get('stats')
+    @ApiOkResponse({ type: () => TechnologiesStatsDto })
+    async getStats(
+        @Param('username') username: string,
+    ): Promise<TechnologiesStatsDto> {
+        return await this.technologiesService.getStats(username);
+    }
+
     @Get(':id')
     @ApiOkResponse({ type: () => Technology })
     @ApiExceptionResponse(() => TechnologyNotFoundException)
@@ -103,14 +111,6 @@ export class TechnologiesController {
         @Param('id', ParseIntPipe) id: number,
     ): Promise<void> {
         return await this.deleteTechnologyUseCase.execute(username, id);
-    }
-
-    @Get('stats')
-    @ApiOkResponse({ type: () => TechnologiesStatsDto })
-    async getStats(
-        @Param('username') username: string,
-    ): Promise<TechnologiesStatsDto> {
-        return await this.technologiesService.getStats(username);
     }
 
     @Put(':id/reorder')

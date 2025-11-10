@@ -20,6 +20,8 @@ export interface PaginationDto {
     sortBy?: string;
 
     sortOrder?: 'ASC' | 'DESC';
+
+    isActive?: boolean;
 };
 
 export interface PaginatedResponseDto<T> {

@@ -7,6 +7,7 @@ import { UpdateTechnologyDto } from './dto/update-technology.dto';
 import { CacheService } from '../../@common/services/cache.service';
 import { TechnologiesStatsDto } from './dto/technologies-stats.dto';
 import { ImageUploadService } from '../images/services/image-upload.service';
+import { UsersService } from '../users/users.service';
 import { PaginationDto, PaginatedResponseDto } from '../../@common/dto/pagination.dto';
 import { TechnologyNotFoundException } from './exceptions/technology-not-found.exception';
 
@@ -14,6 +15,8 @@ import { TechnologyNotFoundException } from './exceptions/technology-not-found.e
 export class TechnologiesService {
     constructor(
         private readonly cacheService: CacheService,
+
+        private readonly usersService: UsersService,
 
         @InjectRepository(Technology)
         private readonly repository: Repository<Technology>,
@@ -30,8 +33,15 @@ export class TechnologiesService {
             limit = 10,
             sortBy = 'displayOrder',
             sortOrder = 'ASC',
+            isActive,
         } = paginationDto;
         const skip = (page - 1) * limit;
+
+        // Build where clause
+        const where: any = { user: { username } };
+        if (isActive !== undefined) {
+            where.isActive = isActive;
+        }
 
         const cacheKey = this.cacheService.generateKey(
             'technologies',
@@ -41,6 +51,7 @@ export class TechnologiesService {
             limit,
             sortBy,
             sortOrder,
+            isActive !== undefined ? String(isActive) : 'all',
         );
 
         return await this.cacheService.getOrSet(
@@ -49,7 +60,7 @@ export class TechnologiesService {
                 const [data, total] = await this.repository.findAndCount({
                     skip,
                     take: limit,
-                    where: { user: { username } },
+                    where,
                     order: { [sortBy]: sortOrder },
                 });
 
@@ -158,6 +169,7 @@ export class TechnologiesService {
      * @param id - ID of the technology being updated
      * @param oldPosition - Current displayOrder position
      * @param newPosition - New displayOrder position
+     * @param username - User username to scope the reordering
      */
     async reorderOnUpdate(
         id: number,
@@ -169,6 +181,8 @@ export class TechnologiesService {
             return; // No reordering needed
         }
 
+        const user = await this.usersService.findOneBy({ username });
+
         if (newPosition < oldPosition) {
             // Moving up: increment displayOrder of technologies between new and old position
             await this.repository
@@ -178,7 +192,7 @@ export class TechnologiesService {
                 .where('displayOrder >= :newPosition', { newPosition })
                 .andWhere('displayOrder < :oldPosition', { oldPosition })
                 .andWhere('id != :id', { id })
-                .andWhere('username = :username', { username })
+                .andWhere('userId = :userId', { userId: user.id })
                 .execute();
         } else {
             // Moving down: decrement displayOrder of technologies between old and new position
@@ -189,7 +203,7 @@ export class TechnologiesService {
                 .where('displayOrder > :oldPosition', { oldPosition })
                 .andWhere('displayOrder <= :newPosition', { newPosition })
                 .andWhere('id != :id', { id })
-                .andWhere('username = :username', { username })
+                .andWhere('userId = :userId', { userId: user.id })
                 .execute();
         }
     }
@@ -198,14 +212,17 @@ export class TechnologiesService {
      * Decrements displayOrder of all technologies that have displayOrder > deletedPosition
      * Used when deleting a technology to adjust the order of remaining technologies
      * @param deletedPosition - The displayOrder of the deleted technology
+     * @param username - User username to scope the reordering
      */
     async decrementDisplayOrderAfter(deletedPosition: number, username: string): Promise<void> {
+        const user = await this.usersService.findOneBy({ username });
+
         await this.repository
             .createQueryBuilder()
             .update(Technology)
             .set({ displayOrder: () => 'displayOrder - 1' })
             .where('displayOrder > :deletedPosition', { deletedPosition })
-            .andWhere('username = :username', { username })
+            .andWhere('userId = :userId', { userId: user.id })
             .execute();
     }
 

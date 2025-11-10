@@ -32,9 +32,9 @@ export class CreateTechnologyUseCase {
         // Create the technology with displayOrder = 1
         const technologyData = {
             ...createTechnologyDto,
-            username,
+            userId: user.id,
             displayOrder: 1,
-        } as CreateTechnologyDto & { displayOrder: number };
+        } as CreateTechnologyDto & { displayOrder: number; userId: number };
 
         return await this.technologiesService.create(technologyData);
     }

@@ -19,6 +19,7 @@ export const TechnologiesService = {
             if (pagination.limit) params.append('limit', pagination.limit.toString());
             if (pagination.sortBy) params.append('sortBy', pagination.sortBy);
             if (pagination.sortOrder) params.append('sortOrder', pagination.sortOrder);
+            if (pagination.isActive !== undefined) params.append('isActive', pagination.isActive.toString());
 
             const queryString = params.toString();
             const url = `/${username}/technologies${queryString ? `?${queryString}` : ''}`;
