@@ -269,7 +269,7 @@ export default function Header({
     return (
       <header className="fixed top-0 left-0 right-0 z-50 bg-jcoder-card/80 backdrop-blur-sm">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-end h-16 gap-3">
+          <div className="flex items-center justify-end h-16 gap-2 sm:gap-3">
             {/* Desktop */}
             <div className="hidden md:flex items-center gap-4">
               <ThemeToggle size="sm" />
@@ -287,40 +287,20 @@ export default function Header({
               </Link>
             </div>
             {/* Mobile */}
-            <div className="md:hidden relative" ref={mobileMenuRef}>
-              <button
-                onClick={toggleMobileMenu}
-                className="p-2 rounded-lg text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors"
-                aria-label="Menu"
+            <div className="md:hidden flex items-center gap-2">
+              <ThemeToggle size="sm" />
+              <Link
+                href={loggedInUsername ? `/${loggedInUsername}` : '/'}
+                className="px-3 py-1.5 text-xs sm:text-sm text-jcoder-muted hover:text-jcoder-foreground border border-jcoder/50 hover:border-jcoder/70 rounded-lg transition-all duration-300 whitespace-nowrap"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-              </button>
-              {isMobileMenuOpen && (
-                <div className="absolute right-0 top-full mt-2 w-52 bg-jcoder-card/95 backdrop-blur-md border border-jcoder/30 rounded-2xl shadow-xl shadow-jcoder-primary/10 z-50 overflow-hidden">
-                  <div className="p-3 space-y-2">
-                    <div className="px-3 py-2">
-                      <ThemeToggle size="sm" />
-                    </div>
-                    <div className="border-t border-jcoder/30 my-2"></div>
-                    <Link
-                      href={loggedInUsername ? `/${loggedInUsername}` : '/'}
-                      onClick={() => setIsMobileMenuOpen(false)}
-                      className="block px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors"
-                    >
-                      Portfolio
-                    </Link>
-                    <Link
-                      href={loggedInUsername ? `/${loggedInUsername}/admin` : '/admin'}
-                      onClick={() => setIsMobileMenuOpen(false)}
-                      className="block px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors"
-                    >
-                      Admin
-                    </Link>
-                  </div>
-                </div>
-              )}
+                Portfolio
+              </Link>
+              <Link
+                href={loggedInUsername ? `/${loggedInUsername}/admin` : '/admin'}
+                className="px-3 py-1.5 text-xs sm:text-sm text-jcoder-foreground hover:text-jcoder-primary border border-jcoder/50 hover:border-jcoder-primary/70 rounded-lg transition-all duration-300 whitespace-nowrap"
+              >
+                Admin
+              </Link>
             </div>
           </div>
         </div>
@@ -333,7 +313,7 @@ export default function Header({
     return (
       <header className="fixed top-0 left-0 right-0 z-50 bg-jcoder-card/80 backdrop-blur-sm">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-end h-16 gap-3">
+          <div className="flex items-center justify-end h-16 gap-2 sm:gap-3">
             {/* Desktop */}
             <div className="hidden md:flex items-center gap-4">
               <ThemeToggle size="sm" />
@@ -351,40 +331,20 @@ export default function Header({
               </Link>
             </div>
             {/* Mobile */}
-            <div className="md:hidden relative" ref={mobileMenuRef}>
-              <button
-                onClick={toggleMobileMenu}
-                className="p-2 rounded-lg text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors"
-                aria-label="Menu"
+            <div className="md:hidden flex items-center gap-2">
+              <ThemeToggle size="sm" />
+              <Link
+                href="/sign-in"
+                className="px-3 py-1.5 text-xs sm:text-sm text-jcoder-muted hover:text-jcoder-foreground border border-jcoder/50 hover:border-jcoder/70 rounded-lg transition-all duration-300 whitespace-nowrap"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-              </button>
-              {isMobileMenuOpen && (
-                <div className="absolute right-0 top-full mt-2 w-48 bg-jcoder-card border border-jcoder rounded-lg shadow-lg z-50">
-                  <div className="p-2">
-                    <div className="px-3 py-2">
-                      <ThemeToggle size="sm" />
-                    </div>
-                    <div className="border-t border-jcoder my-2"></div>
-                    <Link
-                      href="/sign-in"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                      className="block px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors"
-                    >
-                      Sign In
-                    </Link>
-                    <Link
-                      href="/register"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                      className="block px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors"
-                    >
-                      Sign Up
-                    </Link>
-                  </div>
-                </div>
-              )}
+                Sign In
+              </Link>
+              <Link
+                href="/register"
+                className="px-3 py-1.5 text-xs sm:text-sm text-jcoder-foreground hover:text-jcoder-primary border border-jcoder/50 hover:border-jcoder-primary/70 rounded-lg transition-all duration-300 whitespace-nowrap"
+              >
+                Sign Up
+              </Link>
             </div>
           </div>
         </div>
@@ -433,20 +393,96 @@ export default function Header({
                 })}
               </nav>
 
-              {/* Right side - Profile menu */}
+              {/* Right side - Desktop: Profile menu, Mobile: Theme toggle and Unified Menu */}
               <div className="flex items-center gap-3">
-                <ThemeToggle size="sm" />
-                {isOwnPortfolio && (
-                  <div className="relative" ref={profileDropdownRef}>
+                {/* Desktop - Theme Toggle and Profile Menu */}
+                <div className="hidden md:flex items-center gap-3">
+                  <ThemeToggle size="sm" />
+                  {isOwnPortfolio && (
+                    <div className="relative" ref={profileDropdownRef}>
+                      <button
+                        onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
+                        className="w-8 h-8 rounded-full overflow-hidden border border-jcoder hover:border-jcoder-primary transition-colors flex items-center justify-center bg-jcoder-secondary"
+                        aria-label="Profile menu"
+                      >
+                        {profileImageData.imageUrl ? (
+                          <LazyImage
+                            src={profileImageData.imageUrl}
+                            alt="Profile"
+                            fallback={profileImageData.fallback}
+                            size="custom"
+                            width="w-full"
+                            height="h-full"
+                            rounded="rounded-full"
+                            objectFit="object-cover"
+                            showSkeleton={false}
+                            rootMargin="0px"
+                          />
+                        ) : (
+                          <span className="text-xs font-semibold text-jcoder-foreground">
+                            {profileImageData.fallback}
+                          </span>
+                        )}
+                      </button>
+
+                      {isProfileDropdownOpen && (
+                        <div className="absolute right-0 top-full mt-2 w-48 bg-jcoder-card border border-jcoder rounded-lg shadow-lg z-50">
+                          <div className="p-2">
+                            <Link
+                              href={getAdminRoute('/profile')}
+                              onClick={() => setIsProfileDropdownOpen(false)}
+                              className="block px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors"
+                            >
+                              Profile
+                            </Link>
+                            <Link
+                              href={getAdminRoute('/applications')}
+                              onClick={() => setIsProfileDropdownOpen(false)}
+                              className="block px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors"
+                            >
+                              Applications
+                            </Link>
+                            <Link
+                              href={getAdminRoute('/technologies')}
+                              onClick={() => setIsProfileDropdownOpen(false)}
+                              className="block px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors"
+                            >
+                              Technologies
+                            </Link>
+                            <Link
+                              href={getAdminRoute('/messages')}
+                              onClick={() => setIsProfileDropdownOpen(false)}
+                              className="block px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors"
+                            >
+                              Messages
+                            </Link>
+                            <div className="border-t border-jcoder my-1"></div>
+                            <button
+                              onClick={handleSignOutClick}
+                              className="w-full text-left px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors"
+                            >
+                              Sign out
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Mobile - Theme Toggle and Unified Menu with User Photo */}
+                <div className="md:hidden flex items-center gap-2">
+                  <ThemeToggle size="sm" />
+                  <div className="relative" ref={mobileMenuRef}>
                     <button
-                      onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
+                      onClick={toggleMobileMenu}
                       className="w-8 h-8 rounded-full overflow-hidden border border-jcoder hover:border-jcoder-primary transition-colors flex items-center justify-center bg-jcoder-secondary"
-                      aria-label="Profile menu"
+                      aria-label="Menu"
                     >
                       {profileImageData.imageUrl ? (
                         <LazyImage
                           src={profileImageData.imageUrl}
-                          alt="Profile"
+                          alt="Menu"
                           fallback={profileImageData.fallback}
                           size="custom"
                           width="w-full"
@@ -462,124 +498,78 @@ export default function Header({
                         </span>
                       )}
                     </button>
-
-                    {isProfileDropdownOpen && (
-                      <div className="absolute right-0 top-full mt-2 w-48 bg-jcoder-card border border-jcoder rounded-lg shadow-lg z-50">
+                    {isMobileMenuOpen && (
+                      <div className="absolute right-0 top-full mt-2 w-56 bg-jcoder-card backdrop-blur-lg border border-jcoder rounded-lg shadow-2xl z-50">
                         <div className="p-2">
-                          <Link
-                            href={getAdminRoute('/profile')}
-                            onClick={() => setIsProfileDropdownOpen(false)}
-                            className="block px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors"
-                          >
-                            Profile
-                          </Link>
-                          <Link
-                            href={getAdminRoute('/applications')}
-                            onClick={() => setIsProfileDropdownOpen(false)}
-                            className="block px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors"
-                          >
-                            Applications
-                          </Link>
-                          <Link
-                            href={getAdminRoute('/technologies')}
-                            onClick={() => setIsProfileDropdownOpen(false)}
-                            className="block px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors"
-                          >
-                            Technologies
-                          </Link>
-                          <Link
-                            href={getAdminRoute('/messages')}
-                            onClick={() => setIsProfileDropdownOpen(false)}
-                            className="block px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors"
-                          >
-                            Messages
-                          </Link>
-                          <div className="border-t border-jcoder my-1"></div>
-                          <button
-                            onClick={handleSignOutClick}
-                            className="w-full text-left px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors"
-                          >
-                            Sign out
-                          </button>
+                          {/* Seção Superior - Abas do Portfólio */}
+                          {!isApplicationDetailPage && portfolioSections.map((section) => (
+                            <button
+                              key={section}
+                              onClick={() => handleNavigationClick(section)}
+                              className={`w-full text-left px-3 py-2 rounded-md text-sm capitalize transition-colors ${activeSection === section
+                                ? 'text-jcoder-primary font-medium bg-jcoder-secondary'
+                                : 'text-jcoder-foreground hover:text-jcoder-primary hover:bg-jcoder-secondary'
+                                }`}
+                            >
+                              {section === 'tech-stack' ? 'Technologies' : section}
+                            </button>
+                          ))}
+
+                          {/* Seção Intermediária - Abas Administrativas (apenas se for o próprio portfólio) */}
+                          {isOwnPortfolio && (
+                            <>
+                              <div className="border-t border-jcoder my-2"></div>
+                              <Link
+                                href={getAdminRoute('/profile')}
+                                onClick={() => setIsMobileMenuOpen(false)}
+                                className="block px-3 py-2 rounded-md text-sm text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors"
+                              >
+                                Profile
+                              </Link>
+                              <Link
+                                href={getAdminRoute('/applications')}
+                                onClick={() => setIsMobileMenuOpen(false)}
+                                className="block px-3 py-2 rounded-md text-sm text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors"
+                              >
+                                Applications
+                              </Link>
+                              <Link
+                                href={getAdminRoute('/technologies')}
+                                onClick={() => setIsMobileMenuOpen(false)}
+                                className="block px-3 py-2 rounded-md text-sm text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors"
+                              >
+                                Technologies
+                              </Link>
+                              <Link
+                                href={getAdminRoute('/messages')}
+                                onClick={() => setIsMobileMenuOpen(false)}
+                                className="block px-3 py-2 rounded-md text-sm text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors"
+                              >
+                                Messages
+                              </Link>
+                            </>
+                          )}
+
+                          {/* Seção Inferior - Sign Out */}
+                          {isOwnPortfolio && (
+                            <>
+                              <div className="border-t border-jcoder my-2"></div>
+                              <button
+                                onClick={() => {
+                                  setIsMobileMenuOpen(false);
+                                  handleSignOutClick();
+                                }}
+                                className="w-full text-left px-3 py-2 rounded-md text-sm text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors"
+                              >
+                                Sign out
+                              </button>
+                            </>
+                          )}
                         </div>
                       </div>
                     )}
                   </div>
-                )}
-              </div>
-
-              {/* Mobile Menu */}
-              <div className="md:hidden relative" ref={mobileMenuRef}>
-                <button
-                  onClick={toggleMobileMenu}
-                  className="p-2 rounded-lg text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors"
-                  aria-label="Menu"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                  </svg>
-                </button>
-                {isMobileMenuOpen && (
-                  <div className="absolute right-0 top-full mt-2 w-56 bg-jcoder-card border border-jcoder rounded-lg shadow-lg z-50">
-                    <div className="p-2">
-                      {!isApplicationDetailPage && portfolioSections.map((section) => (
-                        <button
-                          key={section}
-                          onClick={() => handleNavigationClick(section)}
-                          className={`w-full text-left px-3 py-2 rounded-md text-sm capitalize transition-colors ${activeSection === section
-                            ? 'text-jcoder-primary font-medium bg-jcoder-secondary'
-                            : 'text-jcoder-foreground hover:text-jcoder-primary hover:bg-jcoder-secondary'
-                            }`}
-                        >
-                          {section === 'tech-stack' ? 'Technologies' : section}
-                        </button>
-                      ))}
-                      {isOwnPortfolio && (
-                        <>
-                          <div className="border-t border-jcoder my-1"></div>
-                          <Link
-                            href={getAdminRoute('/profile')}
-                            onClick={() => setIsMobileMenuOpen(false)}
-                            className="block px-3 py-2 rounded-md text-sm text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors"
-                          >
-                            Profile
-                          </Link>
-                          <Link
-                            href={getAdminRoute('/applications')}
-                            onClick={() => setIsMobileMenuOpen(false)}
-                            className="block px-3 py-2 rounded-md text-sm text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors"
-                          >
-                            Applications
-                          </Link>
-                          <Link
-                            href={getAdminRoute('/technologies')}
-                            onClick={() => setIsMobileMenuOpen(false)}
-                            className="block px-3 py-2 rounded-md text-sm text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors"
-                          >
-                            Technologies
-                          </Link>
-                          <Link
-                            href={getAdminRoute('/messages')}
-                            onClick={() => setIsMobileMenuOpen(false)}
-                            className="block px-3 py-2 rounded-md text-sm text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors"
-                          >
-                            Messages
-                          </Link>
-                          <div className="border-t border-jcoder my-1"></div>
-                          <button
-                            onClick={() => {
-                              setIsMobileMenuOpen(false);
-                              handleSignOutClick();
-                            }}
-                            className="w-full text-left px-3 py-2 rounded-md text-sm text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors"
-                          >
-                            Sign out
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                )}
+                </div>
               </div>
             </div>
           </div>
@@ -665,56 +655,58 @@ export default function Header({
               })}
             </nav>
 
-            {/* Right side - Theme toggle */}
+            {/* Right side - Theme toggle and Mobile Menu */}
             <div className="flex items-center gap-3">
-              <ThemeToggle size="sm" />
-            </div>
+              {/* Desktop Theme Toggle */}
+              <div className="hidden md:block">
+                <ThemeToggle size="sm" />
+              </div>
 
-            {/* Mobile Menu */}
-            <div className="md:hidden relative" ref={mobileMenuRef}>
-              <button
-                onClick={toggleMobileMenu}
-                className="p-2 rounded-lg text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors"
-                aria-label="Menu"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-              </button>
-              {isMobileMenuOpen && (
-                <div className="absolute right-0 top-full mt-2 w-56 bg-jcoder-card/95 backdrop-blur-md border border-jcoder/30 rounded-2xl shadow-xl shadow-jcoder-primary/10 z-50 overflow-hidden">
-                  <div className="p-3 space-y-2">
-                    {!isApplicationDetailPage && portfolioSections.map((section) => {
-                      const isActive = activeSection === section;
-                      return (
-                        <button
-                          key={section}
-                          onClick={() => handleNavigationClick(section)}
-                          className={`group relative w-full text-left px-4 py-3 text-sm font-semibold capitalize transition-colors duration-300 ${isActive
-                            ? 'text-jcoder-primary'
-                            : 'text-jcoder-foreground hover:text-jcoder-primary'
-                            }`}
-                        >
-                          <span className="relative z-10">
-                            {section === 'tech-stack' ? 'Technologies' : section}
-                          </span>
-                          {/* Barra inferior - sempre visível quando ativa, cresce no hover quando inativa */}
-                          <span
-                            className={`absolute bottom-0 left-0 h-0.5 bg-jcoder-primary origin-left transition-all duration-500 ease-out ${isActive
-                              ? 'w-full'
-                              : 'w-0 group-hover:w-full'
-                              }`}
-                          ></span>
-                        </button>
-                      );
-                    })}
-                    <div className="border-t border-jcoder/30 my-2"></div>
-                    <div className="px-3 py-2">
-                      <ThemeToggle size="sm" />
+              {/* Mobile - Theme Toggle and Menu */}
+              <div className="md:hidden flex items-center gap-2">
+                <ThemeToggle size="sm" />
+                <div className="relative" ref={mobileMenuRef}>
+                  <button
+                    onClick={toggleMobileMenu}
+                    className="p-2 rounded-lg text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors"
+                    aria-label="Menu"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                  </button>
+                  {isMobileMenuOpen && (
+                    <div className="absolute right-0 top-full mt-2 w-56 bg-jcoder-card backdrop-blur-lg border border-jcoder rounded-2xl shadow-2xl z-50 overflow-hidden">
+                      <div className="p-3 space-y-2">
+                        {!isApplicationDetailPage && portfolioSections.map((section) => {
+                          const isActive = activeSection === section;
+                          return (
+                            <button
+                              key={section}
+                              onClick={() => handleNavigationClick(section)}
+                              className={`group relative w-full text-left px-4 py-3 text-sm font-semibold capitalize transition-colors duration-300 ${isActive
+                                ? 'text-jcoder-primary'
+                                : 'text-jcoder-foreground hover:text-jcoder-primary'
+                                }`}
+                            >
+                              <span className="relative z-10">
+                                {section === 'tech-stack' ? 'Technologies' : section}
+                              </span>
+                              {/* Barra inferior - sempre visível quando ativa, cresce no hover quando inativa */}
+                              <span
+                                className={`absolute bottom-0 left-0 h-0.5 bg-jcoder-primary origin-left transition-all duration-500 ease-out ${isActive
+                                  ? 'w-full'
+                                  : 'w-0 group-hover:w-full'
+                                  }`}
+                              ></span>
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
-              )}
+              </div>
             </div>
           </div>
         </div>
@@ -780,135 +772,152 @@ export default function Header({
                 })}
               </nav>
 
-              {/* Right side - Profile menu */}
+              {/* Right side - Desktop: Profile menu, Mobile: Theme toggle and Menu */}
               <div className="flex items-center gap-3">
-                <ThemeToggle size="sm" />
-                <div className="relative" ref={profileDropdownRef}>
-                  <button
-                    onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
-                    className="w-8 h-8 rounded-full overflow-hidden border border-jcoder hover:border-jcoder-primary transition-colors flex items-center justify-center bg-jcoder-secondary"
-                    aria-label="Profile menu"
-                  >
-                    {profileImageData.imageUrl ? (
-                      <LazyImage
-                        src={profileImageData.imageUrl}
-                        alt="Profile"
-                        fallback={profileImageData.fallback}
-                        size="custom"
-                        width="w-full"
-                        height="h-full"
-                        rounded="rounded-full"
-                        objectFit="object-cover"
-                        showSkeleton={false}
-                        rootMargin="0px"
-                      />
-                    ) : (
-                      <span className="text-xs font-semibold text-jcoder-foreground">
-                        {profileImageData.fallback}
-                      </span>
-                    )}
-                  </button>
+                {/* Desktop - Theme Toggle and Profile Menu */}
+                <div className="hidden md:flex items-center gap-3">
+                  <ThemeToggle size="sm" />
+                  <div className="relative" ref={profileDropdownRef}>
+                    <button
+                      onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
+                      className="w-8 h-8 rounded-full overflow-hidden border border-jcoder hover:border-jcoder-primary transition-colors flex items-center justify-center bg-jcoder-secondary"
+                      aria-label="Profile menu"
+                    >
+                      {profileImageData.imageUrl ? (
+                        <LazyImage
+                          src={profileImageData.imageUrl}
+                          alt="Profile"
+                          fallback={profileImageData.fallback}
+                          size="custom"
+                          width="w-full"
+                          height="h-full"
+                          rounded="rounded-full"
+                          objectFit="object-cover"
+                          showSkeleton={false}
+                          rootMargin="0px"
+                        />
+                      ) : (
+                        <span className="text-xs font-semibold text-jcoder-foreground">
+                          {profileImageData.fallback}
+                        </span>
+                      )}
+                    </button>
 
-                  {isProfileDropdownOpen && (
-                    <div className="absolute right-0 top-full mt-2 w-48 bg-jcoder-card border border-jcoder rounded-lg shadow-lg z-50">
-                      <div className="p-2">
-                        <Link
-                          href={getAdminRoute('/profile')}
-                          onClick={() => setIsProfileDropdownOpen(false)}
-                          className="block px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors"
-                        >
-                          Profile
-                        </Link>
-                        <Link
-                          href={getAdminRoute('/applications')}
-                          onClick={() => setIsProfileDropdownOpen(false)}
-                          className="block px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors"
-                        >
-                          Applications
-                        </Link>
-                        <Link
-                          href={getAdminRoute('/technologies')}
-                          onClick={() => setIsProfileDropdownOpen(false)}
-                          className="block px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors"
-                        >
-                          Technologies
-                        </Link>
-                        <Link
-                          href={getAdminRoute('/messages')}
-                          onClick={() => setIsProfileDropdownOpen(false)}
-                          className="block px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors"
-                        >
-                          Messages
-                        </Link>
-                        <div className="border-t border-jcoder my-1"></div>
-                        <button
-                          onClick={handleSignOutClick}
-                          className="w-full text-left px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors"
-                        >
-                          Sign out
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Mobile Menu */}
-              <div className="md:hidden relative" ref={mobileMenuRef}>
-                <button
-                  onClick={toggleMobileMenu}
-                  className="p-2 rounded-lg text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors"
-                  aria-label="Menu"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                  </svg>
-                </button>
-                {isMobileMenuOpen && (
-                  <div className="absolute right-0 top-full mt-2 w-56 bg-jcoder-card/95 backdrop-blur-md border border-jcoder/30 rounded-2xl shadow-xl shadow-jcoder-primary/10 z-50 overflow-hidden">
-                    <div className="p-3 space-y-2">
-                      {adminTabs.map((tab) => {
-                        const isActive = isTabActive(tab.path, currentAdminPath);
-                        return (
+                    {isProfileDropdownOpen && (
+                      <div className="absolute right-0 top-full mt-2 w-48 bg-jcoder-card border border-jcoder rounded-lg shadow-lg z-50">
+                        <div className="p-2">
                           <Link
-                            key={tab.path}
-                            href={getAdminRoute(tab.path)}
-                            onClick={() => setIsMobileMenuOpen(false)}
-                            className={`group relative block px-4 py-3 text-sm font-semibold transition-colors duration-300 ${isActive
-                              ? 'text-jcoder-primary'
-                              : 'text-jcoder-foreground hover:text-jcoder-primary'
-                              }`}
+                            href={getAdminRoute('/profile')}
+                            onClick={() => setIsProfileDropdownOpen(false)}
+                            className="block px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors"
                           >
-                            <span className="relative z-10">
-                              {tab.label}
-                            </span>
-                            {/* Barra inferior */}
-                            <span
-                              className={`absolute bottom-0 left-0 h-0.5 transition-all duration-500 ease-out ${isActive
-                                ? 'w-full bg-jcoder-primary'
-                                : 'w-0 bg-jcoder-primary group-hover:w-full'
-                                }`}
-                            ></span>
+                            Profile
                           </Link>
-                        );
-                      })}
-                      <div className="border-t border-jcoder my-1"></div>
-                      <div className="px-3 py-2">
-                        <ThemeToggle size="sm" />
+                          <Link
+                            href={getAdminRoute('/applications')}
+                            onClick={() => setIsProfileDropdownOpen(false)}
+                            className="block px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors"
+                          >
+                            Applications
+                          </Link>
+                          <Link
+                            href={getAdminRoute('/technologies')}
+                            onClick={() => setIsProfileDropdownOpen(false)}
+                            className="block px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors"
+                          >
+                            Technologies
+                          </Link>
+                          <Link
+                            href={getAdminRoute('/messages')}
+                            onClick={() => setIsProfileDropdownOpen(false)}
+                            className="block px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors"
+                          >
+                            Messages
+                          </Link>
+                          <div className="border-t border-jcoder my-1"></div>
+                          <button
+                            onClick={handleSignOutClick}
+                            className="w-full text-left px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors"
+                          >
+                            Sign out
+                          </button>
+                        </div>
                       </div>
-                      <div className="border-t border-jcoder my-1"></div>
-                      <button
-                        onClick={() => {
-                          setIsMobileMenuOpen(false);
-                          handleSignOutClick();
-                        }}
-                        className="w-full text-left px-3 py-2 rounded-md text-sm text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors"
-                      >
-                        Sign out
-                      </button>
-                    </div>
+                    )}
                   </div>
-                )}
+                </div>
+
+                {/* Mobile - Theme Toggle and Menu with User Photo */}
+                <div className="md:hidden flex items-center gap-2">
+                  <ThemeToggle size="sm" />
+                  <div className="relative" ref={mobileMenuRef}>
+                    <button
+                      onClick={toggleMobileMenu}
+                      className="w-8 h-8 rounded-full overflow-hidden border border-jcoder hover:border-jcoder-primary transition-colors flex items-center justify-center bg-jcoder-secondary"
+                      aria-label="Menu"
+                    >
+                      {profileImageData.imageUrl ? (
+                        <LazyImage
+                          src={profileImageData.imageUrl}
+                          alt="Menu"
+                          fallback={profileImageData.fallback}
+                          size="custom"
+                          width="w-full"
+                          height="h-full"
+                          rounded="rounded-full"
+                          objectFit="object-cover"
+                          showSkeleton={false}
+                          rootMargin="0px"
+                        />
+                      ) : (
+                        <span className="text-xs font-semibold text-jcoder-foreground">
+                          {profileImageData.fallback}
+                        </span>
+                      )}
+                    </button>
+                    {isMobileMenuOpen && (
+                      <div className="absolute right-0 top-full mt-2 w-56 bg-jcoder-card backdrop-blur-lg border border-jcoder rounded-2xl shadow-2xl z-50 overflow-hidden">
+                        <div className="p-3 space-y-2">
+                          {adminTabs.map((tab) => {
+                            const isActive = isTabActive(tab.path, currentAdminPath);
+                            return (
+                              <Link
+                                key={tab.path}
+                                href={getAdminRoute(tab.path)}
+                                onClick={() => setIsMobileMenuOpen(false)}
+                                className={`group relative block px-4 py-3 text-sm font-semibold transition-colors duration-300 ${isActive
+                                  ? 'text-jcoder-primary'
+                                  : 'text-jcoder-foreground hover:text-jcoder-primary'
+                                  }`}
+                              >
+                                <span className="relative z-10">
+                                  {tab.label}
+                                </span>
+                                {/* Barra inferior */}
+                                <span
+                                  className={`absolute bottom-0 left-0 h-0.5 transition-all duration-500 ease-out ${isActive
+                                    ? 'w-full bg-jcoder-primary'
+                                    : 'w-0 bg-jcoder-primary group-hover:w-full'
+                                    }`}
+                                ></span>
+                              </Link>
+                            );
+                          })}
+                          <div className="border-t border-jcoder my-1"></div>
+                          <button
+                            onClick={() => {
+                              setIsMobileMenuOpen(false);
+                              handleSignOutClick();
+                            }}
+                            className="w-full text-left px-3 py-2 rounded-md text-sm text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors"
+                          >
+                            Sign out
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
