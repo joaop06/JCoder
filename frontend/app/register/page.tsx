@@ -55,6 +55,15 @@ export default function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [occupation, setOccupation] = useState('');
   const [description, setDescription] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [passwordRequirements, setPasswordRequirements] = useState({
+    minLength: false,
+    hasUpperCase: false,
+    hasLowerCase: false,
+    hasNumber: false,
+    hasSpecialChar: false,
+  });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -310,11 +319,94 @@ export default function RegisterPage() {
     }
   }, [verificationCode, codeSent, isEmailVerified, isVerifyingCode, isLoading, handleVerifyCode]);
 
+  // Reactive password requirements validation
+  useEffect(() => {
+    if (!password) {
+      setPasswordRequirements({
+        minLength: false,
+        hasUpperCase: false,
+        hasLowerCase: false,
+        hasNumber: false,
+        hasSpecialChar: false,
+      });
+      return;
+    }
+
+    setPasswordRequirements({
+      minLength: password.length >= 8,
+      hasUpperCase: /[A-Z]/.test(password),
+      hasLowerCase: /[a-z]/.test(password),
+      hasNumber: /[0-9]/.test(password),
+      hasSpecialChar: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password),
+    });
+  }, [password]);
+
+  // Reactive password match validation
+  useEffect(() => {
+    if (!confirmPassword) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors.confirmPassword;
+        return newErrors;
+      });
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setErrors(prev => ({
+        ...prev,
+        confirmPassword: 'Passwords do not match',
+      }));
+    } else {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors.confirmPassword;
+        return newErrors;
+      });
+    }
+  }, [password, confirmPassword]);
+
+  // Reactive password requirements validation (error)
+  useEffect(() => {
+    if (!password) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors.password;
+        return newErrors;
+      });
+      return;
+    }
+
+    const allRequirementsMet = Object.values(passwordRequirements).every(req => req === true);
+
+    if (!allRequirementsMet) {
+      const missingRequirements: string[] = [];
+      if (!passwordRequirements.minLength) missingRequirements.push('minimum 8 characters');
+      if (!passwordRequirements.hasUpperCase) missingRequirements.push('one uppercase letter');
+      if (!passwordRequirements.hasLowerCase) missingRequirements.push('one lowercase letter');
+      if (!passwordRequirements.hasNumber) missingRequirements.push('one number');
+      if (!passwordRequirements.hasSpecialChar) missingRequirements.push('one special character');
+
+      setErrors(prev => ({
+        ...prev,
+        password: `Password must contain: ${missingRequirements.join(', ')}`,
+      }));
+    } else {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors.password;
+        return newErrors;
+      });
+    }
+  }, [password, passwordRequirements]);
+
   const handleSubmit = useCallback(async () => {
     const newErrors: Record<string, string> = {};
 
-    if (!password) {
-      newErrors.password = 'Password is required';
+    // Check if all password requirements are met
+    const allRequirementsMet = Object.values(passwordRequirements).every(req => req === true);
+    if (!password || !allRequirementsMet) {
+      newErrors.password = 'Password does not meet minimum requirements';
     }
 
     if (!confirmPassword) {
@@ -324,7 +416,7 @@ export default function RegisterPage() {
     }
 
     if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
+      setErrors(prev => ({ ...prev, ...newErrors }));
       return;
     }
 
@@ -766,26 +858,140 @@ export default function RegisterPage() {
                   <label htmlFor="password" className="block text-xs sm:text-sm font-medium text-jcoder-muted mb-1 sm:mb-1.5">
                     Password <span className="text-red-400">*</span>
                   </label>
-                  <input
-                    required
-                    id="password"
-                    type="password"
-                    value={password}
-                    disabled={isLoading}
-                    placeholder="••••••••"
-                    onChange={(e) => {
-                      setPassword(e.target.value);
-                      setErrors(prev => {
-                        const newErrors = { ...prev };
-                        delete newErrors.password;
-                        return newErrors;
-                      });
-                    }}
-                    className={`w-full px-2.5 sm:px-3 md:px-4 py-2 sm:py-2 md:py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-transparent disabled:opacity-60 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted text-xs sm:text-sm ${errors.password ? 'border-red-400' : 'border-jcoder'
-                      }`}
-                  />
+                  <div className="relative">
+                    <input
+                      required
+                      id="password"
+                      type={showPassword ? 'text' : 'password'}
+                      value={password}
+                      disabled={isLoading}
+                      placeholder="••••••••"
+                      onChange={(e) => {
+                        setPassword(e.target.value);
+                      }}
+                      className={`w-full px-2.5 sm:px-3 md:px-4 py-2 sm:py-2 md:py-2.5 pr-8 sm:pr-10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-transparent disabled:opacity-60 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted text-xs sm:text-sm transition-colors ${errors.password
+                        ? 'border-red-400'
+                        : password && Object.values(passwordRequirements).every(req => req === true)
+                          ? 'border-green-400'
+                          : 'border-jcoder'
+                        }`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      disabled={isLoading}
+                      className="absolute right-2 sm:right-3 top-1/2 transform -translate-y-1/2 text-jcoder-muted hover:text-jcoder-foreground transition-colors disabled:opacity-50"
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showPassword ? (
+                        <svg className="w-4 h-4 sm:h-5 sm:w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                        </svg>
+                      ) : (
+                        <svg className="w-4 h-4 sm:h-5 sm:w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                      )}
+                    </button>
+                  </div>
+
+                  {/* Password requirements */}
+                  {password && (
+                    <div className="mt-2 space-y-1">
+                      <div className="flex items-center gap-1.5 text-[10px] sm:text-xs">
+                        <svg
+                          className={`w-3 h-3 sm:w-3.5 sm:h-3.5 ${passwordRequirements.minLength ? 'text-green-400' : 'text-jcoder-muted'}`}
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          {passwordRequirements.minLength ? (
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          ) : (
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          )}
+                        </svg>
+                        <span className={passwordRequirements.minLength ? 'text-green-400' : 'text-jcoder-muted'}>
+                          Minimum 8 characters
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-[10px] sm:text-xs">
+                        <svg
+                          className={`w-3 h-3 sm:w-3.5 sm:h-3.5 ${passwordRequirements.hasUpperCase ? 'text-green-400' : 'text-jcoder-muted'}`}
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          {passwordRequirements.hasUpperCase ? (
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          ) : (
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          )}
+                        </svg>
+                        <span className={passwordRequirements.hasUpperCase ? 'text-green-400' : 'text-jcoder-muted'}>
+                          One uppercase letter
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-[10px] sm:text-xs">
+                        <svg
+                          className={`w-3 h-3 sm:w-3.5 sm:h-3.5 ${passwordRequirements.hasLowerCase ? 'text-green-400' : 'text-jcoder-muted'}`}
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          {passwordRequirements.hasLowerCase ? (
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          ) : (
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          )}
+                        </svg>
+                        <span className={passwordRequirements.hasLowerCase ? 'text-green-400' : 'text-jcoder-muted'}>
+                          One lowercase letter
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-[10px] sm:text-xs">
+                        <svg
+                          className={`w-3 h-3 sm:w-3.5 sm:h-3.5 ${passwordRequirements.hasNumber ? 'text-green-400' : 'text-jcoder-muted'}`}
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          {passwordRequirements.hasNumber ? (
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          ) : (
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          )}
+                        </svg>
+                        <span className={passwordRequirements.hasNumber ? 'text-green-400' : 'text-jcoder-muted'}>
+                          One number
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-[10px] sm:text-xs">
+                        <svg
+                          className={`w-3 h-3 sm:w-3.5 sm:h-3.5 ${passwordRequirements.hasSpecialChar ? 'text-green-400' : 'text-jcoder-muted'}`}
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          {passwordRequirements.hasSpecialChar ? (
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          ) : (
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          )}
+                        </svg>
+                        <span className={passwordRequirements.hasSpecialChar ? 'text-green-400' : 'text-jcoder-muted'}>
+                          One special character (!@#$%^&*...)
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
                   {errors.password && (
                     <p className="mt-1 text-xs sm:text-sm text-red-400">{errors.password}</p>
+                  )}
+                  {password && !errors.password && Object.values(passwordRequirements).every(req => req === true) && (
+                    <p className="mt-1 text-xs sm:text-sm text-green-400">Valid password!</p>
                   )}
                 </div>
 
@@ -793,26 +999,48 @@ export default function RegisterPage() {
                   <label htmlFor="confirmPassword" className="block text-xs sm:text-sm font-medium text-jcoder-muted mb-1 sm:mb-1.5">
                     Confirm Password <span className="text-red-400">*</span>
                   </label>
-                  <input
-                    required
-                    id="confirmPassword"
-                    type="password"
-                    value={confirmPassword}
-                    disabled={isLoading}
-                    placeholder="••••••••"
-                    onChange={(e) => {
-                      setConfirmPassword(e.target.value);
-                      setErrors(prev => {
-                        const newErrors = { ...prev };
-                        delete newErrors.confirmPassword;
-                        return newErrors;
-                      });
-                    }}
-                    className={`w-full px-2.5 sm:px-3 md:px-4 py-2 sm:py-2 md:py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-transparent disabled:opacity-60 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted text-xs sm:text-sm ${errors.confirmPassword ? 'border-red-400' : 'border-jcoder'
-                      }`}
-                  />
+                  <div className="relative">
+                    <input
+                      required
+                      id="confirmPassword"
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      value={confirmPassword}
+                      disabled={isLoading}
+                      placeholder="••••••••"
+                      onChange={(e) => {
+                        setConfirmPassword(e.target.value);
+                      }}
+                      className={`w-full px-2.5 sm:px-3 md:px-4 py-2 sm:py-2 md:py-2.5 pr-8 sm:pr-10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-transparent disabled:opacity-60 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted text-xs sm:text-sm transition-colors ${errors.confirmPassword
+                        ? 'border-red-400'
+                        : confirmPassword && password === confirmPassword
+                          ? 'border-green-400'
+                          : 'border-jcoder'
+                        }`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      disabled={isLoading}
+                      className="absolute right-2 sm:right-3 top-1/2 transform -translate-y-1/2 text-jcoder-muted hover:text-jcoder-foreground transition-colors disabled:opacity-50"
+                      aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showConfirmPassword ? (
+                        <svg className="w-4 h-4 sm:h-5 sm:w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                        </svg>
+                      ) : (
+                        <svg className="w-4 h-4 sm:h-5 sm:w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                      )}
+                    </button>
+                  </div>
                   {errors.confirmPassword && (
                     <p className="mt-1 text-xs sm:text-sm text-red-400">{errors.confirmPassword}</p>
+                  )}
+                  {confirmPassword && !errors.confirmPassword && password === confirmPassword && (
+                    <p className="mt-1 text-xs sm:text-sm text-green-400">Passwords match!</p>
                   )}
                 </div>
 
