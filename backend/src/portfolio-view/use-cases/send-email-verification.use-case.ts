@@ -6,6 +6,7 @@ import { EmailVerification } from '../entities/email-verification.entity';
 import { SendEmailVerificationDto } from '../dto/send-email-verification.dto';
 import { UsersService } from '../../administration-by-user/users/users.service';
 import { EmailAlreadyExistsException } from '../../administration-by-user/users/exceptions/email-already-exists.exception';
+import { EmailTemplate } from '../../email/templates/email-template';
 
 @Injectable()
 export class SendEmailVerificationUseCase {
@@ -48,94 +49,25 @@ export class SendEmailVerificationUseCase {
 
     await this.emailVerificationRepository.save(verification);
 
-    // Send email with the code
-    const htmlContent = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="utf-8">
-        <style>
-          body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-          }
-          .header {
-            background-color: #4a90e2;
-            color: white;
-            padding: 20px;
-            text-align: center;
-            border-radius: 5px 5px 0 0;
-          }
-          .content {
-            background-color: #f9f9f9;
-            padding: 20px;
-            border: 1px solid #ddd;
-            border-top: none;
-          }
-          .code-box {
-            background-color: white;
-            padding: 20px;
-            text-align: center;
-            border: 2px solid #4a90e2;
-            border-radius: 5px;
-            margin: 20px 0;
-            font-size: 32px;
-            font-weight: bold;
-            letter-spacing: 5px;
-            color: #4a90e2;
-          }
-          .footer {
-            text-align: center;
-            margin-top: 20px;
-            color: #666;
-            font-size: 12px;
-          }
-        </style>
-      </head>
-      <body>
-        <div class="header">
-          <h2>Email Verification - JCoder</h2>
-        </div>
-        <div class="content">
-          <p>Hello,</p>
-          <p>Use the code below to verify your email:</p>
-          
-          <div class="code-box">
-            ${code}
-          </div>
-          
-          <p>This code expires in 15 minutes.</p>
-          <p>If you did not request this code, please ignore this email.</p>
-        </div>
-        <div class="footer">
-          <p>This is an automatic notification from the JCoder system.</p>
-          <p>Please do not reply to this email directly.</p>
-        </div>
-      </body>
-      </html>
+    // Send email with the code using the standardized template
+    const codeBox = EmailTemplate.createCodeBox(code);
+    const content = `
+      <p style="margin: 0 0 20px 0;">Hello,</p>
+      <p style="margin: 0 0 20px 0;">Use the code below to verify your email:</p>
+      ${codeBox}
+      <p style="margin: 20px 0 0 0;">This code expires in <strong>15 minutes</strong>.</p>
+      <p style="margin: 15px 0 0 0; color: #a0a0a0;">If you did not request this code, please ignore this email.</p>
     `;
 
-    const textContent = `
-      Email Verification - JCoder
+    const htmlContent = EmailTemplate.generateHTML({
+      title: 'Email Verification',
+      content,
+    });
 
-      Hello,
-
-      Use the code below to verify your email:
-
-      ${code}
-
-      This code expires in 15 minutes.
-
-      If you did not request this code, please ignore this email.
-
-      ---
-      This is an automatic notification from the JCoder system.
-      Please do not reply to this email directly.
-    `;
+    const textContent = EmailTemplate.generateText(
+      'Email Verification - JCoder',
+      `Hello,\n\nUse the code below to verify your email:\n\n${code}\n\nThis code expires in 15 minutes.\n\nIf you did not request this code, please ignore this email.`,
+    );
 
     try {
       await this.emailService.sendEmail(
