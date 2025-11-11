@@ -29,6 +29,8 @@ export default function Header({
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const [showSignOutConfirmation, setShowSignOutConfirmation] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [profileImageTimestamp, setProfileImageTimestamp] = useState(Date.now());
+  const profileImageTimestampRef = useRef(Date.now());
   const profileDropdownRef = useRef<HTMLDivElement>(null);
   const mobileMenuRef = useRef<HTMLDivElement>(null);
 
@@ -38,7 +40,7 @@ export default function Header({
     return Array.isArray(raw) ? raw[0] : raw || '';
   }, [params]);
 
-  // Get user session data
+  // Get user session data - updates when profileImageTimestamp changes
   const userSession = useMemo(() => {
     if (!isClient) return null;
     try {
@@ -46,7 +48,7 @@ export default function Header({
     } catch {
       return null;
     }
-  }, [isClient, isLoggedIn]);
+  }, [isClient, isLoggedIn, profileImageTimestamp]);
 
   // Get profile image URL and fallback initial
   const profileImageData = useMemo(() => {
@@ -71,8 +73,12 @@ export default function Header({
     };
 
     if (user.profileImage && user.id && userName) {
+      // Add timestamp and profileImage filename to force image reload when profile image is updated
+      // This ensures the browser doesn't cache the old image
+      const baseUrl = ImagesService.getUserProfileImageUrl(userName, user.id);
+      const imageUrl = `${baseUrl}?t=${profileImageTimestamp}&v=${user.profileImage}`;
       return {
-        imageUrl: ImagesService.getUserProfileImageUrl(userName, user.id),
+        imageUrl,
         fallback: getInitial()
       };
     }
@@ -81,7 +87,7 @@ export default function Header({
       imageUrl: null,
       fallback: getInitial()
     };
-  }, [isLoggedIn, userSession, username]);
+  }, [isLoggedIn, userSession, username, profileImageTimestamp]);
 
   // Detect page type
   const pageType = useMemo(() => {
@@ -115,12 +121,78 @@ export default function Header({
 
       setIsAdmin((!!userSession?.user && !!token) || isAdminProp);
       setIsLoggedIn(Boolean(userSession?.user && token));
+      
+      // Initialize timestamp from localStorage if available
+      const lastUpdate = localStorage.getItem('profileImageUpdated');
+      if (lastUpdate) {
+        const timestamp = parseInt(lastUpdate, 10);
+        setProfileImageTimestamp(timestamp);
+        profileImageTimestampRef.current = timestamp;
+      }
     } catch {
       setIsLoggedIn(false);
       setIsAdmin(isAdminProp);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Listen for profile image updates
+  useEffect(() => {
+    if (!isClient) return;
+
+    const handleProfileImageUpdate = (timestamp?: number) => {
+      // Force re-fetch of user session and update timestamp to bust cache
+      const newTimestamp = timestamp || Date.now();
+      setProfileImageTimestamp(newTimestamp);
+      profileImageTimestampRef.current = newTimestamp;
+      
+      // Also update logged in state in case user data changed
+      try {
+        const userSession = UsersService.getUserSession?.();
+        const token = typeof window !== 'undefined' ? userSession?.accessToken : null;
+        setIsLoggedIn(Boolean(userSession?.user && token));
+      } catch {
+        // Ignore errors
+      }
+    };
+
+    // Listen for custom event with detail
+    const handleCustomEvent = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      if (customEvent.detail?.timestamp) {
+        handleProfileImageUpdate(customEvent.detail.timestamp);
+      } else {
+        handleProfileImageUpdate();
+      }
+    };
+    window.addEventListener('profileImageUpdated', handleCustomEvent);
+    
+    // Also listen for storage events (in case localStorage is updated directly)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'user' || e.key === 'profileImageUpdated') {
+        handleProfileImageUpdate();
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Poll localStorage for changes (since storage event only fires in other tabs)
+    // Use a ref to track the last known timestamp to avoid infinite loops
+    const storagePollInterval = setInterval(() => {
+      const lastUpdate = localStorage.getItem('profileImageUpdated');
+      if (lastUpdate) {
+        const timestamp = parseInt(lastUpdate, 10);
+        if (timestamp > profileImageTimestampRef.current) {
+          handleProfileImageUpdate(timestamp);
+        }
+      }
+    }, 500); // Check every 500ms
+
+    return () => {
+      window.removeEventListener('profileImageUpdated', handleCustomEvent);
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(storagePollInterval);
+    };
+  }, [isClient]);
 
   // Scroll detection for active section
   useEffect(() => {
@@ -407,6 +479,7 @@ export default function Header({
                       >
                         {profileImageData.imageUrl ? (
                           <LazyImage
+                            key={`profile-${userSession?.user?.profileImage || 'none'}-${profileImageTimestamp}`}
                             src={profileImageData.imageUrl}
                             alt="Profile"
                             fallback={profileImageData.fallback}

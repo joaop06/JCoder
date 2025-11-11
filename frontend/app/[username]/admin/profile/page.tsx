@@ -23,10 +23,9 @@ import { TimelineItem } from '@/components/profile/TimelineItem';
 import WebGLBackground from '@/components/webgl/WebGLBackground';
 import FloatingParticles3D from '@/components/webgl/FloatingParticles3D';
 import { UsersService } from '@/services/administration-by-user/users.service';
-import { ImagesService } from '@/services/administration-by-user/images.service';
-import { ProfileImageUploader } from '@/components/profile/ProfileImageUploader';
 import { useState, useEffect, useCallback, useRef, Suspense, useMemo } from 'react';
 import { PortfolioViewService } from '@/services/portfolio-view/portfolio-view.service';
+import { ImagesService } from '@/services/administration-by-user/images.service';
 
 export default function ProfileManagementPage() {
     const toast = useToast();
@@ -70,6 +69,12 @@ export default function ProfileManagementPage() {
     const [isEditingCertificate, setIsEditingCertificate] = useState(false);
     const [editingCertificateId, setEditingCertificateId] = useState<number | null>(null);
     const [isSaving, setIsSaving] = useState(false);
+
+    // Profile image upload states
+    const [uploadingProfileImage, setUploadingProfileImage] = useState(false);
+    const [deletingProfileImage, setDeletingProfileImage] = useState(false);
+    const [profileImageTimestamp, setProfileImageTimestamp] = useState(Date.now());
+    const profileImageInputRef = useRef<HTMLInputElement>(null);
 
     // Username availability check
     const [usernameStatus, setUsernameStatus] = useState<{
@@ -200,14 +205,31 @@ export default function ProfileManagementPage() {
                 handleLogout();
                 return;
             }
-            setUser(userSession.user);
+
+            // Se o user do localStorage não tiver id, buscar do backend
+            let userData = userSession.user;
+            if (!userData.id && userSession.user.username) {
+                try {
+                    userData = await UsersService.getProfile(userSession.user.username);
+                } catch (err) {
+                    console.error('Error fetching user profile from API:', err);
+                    // Usar dados do localStorage mesmo sem id
+                }
+            }
+
+            setUser(userData);
+            // Initialize timestamp from localStorage if available
+            const lastUpdate = localStorage.getItem('profileImageUpdated');
+            if (lastUpdate) {
+                setProfileImageTimestamp(parseInt(lastUpdate, 10));
+            }
             setBasicInfoForm({
-                username: userSession.user.username || '',
-                firstName: userSession.user.firstName || '',
-                fullName: userSession.user.fullName || '',
-                email: userSession.user.email || '',
-                githubUrl: userSession.user.githubUrl || '',
-                linkedinUrl: userSession.user.linkedinUrl || '',
+                username: userData.username || '',
+                firstName: userData.firstName || '',
+                fullName: userData.fullName || '',
+                email: userData.email || '',
+                githubUrl: userData.githubUrl || '',
+                linkedinUrl: userData.linkedinUrl || '',
                 currentPassword: '',
                 newPassword: '',
                 confirmPassword: '',
@@ -215,10 +237,10 @@ export default function ProfileManagementPage() {
 
             // Load components
             const [aboutMeData, educationsData, experiencesData, certificatesData] = await Promise.all([
-                UsersService.getAboutMe(userSession.user.username),
-                UsersService.getEducations(userSession.user.username),
-                UsersService.getExperiences(userSession.user.username),
-                UsersService.getCertificates(userSession.user.username),
+                UsersService.getAboutMe(userData.username),
+                UsersService.getEducations(userData.username),
+                UsersService.getExperiences(userData.username),
+                UsersService.getCertificates(userData.username),
             ]);
 
             setAboutMe(aboutMeData);
@@ -1250,23 +1272,117 @@ export default function ProfileManagementPage() {
         });
     }, []);
 
+    // Profile image handlers
+    const handleProfileImageClick = useCallback(() => {
+        if (!uploadingProfileImage && !deletingProfileImage && user?.id) {
+            profileImageInputRef.current?.click();
+        }
+    }, [uploadingProfileImage, deletingProfileImage, user?.id]);
+
+    const handleProfileImageFileSelect = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file || !user?.id) return;
+
+        // Validate file type
+        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+        if (!allowedTypes.includes(file.type)) {
+            toast.error('Invalid file type. Only JPEG, PNG and WebP images are allowed.');
+            return;
+        }
+
+        // Validate file size (5MB)
+        const maxSize = 5 * 1024 * 1024; // 5MB
+        if (file.size > maxSize) {
+            toast.error('File too large. Maximum size is 5MB.');
+            return;
+        }
+
+        setUploadingProfileImage(true);
+        try {
+            const userSession = UsersService.getUserSession();
+            if (!userSession?.user?.username) {
+                throw new Error('User session not found');
+            }
+            const updatedUser = await ImagesService.uploadUserProfileImage(userSession.user.username, user.id, file);
+            const timestamp = Date.now();
+            setUser(updatedUser);
+            setProfileImageTimestamp(timestamp);
+            // Update localStorage with complete user data
+            localStorage.setItem('user', JSON.stringify(updatedUser));
+            // Add timestamp to force cache invalidation
+            localStorage.setItem('profileImageUpdated', timestamp.toString());
+            // Dispatch custom event to notify other components (like Header)
+            window.dispatchEvent(new CustomEvent('profileImageUpdated', { 
+              detail: { profileImage: updatedUser.profileImage, timestamp }
+            }));
+            toast.success('Profile image updated successfully!');
+        } catch (err: any) {
+            console.error('Error uploading profile image:', err);
+            const errorMessage = err?.response?.data?.message || err?.message || 'Failed to upload profile image. Please try again.';
+            toast.error(errorMessage);
+        } finally {
+            setUploadingProfileImage(false);
+            // Reset input
+            if (profileImageInputRef.current) {
+                profileImageInputRef.current.value = '';
+            }
+        }
+    }, [user?.id, toast]);
+
+    const handleDeleteProfileImage = useCallback(async () => {
+        if (!user?.profileImage || !user?.id) return;
+
+        const confirmed = await toast.confirm(
+            'Are you sure you want to remove your profile image?',
+            {
+                confirmText: 'Remove',
+                cancelText: 'Cancel',
+            }
+        );
+
+        if (!confirmed) return;
+
+        setDeletingProfileImage(true);
+        try {
+            const userSession = UsersService.getUserSession();
+            if (!userSession?.user?.username) {
+                throw new Error('User session not found');
+            }
+            await ImagesService.deleteUserProfileImage(userSession.user.username, user.id);
+            const updatedUser = { ...user, profileImage: undefined };
+            const timestamp = Date.now();
+            setUser(updatedUser);
+            setProfileImageTimestamp(timestamp);
+            // Update localStorage with complete user data
+            localStorage.setItem('user', JSON.stringify(updatedUser));
+            // Add timestamp to force cache invalidation
+            localStorage.setItem('profileImageUpdated', timestamp.toString());
+            // Dispatch custom event to notify other components (like Header)
+            window.dispatchEvent(new CustomEvent('profileImageUpdated', { 
+              detail: { profileImage: undefined, timestamp }
+            }));
+            toast.success('Profile image removed successfully!');
+        } catch (err: any) {
+            console.error('Error removing profile image:', err);
+            const errorMessage = err?.response?.data?.message || err?.message || 'Failed to remove profile image. Please try again.';
+            toast.error(errorMessage);
+        } finally {
+            setDeletingProfileImage(false);
+        }
+    }, [user, toast]);
+
     const formatDate = (date: Date | string | undefined) => {
         if (!date) return 'Present';
         return new Date(date).toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
     };
 
-    // Calcular URL da imagem de perfil
-    const profileImageUrl = useMemo(() => {
-        // Verificar se o usuário tem profileImage (pode ser string vazia, null, undefined)
-        const hasProfileImage = user?.profileImage &&
-            typeof user.profileImage === 'string' &&
-            user.profileImage.trim() !== '';
-
-        if (!hasProfileImage || !user?.id || !user?.username) {
-            return null;
-        }
-        return ImagesService.getUserProfileImageUrl(user.username, user.id);
-    }, [user?.profileImage, user?.id, user?.username]);
+    // Helper para obter inicial do nome
+    const getInitial = () => {
+        if (user?.fullName) return user.fullName.charAt(0).toUpperCase();
+        if (user?.firstName) return user.firstName.charAt(0).toUpperCase();
+        if (user?.username) return user.username.charAt(0).toUpperCase();
+        return 'U';
+    };
 
     if (checkingAuth || !isAuthenticated || loading) {
         return (
@@ -1410,17 +1526,67 @@ export default function ProfileManagementPage() {
                         <div className="px-4 md:px-8 pb-6 md:pb-8">
                             <div className="flex flex-col md:flex-row md:items-end md:justify-between -mt-16 mb-6">
                                 <div className="flex flex-col sm:flex-row items-center sm:items-end gap-4 mb-4 md:mb-0">
-                                    <ProfileImageUploader
-                                        userId={user?.id || 0}
-                                        currentImage={profileImageUrl}
-                                        userName={user?.username || ''}
-                                        displayName={user?.fullName || user?.firstName}
-                                        onImageUpdate={(url) => {
-                                            if (user) {
-                                                setUser({ ...user, profileImage: url || undefined });
-                                            }
-                                        }}
-                                    />
+                                    <div className="relative group">
+                                        <div className="relative w-32 h-32 rounded-full overflow-hidden border-4 border-jcoder-card bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-jcoder-primary/50"
+                                            onClick={handleProfileImageClick}
+                                            title={user?.profileImage ? 'Click to change photo' : 'Click to upload photo'}
+                                        >
+                                        {user?.profileImage && user?.id ? (
+                                            <ProfileImage
+                                                src={`${ImagesService.getUserProfileImageUrl(username, user.id)}?t=${profileImageTimestamp}&v=${user.profileImage}`}
+                                                alt={user.fullName || user.firstName || username}
+                                                fallback={getInitial()}
+                                            />
+                                        ) : (
+                                                <span className="text-white font-bold text-4xl">
+                                                    {getInitial()}
+                                                </span>
+                                            )}
+                                            {/* Overlay on hover */}
+                                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center rounded-full">
+                                                <div className="text-center">
+                                                    {uploadingProfileImage ? (
+                                                        <svg className="animate-spin h-8 w-8 text-white mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                        </svg>
+                                                    ) : (
+                                                        <svg className="w-8 h-8 text-white mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                        </svg>
+                                                    )}
+                                                    <p className="text-xs text-white mt-1 font-medium">
+                                                        {uploadingProfileImage ? 'Uploading...' : user?.profileImage ? 'Change' : 'Upload'}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {/* Action buttons */}
+                                        {user?.profileImage && (
+                                            <button
+                                                type="button"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleDeleteProfileImage();
+                                                }}
+                                                disabled={deletingProfileImage || uploadingProfileImage}
+                                                className="absolute -bottom-2 -right-2 w-8 h-8 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed z-10"
+                                                title="Remove profile image"
+                                            >
+                                                {deletingProfileImage ? (
+                                                    <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                    </svg>
+                                                ) : (
+                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                    </svg>
+                                                )}
+                                            </button>
+                                        )}
+                                    </div>
                                     <div className="text-center sm:text-left mb-4 sm:mb-0">
                                         <h2 className="text-xl md:text-2xl font-bold text-jcoder-foreground">
                                             {user?.fullName || user?.firstName || 'User'}
@@ -2612,6 +2778,16 @@ export default function ProfileManagementPage() {
 
             <Footer user={user} username={user?.username} />
 
+            {/* Hidden file input for profile image */}
+            <input
+                ref={profileImageInputRef}
+                type="file"
+                accept="image/jpeg,image/jpg,image/png,image/webp"
+                onChange={handleProfileImageFileSelect}
+                className="hidden"
+                disabled={uploadingProfileImage || deletingProfileImage}
+            />
+
             <style jsx>{`
                 @keyframes gradient {
                     0%, 100% {
@@ -2630,5 +2806,96 @@ export default function ProfileManagementPage() {
                 }
             `}</style>
         </div>
+    );
+}
+
+// Profile Image Component - Same implementation as portfolio page
+interface ProfileImageProps {
+    src: string;
+    alt: string;
+    fallback: string;
+}
+
+function ProfileImage({ src, alt, fallback }: ProfileImageProps) {
+    const [hasError, setHasError] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
+    const imgRef = useRef<HTMLImageElement>(null);
+
+    // Debug: Log when component mounts and src changes
+    useEffect(() => {
+        console.log('[ProfileImage] Component mounted/updated:', {
+            src,
+            hasError,
+            isLoading
+        });
+
+        // Reset states
+        setHasError(false);
+        setIsLoading(true);
+
+        // Force image reload if src changes by setting src to empty first, then to new src
+        // This ensures the browser doesn't use cached version
+        if (imgRef.current && src) {
+            // Clear src first to force reload
+            imgRef.current.src = '';
+            // Use setTimeout to ensure the clear happens before setting new src
+            setTimeout(() => {
+                if (imgRef.current) {
+                    imgRef.current.src = src;
+                }
+            }, 0);
+        }
+    }, [src]);
+
+    const handleLoad = () => {
+        console.log('[ProfileImage] Image loaded successfully:', src);
+        setIsLoading(false);
+    };
+
+    const handleError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+        console.error('[ProfileImage] Image failed to load:', {
+            src,
+            error: e,
+            target: e.currentTarget,
+            naturalWidth: e.currentTarget.naturalWidth,
+            naturalHeight: e.currentTarget.naturalHeight
+        });
+        setIsLoading(false);
+        setHasError(true);
+    };
+
+    // Show fallback if error occurred
+    if (hasError) {
+        console.log('[ProfileImage] Showing fallback for:', fallback);
+        return (
+            <div className="absolute inset-0 w-full h-full flex items-center justify-center bg-jcoder-gradient rounded-full z-10">
+                <span className="text-black font-bold text-4xl">
+                    {fallback}
+                </span>
+            </div>
+        );
+    }
+
+    return (
+        <>
+            {/* Loading skeleton */}
+            {isLoading && (
+                <div className="absolute inset-0 bg-jcoder-secondary animate-pulse rounded-full z-0" />
+            )}
+
+            {/* Actual image */}
+            <img
+                ref={imgRef}
+                src={src}
+                alt={alt}
+                className={`absolute inset-0 w-full h-full object-cover rounded-full transition-opacity duration-300 z-10 ${isLoading ? 'opacity-0' : 'opacity-100'
+                    }`}
+                onLoad={handleLoad}
+                onError={handleError}
+                loading="eager"
+                decoding="async"
+                crossOrigin="anonymous"
+            />
+        </>
     );
 }
