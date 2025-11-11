@@ -1,5 +1,7 @@
 import {
     Get,
+    Post,
+    Body,
     Param,
     Delete,
     HttpCode,
@@ -13,6 +15,9 @@ import { MessagesService } from './messages.service';
 import { OwnerGuard } from '../../@common/guards/owner.guard';
 import { JwtAuthGuard } from '../../@common/guards/jwt-auth.guard';
 import { MessageNotFoundException } from './exceptions/message-not-found.exception';
+import { ConversationNotFoundException } from './exceptions/conversation-not-found.exception';
+import { ConversationResponseDto } from './dto/conversation-response.dto';
+import { MarkMessagesReadDto } from './dto/mark-messages-read.dto';
 import { ApiTags, ApiOkResponse, ApiNoContentResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { ApiExceptionResponse } from '../../@common/decorators/documentation/api-exception-response.decorator';
 
@@ -24,7 +29,65 @@ export class MessagesController {
     ) { }
 
     /**
-     * List all received messages (only for authenticated administrator)
+     * List all conversations (grouped by sender) - only for authenticated administrator
+     */
+    @Get('conversations')
+    @UseGuards(JwtAuthGuard, OwnerGuard)
+    @ApiBearerAuth()
+    @ApiOkResponse({ isArray: true, type: () => ConversationResponseDto })
+    async findAllConversations(@Param('username') username: string): Promise<ConversationResponseDto[]> {
+        const conversations = await this.messagesService.findAllConversations(username);
+        
+        // Get last message preview for each conversation
+        const conversationsWithPreview = await Promise.all(
+            conversations.map(async (conversation) => {
+                const preview = await this.messagesService.getLastMessagePreview(conversation.id);
+                return ConversationResponseDto.fromEntity(conversation, preview);
+            }),
+        );
+
+        return conversationsWithPreview;
+    }
+
+    /**
+     * Get all messages from a specific conversation - only for authenticated administrator
+     */
+    @Get('conversations/:conversationId/messages')
+    @UseGuards(JwtAuthGuard, OwnerGuard)
+    @ApiBearerAuth()
+    @ApiOkResponse({ isArray: true, type: () => Message })
+    @ApiExceptionResponse(() => ConversationNotFoundException)
+    async findMessagesByConversation(
+        @Param('username') username: string,
+        @Param('conversationId', ParseIntPipe) conversationId: number,
+    ): Promise<Message[]> {
+        return await this.messagesService.findMessagesByConversation(conversationId, username);
+    }
+
+    /**
+     * Mark messages as read in a conversation - only for authenticated administrator
+     */
+    @Post('conversations/:conversationId/mark-read')
+    @HttpCode(HttpStatus.NO_CONTENT)
+    @UseGuards(JwtAuthGuard, OwnerGuard)
+    @ApiBearerAuth()
+    @ApiNoContentResponse()
+    @ApiExceptionResponse(() => ConversationNotFoundException)
+    async markMessagesAsRead(
+        @Param('username') username: string,
+        @Param('conversationId', ParseIntPipe) conversationId: number,
+        @Body() markMessagesReadDto: MarkMessagesReadDto,
+    ): Promise<void> {
+        return await this.messagesService.markMessagesAsRead(
+            conversationId,
+            username,
+            markMessagesReadDto.messageIds,
+        );
+    }
+
+    /**
+     * List all received messages (legacy endpoint, kept for backward compatibility)
+     * Only for authenticated administrator
      */
     @Get()
     @UseGuards(JwtAuthGuard, OwnerGuard)

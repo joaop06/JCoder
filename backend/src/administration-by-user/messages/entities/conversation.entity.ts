@@ -1,19 +1,22 @@
 import {
+    Index,
     Column,
     Entity,
     ManyToOne,
+    OneToMany,
     JoinColumn,
     CreateDateColumn,
-    DeleteDateColumn,
     UpdateDateColumn,
+    DeleteDateColumn,
     PrimaryGeneratedColumn,
 } from 'typeorm';
+import { Message } from './message.entity';
 import { ApiProperty } from '@nestjs/swagger';
-import { Conversation } from './conversation.entity';
 import { User } from '../../users/entities/user.entity';
 
-@Entity('messages')
-export class Message {
+@Entity('conversations')
+@Index(['userId', 'senderEmail'], { unique: true })
+export class Conversation {
     @ApiProperty({
         example: 1,
         type: 'number',
@@ -26,12 +29,12 @@ export class Message {
         example: 1,
         type: 'number',
         nullable: false,
-        description: 'ID of the administrator user who will receive the message',
+        description: 'ID of the administrator user who owns this conversation',
     })
     @Column({ nullable: false })
     userId: number;
 
-    @ManyToOne(() => User, (user) => user.messages, {
+    @ManyToOne(() => User, {
         onDelete: 'CASCADE',
     })
     @JoinColumn({ name: 'userId' })
@@ -41,7 +44,7 @@ export class Message {
         type: 'string',
         nullable: false,
         example: 'João Silva',
-        description: 'Message sender name',
+        description: 'Sender name (from the most recent message)',
     })
     @Column({ nullable: false })
     senderName: string;
@@ -50,43 +53,37 @@ export class Message {
         type: 'string',
         nullable: false,
         example: 'joao@example.com',
-        description: 'Message sender email',
+        description: 'Sender email (unique identifier for grouping messages)',
     })
     @Column({ nullable: false })
     senderEmail: string;
 
     @ApiProperty({
-        type: 'string',
+        type: 'number',
         nullable: false,
-        example: 'Hello! I would like to get in touch about an opportunity...',
-        description: 'Message content',
+        example: 5,
+        description: 'Total number of messages in this conversation',
     })
-    @Column('text', { nullable: false })
-    message: string;
+    @Column({ nullable: false, default: 0 })
+    messageCount: number;
 
     @ApiProperty({
-        example: 1,
         type: 'number',
-        nullable: true,
-        description: 'ID of the conversation this message belongs to',
+        nullable: false,
+        example: 2,
+        description: 'Number of unread messages in this conversation',
     })
-    @Column({ nullable: true })
-    conversationId?: number;
-
-    @ManyToOne(() => Conversation, (conversation) => conversation.messages, {
-        onDelete: 'CASCADE',
-    })
-    @JoinColumn({ name: 'conversationId' })
-    conversation?: Conversation;
+    @Column({ nullable: false, default: 0 })
+    unreadCount: number;
 
     @ApiProperty({
         nullable: true,
         type: () => Date,
         example: new Date(),
-        description: 'Date when the message was read by the administrator',
+        description: 'Date of the last message in this conversation',
     })
     @Column({ nullable: true })
-    readAt?: Date;
+    lastMessageAt?: Date;
 
     @ApiProperty({
         nullable: false,
@@ -112,4 +109,15 @@ export class Message {
     })
     @DeleteDateColumn()
     deletedAt?: Date;
-};
+
+    // Relations
+    @ApiProperty({
+        isArray: true,
+        nullable: true,
+        type: () => Message,
+        description: 'Messages in this conversation',
+    })
+    @OneToMany(() => Message, (message) => message.conversation)
+    messages?: Message[];
+}
+

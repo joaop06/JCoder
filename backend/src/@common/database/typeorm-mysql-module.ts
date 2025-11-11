@@ -3,6 +3,7 @@ import { ConfigService } from "@nestjs/config";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { User } from "../../administration-by-user/users/entities/user.entity";
 import { Message } from "../../administration-by-user/messages/entities/message.entity";
+import { Conversation } from "../../administration-by-user/messages/entities/conversation.entity";
 import { EmailVerification } from "../../portfolio-view/entities/email-verification.entity";
 import { Technology } from "../../administration-by-user/technologies/entities/technology.entity";
 import { Application } from "../../administration-by-user/applications/entities/application.entity";
@@ -25,6 +26,7 @@ export const TypeormMysqlModule = TypeOrmModule.forRoot({
   entities: [
     User,
     Message,
+    Conversation,
     Technology,
     Application,
     EmailVerification,
