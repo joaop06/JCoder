@@ -8,7 +8,7 @@ import Hero3D from '@/components/webgl/Hero3D';
 import { ThemeToggle } from '@/components/theme';
 import { useToast } from '@/components/toast/ToastContext';
 import WebGLBackground from '@/components/webgl/WebGLBackground';
-import { useState, useCallback, useEffect, Suspense } from 'react';
+import { useState, useCallback, useEffect, Suspense, useRef } from 'react';
 import type { SignInResponseDto } from '@/types/api/auth/sign-in.dto';
 import FloatingParticles3D from '@/components/webgl/FloatingParticles3D';
 import { AuthService } from '@/services/administration-by-user/auth.service';
@@ -21,6 +21,10 @@ export default function LoginPage() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [windowSize, setWindowSize] = useState({ width: 1920, height: 1080 });
   const [isVisible, setIsVisible] = useState(false);
+
+  // Refs for mouse position throttling
+  const mousePositionRef = useRef({ x: 0, y: 0 });
+  const rafRef = useRef<number | null>(null);
 
   const toast = useToast();
 
@@ -38,10 +42,25 @@ export default function LoginPage() {
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
-      setMousePosition({ x: e.clientX, y: e.clientY });
+      // Update ref immediately
+      mousePositionRef.current = { x: e.clientX, y: e.clientY };
+
+      // Throttle state updates using requestAnimationFrame
+      if (rafRef.current === null) {
+        rafRef.current = requestAnimationFrame(() => {
+          setMousePosition(mousePositionRef.current);
+          rafRef.current = null;
+        });
+      }
     };
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
+
+    window.addEventListener('mousemove', handleMouseMove, { passive: true });
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      if (rafRef.current !== null) {
+        cancelAnimationFrame(rafRef.current);
+      }
+    };
   }, []);
 
   const handleUsernameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {

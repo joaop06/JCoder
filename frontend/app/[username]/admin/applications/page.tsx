@@ -6,7 +6,7 @@ import { User } from '@/types/api/users/user.entity';
 import { useParams, useRouter } from 'next/navigation';
 import { useToast } from '@/components/toast/ToastContext';
 import { PaginationDto } from '@/types/api/pagination.dto';
-import { useState, useEffect, useMemo, useCallback, memo, Suspense } from 'react';
+import { useState, useEffect, useMemo, useCallback, memo, Suspense, useRef } from 'react';
 import { Application } from '@/types/api/applications/application.entity';
 import { LazyImage, TableSkeleton, ManagementTable } from '@/components/ui';
 import { UsersService } from '@/services/administration-by-user/users.service';
@@ -336,6 +336,10 @@ export default function ApplicationsManagementPage() {
     const [windowSize, setWindowSize] = useState({ width: 1920, height: 1080 });
     const [isVisible, setIsVisible] = useState(false);
 
+    // Refs for mouse position throttling
+    const mousePositionRef = useRef({ x: 0, y: 0 });
+    const rafRef = useRef<number | null>(null);
+
     const toast = useToast();
 
     // Use temp array during drag, otherwise use the original
@@ -355,10 +359,25 @@ export default function ApplicationsManagementPage() {
 
     useEffect(() => {
         const handleMouseMove = (e: MouseEvent) => {
-            setMousePosition({ x: e.clientX, y: e.clientY });
+            // Update ref immediately
+            mousePositionRef.current = { x: e.clientX, y: e.clientY };
+
+            // Throttle state updates using requestAnimationFrame
+            if (rafRef.current === null) {
+                rafRef.current = requestAnimationFrame(() => {
+                    setMousePosition(mousePositionRef.current);
+                    rafRef.current = null;
+                });
+            }
         };
-        window.addEventListener('mousemove', handleMouseMove);
-        return () => window.removeEventListener('mousemove', handleMouseMove);
+
+        window.addEventListener('mousemove', handleMouseMove, { passive: true });
+        return () => {
+            window.removeEventListener('mousemove', handleMouseMove);
+            if (rafRef.current !== null) {
+                cancelAnimationFrame(rafRef.current);
+            }
+        };
     }, []);
 
     useEffect(() => {

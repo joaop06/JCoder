@@ -41,6 +41,10 @@ export default function NewApplicationPage() {
     const [windowSize, setWindowSize] = useState({ width: 1920, height: 1080 });
     const [isVisible, setIsVisible] = useState(false);
     const isSubmittingRef = useRef(false);
+
+    // Refs for mouse position throttling
+    const mousePositionRef = useRef({ x: 0, y: 0 });
+    const rafRef = useRef<number | null>(null);
     const [formData, setFormData] = useState<Omit<CreateApplicationDto, 'userId'>>({
         name: '',
         description: '',
@@ -73,10 +77,25 @@ export default function NewApplicationPage() {
 
     useEffect(() => {
         const handleMouseMove = (e: MouseEvent) => {
-            setMousePosition({ x: e.clientX, y: e.clientY });
+            // Update ref immediately
+            mousePositionRef.current = { x: e.clientX, y: e.clientY };
+
+            // Throttle state updates using requestAnimationFrame
+            if (rafRef.current === null) {
+                rafRef.current = requestAnimationFrame(() => {
+                    setMousePosition(mousePositionRef.current);
+                    rafRef.current = null;
+                });
+            }
         };
-        window.addEventListener('mousemove', handleMouseMove);
-        return () => window.removeEventListener('mousemove', handleMouseMove);
+
+        window.addEventListener('mousemove', handleMouseMove, { passive: true });
+        return () => {
+            window.removeEventListener('mousemove', handleMouseMove);
+            if (rafRef.current !== null) {
+                cancelAnimationFrame(rafRef.current);
+            }
+        };
     }, []);
 
     useEffect(() => {

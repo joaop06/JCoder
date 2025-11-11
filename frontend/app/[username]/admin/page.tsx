@@ -4,7 +4,7 @@ import Footer from '@/components/Footer';
 import Header from '@/components/Header';
 import { User } from '@/types/api/users/user.entity';
 import { useRouter, useParams } from 'next/navigation';
-import { useState, useEffect, useCallback, useMemo, Suspense } from 'react';
+import { useState, useEffect, useCallback, useMemo, Suspense, useRef } from 'react';
 import { UsersService } from '@/services/administration-by-user/users.service';
 import { Canvas } from '@react-three/fiber';
 import WebGLBackground from '@/components/webgl/WebGLBackground';
@@ -22,6 +22,10 @@ export default function AdminDashboardPage() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [windowSize, setWindowSize] = useState({ width: 1920, height: 1080 });
   const [isVisible, setIsVisible] = useState(false);
+
+  // Refs for mouse position throttling
+  const mousePositionRef = useRef({ x: 0, y: 0 });
+  const rafRef = useRef<number | null>(null);
 
   // Get username from URL params
   const urlUsername = useMemo(() => {
@@ -43,10 +47,25 @@ export default function AdminDashboardPage() {
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
-      setMousePosition({ x: e.clientX, y: e.clientY });
+      // Update ref immediately
+      mousePositionRef.current = { x: e.clientX, y: e.clientY };
+
+      // Throttle state updates using requestAnimationFrame
+      if (rafRef.current === null) {
+        rafRef.current = requestAnimationFrame(() => {
+          setMousePosition(mousePositionRef.current);
+          rafRef.current = null;
+        });
+      }
     };
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
+
+    window.addEventListener('mousemove', handleMouseMove, { passive: true });
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      if (rafRef.current !== null) {
+        cancelAnimationFrame(rafRef.current);
+      }
+    };
   }, []);
 
   useEffect(() => {

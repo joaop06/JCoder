@@ -48,6 +48,10 @@ export default function ProfileManagementPage() {
     const [windowSize, setWindowSize] = useState({ width: 1920, height: 1080 });
     const [isVisible, setIsVisible] = useState(false);
 
+    // Refs for mouse position throttling
+    const mousePositionRef = useRef({ x: 0, y: 0 });
+    const rafRef = useRef<number | null>(null);
+
     // Component states
     const [aboutMe, setAboutMe] = useState<UserComponentAboutMe | null>(null);
     const [educations, setEducations] = useState<UserComponentEducation[]>([]);
@@ -156,10 +160,25 @@ export default function ProfileManagementPage() {
 
     useEffect(() => {
         const handleMouseMove = (e: MouseEvent) => {
-            setMousePosition({ x: e.clientX, y: e.clientY });
+            // Update ref immediately
+            mousePositionRef.current = { x: e.clientX, y: e.clientY };
+
+            // Throttle state updates using requestAnimationFrame
+            if (rafRef.current === null) {
+                rafRef.current = requestAnimationFrame(() => {
+                    setMousePosition(mousePositionRef.current);
+                    rafRef.current = null;
+                });
+            }
         };
-        window.addEventListener('mousemove', handleMouseMove);
-        return () => window.removeEventListener('mousemove', handleMouseMove);
+
+        window.addEventListener('mousemove', handleMouseMove, { passive: true });
+        return () => {
+            window.removeEventListener('mousemove', handleMouseMove);
+            if (rafRef.current !== null) {
+                cancelAnimationFrame(rafRef.current);
+            }
+        };
     }, []);
 
     useEffect(() => {

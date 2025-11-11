@@ -8,7 +8,7 @@ import { useToast } from '@/components/toast/ToastContext';
 import { PaginationDto } from '@/types/api/pagination.dto';
 import { ExpertiseLevel } from '@/types/enums/expertise-level.enum';
 import { Technology } from '@/types/api/technologies/technology.entity';
-import { useState, useEffect, useMemo, useCallback, memo, Suspense } from 'react';
+import { useState, useEffect, useMemo, useCallback, memo, Suspense, useRef } from 'react';
 import { LazyImage, TableSkeleton, ManagementTable } from '@/components/ui';
 import { UsersService } from '@/services/administration-by-user/users.service';
 import { ImagesService } from '@/services/administration-by-user/images.service';
@@ -342,6 +342,10 @@ export default function TechnologiesManagementPage() {
     const [windowSize, setWindowSize] = useState({ width: 1920, height: 1080 });
     const [isVisible, setIsVisible] = useState(false);
 
+    // Refs for mouse position throttling
+    const mousePositionRef = useRef({ x: 0, y: 0 });
+    const rafRef = useRef<number | null>(null);
+
     const toast = useToast();
 
     // Use temp array during drag, otherwise use the original
@@ -361,10 +365,25 @@ export default function TechnologiesManagementPage() {
 
     useEffect(() => {
         const handleMouseMove = (e: MouseEvent) => {
-            setMousePosition({ x: e.clientX, y: e.clientY });
+            // Update ref immediately
+            mousePositionRef.current = { x: e.clientX, y: e.clientY };
+
+            // Throttle state updates using requestAnimationFrame
+            if (rafRef.current === null) {
+                rafRef.current = requestAnimationFrame(() => {
+                    setMousePosition(mousePositionRef.current);
+                    rafRef.current = null;
+                });
+            }
         };
-        window.addEventListener('mousemove', handleMouseMove);
-        return () => window.removeEventListener('mousemove', handleMouseMove);
+
+        window.addEventListener('mousemove', handleMouseMove, { passive: true });
+        return () => {
+            window.removeEventListener('mousemove', handleMouseMove);
+            if (rafRef.current !== null) {
+                cancelAnimationFrame(rafRef.current);
+            }
+        };
     }, []);
 
     useEffect(() => {
@@ -1174,19 +1193,35 @@ function TechnologyFormModal({ title, technology, onClose, onSubmit, submitting 
     const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
     const [windowSize, setWindowSize] = useState({ width: 1920, height: 1080 });
 
+    // Refs for mouse position throttling
+    const mousePositionRef = useRef({ x: 0, y: 0 });
+    const rafRef = useRef<number | null>(null);
+
     useEffect(() => {
         const handleMouseMove = (e: MouseEvent) => {
-            setMousePosition({ x: e.clientX, y: e.clientY });
+            // Update ref immediately
+            mousePositionRef.current = { x: e.clientX, y: e.clientY };
+
+            // Throttle state updates using requestAnimationFrame
+            if (rafRef.current === null) {
+                rafRef.current = requestAnimationFrame(() => {
+                    setMousePosition(mousePositionRef.current);
+                    rafRef.current = null;
+                });
+            }
         };
         const updateWindowSize = () => {
             setWindowSize({ width: window.innerWidth, height: window.innerHeight });
         };
         updateWindowSize();
-        window.addEventListener('mousemove', handleMouseMove);
+        window.addEventListener('mousemove', handleMouseMove, { passive: true });
         window.addEventListener('resize', updateWindowSize);
         return () => {
             window.removeEventListener('mousemove', handleMouseMove);
             window.removeEventListener('resize', updateWindowSize);
+            if (rafRef.current !== null) {
+                cancelAnimationFrame(rafRef.current);
+            }
         };
     }, []);
 

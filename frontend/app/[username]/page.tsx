@@ -24,7 +24,7 @@ import { useToast } from '@/components/toast/ToastContext';
 import FeatureCard3D from '@/components/webgl/FeatureCard3D';
 import WebGLBackground from '@/components/webgl/WebGLBackground';
 import Hero3D from '@/components/webgl/Hero3D';
-import { useEffect, useState, useMemo, Suspense, useRef } from 'react';
+import { useEffect, useState, useMemo, Suspense, useRef, useCallback } from 'react';
 import FloatingParticles3D from '@/components/webgl/FloatingParticles3D';
 import { ImagesService } from '@/services/administration-by-user/images.service';
 import ApplicationsCarousel from '@/components/applications/ApplicationsCarousel';
@@ -83,14 +83,29 @@ export default function PortfolioPage() {
   }, []);
 
   useEffect(() => {
+    let isMounted = true;
+    let lastPosition = { x: 0, y: 0 };
+    
     const handleMouseMove = (e: MouseEvent) => {
+      if (!isMounted) return;
+      
       // Update ref immediately
       mousePositionRef.current = { x: e.clientX, y: e.clientY };
 
       // Throttle state updates using requestAnimationFrame
       if (rafRef.current === null) {
         rafRef.current = requestAnimationFrame(() => {
-          setMousePosition(mousePositionRef.current);
+          if (!isMounted) {
+            rafRef.current = null;
+            return;
+          }
+          
+          const currentPos = mousePositionRef.current;
+          // Only update if position actually changed
+          if (currentPos.x !== lastPosition.x || currentPos.y !== lastPosition.y) {
+            lastPosition = { x: currentPos.x, y: currentPos.y };
+            setMousePosition({ x: currentPos.x, y: currentPos.y });
+          }
           rafRef.current = null;
         });
       }
@@ -98,9 +113,11 @@ export default function PortfolioPage() {
 
     window.addEventListener('mousemove', handleMouseMove, { passive: true });
     return () => {
+      isMounted = false;
       window.removeEventListener('mousemove', handleMouseMove);
       if (rafRef.current !== null) {
         cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
       }
     };
   }, []);
@@ -111,7 +128,7 @@ export default function PortfolioPage() {
     return Array.isArray(raw) ? raw[0] : raw || '';
   }, [params]);
 
-  const loadApplications = async () => {
+  const loadApplications = useCallback(async () => {
     if (!username) return;
     setLoading(true);
     setError(null);
@@ -155,9 +172,9 @@ export default function PortfolioPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [username, toast]);
 
-  const loadTechnologies = async () => {
+  const loadTechnologies = useCallback(async () => {
     if (!username) return;
     setLoadingTechs(true);
     try {
@@ -173,9 +190,9 @@ export default function PortfolioPage() {
     } finally {
       setLoadingTechs(false);
     }
-  };
+  }, [username]);
 
-  const loadAboutMe = async () => {
+  const loadAboutMe = useCallback(async () => {
     if (!username) return;
     setLoadingAboutMe(true);
     try {
@@ -188,9 +205,9 @@ export default function PortfolioPage() {
     } finally {
       setLoadingAboutMe(false);
     }
-  };
+  }, [username]);
 
-  const loadEducations = async () => {
+  const loadEducations = useCallback(async () => {
     if (!username) return;
     setLoadingEducations(true);
     try {
@@ -202,9 +219,9 @@ export default function PortfolioPage() {
     } finally {
       setLoadingEducations(false);
     }
-  };
+  }, [username]);
 
-  const loadExperiences = async () => {
+  const loadExperiences = useCallback(async () => {
     if (!username) return;
     setLoadingExperiences(true);
     try {
@@ -216,9 +233,9 @@ export default function PortfolioPage() {
     } finally {
       setLoadingExperiences(false);
     }
-  };
+  }, [username]);
 
-  const loadCertificates = async () => {
+  const loadCertificates = useCallback(async () => {
     if (!username) return;
     setLoadingCertificates(true);
     try {
@@ -230,7 +247,7 @@ export default function PortfolioPage() {
     } finally {
       setLoadingCertificates(false);
     }
-  };
+  }, [username]);
 
   // User pre-check
   useEffect(() => {
@@ -276,8 +293,7 @@ export default function PortfolioPage() {
     return () => {
       isMounted = false;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [username]);
+  }, [username, loadAboutMe, loadApplications, loadTechnologies, loadEducations, loadExperiences, loadCertificates]);
 
   const scrollToSection = (sectionId: string) => {
     scrollToElement(sectionId, 80);

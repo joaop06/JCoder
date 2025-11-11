@@ -4,7 +4,7 @@ import Footer from '@/components/Footer';
 import Header from '@/components/Header';
 import { User } from '@/types/api/users/user.entity';
 import { useParams, useRouter } from 'next/navigation';
-import { useEffect, useMemo, useState, useCallback, Suspense } from 'react';
+import { useEffect, useMemo, useState, useCallback, Suspense, useRef } from 'react';
 import { Application } from '@/types/api/applications/application.entity';
 import { ApplicationTypeEnum } from '@/types/enums/application-type.enum';
 import { PortfolioViewService } from '@/services/portfolio-view/portfolio-view.service';
@@ -35,6 +35,10 @@ export default function ApplicationDetailPage() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [windowSize, setWindowSize] = useState({ width: 1920, height: 1080 });
   const [isVisible, setIsVisible] = useState(false);
+
+  // Refs for mouse position throttling
+  const mousePositionRef = useRef({ x: 0, y: 0 });
+  const rafRef = useRef<number | null>(null);
 
   const toast = useToast();
 
@@ -123,10 +127,25 @@ export default function ApplicationDetailPage() {
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
-      setMousePosition({ x: e.clientX, y: e.clientY });
+      // Update ref immediately
+      mousePositionRef.current = { x: e.clientX, y: e.clientY };
+
+      // Throttle state updates using requestAnimationFrame
+      if (rafRef.current === null) {
+        rafRef.current = requestAnimationFrame(() => {
+          setMousePosition(mousePositionRef.current);
+          rafRef.current = null;
+        });
+      }
     };
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
+
+    window.addEventListener('mousemove', handleMouseMove, { passive: true });
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      if (rafRef.current !== null) {
+        cancelAnimationFrame(rafRef.current);
+      }
+    };
   }, []);
 
   useEffect(() => {

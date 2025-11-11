@@ -6,7 +6,7 @@ import Footer from '@/components/Footer';
 import { Canvas } from '@react-three/fiber';
 import Hero3D from '@/components/webgl/Hero3D';
 import LazyImage from '@/components/ui/LazyImage';
-import { useEffect, useState, Suspense } from 'react';
+import { useEffect, useState, Suspense, useRef } from 'react';
 import FeatureCard3D from '@/components/webgl/FeatureCard3D';
 import WebGLBackground from '@/components/webgl/WebGLBackground';
 import FloatingParticles3D from '@/components/webgl/FloatingParticles3D';
@@ -15,6 +15,10 @@ export default function HomePage() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [isVisible, setIsVisible] = useState(false);
   const [windowSize, setWindowSize] = useState({ width: 1920, height: 1080 });
+
+  // Refs for mouse position throttling
+  const mousePositionRef = useRef({ x: 0, y: 0 });
+  const rafRef = useRef<number | null>(null);
 
   useEffect(() => {
     setIsVisible(true);
@@ -30,10 +34,25 @@ export default function HomePage() {
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
-      setMousePosition({ x: e.clientX, y: e.clientY });
+      // Update ref immediately
+      mousePositionRef.current = { x: e.clientX, y: e.clientY };
+
+      // Throttle state updates using requestAnimationFrame
+      if (rafRef.current === null) {
+        rafRef.current = requestAnimationFrame(() => {
+          setMousePosition(mousePositionRef.current);
+          rafRef.current = null;
+        });
+      }
     };
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
+
+    window.addEventListener('mousemove', handleMouseMove, { passive: true });
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      if (rafRef.current !== null) {
+        cancelAnimationFrame(rafRef.current);
+      }
+    };
   }, []);
 
   return (
