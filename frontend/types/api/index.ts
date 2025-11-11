@@ -3,4 +3,5 @@ export * from './users';
 export * from './images';
 export * from './applications';
 export * from './technologies';
+export * from './messages';
 export * from './pagination.dto';
