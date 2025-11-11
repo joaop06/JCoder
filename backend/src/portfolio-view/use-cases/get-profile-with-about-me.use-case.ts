@@ -32,6 +32,7 @@ export class GetProfileWithAboutMeUseCase {
                     .leftJoinAndSelect('user.userComponentAboutMe', 'aboutMe')
                     .leftJoinAndSelect('aboutMe.highlights', 'highlights')
                     .select([
+                        'user.id',
                         'user.username',
                         'user.firstName',
                         'user.fullName',

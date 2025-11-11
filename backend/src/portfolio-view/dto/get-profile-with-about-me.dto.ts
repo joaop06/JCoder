@@ -2,7 +2,6 @@ import { OmitType } from "@nestjs/swagger";
 import { User } from "../../administration-by-user/users/entities/user.entity";
 
 const propertiesToOmit: readonly (keyof User)[] = [
-    'id',
     'messages',
     'password',
     'createdAt',

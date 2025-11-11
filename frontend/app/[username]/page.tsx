@@ -85,10 +85,10 @@ export default function PortfolioPage() {
   useEffect(() => {
     let isMounted = true;
     let lastPosition = { x: 0, y: 0 };
-    
+
     const handleMouseMove = (e: MouseEvent) => {
       if (!isMounted) return;
-      
+
       // Update ref immediately
       mousePositionRef.current = { x: e.clientX, y: e.clientY };
 
@@ -99,7 +99,7 @@ export default function PortfolioPage() {
             rafRef.current = null;
             return;
           }
-          
+
           const currentPos = mousePositionRef.current;
           // Only update if position actually changed
           if (currentPos.x !== lastPosition.x || currentPos.y !== lastPosition.y) {
@@ -199,6 +199,18 @@ export default function PortfolioPage() {
       const profileData = await PortfolioViewService.getProfileWithAboutMe(username);
       setAboutMe(profileData.aboutMe || null);
       setUser(profileData);
+
+      // Debug: Log profile data
+      console.log('[Portfolio] Profile data loaded:', {
+        hasUser: !!profileData,
+        userId: profileData?.id,
+        hasProfileImage: !!profileData?.profileImage,
+        profileImage: profileData?.profileImage,
+        username: username,
+        imageUrl: profileData?.profileImage && profileData?.id
+          ? ImagesService.getUserProfileImageUrl(username, profileData.id)
+          : 'N/A'
+      });
     } catch (err) {
       console.error('Failure to load about me', err);
       setAboutMe(null);
@@ -513,41 +525,27 @@ export default function PortfolioPage() {
 
           <div className={`relative z-10 text-center max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
             {/* Profile Image */}
-            <div className="mb-8">
+            <div className="mb-10 md:mb-12">
               <div
-                className="w-32 h-32 md:w-40 md:h-40 mx-auto rounded-full bg-jcoder-gradient p-0.5 shadow-lg shadow-jcoder-primary/50 transform-gpu animate-bounce-slow"
+                className="w-40 h-40 sm:w-48 sm:h-48 md:w-56 md:h-56 lg:w-64 lg:h-64 mx-auto rounded-full bg-jcoder-gradient p-1 shadow-2xl shadow-jcoder-primary/60 transform-gpu animate-bounce-slow"
                 style={{
-                  transform: `perspective(1000px) rotateY(${(mousePosition.x / windowSize.width - 0.5) * 10}deg) rotateX(${-(mousePosition.y / windowSize.height - 0.5) * 10}deg)`,
+                  transform: `perspective(1000px) rotateY(${(mousePosition.x / windowSize.width - 0.5) * 8}deg) rotateX(${-(mousePosition.y / windowSize.height - 0.5) * 8}deg)`,
                 }}
               >
-                <div className="w-full h-full rounded-full bg-jcoder-card flex items-center justify-center overflow-hidden">
-                  <div className="w-[90%] h-[90%] flex items-center justify-center">
-                    {user?.profileImage ? (
-                      <LazyImage
-                        src={ImagesService.getUserProfileImageUrl(username, user.id)}
-                        alt={user.fullName || username}
-                        fallback={username.charAt(0).toUpperCase()}
-                        className="object-contain w-full h-full"
-                        size="custom"
-                        width="w-full"
-                        height="h-full"
-                        rounded="rounded-full"
-                        rootMargin="200px"
-                      />
-                    ) : (
-                      <LazyImage
-                        src="/images/jcoder-logo.png"
-                        alt="JCoder"
-                        fallback="JC"
-                        className="object-contain w-full h-full"
-                        size="custom"
-                        width="w-full"
-                        height="h-full"
-                        rounded="rounded-full"
-                        rootMargin="200px"
-                      />
-                    )}
-                  </div>
+                <div className="w-full h-full rounded-full bg-jcoder-card flex items-center justify-center overflow-hidden ring-2 ring-jcoder-primary/20 relative">
+                  {user?.profileImage && user?.id ? (
+                    <HeroProfileImage
+                      src={ImagesService.getUserProfileImageUrl(username, user.id)}
+                      alt={user.fullName || username}
+                      fallback={username.charAt(0).toUpperCase()}
+                    />
+                  ) : (
+                    <div className="absolute inset-0 w-full h-full flex items-center justify-center bg-jcoder-gradient rounded-full">
+                      <span className="text-black font-bold text-4xl sm:text-5xl md:text-6xl lg:text-7xl">
+                        {username.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -1363,6 +1361,89 @@ function CertificatesSkeleton() {
         </div>
       ))}
     </div>
+  );
+}
+
+// Hero Profile Image Component - Simple and direct implementation
+interface HeroProfileImageProps {
+  src: string;
+  alt: string;
+  fallback: string;
+}
+
+function HeroProfileImage({ src, alt, fallback }: HeroProfileImageProps) {
+  const [hasError, setHasError] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const imgRef = useRef<HTMLImageElement>(null);
+
+  // Debug: Log when component mounts and src changes
+  useEffect(() => {
+    console.log('[HeroProfileImage] Component mounted/updated:', {
+      src,
+      hasError,
+      isLoading
+    });
+
+    // Reset states
+    setHasError(false);
+    setIsLoading(true);
+
+    // Force image reload if src changes
+    if (imgRef.current && src) {
+      imgRef.current.src = src;
+    }
+  }, [src]);
+
+  const handleLoad = () => {
+    console.log('[HeroProfileImage] Image loaded successfully:', src);
+    setIsLoading(false);
+  };
+
+  const handleError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    console.error('[HeroProfileImage] Image failed to load:', {
+      src,
+      error: e,
+      target: e.currentTarget,
+      naturalWidth: e.currentTarget.naturalWidth,
+      naturalHeight: e.currentTarget.naturalHeight
+    });
+    setIsLoading(false);
+    setHasError(true);
+  };
+
+  // Show fallback if error occurred
+  if (hasError) {
+    console.log('[HeroProfileImage] Showing fallback for:', fallback);
+    return (
+      <div className="absolute inset-0 w-full h-full flex items-center justify-center bg-jcoder-gradient rounded-full z-10">
+        <span className="text-black font-bold text-4xl sm:text-5xl md:text-6xl lg:text-7xl">
+          {fallback}
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      {/* Loading skeleton */}
+      {isLoading && (
+        <div className="absolute inset-0 bg-jcoder-secondary animate-pulse rounded-full z-0" />
+      )}
+
+      {/* Actual image */}
+      <img
+        ref={imgRef}
+        src={src}
+        alt={alt}
+        className={`absolute inset-0 w-full h-full object-cover rounded-full transition-opacity duration-300 z-10 ${isLoading ? 'opacity-0' : 'opacity-100'
+          }`}
+        onLoad={handleLoad}
+        onError={handleError}
+        loading="eager"
+        decoding="async"
+        crossOrigin="anonymous"
+      />
+    </>
   );
 }
 
