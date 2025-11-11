@@ -355,7 +355,7 @@ export default function RegisterPage() {
   }, [username, password, confirmPassword, email, occupation, description, router, toast]);
 
   return (
-    <div className="min-h-screen flex flex-col bg-background overflow-hidden relative">
+    <div className="h-screen flex flex-col bg-background overflow-hidden relative">
       {/* WebGL Background - Animated 3D mesh */}
       <Suspense fallback={null}>
         <WebGLBackground mouse={mousePosition} windowSize={windowSize} />
@@ -386,8 +386,8 @@ export default function RegisterPage() {
       </div>
 
       {/* Header */}
-      <header className="border-b border-jcoder bg-jcoder-card/80 backdrop-blur-sm relative z-10">
-        <div className="container mx-auto px-4 py-4">
+      <header className="border-b border-jcoder bg-jcoder-card/80 backdrop-blur-sm relative z-10 shrink-0">
+        <div className="container mx-auto px-4 py-2 md:py-3">
           <div className="flex items-center justify-between">
             <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
               <div className="w-10 h-10 bg-transparent rounded-lg flex items-center justify-center">
@@ -409,7 +409,7 @@ export default function RegisterPage() {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 flex items-center justify-center px-4 py-12 relative z-10">
+      <main className="flex-1 flex items-center justify-center px-4 py-4 md:py-6 relative z-10 overflow-y-auto md:overflow-y-hidden">
         {/* 3D Particles in Background */}
         <div className="absolute inset-0 pointer-events-none z-0">
           <Suspense fallback={null}>
@@ -438,9 +438,9 @@ export default function RegisterPage() {
 
         <div className={`w-full max-w-2xl transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
           {/* Logo and Title */}
-          <div className="text-center mb-8">
+          <div className="text-center mb-4 md:mb-6">
             <div
-              className="inline-flex items-center justify-center w-20 h-20 md:w-24 md:h-24 bg-jcoder-gradient rounded-full p-0.5 shadow-lg shadow-jcoder-primary/50 mb-6 transform-gpu animate-bounce-slow"
+              className="inline-flex items-center justify-center w-16 h-16 md:w-20 md:h-20 bg-jcoder-gradient rounded-full p-0.5 shadow-lg shadow-jcoder-primary/50 mb-3 md:mb-4 transform-gpu animate-bounce-slow"
               style={{
                 transform: `perspective(1000px) rotateY(${(mousePosition.x / windowSize.width - 0.5) * 10}deg) rotateX(${-(mousePosition.y / windowSize.height - 0.5) * 10}deg)`,
               }}
@@ -461,16 +461,16 @@ export default function RegisterPage() {
                 </div>
               </div>
             </div>
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-3 bg-clip-text text-transparent bg-gradient-to-r from-jcoder-cyan via-jcoder-primary to-jcoder-blue animate-gradient">
+            <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-jcoder-cyan via-jcoder-primary to-jcoder-blue animate-gradient">
               Create your account
             </h1>
-            <p className="text-base md:text-lg text-jcoder-muted">
+            <p className="text-sm md:text-base text-jcoder-muted">
               Start building your professional portfolio
             </p>
           </div>
 
           {/* Progress Steps */}
-          <div className="mb-8">
+          <div className="mb-4 md:mb-6">
             <div className="flex items-center justify-between mb-4">
               {steps.map((step, index) => (
                 <div key={step.number} className="flex-1 flex items-center">
@@ -515,14 +515,14 @@ export default function RegisterPage() {
 
           {/* Registration Form */}
           <div
-            className="bg-jcoder-card/90 backdrop-blur-sm border border-jcoder rounded-2xl p-6 md:p-8 shadow-xl shadow-jcoder-primary/10 transition-all duration-300 hover:shadow-2xl hover:shadow-jcoder-primary/20"
+            className="bg-jcoder-card/90 backdrop-blur-sm border border-jcoder rounded-2xl p-4 md:p-6 shadow-xl shadow-jcoder-primary/10 transition-all duration-300 hover:shadow-2xl hover:shadow-jcoder-primary/20"
           >
             {/* Step 1: Username */}
             {currentStep === 1 && (
-              <div className="space-y-5">
+              <div className="space-y-3 md:space-y-4">
                 <div>
-                  <h2 className="text-xl md:text-2xl font-bold mb-2 text-jcoder-foreground">Choose your username</h2>
-                  <p className="text-sm md:text-base text-jcoder-muted mb-4">
+                  <h2 className="text-lg md:text-xl font-bold mb-1 text-jcoder-foreground">Choose your username</h2>
+                  <p className="text-xs md:text-sm text-jcoder-muted mb-3">
                     This will be your unique identifier on JCoder
                   </p>
                 </div>
@@ -547,7 +547,7 @@ export default function RegisterPage() {
                           return newErrors;
                         });
                       }}
-                      className={`w-full px-4 py-3 pr-10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-transparent disabled:opacity-60 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted transition-all duration-200 hover:border-jcoder-primary/50 ${errors.username ? 'border-red-400' :
+                      className={`w-full px-3 py-2 md:px-4 md:py-2.5 pr-10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-transparent disabled:opacity-60 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted transition-all duration-200 hover:border-jcoder-primary/50 text-sm ${errors.username ? 'border-red-400' :
                         usernameStatus.available === true ? 'border-green-400' :
                           usernameStatus.available === false ? 'border-red-400' :
                             'border-jcoder'
@@ -586,10 +586,10 @@ export default function RegisterPage() {
                 <button
                   onClick={handleNextStep}
                   disabled={isLoading || usernameStatus.available !== true}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-3 mt-6 bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity duration-300 disabled:opacity-50 disabled:cursor-not-allowed font-semibold group"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 md:py-3 mt-4 md:mt-5 bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity duration-300 disabled:opacity-50 disabled:cursor-not-allowed font-semibold group text-sm md:text-base"
                 >
                   Continue
-                  <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 md:w-5 md:h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
                 </button>
@@ -598,10 +598,10 @@ export default function RegisterPage() {
 
             {/* Step 2: Email Verification */}
             {currentStep === 2 && (
-              <div className="space-y-5">
+              <div className="space-y-3 md:space-y-4">
                 <div>
-                  <h2 className="text-xl md:text-2xl font-bold mb-2 text-jcoder-foreground">Verify your email</h2>
-                  <p className="text-sm md:text-base text-jcoder-muted mb-4">
+                  <h2 className="text-lg md:text-xl font-bold mb-1 text-jcoder-foreground">Verify your email</h2>
+                  <p className="text-xs md:text-sm text-jcoder-muted mb-3">
                     We'll send a verification code to your email
                   </p>
                 </div>
@@ -628,7 +628,7 @@ export default function RegisterPage() {
                             return newErrors;
                           });
                         }}
-                        className={`w-full px-4 py-3 pr-10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-transparent disabled:opacity-60 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted transition-all duration-200 hover:border-jcoder-primary/50 ${errors.email ? 'border-red-400' :
+                        className={`w-full px-3 py-2 md:px-4 md:py-2.5 pr-10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-transparent disabled:opacity-60 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted transition-all duration-200 hover:border-jcoder-primary/50 text-sm ${errors.email ? 'border-red-400' :
                           emailStatus.available === true ? 'border-green-400' :
                             emailStatus.available === false ? 'border-red-400' :
                               isEmailVerified ? 'border-green-400' :
@@ -657,7 +657,7 @@ export default function RegisterPage() {
                     <button
                       onClick={handleSendVerificationCode}
                       disabled={isLoading || isSendingCode || isEmailVerified || !email || emailStatus.available !== true}
-                      className="px-4 py-3 bg-jcoder-secondary border border-jcoder rounded-lg hover:bg-jcoder hover:border-jcoder-primary transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-jcoder-foreground font-medium whitespace-nowrap"
+                      className="px-3 py-2 md:px-4 md:py-2.5 bg-jcoder-secondary border border-jcoder rounded-lg hover:bg-jcoder hover:border-jcoder-primary transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-jcoder-foreground font-medium whitespace-nowrap text-sm md:text-base"
                     >
                       {isSendingCode ? (
                         <span className="flex items-center gap-2">
@@ -713,13 +713,13 @@ export default function RegisterPage() {
                             e.preventDefault();
                           }
                         }}
-                        className={`flex-1 px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-transparent disabled:opacity-60 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted text-center text-2xl tracking-widest ${errors.code ? 'border-red-400' : 'border-jcoder'
+                        className={`flex-1 px-3 py-2 md:px-4 md:py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-transparent disabled:opacity-60 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted text-center text-xl md:text-2xl tracking-widest ${errors.code ? 'border-red-400' : 'border-jcoder'
                           }`}
                       />
                       <button
                         onClick={handleVerifyCode}
                         disabled={isLoading || isVerifyingCode || verificationCode.length !== 6}
-                        className="px-4 py-3 bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed font-medium whitespace-nowrap"
+                        className="px-3 py-2 md:px-4 md:py-2.5 bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed font-medium whitespace-nowrap text-sm md:text-base"
                       >
                         {isVerifyingCode ? 'Verifying...' : 'Verify'}
                       </button>
@@ -734,17 +734,17 @@ export default function RegisterPage() {
                   <button
                     onClick={handlePreviousStep}
                     disabled={isLoading}
-                    className="flex-1 px-4 py-3 bg-jcoder-secondary border border-jcoder rounded-lg hover:bg-jcoder hover:border-jcoder-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium text-jcoder-foreground"
+                    className="flex-1 px-4 py-2.5 md:py-3 bg-jcoder-secondary border border-jcoder rounded-lg hover:bg-jcoder hover:border-jcoder-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium text-jcoder-foreground text-sm md:text-base"
                   >
                     Back
                   </button>
                   <button
                     onClick={handleNextStep}
                     disabled={isLoading || !isEmailVerified}
-                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed font-semibold group"
+                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 md:py-3 bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed font-semibold group text-sm md:text-base"
                   >
                     Continue
-                    <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4 md:w-5 md:h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
                   </button>
@@ -754,16 +754,16 @@ export default function RegisterPage() {
 
             {/* Step 3: Password and About Me */}
             {currentStep === 3 && (
-              <div className="space-y-5">
+              <div className="space-y-3 md:space-y-3">
                 <div>
-                  <h2 className="text-xl md:text-2xl font-bold mb-2 text-jcoder-foreground">Complete your profile</h2>
-                  <p className="text-sm md:text-base text-jcoder-muted mb-4">
+                  <h2 className="text-lg md:text-xl font-bold mb-1 text-jcoder-foreground">Complete your profile</h2>
+                  <p className="text-xs md:text-sm text-jcoder-muted mb-3">
                     Set your password and basic information (optional)
                   </p>
                 </div>
 
                 <div>
-                  <label htmlFor="password" className="block text-sm font-medium text-jcoder-muted mb-2">
+                  <label htmlFor="password" className="block text-xs md:text-sm font-medium text-jcoder-muted mb-1.5">
                     Password <span className="text-red-400">*</span>
                   </label>
                   <input
@@ -781,16 +781,16 @@ export default function RegisterPage() {
                         return newErrors;
                       });
                     }}
-                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-transparent disabled:opacity-60 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted ${errors.password ? 'border-red-400' : 'border-jcoder'
+                    className={`w-full px-3 py-2 md:px-4 md:py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-transparent disabled:opacity-60 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted text-sm ${errors.password ? 'border-red-400' : 'border-jcoder'
                       }`}
                   />
                   {errors.password && (
-                    <p className="mt-1 text-sm text-red-400">{errors.password}</p>
+                    <p className="mt-1 text-xs md:text-sm text-red-400">{errors.password}</p>
                   )}
                 </div>
 
                 <div>
-                  <label htmlFor="confirmPassword" className="block text-sm font-medium text-jcoder-muted mb-2">
+                  <label htmlFor="confirmPassword" className="block text-xs md:text-sm font-medium text-jcoder-muted mb-1.5">
                     Confirm Password <span className="text-red-400">*</span>
                   </label>
                   <input
@@ -808,19 +808,19 @@ export default function RegisterPage() {
                         return newErrors;
                       });
                     }}
-                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-transparent disabled:opacity-60 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted ${errors.confirmPassword ? 'border-red-400' : 'border-jcoder'
+                    className={`w-full px-3 py-2 md:px-4 md:py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-transparent disabled:opacity-60 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted text-sm ${errors.confirmPassword ? 'border-red-400' : 'border-jcoder'
                       }`}
                   />
                   {errors.confirmPassword && (
-                    <p className="mt-1 text-sm text-red-400">{errors.confirmPassword}</p>
+                    <p className="mt-1 text-xs md:text-sm text-red-400">{errors.confirmPassword}</p>
                   )}
                 </div>
 
-                <div className="pt-4 border-t border-jcoder">
-                  <h3 className="text-sm font-semibold text-jcoder-foreground mb-4">About you (optional)</h3>
+                <div className="pt-3 border-t border-jcoder">
+                  <h3 className="text-xs md:text-sm font-semibold text-jcoder-foreground mb-2 md:mb-3">About you (optional)</h3>
 
-                  <div className="mb-4">
-                    <label htmlFor="occupation" className="block text-sm font-medium text-jcoder-muted mb-2">
+                  <div className="mb-2 md:mb-3">
+                    <label htmlFor="occupation" className="block text-xs md:text-sm font-medium text-jcoder-muted mb-1.5">
                       Position / Title
                     </label>
                     <input
@@ -830,12 +830,12 @@ export default function RegisterPage() {
                       disabled={isLoading}
                       placeholder="Ex: Full Stack Developer"
                       onChange={(e) => setOccupation(e.target.value)}
-                      className="w-full px-4 py-3 border border-jcoder rounded-lg focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-transparent disabled:opacity-60 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted"
+                      className="w-full px-3 py-2 md:px-4 md:py-2.5 border border-jcoder rounded-lg focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-transparent disabled:opacity-60 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted text-sm"
                     />
                   </div>
 
                   <div>
-                    <label htmlFor="description" className="block text-sm font-medium text-jcoder-muted mb-2">
+                    <label htmlFor="description" className="block text-xs md:text-sm font-medium text-jcoder-muted mb-1.5">
                       Description
                     </label>
                     <textarea
@@ -843,9 +843,9 @@ export default function RegisterPage() {
                       value={description}
                       disabled={isLoading}
                       placeholder="Tell us a bit about yourself, your experience and passions..."
-                      rows={4}
+                      rows={2}
                       onChange={(e) => setDescription(e.target.value)}
-                      className="w-full px-4 py-3 border border-jcoder rounded-lg focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-transparent disabled:opacity-60 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted resize-none"
+                      className="w-full px-3 py-2 md:px-4 md:py-2.5 border border-jcoder rounded-lg focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-transparent disabled:opacity-60 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted resize-none text-sm"
                     />
                   </div>
                 </div>
@@ -854,18 +854,18 @@ export default function RegisterPage() {
                   <button
                     onClick={handlePreviousStep}
                     disabled={isLoading}
-                    className="flex-1 px-4 py-3 bg-jcoder-secondary border border-jcoder rounded-lg hover:bg-jcoder hover:border-jcoder-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium text-jcoder-foreground"
+                    className="flex-1 px-4 py-2.5 md:py-3 bg-jcoder-secondary border border-jcoder rounded-lg hover:bg-jcoder hover:border-jcoder-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium text-jcoder-foreground text-sm md:text-base"
                   >
                     Back
                   </button>
                   <button
                     onClick={handleSubmit}
                     disabled={isLoading}
-                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed font-semibold group"
+                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 md:py-3 bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed font-semibold group text-sm md:text-base"
                   >
                     {isLoading ? (
                       <span className="flex items-center gap-2">
-                        <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <svg className="animate-spin h-4 w-4 md:h-5 md:w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
@@ -873,7 +873,7 @@ export default function RegisterPage() {
                       </span>
                     ) : (
                       <>
-                        <svg className="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-4 h-4 md:w-5 md:h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
                         </svg>
                         Create Account
@@ -886,8 +886,8 @@ export default function RegisterPage() {
           </div>
 
           {/* Login Link */}
-          <div className="text-center mt-6">
-            <p className="text-sm text-jcoder-muted">
+          <div className="text-center mt-3 md:mt-4">
+            <p className="text-xs md:text-sm text-jcoder-muted">
               Already have an account?{' '}
               <Link
                 href="/sign-in"
@@ -898,7 +898,7 @@ export default function RegisterPage() {
             </p>
             <Link
               href="/"
-              className="text-sm text-jcoder-muted hover:text-jcoder-primary transition-all duration-200 inline-flex items-center gap-1 hover:gap-2 mt-4 group"
+              className="text-xs md:text-sm text-jcoder-muted hover:text-jcoder-primary transition-all duration-200 inline-flex items-center gap-1 hover:gap-2 mt-2 md:mt-3 group"
             >
               <svg className="w-4 h-4 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -935,6 +935,11 @@ export default function RegisterPage() {
         }
         .delay-1000 {
           animation-delay: 1s;
+        }
+        @media (min-width: 768px) {
+          main {
+            overflow-y: hidden !important;
+          }
         }
       `}</style>
     </div>
