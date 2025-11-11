@@ -12,7 +12,7 @@ import {
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
 import { Canvas } from '@react-three/fiber';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import Hero3D from '@/components/webgl/Hero3D';
 import { TableSkeleton } from '@/components/ui';
 import { InfoField } from '@/components/profile/InfoField';
@@ -31,6 +31,12 @@ import { PortfolioViewService } from '@/services/portfolio-view/portfolio-view.s
 export default function ProfileManagementPage() {
     const toast = useToast();
     const router = useRouter();
+    const params = useParams();
+
+    const username = useMemo(() => {
+        const raw = params?.username;
+        return Array.isArray(raw) ? raw[0] : raw || '';
+    }, [params]);
 
     const [loading, setLoading] = useState(true);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -1351,7 +1357,7 @@ export default function ProfileManagementPage() {
                     <nav className="mb-6">
                         <ol className="flex items-center gap-2 text-sm text-jcoder-muted">
                             <li>
-                                <button onClick={() => router.push('/admin')} className="hover:text-jcoder-primary transition-colors group">
+                                <button onClick={() => router.push(`/${username}/admin`)} className="hover:text-jcoder-primary transition-colors group">
                                     <span className="group-hover:underline">Admin</span>
                                 </button>
                             </li>

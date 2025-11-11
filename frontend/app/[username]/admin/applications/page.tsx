@@ -760,7 +760,7 @@ export default function ApplicationsManagementPage() {
                     <nav className="mb-6">
                         <ol className="flex items-center gap-2 text-sm text-jcoder-muted">
                             <li>
-                                <button onClick={() => router.push('/admin')} className="hover:text-jcoder-primary transition-colors group">
+                                <button onClick={() => router.push(`/${username}/admin`)} className="hover:text-jcoder-primary transition-colors group">
                                     <span className="group-hover:underline">Admin</span>
                                 </button>
                             </li>

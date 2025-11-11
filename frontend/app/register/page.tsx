@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Canvas } from '@react-three/fiber';
 import { LazyImage } from '@/components/ui';
 import { useRouter } from 'next/navigation';
+import { ThemeToggle } from '@/components/theme';
 import { useToast } from '@/components/toast/ToastContext';
 import WebGLBackground from '@/components/webgl/WebGLBackground';
 import Hero3D from '@/components/webgl/Hero3D';
@@ -368,7 +369,7 @@ export default function RegisterPage() {
       {/* Header */}
       <header className="border-b border-jcoder bg-jcoder-card/80 backdrop-blur-sm relative z-10">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center">
+          <div className="flex items-center justify-between">
             <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
               <div className="w-10 h-10 bg-transparent rounded-lg flex items-center justify-center">
                 <LazyImage
@@ -383,6 +384,7 @@ export default function RegisterPage() {
               </div>
               <span className="text-xl font-semibold text-jcoder-foreground">JCoder</span>
             </Link>
+            <ThemeToggle size="sm" />
           </div>
         </div>
       </header>

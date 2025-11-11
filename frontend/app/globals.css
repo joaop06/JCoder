@@ -42,6 +42,7 @@
   --bg-gray-50: #f9fafb;
   --bg-gray-100: #f3f4f6;
   --bg-gray-200: #e5e7eb;
+  --border-gray-200: #e5e7eb;
   --border-gray-300: #d1d5db;
   --shadow-color: rgba(0, 0, 0, 0.1);
   --shadow-primary: rgba(0, 200, 255, 0.2);
@@ -80,6 +81,7 @@
   --bg-gray-50: #f8f9fa;
   --bg-gray-100: #f1f3f4;
   --bg-gray-200: #e5e7eb;
+  --border-gray-200: #e5e7eb;
   --border-gray-300: #d1d5db;
   --shadow-color: rgba(0, 0, 0, 0.05);
   --shadow-primary: rgba(0, 80, 160, 0.15);
@@ -287,6 +289,10 @@ body {
   transition: color 0.3s ease;
 }
 
+.hover\:text-white:hover {
+  color: var(--text-white);
+}
+
 .text-black {
   color: var(--text-black);
   transition: color 0.3s ease;
@@ -300,6 +306,11 @@ body {
 
 .border-jcoder-primary {
   border-color: var(--primary);
+  transition: border-color 0.3s ease;
+}
+
+.border-gray-200 {
+  border-color: var(--border-gray-200);
   transition: border-color 0.3s ease;
 }
 
@@ -322,8 +333,25 @@ body {
   color: var(--primary);
 }
 
+.text-gray-200 {
+  color: var(--border-gray-200);
+  transition: color 0.3s ease;
+}
+
+.hover\:text-gray-300:hover {
+  color: var(--text-gray-300);
+}
+
 .hover\:border-jcoder-primary:hover {
   border-color: var(--primary);
+}
+
+.hover\:text-white:hover {
+  color: #ffffff;
+}
+
+.hover\:border-white:hover {
+  border-color: #ffffff;
 }
 
 .hover\:bg-gray-50:hover {

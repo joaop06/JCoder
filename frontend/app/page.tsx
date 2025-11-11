@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Canvas } from '@react-three/fiber';
 import Hero3D from '@/components/webgl/Hero3D';
@@ -37,6 +38,8 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background overflow-hidden relative">
+      <Header />
+
       {/* WebGL Background - Animated 3D mesh */}
       <Suspense fallback={null}>
         <WebGLBackground mouse={mousePosition} windowSize={windowSize} />
@@ -67,7 +70,7 @@ export default function HomePage() {
       </div>
 
       {/* Main Content */}
-      <main className="flex-1 relative z-10">
+      <main className="flex-1 relative z-10 pt-16">
         {/* Hero Section */}
         <section className="min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8 py-20 relative">
           {/* 3D Particles in Hero */}
