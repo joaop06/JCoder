@@ -163,7 +163,7 @@ export default function ApplicationDetailPage() {
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
         {/* Gradient Orbs */}
         <div
-          className="absolute w-96 h-96 bg-jcoder-cyan/20 rounded-full blur-3xl animate-pulse"
+          className="absolute w-48 h-48 sm:w-64 sm:h-64 md:w-96 md:h-96 bg-jcoder-cyan/20 rounded-full blur-3xl animate-pulse"
           style={{
             left: `${mousePosition.x / 20}px`,
             top: `${mousePosition.y / 20}px`,
@@ -171,7 +171,7 @@ export default function ApplicationDetailPage() {
           }}
         />
         <div
-          className="absolute w-96 h-96 bg-jcoder-blue/20 rounded-full blur-3xl animate-pulse delay-1000"
+          className="absolute w-48 h-48 sm:w-64 sm:h-64 md:w-96 md:h-96 bg-jcoder-blue/20 rounded-full blur-3xl animate-pulse delay-1000"
           style={{
             right: `${mousePosition.x / 25}px`,
             bottom: `${mousePosition.y / 25}px`,
@@ -185,9 +185,9 @@ export default function ApplicationDetailPage() {
 
       <Header isAdmin={false} />
 
-      <main className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-12 pt-24 relative z-10">
+      <main className="flex-1 relative z-10 pt-20 sm:pt-24">
         {/* 3D Particles in Background */}
-        <div className="fixed inset-0 pointer-events-none z-0">
+        <div className="absolute inset-0 pointer-events-none z-0">
           <Suspense fallback={null}>
             <Canvas
               camera={{ position: [0, 0, 5], fov: 75 }}
@@ -199,8 +199,8 @@ export default function ApplicationDetailPage() {
           </Suspense>
         </div>
 
-        {/* 3D Logo Element (optional, subtle) - Desktop only */}
-        <div className="absolute top-20 right-10 w-32 h-32 pointer-events-none opacity-20 hidden lg:block">
+        {/* 3D Logo Element - Desktop only */}
+        <div className="absolute top-20 right-10 w-32 h-32 pointer-events-none opacity-20 hidden lg:block z-0">
           <Suspense fallback={null}>
             <Canvas
               camera={{ position: [0, 0, 3], fov: 75 }}
@@ -212,117 +212,136 @@ export default function ApplicationDetailPage() {
           </Suspense>
         </div>
 
-        <div className={`max-w-7xl mx-auto transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-          {/* Back Button */}
-          <button
-            onClick={handleBack}
-            className="inline-flex items-center gap-2 text-jcoder-muted hover:text-jcoder-primary transition-all duration-200 mb-8 group"
-          >
-            <svg className="w-5 h-5 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-            Back
-          </button>
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-12 relative z-10">
+          <div className={`max-w-7xl mx-auto transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+            {/* Back Button */}
+            <button
+              onClick={handleBack}
+              className="group inline-flex items-center gap-2 px-4 py-2 mb-6 sm:mb-8 text-jcoder-muted hover:text-jcoder-primary border border-jcoder/50 hover:border-jcoder-primary rounded-lg transition-all duration-300 hover:bg-jcoder-secondary/50 hover:shadow-lg hover:shadow-jcoder-primary/20 text-sm sm:text-base font-medium"
+            >
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+              <span>Back</span>
+            </button>
 
-          {/* States: loading / error / content */}
-          {loading ? (
-            <div className="bg-jcoder-card border border-jcoder rounded-lg p-4 sm:p-8 shadow-lg">
-              {/* Header Skeleton */}
-              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-6 gap-4">
-                <div className="flex items-start gap-3 sm:gap-4 min-w-0">
-                  <div className="w-12 h-12 sm:w-16 sm:h-16 bg-jcoder-secondary rounded-lg animate-pulse flex-shrink-0"></div>
-                  <div className="min-w-0 flex-1">
-                    <div className="h-7 w-48 bg-jcoder-secondary rounded-lg mb-2 animate-pulse"></div>
-                    <div className="h-4 w-32 bg-jcoder-secondary rounded-lg animate-pulse"></div>
+            {/* States: loading / error / content */}
+            {loading ? (
+              <div className="bg-jcoder-card/80 backdrop-blur-sm border border-jcoder rounded-2xl p-6 sm:p-8 md:p-12 shadow-xl shadow-jcoder-primary/10 transform-gpu transition-all duration-300">
+                {/* Header Skeleton */}
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-8 gap-6">
+                  <div className="flex items-start gap-4 sm:gap-6 min-w-0">
+                    <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 bg-jcoder-secondary rounded-2xl animate-pulse flex-shrink-0 shadow-lg"></div>
+                    <div className="min-w-0 flex-1">
+                      <div className="h-7 sm:h-8 md:h-9 w-full sm:w-64 bg-jcoder-secondary rounded-lg mb-3 animate-pulse"></div>
+                      <div className="h-4 sm:h-5 w-32 sm:w-40 bg-jcoder-secondary rounded-lg animate-pulse"></div>
+                    </div>
+                  </div>
+                  <div className="w-full sm:w-56 h-24 sm:h-28 bg-jcoder-secondary rounded-2xl animate-pulse shadow-lg"></div>
+                </div>
+
+                {/* Description Skeleton */}
+                <div className="mb-6 sm:mb-8">
+                  <div className="h-6 sm:h-7 w-32 sm:w-40 bg-jcoder-secondary rounded-lg mb-4 animate-pulse"></div>
+                  <div className="space-y-2">
+                    <div className="h-4 w-full bg-jcoder-secondary rounded-lg animate-pulse"></div>
+                    <div className="h-4 w-5/6 bg-jcoder-secondary rounded-lg animate-pulse"></div>
+                    <div className="h-4 w-4/5 bg-jcoder-secondary rounded-lg animate-pulse"></div>
                   </div>
                 </div>
-                <div className="w-full sm:w-48 h-24 bg-jcoder-secondary rounded-lg animate-pulse"></div>
-              </div>
 
-              {/* Description Skeleton */}
-              <div className="mb-6">
-                <div className="h-6 w-32 bg-jcoder-secondary rounded-lg mb-3 animate-pulse"></div>
-                <div className="h-4 w-full bg-jcoder-secondary rounded-lg mb-2 animate-pulse"></div>
-                <div className="h-4 w-5/6 bg-jcoder-secondary rounded-lg animate-pulse"></div>
-              </div>
+                {/* Technologies Skeleton */}
+                <div className="mb-8">
+                  <div className="h-6 sm:h-7 w-40 sm:w-48 bg-jcoder-secondary rounded-lg mb-4 animate-pulse"></div>
+                  <div className="flex flex-wrap gap-3">
+                    {[1, 2, 3, 4, 5, 6].map((i) => (
+                      <div key={i} className="w-20 sm:w-28 h-8 sm:h-10 bg-jcoder-secondary rounded-full animate-pulse"></div>
+                    ))}
+                  </div>
+                </div>
 
-              {/* Technologies Skeleton */}
-              <div className="mb-6">
-                <div className="h-6 w-32 bg-jcoder-secondary rounded-lg mb-3 animate-pulse"></div>
-                <div className="flex flex-wrap gap-2">
-                  {[1, 2, 3, 4, 5].map((i) => (
-                    <div key={i} className="w-24 h-8 bg-jcoder-secondary rounded-full animate-pulse"></div>
-                  ))}
+                {/* Content Skeleton */}
+                <div className="p-4 sm:p-6 bg-jcoder-secondary/30 rounded-xl">
+                  <TableSkeleton />
                 </div>
               </div>
-
-              {/* Content Skeleton */}
-              <div className="p-6">
-                <TableSkeleton />
+            ) : error ? (
+              <div className="bg-jcoder-card/90 backdrop-blur-sm border border-red-400/50 rounded-3xl p-8 sm:p-12 text-center shadow-2xl shadow-red-500/20 transform-gpu transition-all duration-300">
+                <div className="mb-6">
+                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-500/20 flex items-center justify-center">
+                    <svg className="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl sm:text-2xl font-bold text-red-400 mb-2">Oops!</h3>
+                  <p className="text-red-300/80 text-base sm:text-lg font-medium mb-6 px-2">{error}</p>
+                </div>
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4">
+                  <button
+                    onClick={handleRetry}
+                    className="group inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3 border-2 border-jcoder-primary text-jcoder-primary rounded-xl text-sm sm:text-base hover:bg-jcoder-primary hover:text-black transition-all duration-300 font-semibold hover:shadow-lg hover:shadow-jcoder-primary/50 transform hover:scale-105 active:scale-95"
+                  >
+                    <svg className="w-5 h-5 group-hover:rotate-180 transition-transform duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    <span>Try again</span>
+                  </button>
+                  <button
+                    onClick={handleGoHome}
+                    className="group inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3 bg-jcoder-gradient text-black rounded-xl text-sm sm:text-base hover:opacity-90 transition-all duration-300 font-bold transform hover:scale-105 hover:shadow-xl hover:shadow-jcoder-primary/50 active:scale-95"
+                  >
+                    <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                    </svg>
+                    <span>Go to portfolio</span>
+                  </button>
+                </div>
               </div>
-            </div>
-          ) : error ? (
-            <div className="bg-jcoder-card/90 backdrop-blur-sm border border-red-400 rounded-2xl p-8 text-center shadow-xl shadow-red-500/10 transform-gpu transition-all duration-300">
-              <p className="text-red-400 text-lg font-medium mb-6">{error}</p>
-              <div className="mt-4 flex items-center justify-center gap-3">
-                <button
-                  onClick={handleRetry}
-                  className="inline-flex items-center gap-2 px-6 py-2 border border-jcoder-primary text-jcoder-primary rounded-lg text-sm hover:bg-jcoder-secondary transition-all duration-200 font-medium group"
-                >
-                  <svg className="w-5 h-5 group-hover:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            ) : !application ? (
+              <div className="bg-jcoder-card/90 backdrop-blur-sm border border-jcoder rounded-3xl p-8 sm:p-12 text-center shadow-2xl shadow-jcoder-primary/10">
+                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-jcoder-secondary/50 flex items-center justify-center">
+                  <svg className="w-8 h-8 text-jcoder-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  Try again
-                </button>
-                <button
-                  onClick={handleGoHome}
-                  className="inline-flex items-center gap-2 px-6 py-2 bg-jcoder-gradient text-black rounded-lg text-sm hover:opacity-90 transition-all duration-200 font-semibold transform-gpu hover:scale-105 hover:shadow-lg hover:shadow-jcoder-primary/50 active:scale-95 group"
-                >
-                  <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                  </svg>
-                  Go to portfolio
-                </button>
+                </div>
+                <h3 className="text-xl sm:text-2xl font-bold text-jcoder-foreground mb-2">Application not found</h3>
+                <p className="text-jcoder-muted text-sm sm:text-base">The application you're looking for doesn't exist or has been removed.</p>
               </div>
-            </div>
-          ) : !application ? (
-            <div className="bg-jcoder-card/90 backdrop-blur-sm border border-jcoder rounded-2xl p-8 text-center text-jcoder-muted shadow-xl shadow-jcoder-primary/10">
-              Application not found
-            </div>
-          ) : (
-            <ApplicationDetailsLayout application={application}>
-              {application.applicationType === ApplicationTypeEnum.API &&
-                application.applicationComponentApi && (
-                  <ApplicationApiDetails apiDetails={application.applicationComponentApi} />
-                )}
-
-              {application.applicationType === ApplicationTypeEnum.MOBILE &&
-                application.applicationComponentMobile && (
-                  <ApplicationMobileDetails mobileDetails={application.applicationComponentMobile} />
-                )}
-
-              {application.applicationType === ApplicationTypeEnum.LIBRARY &&
-                application.applicationComponentLibrary && (
-                  <ApplicationLibraryDetails libraryDetails={application.applicationComponentLibrary} />
-                )}
-
-              {application.applicationType === ApplicationTypeEnum.FRONTEND &&
-                application.applicationComponentFrontend && (
-                  <ApplicationFrontendDetails frontendDetails={application.applicationComponentFrontend} />
-                )}
-
-              {application.applicationType === ApplicationTypeEnum.FULLSTACK && (
-                <>
-                  {application.applicationComponentFrontend && (
-                    <ApplicationFrontendDetails frontendDetails={application.applicationComponentFrontend} />
-                  )}
-                  {application.applicationComponentApi && (
+            ) : (
+              <ApplicationDetailsLayout application={application}>
+                {application.applicationType === ApplicationTypeEnum.API &&
+                  application.applicationComponentApi && (
                     <ApplicationApiDetails apiDetails={application.applicationComponentApi} />
                   )}
-                </>
-              )}
-            </ApplicationDetailsLayout>
-          )}
+
+                {application.applicationType === ApplicationTypeEnum.MOBILE &&
+                  application.applicationComponentMobile && (
+                    <ApplicationMobileDetails mobileDetails={application.applicationComponentMobile} />
+                  )}
+
+                {application.applicationType === ApplicationTypeEnum.LIBRARY &&
+                  application.applicationComponentLibrary && (
+                    <ApplicationLibraryDetails libraryDetails={application.applicationComponentLibrary} />
+                  )}
+
+                {application.applicationType === ApplicationTypeEnum.FRONTEND &&
+                  application.applicationComponentFrontend && (
+                    <ApplicationFrontendDetails frontendDetails={application.applicationComponentFrontend} />
+                  )}
+
+                {application.applicationType === ApplicationTypeEnum.FULLSTACK && (
+                  <>
+                    {application.applicationComponentFrontend && (
+                      <ApplicationFrontendDetails frontendDetails={application.applicationComponentFrontend} />
+                    )}
+                    {application.applicationComponentApi && (
+                      <ApplicationApiDetails apiDetails={application.applicationComponentApi} />
+                    )}
+                  </>
+                )}
+              </ApplicationDetailsLayout>
+            )}
+          </div>
         </div>
       </main>
 
@@ -337,9 +356,31 @@ export default function ApplicationDetailPage() {
             background-position: 100% 50%;
           }
         }
+        @keyframes float {
+          0%, 100% {
+            transform: translateY(0px);
+          }
+          50% {
+            transform: translateY(-20px);
+          }
+        }
+        @keyframes bounce-slow {
+          0%, 100% {
+            transform: translateY(0);
+          }
+          50% {
+            transform: translateY(-10px);
+          }
+        }
         .animate-gradient {
           background-size: 200% 200%;
           animation: gradient 3s ease infinite;
+        }
+        .animate-float {
+          animation: float 6s ease-in-out infinite;
+        }
+        .animate-bounce-slow {
+          animation: bounce-slow 3s ease-in-out infinite;
         }
         .delay-1000 {
           animation-delay: 1s;

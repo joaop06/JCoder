@@ -1387,16 +1387,18 @@ export default function ProfileManagementPage() {
     if (checkingAuth || !isAuthenticated || loading) {
         return (
             <div className="min-h-screen flex flex-col bg-background overflow-hidden relative">
-                {/* WebGL Background - Animated 3D mesh */}
-                <Suspense fallback={null}>
-                    <WebGLBackground mouse={mousePosition} windowSize={windowSize} />
-                </Suspense>
+                {/* WebGL Background - Animated 3D mesh - Hidden on mobile for performance */}
+                <div className="hidden md:block">
+                    <Suspense fallback={null}>
+                        <WebGLBackground mouse={mousePosition} windowSize={windowSize} />
+                    </Suspense>
+                </div>
 
                 {/* Animated Background - CSS layers for depth */}
                 <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-                    {/* Gradient Orbs */}
+                    {/* Gradient Orbs - Smaller on mobile */}
                     <div
-                        className="absolute w-96 h-96 bg-jcoder-cyan/20 rounded-full blur-3xl animate-pulse"
+                        className="absolute w-48 h-48 sm:w-64 sm:h-64 md:w-96 md:h-96 bg-jcoder-cyan/20 rounded-full blur-3xl animate-pulse"
                         style={{
                             left: `${mousePosition.x / 20}px`,
                             top: `${mousePosition.y / 20}px`,
@@ -1404,7 +1406,7 @@ export default function ProfileManagementPage() {
                         }}
                     />
                     <div
-                        className="absolute w-96 h-96 bg-jcoder-blue/20 rounded-full blur-3xl animate-pulse delay-1000"
+                        className="absolute w-48 h-48 sm:w-64 sm:h-64 md:w-96 md:h-96 bg-jcoder-blue/20 rounded-full blur-3xl animate-pulse delay-1000"
                         style={{
                             right: `${mousePosition.x / 25}px`,
                             bottom: `${mousePosition.y / 25}px`,
@@ -1412,12 +1414,12 @@ export default function ProfileManagementPage() {
                         }}
                     />
 
-                    {/* Grid Pattern */}
-                    <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]" />
+                    {/* Grid Pattern - Smaller on mobile */}
+                    <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:16px_16px] md:bg-[size:24px_24px]" />
                 </div>
 
                 <Header isAdmin={true} onLogout={handleLogout} />
-                <main className="flex-1 container mx-auto px-4 pt-24 pb-12 relative z-10">
+                <main className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 pt-16 sm:pt-24 pb-6 sm:pb-12 relative z-10">
                     <div className="max-w-6xl mx-auto">
                         <TableSkeleton />
                     </div>
@@ -1429,16 +1431,18 @@ export default function ProfileManagementPage() {
 
     return (
         <div className="min-h-screen flex flex-col bg-background overflow-hidden relative">
-            {/* WebGL Background - Animated 3D mesh */}
-            <Suspense fallback={null}>
-                <WebGLBackground mouse={mousePosition} windowSize={windowSize} />
-            </Suspense>
+            {/* WebGL Background - Animated 3D mesh - Hidden on mobile for performance */}
+            <div className="hidden md:block">
+                <Suspense fallback={null}>
+                    <WebGLBackground mouse={mousePosition} windowSize={windowSize} />
+                </Suspense>
+            </div>
 
             {/* Animated Background - CSS layers for depth */}
             <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-                {/* Gradient Orbs */}
+                {/* Gradient Orbs - Smaller on mobile */}
                 <div
-                    className="absolute w-96 h-96 bg-jcoder-cyan/20 rounded-full blur-3xl animate-pulse"
+                    className="absolute w-48 h-48 sm:w-64 sm:h-64 md:w-96 md:h-96 bg-jcoder-cyan/20 rounded-full blur-3xl animate-pulse"
                     style={{
                         left: `${mousePosition.x / 20}px`,
                         top: `${mousePosition.y / 20}px`,
@@ -1446,7 +1450,7 @@ export default function ProfileManagementPage() {
                     }}
                 />
                 <div
-                    className="absolute w-96 h-96 bg-jcoder-blue/20 rounded-full blur-3xl animate-pulse delay-1000"
+                    className="absolute w-48 h-48 sm:w-64 sm:h-64 md:w-96 md:h-96 bg-jcoder-blue/20 rounded-full blur-3xl animate-pulse delay-1000"
                     style={{
                         right: `${mousePosition.x / 25}px`,
                         bottom: `${mousePosition.y / 25}px`,
@@ -1454,15 +1458,15 @@ export default function ProfileManagementPage() {
                     }}
                 />
 
-                {/* Grid Pattern */}
-                <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]" />
+                {/* Grid Pattern - Smaller on mobile */}
+                <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:16px_16px] md:bg-[size:24px_24px]" />
             </div>
 
             <Header isAdmin={true} onLogout={handleLogout} />
 
-            <main className="flex-1 container mx-auto px-4 pt-24 pb-12 relative z-10">
-                {/* 3D Particles in Background */}
-                <div className="fixed inset-0 pointer-events-none z-0">
+            <main className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 pt-16 sm:pt-24 pb-6 sm:pb-12 relative z-10">
+                {/* 3D Particles in Background - Hidden on mobile for performance */}
+                <div className="hidden md:block fixed inset-0 pointer-events-none z-0">
                     <Suspense fallback={null}>
                         <Canvas
                             camera={{ position: [0, 0, 5], fov: 75 }}
@@ -1489,15 +1493,15 @@ export default function ProfileManagementPage() {
 
                 <div className={`max-w-6xl mx-auto transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
                     {/* Breadcrumb */}
-                    <nav className="mb-6">
-                        <ol className="flex items-center gap-2 text-sm text-jcoder-muted">
+                    <nav className="mb-4 sm:mb-6">
+                        <ol className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-jcoder-muted">
                             <li>
                                 <button onClick={() => router.push(`/${username}/admin`)} className="hover:text-jcoder-primary transition-colors group">
                                     <span className="group-hover:underline">Admin</span>
                                 </button>
                             </li>
                             <li>
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                                 </svg>
                             </li>
@@ -1506,28 +1510,28 @@ export default function ProfileManagementPage() {
                     </nav>
 
                     {/* Page Header */}
-                    <div className="mb-8">
-                        <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-jcoder-cyan via-jcoder-primary to-jcoder-blue animate-gradient">
+                    <div className="mb-6 sm:mb-8">
+                        <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-jcoder-cyan via-jcoder-primary to-jcoder-blue animate-gradient">
                             My Profile
                         </h1>
-                        <p className="text-base md:text-lg text-jcoder-muted">Manage your profile and portfolio information</p>
+                        <p className="text-sm sm:text-base md:text-lg text-jcoder-muted">Manage your profile and portfolio information</p>
                     </div>
 
                     {/* Profile Header Card */}
                     <div
-                        className="bg-jcoder-card/90 backdrop-blur-sm border border-jcoder rounded-2xl overflow-hidden mb-6 shadow-xl shadow-jcoder-primary/10 transform-gpu transition-all duration-300 hover:shadow-2xl hover:shadow-jcoder-primary/20 hover:-translate-y-1"
+                        className="bg-jcoder-card/90 backdrop-blur-sm border border-jcoder rounded-2xl overflow-hidden mb-4 sm:mb-6 shadow-xl shadow-jcoder-primary/10 transform-gpu transition-all duration-300 md:hover:shadow-2xl md:hover:shadow-jcoder-primary/20 md:hover:-translate-y-1"
                         style={{
-                            transform: `perspective(1000px) rotateX(${-(mousePosition.y / windowSize.height - 0.5) * 1}deg) rotateY(${(mousePosition.x / windowSize.width - 0.5) * 1}deg) translateZ(0)`,
+                            transform: windowSize.width >= 768 ? `perspective(1000px) rotateX(${-(mousePosition.y / windowSize.height - 0.5) * 1}deg) rotateY(${(mousePosition.x / windowSize.width - 0.5) * 1}deg) translateZ(0)` : 'none',
                         }}
                     >
                         {/* Gradient Header */}
-                        <div className="h-24 md:h-32 bg-gradient-to-r from-purple-500 via-pink-500 to-purple-600"></div>
+                        <div className="h-20 sm:h-24 md:h-32 bg-gradient-to-r from-purple-500 via-pink-500 to-purple-600"></div>
 
-                        <div className="px-4 md:px-8 pb-6 md:pb-8">
-                            <div className="flex flex-col md:flex-row md:items-end md:justify-between -mt-16 mb-6">
-                                <div className="flex flex-col sm:flex-row items-center sm:items-end gap-4 mb-4 md:mb-0">
+                        <div className="px-4 sm:px-6 md:px-8 pb-4 sm:pb-6 md:pb-8">
+                            <div className="flex flex-col md:flex-row md:items-end md:justify-between -mt-12 sm:-mt-14 md:-mt-16 mb-4 sm:mb-6">
+                                <div className="flex flex-col sm:flex-row items-center sm:items-end gap-3 sm:gap-4 mb-4 md:mb-0">
                                     <div className="relative group">
-                                        <div className="relative w-32 h-32 rounded-full overflow-hidden border-4 border-jcoder-card bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-jcoder-primary/50"
+                                        <div className="relative w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-full overflow-hidden border-4 border-jcoder-card bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-jcoder-primary/50"
                                             onClick={handleProfileImageClick}
                                             title={user?.profileImage ? 'Click to change photo' : 'Click to upload photo'}
                                         >
@@ -1538,7 +1542,7 @@ export default function ProfileManagementPage() {
                                                 fallback={getInitial()}
                                             />
                                         ) : (
-                                                <span className="text-white font-bold text-4xl">
+                                                <span className="text-white font-bold text-2xl sm:text-3xl md:text-4xl">
                                                     {getInitial()}
                                                 </span>
                                             )}
@@ -1546,12 +1550,12 @@ export default function ProfileManagementPage() {
                                             <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center rounded-full">
                                                 <div className="text-center">
                                                     {uploadingProfileImage ? (
-                                                        <svg className="animate-spin h-8 w-8 text-white mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                        <svg className="animate-spin h-6 w-6 sm:h-8 sm:w-8 text-white mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                                         </svg>
                                                     ) : (
-                                                        <svg className="w-8 h-8 text-white mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <svg className="w-6 h-6 sm:w-8 sm:h-8 text-white mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                                                         </svg>
@@ -1571,16 +1575,16 @@ export default function ProfileManagementPage() {
                                                     handleDeleteProfileImage();
                                                 }}
                                                 disabled={deletingProfileImage || uploadingProfileImage}
-                                                className="absolute -bottom-2 -right-2 w-8 h-8 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed z-10"
+                                                className="absolute -bottom-1 -right-1 sm:-bottom-2 sm:-right-2 w-6 h-6 sm:w-8 sm:h-8 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed z-10"
                                                 title="Remove profile image"
                                             >
                                                 {deletingProfileImage ? (
-                                                    <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                    <svg className="animate-spin h-3 w-3 sm:h-4 sm:w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                                     </svg>
                                                 ) : (
-                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                                     </svg>
                                                 )}
@@ -1588,12 +1592,12 @@ export default function ProfileManagementPage() {
                                         )}
                                     </div>
                                     <div className="text-center sm:text-left mb-4 sm:mb-0">
-                                        <h2 className="text-xl md:text-2xl font-bold text-jcoder-foreground">
+                                        <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-jcoder-foreground">
                                             {user?.fullName || user?.firstName || 'User'}
                                         </h2>
-                                        <p className="text-sm md:text-base text-jcoder-muted">{user?.email}</p>
+                                        <p className="text-xs sm:text-sm md:text-base text-jcoder-muted">{user?.email}</p>
                                         {aboutMe?.occupation && (
-                                            <p className="text-sm md:text-base text-jcoder-primary font-medium mt-1">
+                                            <p className="text-xs sm:text-sm md:text-base text-jcoder-primary font-medium mt-1">
                                                 {aboutMe.occupation}
                                             </p>
                                         )}
@@ -1602,7 +1606,7 @@ export default function ProfileManagementPage() {
                             </div>
 
                             {/* Stats */}
-                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
+                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mt-4 sm:mt-6">
                                 <StatsCard
                                     icon={<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>}
                                     label="Education"
@@ -1900,18 +1904,18 @@ export default function ProfileManagementPage() {
                                     </div>
 
                                     {/* Action Buttons */}
-                                    <div className="flex items-center justify-end gap-3 pt-4">
+                                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 pt-4">
                                         <button
                                             onClick={handleCancelBasicInfo}
                                             disabled={isSaving}
-                                            className="px-4 py-2 border border-jcoder text-jcoder-foreground rounded-lg hover:border-jcoder-primary transition-colors text-sm md:text-base"
+                                            className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 border border-jcoder text-jcoder-foreground rounded-lg hover:border-jcoder-primary transition-colors text-sm sm:text-base"
                                         >
                                             Cancel
                                         </button>
                                         <button
                                             onClick={handleSaveBasicInfo}
                                             disabled={isSaving}
-                                            className="px-4 py-2 bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity font-medium disabled:opacity-50 text-sm md:text-base"
+                                            className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity font-medium disabled:opacity-50 text-sm sm:text-base"
                                         >
                                             {isSaving ? 'Saving...' : 'Save Changes'}
                                         </button>
@@ -2080,18 +2084,18 @@ export default function ProfileManagementPage() {
                                     </div>
 
                                     {/* Action Buttons */}
-                                    <div className="flex items-center justify-end gap-3 pt-4">
+                                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 pt-4">
                                         <button
                                             onClick={handleCancelAboutMe}
                                             disabled={isSaving}
-                                            className="px-4 py-2 border border-jcoder text-jcoder-foreground rounded-lg hover:border-jcoder-primary transition-colors text-sm md:text-base"
+                                            className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 border border-jcoder text-jcoder-foreground rounded-lg hover:border-jcoder-primary transition-colors text-sm sm:text-base"
                                         >
                                             Cancel
                                         </button>
                                         <button
                                             onClick={handleSaveAboutMe}
                                             disabled={isSaving}
-                                            className="px-4 py-2 bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity font-medium disabled:opacity-50 text-sm md:text-base"
+                                            className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity font-medium disabled:opacity-50 text-sm sm:text-base"
                                         >
                                             {isSaving ? 'Saving...' : 'Save'}
                                         </button>
@@ -2227,18 +2231,18 @@ export default function ProfileManagementPage() {
                                     </div>
 
                                     {/* Action Buttons */}
-                                    <div className="flex items-center justify-end gap-3 pt-4">
+                                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 pt-4">
                                         <button
                                             onClick={handleCancelEducation}
                                             disabled={isSaving}
-                                            className="px-4 py-2 border border-jcoder text-jcoder-foreground rounded-lg hover:border-jcoder-primary transition-colors text-sm md:text-base"
+                                            className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 border border-jcoder text-jcoder-foreground rounded-lg hover:border-jcoder-primary transition-colors text-sm sm:text-base"
                                         >
                                             Cancel
                                         </button>
                                         <button
                                             onClick={handleSaveEducation}
                                             disabled={isSaving}
-                                            className="px-4 py-2 bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity font-medium disabled:opacity-50 text-sm md:text-base"
+                                            className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity font-medium disabled:opacity-50 text-sm sm:text-base"
                                         >
                                             {isSaving ? 'Saving...' : editingEducationId ? 'Update' : 'Create'}
                                         </button>
@@ -2325,18 +2329,18 @@ export default function ProfileManagementPage() {
                                             </div>
 
                                             {/* Action Buttons for Company */}
-                                            <div className="flex items-center justify-end gap-3 pt-4 border-t border-jcoder">
+                                            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 pt-4 border-t border-jcoder">
                                                 <button
                                                     onClick={handleCancelExperience}
                                                     disabled={isSaving}
-                                                    className="px-4 py-2 border border-jcoder text-jcoder-foreground rounded-lg hover:border-jcoder-primary transition-colors text-sm md:text-base"
+                                                    className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 border border-jcoder text-jcoder-foreground rounded-lg hover:border-jcoder-primary transition-colors text-sm sm:text-base"
                                                 >
                                                     Cancel
                                                 </button>
                                                 <button
                                                     onClick={handleSaveExperience}
                                                     disabled={isSaving}
-                                                    className="px-4 py-2 bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity font-medium disabled:opacity-50 text-sm md:text-base"
+                                                    className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity font-medium disabled:opacity-50 text-sm sm:text-base"
                                                 >
                                                     {isSaving ? 'Saving...' : editingExperienceId ? 'Update Company' : 'Create Company'}
                                                 </button>
@@ -2443,18 +2447,18 @@ export default function ProfileManagementPage() {
                                                                 <span className="text-xs font-medium text-jcoder-foreground">Currently working in this position</span>
                                                             </label>
                                                         </div>
-                                                        <div className="flex items-center justify-end gap-2 pt-2">
+                                                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-2 pt-2">
                                                             <button
                                                                 onClick={handleCancelPosition}
                                                                 disabled={isSaving}
-                                                                className="px-3 py-1.5 text-xs border border-jcoder text-jcoder-foreground rounded-lg hover:border-jcoder-primary transition-colors"
+                                                                className="w-full sm:w-auto px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm border border-jcoder text-jcoder-foreground rounded-lg hover:border-jcoder-primary transition-colors"
                                                             >
                                                                 Cancel
                                                             </button>
                                                             <button
                                                                 onClick={() => handleSavePosition(editingExperienceId)}
                                                                 disabled={isSaving}
-                                                                className="px-3 py-1.5 text-xs bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity font-medium disabled:opacity-50"
+                                                                className="w-full sm:w-auto px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity font-medium disabled:opacity-50"
                                                             >
                                                                 {isSaving ? 'Saving...' : editingPositionIndex !== null ? 'Update' : 'Add'}
                                                             </button>
@@ -2692,18 +2696,18 @@ export default function ProfileManagementPage() {
                                     )}
 
                                     {/* Action Buttons */}
-                                    <div className="flex items-center justify-end gap-3 pt-4">
+                                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 pt-4">
                                         <button
                                             onClick={handleCancelCertificate}
                                             disabled={isSaving}
-                                            className="px-4 py-2 border border-jcoder text-jcoder-foreground rounded-lg hover:border-jcoder-primary transition-colors text-sm md:text-base"
+                                            className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 border border-jcoder text-jcoder-foreground rounded-lg hover:border-jcoder-primary transition-colors text-sm sm:text-base"
                                         >
                                             Cancel
                                         </button>
                                         <button
                                             onClick={handleSaveCertificate}
                                             disabled={isSaving}
-                                            className="px-4 py-2 bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity font-medium disabled:opacity-50 text-sm md:text-base"
+                                            className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity font-medium disabled:opacity-50 text-sm sm:text-base"
                                         >
                                             {isSaving ? 'Saving...' : editingCertificateId ? 'Update' : 'Create'}
                                         </button>

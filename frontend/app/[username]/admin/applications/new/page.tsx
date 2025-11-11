@@ -427,7 +427,7 @@ export default function NewApplicationPage() {
                 <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
                     {/* Gradient Orbs */}
                     <div
-                        className="absolute w-96 h-96 bg-jcoder-cyan/20 rounded-full blur-3xl animate-pulse"
+                        className="absolute w-48 h-48 sm:w-64 sm:h-64 md:w-96 md:h-96 bg-jcoder-cyan/20 rounded-full blur-3xl animate-pulse"
                         style={{
                             left: `${mousePosition.x / 20}px`,
                             top: `${mousePosition.y / 20}px`,
@@ -435,7 +435,7 @@ export default function NewApplicationPage() {
                         }}
                     />
                     <div
-                        className="absolute w-96 h-96 bg-jcoder-blue/20 rounded-full blur-3xl animate-pulse delay-1000"
+                        className="absolute w-48 h-48 sm:w-64 sm:h-64 md:w-96 md:h-96 bg-jcoder-blue/20 rounded-full blur-3xl animate-pulse delay-1000"
                         style={{
                             right: `${mousePosition.x / 25}px`,
                             bottom: `${mousePosition.y / 25}px`,
@@ -448,14 +448,16 @@ export default function NewApplicationPage() {
                 </div>
 
                 <Header isAdmin={true} onLogout={() => router.push(`/${username}`)} />
-                <main className="flex-1 container mx-auto px-4 py-12 pt-24 relative z-10">
-                    <div className="max-w-4xl mx-auto">
-                        <div className="mb-8">
-                            <div className="h-8 w-48 bg-jcoder-secondary rounded-lg mb-2 animate-pulse"></div>
-                            <div className="h-4 w-64 bg-jcoder-secondary rounded-lg animate-pulse"></div>
-                        </div>
-                        <div className="bg-jcoder-card border border-jcoder rounded-lg p-6">
-                            <TableSkeleton />
+                <main className="flex-1 relative z-10 pt-20 sm:pt-24">
+                    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-12 relative z-10">
+                        <div className="max-w-4xl mx-auto">
+                            <div className="mb-6 sm:mb-8">
+                                <div className="h-6 sm:h-8 w-32 sm:w-48 bg-jcoder-secondary rounded-lg mb-2 animate-pulse"></div>
+                                <div className="h-3 sm:h-4 w-48 sm:w-64 bg-jcoder-secondary rounded-lg animate-pulse"></div>
+                            </div>
+                            <div className="bg-jcoder-card/80 backdrop-blur-sm border border-jcoder rounded-2xl p-6 sm:p-8 shadow-xl shadow-jcoder-primary/10">
+                                <TableSkeleton />
+                            </div>
                         </div>
                     </div>
                 </main>
@@ -475,7 +477,7 @@ export default function NewApplicationPage() {
             <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
                 {/* Gradient Orbs */}
                 <div
-                    className="absolute w-96 h-96 bg-jcoder-cyan/20 rounded-full blur-3xl animate-pulse"
+                    className="absolute w-48 h-48 sm:w-64 sm:h-64 md:w-96 md:h-96 bg-jcoder-cyan/20 rounded-full blur-3xl animate-pulse"
                     style={{
                         left: `${mousePosition.x / 20}px`,
                         top: `${mousePosition.y / 20}px`,
@@ -483,7 +485,7 @@ export default function NewApplicationPage() {
                     }}
                 />
                 <div
-                    className="absolute w-96 h-96 bg-jcoder-blue/20 rounded-full blur-3xl animate-pulse delay-1000"
+                    className="absolute w-48 h-48 sm:w-64 sm:h-64 md:w-96 md:h-96 bg-jcoder-blue/20 rounded-full blur-3xl animate-pulse delay-1000"
                     style={{
                         right: `${mousePosition.x / 25}px`,
                         bottom: `${mousePosition.y / 25}px`,
@@ -497,9 +499,9 @@ export default function NewApplicationPage() {
 
             <Header isAdmin={true} onLogout={() => router.push(`/${username}`)} />
 
-            <main className="flex-1 container mx-auto px-4 py-12 pt-24 relative z-10">
+            <main className="flex-1 relative z-10 pt-20 sm:pt-24">
                 {/* 3D Particles in Background */}
-                <div className="fixed inset-0 pointer-events-none z-0">
+                <div className="absolute inset-0 pointer-events-none z-0">
                     <Suspense fallback={null}>
                         <Canvas
                             camera={{ position: [0, 0, 5], fov: 75 }}
@@ -511,8 +513,8 @@ export default function NewApplicationPage() {
                     </Suspense>
                 </div>
 
-                {/* 3D Logo Element (optional, subtle) - Desktop only */}
-                <div className="absolute top-20 right-10 w-32 h-32 pointer-events-none opacity-20 hidden lg:block">
+                {/* 3D Logo Element - Desktop only */}
+                <div className="absolute top-20 right-10 w-32 h-32 pointer-events-none opacity-20 hidden lg:block z-0">
                     <Suspense fallback={null}>
                         <Canvas
                             camera={{ position: [0, 0, 3], fov: 75 }}
@@ -524,95 +526,117 @@ export default function NewApplicationPage() {
                     </Suspense>
                 </div>
 
-                <div className={`max-w-4xl mx-auto transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-                    {/* Back Button */}
-                    <button
-                        onClick={() => router.back()}
-                        className="inline-flex items-center gap-2 text-jcoder-muted hover:text-jcoder-primary transition-all duration-200 mb-8 group"
-                    >
-                        <svg className="w-5 h-5 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                        </svg>
-                        Back
-                    </button>
+                <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-12 relative z-10">
+                    <div className={`max-w-4xl mx-auto transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+                        {/* Back Button */}
+                        <button
+                            onClick={() => router.back()}
+                            className="group inline-flex items-center gap-2 px-4 py-2 mb-6 sm:mb-8 text-jcoder-muted hover:text-jcoder-primary border border-jcoder/50 hover:border-jcoder-primary rounded-lg transition-all duration-300 hover:bg-jcoder-secondary/50 hover:shadow-lg hover:shadow-jcoder-primary/20 text-sm sm:text-base font-medium"
+                        >
+                            <svg className="w-4 h-4 sm:w-5 sm:h-5 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                            </svg>
+                            <span>Back</span>
+                        </button>
 
-                    <div className="mb-8">
-                        <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-jcoder-cyan via-jcoder-primary to-jcoder-blue animate-gradient">
-                            New Application
-                        </h1>
-                        <p className="text-base md:text-lg text-jcoder-muted">Create a new application for your portfolio</p>
-                    </div>
-
-                    <div
-                        className="bg-jcoder-card/90 backdrop-blur-sm border border-jcoder rounded-2xl p-6 md:p-8 shadow-xl shadow-jcoder-primary/10 transform-gpu transition-all duration-300 hover:shadow-2xl hover:shadow-jcoder-primary/20 hover:-translate-y-1"
-                        style={{
-                            transform: `perspective(1000px) rotateX(${-(mousePosition.y / windowSize.height - 0.5) * 2}deg) rotateY(${(mousePosition.x / windowSize.width - 0.5) * 2}deg) translateZ(0)`,
-                        }}
-                    >
-                        <form onSubmit={handleSubmit}>
-                            {formError && (
-                                <div className="mb-4 p-3 border border-red-400 bg-red-900/20 text-red-400 rounded">
-                                    {formError}
-                                </div>
-                            )}
-
-                            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                                <div>
-                                    <label htmlFor="name" className="block text-sm font-medium text-jcoder-muted">Name</label>
-                                    <input
-                                        type="text"
-                                        name="name"
-                                        id="name"
-                                        value={formData.name}
-                                        onChange={handleChange}
-                                        required
-                                        className="mt-1 block w-full border border-jcoder rounded-lg shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted hover:border-jcoder-primary/50"
-                                    />
-                                </div>
-                                <div>
-                                    <label htmlFor="description" className="block text-sm font-medium text-jcoder-muted">Description</label>
-                                    <textarea
-                                        name="description"
-                                        id="description"
-                                        value={formData.description}
-                                        onChange={handleChange}
-                                        required
-                                        rows={3}
-                                        className="mt-1 block w-full border border-jcoder rounded-lg shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted hover:border-jcoder-primary/50"
-                                    ></textarea>
-                                </div>
-                                <div>
-                                    <label htmlFor="applicationType" className="block text-sm font-medium text-jcoder-muted">Application Type</label>
-                                    <select
-                                        name="applicationType"
-                                        id="applicationType"
-                                        value={formData.applicationType}
-                                        onChange={handleChange}
-                                        required
-                                        className="mt-1 block w-full border border-jcoder rounded-lg shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-jcoder-foreground hover:border-jcoder-primary/50"
+                        <div className="mb-6 sm:mb-8">
+                            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-2 sm:mb-3">
+                                <span className="relative inline-block">
+                                    {/* Base text visible as fallback */}
+                                    <span className="text-jcoder-foreground opacity-100">
+                                        New Application
+                                    </span>
+                                    {/* Gradient on top with animation */}
+                                    <span
+                                        className="absolute inset-0 inline-block animate-gradient"
+                                        style={{
+                                            background: 'linear-gradient(to right, #00c8ff, #00c8ff, #0050a0)',
+                                            backgroundSize: '200% 200%',
+                                            WebkitBackgroundClip: 'text',
+                                            WebkitTextFillColor: 'transparent',
+                                            backgroundClip: 'text',
+                                        }}
                                     >
-                                        {Object.values(ApplicationTypeEnum).map((type) => (
-                                            <option key={type} value={type}>{type}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label htmlFor="githubUrl" className="block text-sm font-medium text-jcoder-muted">GitHub URL (Optional)</label>
-                                    <input
-                                        type="url"
-                                        name="githubUrl"
-                                        id="githubUrl"
-                                        value={formData.githubUrl || ''}
-                                        onChange={handleChange}
-                                        className="mt-1 block w-full border border-jcoder rounded-lg shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted hover:border-jcoder-primary/50"
-                                    />
-                                </div>
-                            </div>
+                                        New Application
+                                    </span>
+                                </span>
+                            </h1>
+                            <p className="text-sm sm:text-base md:text-lg text-jcoder-muted">Create a new application for your portfolio</p>
+                        </div>
 
-                            {/* Conditional Component Fields */}
-                            {formData.applicationType === ApplicationTypeEnum.API && (
-                                <div className="mt-6 pt-6 border-t border-jcoder border-l-4 border-jcoder-primary pl-4">
-                                    <h3 className="text-lg font-medium text-jcoder-foreground mb-4">API Component Details</h3>
+                        <div className="bg-jcoder-card/80 backdrop-blur-sm border border-jcoder rounded-3xl p-6 sm:p-8 md:p-12 shadow-2xl shadow-jcoder-primary/10 transform-gpu transition-all duration-500 hover:shadow-jcoder-primary/20 hover:-translate-y-1">
+                            <form onSubmit={handleSubmit}>
+                                {formError && (
+                                    <div className="mb-6 p-4 border border-red-400/50 bg-red-900/20 backdrop-blur-sm text-red-400 rounded-xl shadow-lg shadow-red-500/10 text-sm sm:text-base">
+                                        <div className="flex items-center gap-2">
+                                            <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            <span>{formError}</span>
+                                        </div>
+                                    </div>
+                                )}
+
+                                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                                    <div>
+                                        <label htmlFor="name" className="block text-sm font-semibold text-jcoder-foreground mb-2">Name</label>
+                                        <input
+                                            type="text"
+                                            name="name"
+                                            id="name"
+                                            value={formData.name}
+                                            onChange={handleChange}
+                                            required
+                                            className="block w-full border border-jcoder rounded-xl shadow-sm py-3 px-4 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted hover:border-jcoder-primary/50"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label htmlFor="description" className="block text-sm font-semibold text-jcoder-foreground mb-2">Description</label>
+                                        <textarea
+                                            name="description"
+                                            id="description"
+                                            value={formData.description}
+                                            onChange={handleChange}
+                                            required
+                                            rows={3}
+                                            className="block w-full border border-jcoder rounded-xl shadow-sm py-3 px-4 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted hover:border-jcoder-primary/50 resize-none"
+                                        ></textarea>
+                                    </div>
+                                    <div>
+                                        <label htmlFor="applicationType" className="block text-sm font-semibold text-jcoder-foreground mb-2">Application Type</label>
+                                        <select
+                                            name="applicationType"
+                                            id="applicationType"
+                                            value={formData.applicationType}
+                                            onChange={handleChange}
+                                            required
+                                            className="block w-full border border-jcoder rounded-xl shadow-sm py-3 px-4 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-jcoder-foreground hover:border-jcoder-primary/50"
+                                        >
+                                            {Object.values(ApplicationTypeEnum).map((type) => (
+                                                <option key={type} value={type}>{type}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label htmlFor="githubUrl" className="block text-sm font-semibold text-jcoder-foreground mb-2">GitHub URL <span className="text-jcoder-muted font-normal">(Optional)</span></label>
+                                        <input
+                                            type="url"
+                                            name="githubUrl"
+                                            id="githubUrl"
+                                            value={formData.githubUrl || ''}
+                                            onChange={handleChange}
+                                            className="block w-full border border-jcoder rounded-xl shadow-sm py-3 px-4 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted hover:border-jcoder-primary/50"
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Conditional Component Fields */}
+                                {formData.applicationType === ApplicationTypeEnum.API && (
+                                    <div className="mt-8 pt-8 border-t border-jcoder border-l-4 border-jcoder-primary pl-4 sm:pl-6">
+                                        <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-jcoder-foreground mb-4 sm:mb-6 flex items-center gap-2">
+                                            <span className="w-1 h-6 sm:h-8 bg-jcoder-gradient rounded-full"></span>
+                                            <span>API Component Details</span>
+                                        </h3>
                                     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                                         <div>
                                             <label htmlFor="api-domain" className="block text-sm font-medium text-jcoder-muted">Domain</label>
@@ -664,9 +688,12 @@ export default function NewApplicationPage() {
                                 </div>
                             )}
 
-                            {formData.applicationType === ApplicationTypeEnum.FRONTEND && (
-                                <div className="mt-6 pt-6 border-t border-jcoder border-l-4 border-jcoder-primary pl-4">
-                                    <h3 className="text-lg font-medium text-jcoder-foreground mb-4">Frontend Component Details</h3>
+                                {formData.applicationType === ApplicationTypeEnum.FRONTEND && (
+                                    <div className="mt-8 pt-8 border-t border-jcoder border-l-4 border-jcoder-primary pl-4 sm:pl-6">
+                                        <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-jcoder-foreground mb-4 sm:mb-6 flex items-center gap-2">
+                                            <span className="w-1 h-6 sm:h-8 bg-jcoder-gradient rounded-full"></span>
+                                            <span>Frontend Component Details</span>
+                                        </h3>
                                     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                                         <div>
                                             <label htmlFor="frontend-frontendUrl" className="block text-sm font-medium text-jcoder-muted">Frontend URL</label>
@@ -695,9 +722,12 @@ export default function NewApplicationPage() {
                                 </div>
                             )}
 
-                            {formData.applicationType === ApplicationTypeEnum.MOBILE && (
-                                <div className="mt-6 pt-6 border-t border-jcoder border-l-4 border-jcoder-primary pl-4">
-                                    <h3 className="text-lg font-medium text-jcoder-foreground mb-4">Mobile Component Details</h3>
+                                {formData.applicationType === ApplicationTypeEnum.MOBILE && (
+                                    <div className="mt-8 pt-8 border-t border-jcoder border-l-4 border-jcoder-primary pl-4 sm:pl-6">
+                                        <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-jcoder-foreground mb-4 sm:mb-6 flex items-center gap-2">
+                                            <span className="w-1 h-6 sm:h-8 bg-jcoder-gradient rounded-full"></span>
+                                            <span>Mobile Component Details</span>
+                                        </h3>
                                     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                                         <div>
                                             <label htmlFor="mobile-platform" className="block text-sm font-medium text-jcoder-muted">Platform</label>
@@ -729,9 +759,12 @@ export default function NewApplicationPage() {
                                 </div>
                             )}
 
-                            {formData.applicationType === ApplicationTypeEnum.LIBRARY && (
-                                <div className="mt-6 pt-6 border-t border-jcoder border-l-4 border-jcoder-primary pl-4">
-                                    <h3 className="text-lg font-medium text-jcoder-foreground mb-4">Library Component Details</h3>
+                                {formData.applicationType === ApplicationTypeEnum.LIBRARY && (
+                                    <div className="mt-8 pt-8 border-t border-jcoder border-l-4 border-jcoder-primary pl-4 sm:pl-6">
+                                        <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-jcoder-foreground mb-4 sm:mb-6 flex items-center gap-2">
+                                            <span className="w-1 h-6 sm:h-8 bg-jcoder-gradient rounded-full"></span>
+                                            <span>Library Component Details</span>
+                                        </h3>
                                     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                                         <div>
                                             <label htmlFor="library-packageManagerUrl" className="block text-sm font-medium text-jcoder-muted">Package Manager URL</label>
@@ -760,9 +793,12 @@ export default function NewApplicationPage() {
                                 </div>
                             )}
 
-                            {formData.applicationType === ApplicationTypeEnum.FULLSTACK && (
-                                <div className="mt-6 pt-6 border-t border-jcoder border-l-4 border-jcoder-primary pl-4">
-                                    <h3 className="text-lg font-medium text-jcoder-foreground mb-4">Frontend Component Details</h3>
+                                {formData.applicationType === ApplicationTypeEnum.FULLSTACK && (
+                                    <div className="mt-8 pt-8 border-t border-jcoder border-l-4 border-jcoder-primary pl-4 sm:pl-6">
+                                        <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-jcoder-foreground mb-4 sm:mb-6 flex items-center gap-2">
+                                            <span className="w-1 h-6 sm:h-8 bg-jcoder-gradient rounded-full"></span>
+                                            <span>Frontend Component Details</span>
+                                        </h3>
                                     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                                         <div>
                                             <label htmlFor="fullstack-frontendUrl" className="block text-sm font-medium text-jcoder-muted">Frontend URL</label>
@@ -788,7 +824,10 @@ export default function NewApplicationPage() {
                                             />
                                         </div>
                                     </div>
-                                    <h3 className="text-lg font-medium text-jcoder-foreground mb-4 mt-6">API Component Details (for Fullstack)</h3>
+                                        <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-jcoder-foreground mb-4 sm:mb-6 mt-6 sm:mt-8 flex items-center gap-2">
+                                            <span className="w-1 h-6 sm:h-8 bg-jcoder-gradient rounded-full"></span>
+                                            <span>API Component Details (for Fullstack)</span>
+                                        </h3>
                                     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                                         <div>
                                             <label htmlFor="fullstack-api-domain" className="block text-sm font-medium text-jcoder-muted">Domain</label>
@@ -840,12 +879,12 @@ export default function NewApplicationPage() {
                                 </div>
                             )}
 
-                            {/* Technologies Section */}
-                            <div className="mt-6 pt-6 border-t border-jcoder border-l-4 border-jcoder-primary pl-4">
-                                <div className="flex items-center justify-between mb-4">
-                                    <div>
-                                        <h3 className="text-lg font-medium text-jcoder-foreground">Technologies</h3>
-                                        <p className="text-sm text-jcoder-muted mt-1">
+                                {/* Technologies Section */}
+                                <div className="mt-8 pt-8 border-t border-jcoder border-l-4 border-jcoder-primary pl-4 sm:pl-6">
+                                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0 mb-4">
+                                    <div className="flex-1">
+                                        <h3 className="text-base sm:text-lg font-medium text-jcoder-foreground">Technologies</h3>
+                                        <p className="text-xs sm:text-sm text-jcoder-muted mt-1">
                                             Select the technologies used in this application
                                         </p>
                                     </div>
@@ -853,9 +892,9 @@ export default function NewApplicationPage() {
                                         type="button"
                                         onClick={() => setShowCreateTechnologyModal(true)}
                                         disabled={loading}
-                                        className="inline-flex items-center gap-2 px-4 py-2 bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-sm transform-gpu hover:scale-105 hover:shadow-lg hover:shadow-jcoder-primary/50 active:scale-95 group"
+                                        className="inline-flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-xs sm:text-sm transform-gpu hover:scale-105 hover:shadow-lg hover:shadow-jcoder-primary/50 active:scale-95 group flex-shrink-0"
                                     >
-                                        <svg className="w-5 h-5 group-hover:rotate-90 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg className="w-4 h-4 sm:w-5 sm:h-5 group-hover:rotate-90 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                                         </svg>
                                         Nova Tecnologia
@@ -874,14 +913,17 @@ export default function NewApplicationPage() {
                                 />
                             </div>
 
-                            {/* Profile Image Upload Section */}
-                            <div className="mt-6 pt-6 border-t border-jcoder border-l-4 border-jcoder-primary pl-4">
-                                <h3 className="text-lg font-medium text-jcoder-foreground mb-4">Profile Image</h3>
-                                <p className="text-sm text-jcoder-muted mb-4">
+                                {/* Profile Image Upload Section */}
+                                <div className="mt-8 pt-8 border-t border-jcoder border-l-4 border-jcoder-primary pl-4 sm:pl-6">
+                                    <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-jcoder-foreground mb-4 sm:mb-6 flex items-center gap-2">
+                                        <span className="w-1 h-6 sm:h-8 bg-jcoder-gradient rounded-full"></span>
+                                        <span>Profile Image</span>
+                                    </h3>
+                                <p className="text-xs sm:text-sm text-jcoder-muted mb-3 sm:mb-4">
                                     Upload a logo or profile image for your application (optional)
                                 </p>
                                 <div className="space-y-4">
-                                    <div className="flex items-center space-x-4">
+                                    <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
                                         <div className="relative">
                                             {profileImageFile ? (
                                                 <img
@@ -948,9 +990,12 @@ export default function NewApplicationPage() {
                                 </div>
                             </div>
 
-                            {/* Image Upload Section */}
-                            <div className="mt-6 pt-6 border-t border-jcoder border-l-4 border-jcoder-primary pl-4">
-                                <h3 className="text-lg font-medium text-jcoder-foreground mb-4">Application Images</h3>
+                                {/* Image Upload Section */}
+                                <div className="mt-8 pt-8 border-t border-jcoder border-l-4 border-jcoder-primary pl-4 sm:pl-6">
+                                    <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-jcoder-foreground mb-4 sm:mb-6 flex items-center gap-2">
+                                        <span className="w-1 h-6 sm:h-8 bg-jcoder-gradient rounded-full"></span>
+                                        <span>Application Images</span>
+                                    </h3>
                                 <ImageUpload
                                     images={images}
                                     onImagesChange={setImages}
@@ -958,19 +1003,19 @@ export default function NewApplicationPage() {
                                 />
                             </div>
 
-                            <div className="mt-8 flex justify-end gap-4">
-                                <button
-                                    type="button"
-                                    onClick={() => router.push(`/${username}/admin/applications`)}
-                                    className="px-6 py-2 border border-jcoder rounded-lg text-jcoder-muted hover:bg-jcoder-secondary hover:text-jcoder-foreground transition-all duration-200 font-medium"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    disabled={loading}
-                                    className="px-6 py-3 bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-all duration-300 font-semibold transform-gpu hover:scale-105 hover:shadow-lg hover:shadow-jcoder-primary/50 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center gap-2 group"
-                                >
+                                <div className="mt-8 sm:mt-10 flex flex-col sm:flex-row justify-end gap-3 sm:gap-4">
+                                    <button
+                                        type="button"
+                                        onClick={() => router.push(`/${username}/admin/applications`)}
+                                        className="w-full sm:w-auto px-6 sm:px-8 py-3 border-2 border-jcoder rounded-xl text-jcoder-muted hover:bg-jcoder-secondary hover:text-jcoder-foreground hover:border-jcoder-primary transition-all duration-300 font-semibold text-sm sm:text-base"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        disabled={loading}
+                                        className="w-full sm:w-auto px-6 sm:px-8 py-3 bg-jcoder-gradient text-black rounded-xl hover:opacity-90 transition-all duration-300 font-bold transform-gpu hover:scale-105 hover:shadow-xl hover:shadow-jcoder-primary/50 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2 group text-sm sm:text-base"
+                                    >
                                     {loading ? (
                                         <>
                                             <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -989,7 +1034,8 @@ export default function NewApplicationPage() {
                                     )}
                                 </button>
                             </div>
-                        </form>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </main>
@@ -999,15 +1045,10 @@ export default function NewApplicationPage() {
             {/* Create Technology Modal */}
             {showCreateTechnologyModal && (
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div
-                        className="bg-jcoder-card/95 backdrop-blur-sm border border-jcoder rounded-2xl max-w-md w-full shadow-xl shadow-jcoder-primary/20 transform-gpu transition-all duration-300"
-                        style={{
-                            transform: `perspective(1000px) rotateX(${-(mousePosition.y / windowSize.height - 0.5) * 2}deg) rotateY(${(mousePosition.x / windowSize.width - 0.5) * 2}deg) translateZ(0)`,
-                        }}
-                    >
-                        <div className="p-6 border-b border-jcoder">
-                            <div className="flex items-center justify-between">
-                                <h2 className="text-xl md:text-2xl font-bold text-jcoder-foreground bg-clip-text text-transparent bg-gradient-to-r from-jcoder-cyan via-jcoder-primary to-jcoder-blue">
+                    <div className="bg-jcoder-card/95 backdrop-blur-md border border-jcoder rounded-3xl max-w-md w-full max-h-[90vh] overflow-y-auto shadow-2xl shadow-jcoder-primary/20">
+                        <div className="p-6 sm:p-8 border-b border-jcoder">
+                            <div className="flex items-center justify-between gap-2">
+                                <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-jcoder-foreground bg-clip-text text-transparent bg-gradient-to-r from-jcoder-cyan via-jcoder-primary to-jcoder-blue">
                                     Criar Nova Tecnologia
                                 </h2>
                                 <button
@@ -1028,31 +1069,31 @@ export default function NewApplicationPage() {
                             </div>
                         </div>
 
-                        <form onSubmit={handleCreateTechnology} className="p-6 space-y-6">
+                        <form onSubmit={handleCreateTechnology} className="p-6 sm:p-8 space-y-6 sm:space-y-8">
                             <div>
-                                <label className="block text-sm font-medium text-jcoder-foreground mb-2">
-                                    Nome <span className="text-red-500">*</span>
+                                <label className="block text-sm font-semibold text-jcoder-foreground mb-3">
+                                    Nome <span className="text-red-400">*</span>
                                 </label>
                                 <input
                                     type="text"
                                     required
                                     value={newTechnologyData.name}
                                     onChange={(e) => setNewTechnologyData({ ...newTechnologyData, name: e.target.value })}
-                                    className="w-full px-4 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-transparent transition-all duration-200 hover:border-jcoder-primary/50"
+                                    className="w-full px-4 py-3 bg-jcoder-secondary border border-jcoder rounded-xl text-jcoder-foreground focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary transition-all duration-200 hover:border-jcoder-primary/50"
                                     placeholder="ex: Node.js, React, Python..."
                                     disabled={creatingTechnology}
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-jcoder-foreground mb-2">
-                                    Nível de Expertise <span className="text-red-500">*</span>
+                                <label className="block text-sm font-semibold text-jcoder-foreground mb-3">
+                                    Nível de Expertise <span className="text-red-400">*</span>
                                 </label>
                                 <select
                                     required
                                     value={newTechnologyData.expertiseLevel}
                                     onChange={(e) => setNewTechnologyData({ ...newTechnologyData, expertiseLevel: e.target.value as ExpertiseLevel })}
-                                    className="w-full px-4 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-transparent transition-all duration-200 hover:border-jcoder-primary/50"
+                                    className="w-full px-4 py-3 bg-jcoder-secondary border border-jcoder rounded-xl text-jcoder-foreground focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary transition-all duration-200 hover:border-jcoder-primary/50"
                                     disabled={creatingTechnology}
                                 >
                                     <option value={ExpertiseLevel.BASIC}>Básico</option>
@@ -1060,12 +1101,12 @@ export default function NewApplicationPage() {
                                     <option value={ExpertiseLevel.ADVANCED}>Avançado</option>
                                     <option value={ExpertiseLevel.EXPERT}>Especialista</option>
                                 </select>
-                                <p className="text-sm text-jcoder-muted mt-2">
+                                <p className="text-sm text-jcoder-muted mt-3">
                                     Selecione seu nível de proficiência com esta tecnologia
                                 </p>
                             </div>
 
-                            <div className="flex justify-end gap-4 pt-4 border-t border-jcoder">
+                            <div className="flex flex-col sm:flex-row justify-end gap-3 sm:gap-4 pt-6 border-t border-jcoder">
                                 <button
                                     type="button"
                                     onClick={() => {
@@ -1076,14 +1117,14 @@ export default function NewApplicationPage() {
                                         });
                                     }}
                                     disabled={creatingTechnology}
-                                    className="px-6 py-2 border border-jcoder rounded-lg text-jcoder-muted hover:bg-jcoder-secondary hover:text-jcoder-foreground transition-all duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="w-full sm:w-auto px-6 sm:px-8 py-3 border-2 border-jcoder rounded-xl text-jcoder-muted hover:bg-jcoder-secondary hover:text-jcoder-foreground hover:border-jcoder-primary transition-all duration-300 font-semibold disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
                                 >
                                     Cancelar
                                 </button>
                                 <button
                                     type="submit"
                                     disabled={creatingTechnology}
-                                    className="px-6 py-2 bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-all duration-200 font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transform-gpu hover:scale-105 hover:shadow-lg hover:shadow-jcoder-primary/50 active:scale-95 group"
+                                    className="w-full sm:w-auto px-6 sm:px-8 py-3 bg-jcoder-gradient text-black rounded-xl hover:opacity-90 transition-all duration-300 font-bold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transform hover:scale-105 hover:shadow-xl hover:shadow-jcoder-primary/50 active:scale-95 text-sm sm:text-base"
                                 >
                                     {creatingTechnology ? (
                                         <>
@@ -1117,9 +1158,31 @@ export default function NewApplicationPage() {
                         background-position: 100% 50%;
                     }
                 }
+                @keyframes float {
+                    0%, 100% {
+                        transform: translateY(0px);
+                    }
+                    50% {
+                        transform: translateY(-20px);
+                    }
+                }
+                @keyframes bounce-slow {
+                    0%, 100% {
+                        transform: translateY(0);
+                    }
+                    50% {
+                        transform: translateY(-10px);
+                    }
+                }
                 .animate-gradient {
                     background-size: 200% 200%;
                     animation: gradient 3s ease infinite;
+                }
+                .animate-float {
+                    animation: float 6s ease-in-out infinite;
+                }
+                .animate-bounce-slow {
+                    animation: bounce-slow 3s ease-in-out infinite;
                 }
                 .delay-1000 {
                     animation-delay: 1s;

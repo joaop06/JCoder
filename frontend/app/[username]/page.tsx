@@ -163,6 +163,10 @@ export default function PortfolioPage() {
         }
       }
 
+      console.log('[Portfolio] Applications data loaded:', {
+        totalApplications: allApplications.length,
+        applications: allApplications,
+      });
       setApplications(allApplications);
     } catch (err) {
       console.error('Failure to load applications', err);
@@ -183,6 +187,12 @@ export default function PortfolioPage() {
         sortOrder: 'ASC',
         limit: 100,
       });
+      console.log('[Portfolio] Technologies data loaded:', {
+        hasData: !!data,
+        dataLength: data?.data?.length || 0,
+        data: data?.data,
+        meta: data?.meta,
+      });
       setTechnologies(data.data || []);
     } catch (err) {
       console.error('Failure to load technologies', err);
@@ -197,7 +207,8 @@ export default function PortfolioPage() {
     setLoadingAboutMe(true);
     try {
       const profileData = await PortfolioViewService.getProfileWithAboutMe(username);
-      setAboutMe(profileData.aboutMe || null);
+      // Backend retorna userComponentAboutMe, não aboutMe
+      setAboutMe(profileData.userComponentAboutMe || null);
       setUser(profileData);
 
       // Debug: Log profile data
@@ -207,6 +218,8 @@ export default function PortfolioPage() {
         hasProfileImage: !!profileData?.profileImage,
         profileImage: profileData?.profileImage,
         username: username,
+        hasAboutMe: !!profileData?.userComponentAboutMe,
+        aboutMeData: profileData?.userComponentAboutMe,
         imageUrl: profileData?.profileImage && profileData?.id
           ? ImagesService.getUserProfileImageUrl(username, profileData.id)
           : 'N/A'
@@ -224,6 +237,12 @@ export default function PortfolioPage() {
     setLoadingEducations(true);
     try {
       const data = await PortfolioViewService.getEducations(username);
+      console.log('[Portfolio] Educations data loaded:', {
+        hasData: !!data,
+        dataLength: data?.data?.length || 0,
+        data: data?.data,
+        meta: data?.meta,
+      });
       setEducations(data.data || []);
     } catch (err) {
       console.error('Failure to load educations', err);
@@ -238,6 +257,12 @@ export default function PortfolioPage() {
     setLoadingExperiences(true);
     try {
       const data = await PortfolioViewService.getExperiences(username);
+      console.log('[Portfolio] Experiences data loaded:', {
+        hasData: !!data,
+        dataLength: data?.data?.length || 0,
+        data: data?.data,
+        meta: data?.meta,
+      });
       setExperiences(data.data || []);
     } catch (err) {
       console.error('Failure to load experiences', err);
@@ -252,6 +277,12 @@ export default function PortfolioPage() {
     setLoadingCertificates(true);
     try {
       const data = await PortfolioViewService.getCertificates(username);
+      console.log('[Portfolio] Certificates data loaded:', {
+        hasData: !!data,
+        dataLength: data?.data?.length || 0,
+        data: data?.data,
+        meta: data?.meta,
+      });
       setCertificates(data.data || []);
     } catch (err) {
       console.error('Failure to load certificates', err);
@@ -426,30 +457,30 @@ export default function PortfolioPage() {
             <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-jcoder-blue/5 rounded-full blur-3xl animate-pulse delay-1000"></div>
           </div>
 
-          <div className="relative z-10 text-center max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="mb-8">
-              <div className="text-9xl font-bold text-jcoder-primary/20 mb-4">404</div>
-              <div className="text-6xl mb-6">🔍</div>
+          <div className="relative z-10 text-center max-w-2xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
+            <div className="mb-6 sm:mb-8">
+              <div className="text-6xl sm:text-7xl md:text-8xl lg:text-9xl font-bold text-jcoder-primary/20 mb-3 sm:mb-4">404</div>
+              <div className="text-4xl sm:text-5xl md:text-6xl mb-4 sm:mb-5 md:mb-6">🔍</div>
             </div>
 
-            <h1 className="text-4xl md:text-5xl font-bold text-jcoder-foreground mb-4">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-jcoder-foreground mb-3 sm:mb-4">
               User not found
             </h1>
 
-            <p className="text-lg md:text-xl text-jcoder-muted mb-8 max-w-xl mx-auto leading-relaxed">
+            <p className="text-sm sm:text-base md:text-lg lg:text-xl text-jcoder-muted mb-6 sm:mb-7 md:mb-8 max-w-xl mx-auto leading-relaxed px-2">
               The user's portfolio <span className="font-semibold text-jcoder-primary">@{username}</span> does not exist or is not available.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center px-2">
               <a
                 href="/"
-                className="px-8 py-4 bg-jcoder-gradient text-black font-semibold rounded-lg hover:shadow-jcoder-primary transition-all duration-300 transform hover:scale-105"
+                className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-jcoder-gradient text-black font-semibold rounded-lg hover:shadow-jcoder-primary transition-all duration-300 transform hover:scale-105 text-sm sm:text-base"
               >
                 Back to Home
               </a>
               <button
                 onClick={() => window.history.back()}
-                className="px-8 py-4 border-2 border-jcoder-primary text-jcoder-primary font-semibold rounded-lg hover:bg-jcoder-primary hover:text-black transition-all duration-300"
+                className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 border-2 border-jcoder-primary text-jcoder-primary font-semibold rounded-lg hover:bg-jcoder-primary hover:text-black transition-all duration-300 text-sm sm:text-base"
               >
                 Back
               </button>
@@ -472,7 +503,7 @@ export default function PortfolioPage() {
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
         {/* Gradient Orbs */}
         <div
-          className="absolute w-96 h-96 bg-jcoder-cyan/20 rounded-full blur-3xl animate-pulse"
+          className="absolute w-48 h-48 sm:w-64 sm:h-64 md:w-96 md:h-96 bg-jcoder-cyan/20 rounded-full blur-3xl animate-pulse"
           style={{
             left: `${mousePosition.x / 20}px`,
             top: `${mousePosition.y / 20}px`,
@@ -480,7 +511,7 @@ export default function PortfolioPage() {
           }}
         />
         <div
-          className="absolute w-96 h-96 bg-jcoder-blue/20 rounded-full blur-3xl animate-pulse delay-1000"
+          className="absolute w-48 h-48 sm:w-64 sm:h-64 md:w-96 md:h-96 bg-jcoder-blue/20 rounded-full blur-3xl animate-pulse delay-1000"
           style={{
             right: `${mousePosition.x / 25}px`,
             bottom: `${mousePosition.y / 25}px`,
@@ -523,11 +554,11 @@ export default function PortfolioPage() {
             </Suspense>
           </div>
 
-          <div className={`relative z-10 text-center max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+          <div className={`relative z-10 text-center max-w-4xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
             {/* Profile Image */}
-            <div className="mb-10 md:mb-12">
+            <div className="mb-6 sm:mb-8 md:mb-10 lg:mb-12">
               <div
-                className="w-40 h-40 sm:w-48 sm:h-48 md:w-56 md:h-56 lg:w-64 lg:h-64 mx-auto rounded-full bg-jcoder-gradient p-1 shadow-2xl shadow-jcoder-primary/60 transform-gpu animate-bounce-slow"
+                className="w-28 h-28 sm:w-36 sm:h-36 md:w-48 md:h-48 lg:w-56 lg:h-56 xl:w-64 xl:h-64 mx-auto rounded-full bg-jcoder-gradient p-1 shadow-2xl shadow-jcoder-primary/60 transform-gpu animate-bounce-slow"
                 style={{
                   transform: `perspective(1000px) rotateY(${(mousePosition.x / windowSize.width - 0.5) * 8}deg) rotateX(${-(mousePosition.y / windowSize.height - 0.5) * 8}deg)`,
                 }}
@@ -541,7 +572,7 @@ export default function PortfolioPage() {
                     />
                   ) : (
                     <div className="absolute inset-0 w-full h-full flex items-center justify-center bg-jcoder-gradient rounded-full">
-                      <span className="text-black font-bold text-4xl sm:text-5xl md:text-6xl lg:text-7xl">
+                      <span className="text-black font-bold text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl">
                         {username.charAt(0).toUpperCase()}
                       </span>
                     </div>
@@ -551,7 +582,7 @@ export default function PortfolioPage() {
             </div>
 
             {/* Main Title */}
-            <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold mb-6">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl xl:text-8xl font-bold mb-4 sm:mb-5 md:mb-6 px-2">
               <span className="relative inline-block">
                 {/* Base text visible as fallback */}
                 <span className="text-jcoder-foreground opacity-100">
@@ -575,50 +606,50 @@ export default function PortfolioPage() {
 
             {/* Subtitle */}
             {aboutMe?.occupation && (
-              <h2 className="text-2xl md:text-3xl lg:text-4xl font-semibold text-jcoder-foreground mb-4">
+              <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-semibold text-jcoder-foreground mb-3 sm:mb-4 px-2">
                 {aboutMe.occupation}
               </h2>
             )}
 
             {/* Description */}
             {aboutMe?.description ? (
-              <p className="text-lg md:text-xl text-jcoder-muted mb-8 max-w-2xl mx-auto leading-relaxed">
+              <p className="text-sm sm:text-base md:text-lg lg:text-xl text-jcoder-muted mb-6 sm:mb-7 md:mb-8 max-w-2xl mx-auto leading-relaxed px-2">
                 {aboutMe.description.replace(/<[^>]*>/g, '').substring(0, 150)}...
               </p>
             ) : (
-              <p className="text-lg md:text-xl text-jcoder-muted mb-8 max-w-2xl mx-auto leading-relaxed">
+              <p className="text-sm sm:text-base md:text-lg lg:text-xl text-jcoder-muted mb-6 sm:mb-7 md:mb-8 max-w-2xl mx-auto leading-relaxed px-2">
                 Welcome to my portfolio
               </p>
             )}
 
             {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center w-full px-2">
               <button
                 onClick={() => scrollToSection('projects')}
-                className="px-8 py-4 bg-jcoder-gradient text-black font-semibold rounded-lg hover:shadow-jcoder-primary hover:shadow-xl transition-all duration-300 transform-gpu hover:scale-105 active:scale-95 flex items-center gap-2 group"
+                className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-jcoder-gradient text-black font-semibold rounded-lg hover:shadow-jcoder-primary hover:shadow-xl transition-all duration-300 transform-gpu hover:scale-105 active:scale-95 flex items-center justify-center gap-2 group text-sm sm:text-base"
               >
                 View Projects
-                <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                 </svg>
               </button>
               <button
                 onClick={handleDownloadResume}
                 disabled={generatingPDF}
-                className="px-8 py-4 bg-jcoder-card border-2 border-jcoder-primary text-jcoder-primary font-semibold rounded-lg hover:bg-jcoder-primary hover:text-black transition-all duration-300 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transform-gpu hover:scale-105 active:scale-95 group"
+                className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-jcoder-card border-2 border-jcoder-primary text-jcoder-primary font-semibold rounded-lg hover:bg-jcoder-primary hover:text-black transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transform-gpu hover:scale-105 active:scale-95 group text-sm sm:text-base"
               >
                 {generatingPDF ? (
                   <>
-                    <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <svg className="animate-spin h-3.5 w-3.5 sm:h-4 sm:w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    Generating...
+                    <span className="text-sm sm:text-base">Generating...</span>
                   </>
                 ) : (
                   <>
                     <svg
-                      className="w-4 h-4 group-hover:scale-110 transition-transform"
+                      className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:scale-110 transition-transform"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -631,17 +662,17 @@ export default function PortfolioPage() {
                         d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                       />
                     </svg>
-                    Download Resume
+                    <span>Download Resume</span>
                   </>
                 )}
               </button>
               <button
                 onClick={() => scrollToSection('contact')}
-                className="px-8 py-4 border-2 border-jcoder-primary text-jcoder-primary font-semibold rounded-lg hover:bg-jcoder-primary hover:text-black transition-all duration-300 flex items-center gap-2 transform-gpu hover:scale-105 active:scale-95 group"
+                className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 border-2 border-jcoder-primary text-jcoder-primary font-semibold rounded-lg hover:bg-jcoder-primary hover:text-black transition-all duration-300 flex items-center justify-center gap-2 transform-gpu hover:scale-105 active:scale-95 group text-sm sm:text-base"
               >
                 Get in Touch
                 <svg
-                  className="w-4 h-4 group-hover:translate-x-1 transition-transform"
+                  className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:translate-x-1 transition-transform"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -660,20 +691,20 @@ export default function PortfolioPage() {
         </section>
 
         {/* About Section */}
-        <section id="about" className="py-20 bg-jcoder-card/50">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <section id="about" className="py-12 sm:py-16 md:py-20 bg-jcoder-card/50">
+          <div className="container mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
             <div className="max-w-6xl mx-auto">
-              <h2 className="text-4xl font-bold text-jcoder-foreground text-center mb-12">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-jcoder-foreground text-center mb-8 sm:mb-10 md:mb-12">
                 About Me
               </h2>
 
               {loadingAboutMe ? (
                 <AboutMeSkeleton />
               ) : aboutMe ? (
-                <div className="grid lg:grid-cols-2 gap-12 items-center">
+                <div className="grid lg:grid-cols-2 gap-6 sm:gap-8 md:gap-10 lg:gap-12 items-center">
                   <div className="order-2 lg:order-1">
                     <div className="relative">
-                      <div className="w-80 h-80 mx-auto lg:mx-0 rounded-2xl overflow-hidden bg-jcoder-gradient p-1">
+                      <div className="w-56 h-56 sm:w-64 sm:h-64 md:w-72 md:h-72 lg:w-80 lg:h-80 mx-auto lg:mx-0 rounded-2xl overflow-hidden bg-jcoder-gradient p-1">
                         <div className="w-full h-full rounded-2xl overflow-hidden bg-jcoder-card">
                           {user?.profileImage ? (
                             <LazyImage
@@ -688,62 +719,62 @@ export default function PortfolioPage() {
                               rootMargin="100px"
                             />
                           ) : (
-                            <div className="w-full h-full flex items-center justify-center text-6xl">
+                            <div className="w-full h-full flex items-center justify-center text-3xl sm:text-4xl md:text-5xl lg:text-6xl">
                               {username.charAt(0).toUpperCase()}
                             </div>
                           )}
                         </div>
                       </div>
-                      <div className="absolute -top-4 -right-4 w-8 h-8 bg-jcoder-cyan rounded-full opacity-60"></div>
-                      <div className="absolute -bottom-4 -left-4 w-6 h-6 bg-jcoder-blue rounded-full opacity-40"></div>
+                      <div className="absolute -top-2 -right-2 sm:-top-4 sm:-right-4 w-6 h-6 sm:w-8 sm:h-8 bg-jcoder-cyan rounded-full opacity-60"></div>
+                      <div className="absolute -bottom-2 -left-2 sm:-bottom-4 sm:-left-4 w-4 h-4 sm:w-6 sm:h-6 bg-jcoder-blue rounded-full opacity-40"></div>
                     </div>
                   </div>
 
                   <div className="order-1 lg:order-2 text-center lg:text-left">
-                    <div className="mb-8">
-                      <h3 className="text-2xl font-bold text-jcoder-foreground mb-4">
+                    <div className="mb-6 sm:mb-8">
+                      <h3 className="text-xl sm:text-2xl font-bold text-jcoder-foreground mb-3 sm:mb-4">
                         {user?.fullName || username}
                       </h3>
                       {aboutMe.occupation && (
-                        <p className="text-lg text-jcoder-primary font-semibold mb-6">
+                        <p className="text-base sm:text-lg text-jcoder-primary font-semibold mb-4 sm:mb-6">
                           {aboutMe.occupation}
                         </p>
                       )}
                     </div>
 
                     {aboutMe.description && (
-                      <div className="space-y-6 mb-8">
+                      <div className="space-y-4 sm:space-y-6 mb-6 sm:mb-8">
                         <div
-                          className="text-lg text-jcoder-muted leading-relaxed prose prose-invert max-w-none"
+                          className="text-sm sm:text-base md:text-lg text-jcoder-muted leading-relaxed prose prose-invert max-w-none"
                           dangerouslySetInnerHTML={{ __html: aboutMe.description }}
                         />
                       </div>
                     )}
 
                     {aboutMe.highlights && aboutMe.highlights.length > 0 && (
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-6 sm:mb-8">
                         {aboutMe.highlights.map((highlight, index) => (
-                          <div key={index} className="bg-jcoder-card rounded-xl p-4 border border-jcoder">
-                            {highlight.emoji && <div className="text-2xl mb-2">{highlight.emoji}</div>}
-                            <h4 className="font-semibold text-jcoder-foreground mb-1">{highlight.title}</h4>
+                          <div key={index} className="bg-jcoder-card rounded-xl p-3 sm:p-4 border border-jcoder">
+                            {highlight.emoji && <div className="text-xl sm:text-2xl mb-1 sm:mb-2">{highlight.emoji}</div>}
+                            <h4 className="font-semibold text-sm sm:text-base text-jcoder-foreground mb-1">{highlight.title}</h4>
                             {highlight.subtitle && (
-                              <p className="text-sm text-jcoder-muted">{highlight.subtitle}</p>
+                              <p className="text-xs sm:text-sm text-jcoder-muted">{highlight.subtitle}</p>
                             )}
                           </div>
                         ))}
                       </div>
                     )}
 
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start">
                       <button
                         onClick={() => scrollToSection('projects')}
-                        className="px-6 py-3 bg-jcoder-gradient text-black font-semibold rounded-lg hover:shadow-jcoder-primary transition-all duration-300 transform hover:scale-105"
+                        className="px-5 sm:px-6 py-2.5 sm:py-3 bg-jcoder-gradient text-black font-semibold rounded-lg hover:shadow-jcoder-primary transition-all duration-300 transform hover:scale-105 text-sm sm:text-base"
                       >
                         View My Work
                       </button>
                       <button
                         onClick={() => scrollToSection('contact')}
-                        className="px-6 py-3 border-2 border-jcoder-primary text-jcoder-primary font-semibold rounded-lg hover:bg-jcoder-primary hover:text-black transition-all duration-300"
+                        className="px-5 sm:px-6 py-2.5 sm:py-3 border-2 border-jcoder-primary text-jcoder-primary font-semibold rounded-lg hover:bg-jcoder-primary hover:text-black transition-all duration-300 text-sm sm:text-base"
                       >
                         Get in Touch
                       </button>
@@ -761,37 +792,37 @@ export default function PortfolioPage() {
 
         {/* Professional Experience Section */}
         {(loadingExperiences || experiences.length > 0) && (
-          <section id="experience" className="py-20 bg-jcoder-card/50">
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <section id="experience" className="py-12 sm:py-16 md:py-20 bg-jcoder-card/50">
+            <div className="container mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
               <div className="max-w-6xl mx-auto">
-                <h2 className="text-4xl font-bold text-jcoder-foreground text-center mb-12">
+                <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-jcoder-foreground text-center mb-8 sm:mb-10 md:mb-12">
                   Professional Experience
                 </h2>
 
                 {loadingExperiences ? (
                   <ExperienceSkeleton />
                 ) : experiences.length > 0 ? (
-                  <div className="space-y-8">
+                  <div className="space-y-6 sm:space-y-8">
                     {experiences.map((experience, expIndex) => (
                       <div
                         key={`experience-${experience.username}-${experience.companyName}-${expIndex}`}
-                        className="bg-jcoder-card rounded-2xl p-6 border border-jcoder hover:border-jcoder-primary transition-all duration-300"
+                        className="bg-jcoder-card rounded-2xl p-4 sm:p-5 md:p-6 border border-jcoder hover:border-jcoder-primary transition-all duration-300"
                       >
-                        <h3 className="text-2xl font-bold text-jcoder-foreground mb-6">
+                        <h3 className="text-xl sm:text-2xl font-bold text-jcoder-foreground mb-4 sm:mb-5 md:mb-6">
                           {experience.companyName}
                         </h3>
 
                         {experience.positions && experience.positions.length > 0 && (
-                          <div className="space-y-6 pl-4 border-l-2 border-jcoder-primary/30">
+                          <div className="space-y-4 sm:space-y-5 md:space-y-6 pl-3 sm:pl-4 border-l-2 border-jcoder-primary/30">
                             {experience.positions.map((position, index) => (
                               <div key={`position-${position.id || index}-${position.position}`} className="relative">
-                                <div className="absolute -left-[29px] top-0 w-4 h-4 bg-jcoder-primary rounded-full"></div>
-                                <div className="mb-4">
-                                  <h4 className="text-xl font-semibold text-jcoder-foreground mb-2">
+                                <div className="absolute -left-[23px] sm:-left-[29px] top-0 w-3 h-3 sm:w-4 sm:h-4 bg-jcoder-primary rounded-full"></div>
+                                <div className="mb-3 sm:mb-4">
+                                  <h4 className="text-lg sm:text-xl font-semibold text-jcoder-foreground mb-1.5 sm:mb-2">
                                     {position.position}
                                   </h4>
-                                  <div className="flex flex-wrap items-center gap-4 mb-2">
-                                    <p className="text-jcoder-muted text-sm">
+                                  <div className="flex flex-wrap items-center gap-2 sm:gap-3 md:gap-4 mb-2">
+                                    <p className="text-xs sm:text-sm text-jcoder-muted">
                                       {formatDateRange(
                                         position.startDate,
                                         position.endDate,
@@ -799,13 +830,13 @@ export default function PortfolioPage() {
                                       )}
                                     </p>
                                     {position.location && (
-                                      <span className="text-jcoder-muted text-sm">
+                                      <span className="text-xs sm:text-sm text-jcoder-muted">
                                         📍 {position.location}
                                         {position.locationType && ` • ${position.locationType}`}
                                       </span>
                                     )}
                                     {position.isCurrentPosition && (
-                                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-jcoder-primary/20 text-jcoder-primary">
+                                      <span className="inline-flex items-center px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium bg-jcoder-primary/20 text-jcoder-primary">
                                         Current
                                       </span>
                                     )}
@@ -825,10 +856,10 @@ export default function PortfolioPage() {
         )}
 
         {/* Projects Section */}
-        <section id="projects" className="py-20">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <section id="projects" className="py-12 sm:py-16 md:py-20">
+          <div className="container mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
             <div className="max-w-6xl mx-auto">
-              <h2 className="text-4xl font-bold text-jcoder-foreground text-center mb-12">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-jcoder-foreground text-center mb-8 sm:mb-10 md:mb-12">
                 Projects & Applications
               </h2>
 
@@ -861,17 +892,17 @@ export default function PortfolioPage() {
         </section>
 
         {/* Tech Stack Section */}
-        <section id="tech-stack" className="py-20 bg-jcoder-card/50">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <section id="tech-stack" className="py-12 sm:py-16 md:py-20 bg-jcoder-card/50">
+          <div className="container mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
             <div className="max-w-6xl mx-auto">
-              <h2 className="text-4xl font-bold text-jcoder-foreground text-center mb-12">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-jcoder-foreground text-center mb-8 sm:mb-10 md:mb-12">
                 Technologies & Stacks
               </h2>
 
               {loadingTechs ? (
                 <TechnologiesGridSkeleton />
               ) : technologies.length > 0 ? (
-                <div className="flex flex-wrap justify-center gap-8">
+                <div className="flex flex-wrap justify-center gap-4 sm:gap-6 md:gap-8">
                   {technologies.map((tech, index) => (
                     <FeatureCard3D key={tech.id} mouse={mousePosition} index={index}>
                       <TechnologyCard technology={tech} username={username} />
@@ -889,43 +920,43 @@ export default function PortfolioPage() {
 
         {/* Education & Certifications Section */}
         {((loadingEducations || educations.length > 0) || (loadingCertificates || certificates.length > 0)) && (
-          <section id="education-certifications" className="py-20 bg-jcoder-card/50">
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <section id="education-certifications" className="py-12 sm:py-16 md:py-20 bg-jcoder-card/50">
+            <div className="container mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
               <div className="max-w-6xl mx-auto">
-                <h2 className="text-4xl font-bold text-jcoder-foreground text-center mb-12">
+                <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-jcoder-foreground text-center mb-8 sm:mb-10 md:mb-12">
                   Education & Certifications
                 </h2>
 
-                <div className="grid lg:grid-cols-2 gap-8">
+                <div className="grid lg:grid-cols-2 gap-6 sm:gap-7 md:gap-8">
                   <div>
                     {(loadingEducations || educations.length > 0) && (
                       <>
-                        <h3 className="text-2xl font-bold text-jcoder-foreground mb-6">
+                        <h3 className="text-xl sm:text-2xl font-bold text-jcoder-foreground mb-4 sm:mb-5 md:mb-6">
                           Education
                         </h3>
                         {loadingEducations ? (
                           <EducationSkeleton />
                         ) : educations.length > 0 ? (
-                          <div className="space-y-6">
+                          <div className="space-y-4 sm:space-y-5 md:space-y-6">
                             {educations.map((education, eduIndex) => (
                               <div
                                 key={education.id || `edu-${eduIndex}`}
-                                className="bg-jcoder-card rounded-2xl p-6 border border-jcoder hover:border-jcoder-primary transition-all duration-300"
+                                className="bg-jcoder-card rounded-2xl p-4 sm:p-5 md:p-6 border border-jcoder hover:border-jcoder-primary transition-all duration-300"
                               >
-                                <div className="flex flex-col gap-4">
+                                <div className="flex flex-col gap-3 sm:gap-4">
                                   <div className="flex-1">
-                                    <h4 className="text-xl font-bold text-jcoder-foreground mb-2">
+                                    <h4 className="text-lg sm:text-xl font-bold text-jcoder-foreground mb-1.5 sm:mb-2">
                                       {education.courseName}
                                     </h4>
-                                    <p className="text-lg text-jcoder-primary font-semibold mb-2">
+                                    <p className="text-base sm:text-lg text-jcoder-primary font-semibold mb-1.5 sm:mb-2">
                                       {education.institutionName}
                                     </p>
                                     {education.degree && (
-                                      <p className="text-jcoder-muted mb-4">{education.degree}</p>
+                                      <p className="text-sm sm:text-base text-jcoder-muted mb-3 sm:mb-4">{education.degree}</p>
                                     )}
                                   </div>
                                   <div className="flex items-center justify-between">
-                                    <p className="text-jcoder-foreground font-semibold text-sm">
+                                    <p className="text-xs sm:text-sm text-jcoder-foreground font-semibold">
                                       {formatDateRange(
                                         education.startDate,
                                         education.endDate,
@@ -933,7 +964,7 @@ export default function PortfolioPage() {
                                       )}
                                     </p>
                                     {education.isCurrentlyStudying && (
-                                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-jcoder-primary/20 text-jcoder-primary">
+                                      <span className="inline-flex items-center px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium bg-jcoder-primary/20 text-jcoder-primary">
                                         Current
                                       </span>
                                     )}
@@ -954,46 +985,46 @@ export default function PortfolioPage() {
                   <div>
                     {(loadingCertificates || certificates.length > 0) && (
                       <>
-                        <h3 className="text-2xl font-bold text-jcoder-foreground mb-6">
+                        <h3 className="text-xl sm:text-2xl font-bold text-jcoder-foreground mb-4 sm:mb-5 md:mb-6">
                           Certifications
                         </h3>
                         {loadingCertificates ? (
                           <CertificatesSkeleton />
                         ) : certificates.length > 0 ? (
-                          <div className="space-y-6">
+                          <div className="space-y-4 sm:space-y-5 md:space-y-6">
                             {certificates.map((certificate, certIndex) => (
                               <div
                                 key={certificate.id || `cert-${certIndex}`}
-                                className="bg-jcoder-card rounded-2xl p-6 border border-jcoder hover:border-jcoder-primary transition-all duration-300 hover:shadow-lg"
+                                className="bg-jcoder-card rounded-2xl p-4 sm:p-5 md:p-6 border border-jcoder hover:border-jcoder-primary transition-all duration-300 hover:shadow-lg"
                               >
                                 {certificate.profileImage && certificate.id && (
-                                  <div className="mb-4 rounded-lg overflow-hidden bg-jcoder-secondary">
+                                  <div className="mb-3 sm:mb-4 rounded-lg overflow-hidden bg-jcoder-secondary">
                                     <LazyImage
                                       src={ImagesService.getCertificateImageUrl(username, certificate.id)}
                                       alt={certificate.certificateName}
                                       fallback="🎓"
                                       size="custom"
                                       width="w-full"
-                                      height="h-40"
+                                      height="h-32 sm:h-36 md:h-40"
                                       rounded="rounded-lg"
                                       objectFit="object-cover"
                                       rootMargin="100px"
                                     />
                                   </div>
                                 )}
-                                <h4 className="text-lg font-bold text-jcoder-foreground mb-2">
+                                <h4 className="text-base sm:text-lg font-bold text-jcoder-foreground mb-1.5 sm:mb-2">
                                   {certificate.certificateName}
                                 </h4>
                                 {certificate.registrationNumber && (
-                                  <p className="text-xs text-jcoder-muted mb-1">
+                                  <p className="text-[10px] sm:text-xs text-jcoder-muted mb-1">
                                     Registration: {certificate.registrationNumber}
                                   </p>
                                 )}
-                                <p className="text-xs text-jcoder-muted mb-2">
+                                <p className="text-[10px] sm:text-xs text-jcoder-muted mb-1.5 sm:mb-2">
                                   Issued: {formatDate(certificate.issueDate)}
                                 </p>
                                 {certificate.issuedTo && (
-                                  <p className="text-xs text-jcoder-muted mb-3">
+                                  <p className="text-[10px] sm:text-xs text-jcoder-muted mb-2 sm:mb-3">
                                     To: {certificate.issuedTo}
                                   </p>
                                 )}
@@ -1002,11 +1033,11 @@ export default function PortfolioPage() {
                                     href={certificate.verificationUrl}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-1 text-jcoder-primary hover:text-jcoder-accent transition-colors text-xs font-semibold"
+                                    className="inline-flex items-center gap-1 text-jcoder-primary hover:text-jcoder-accent transition-colors text-[10px] sm:text-xs font-semibold"
                                   >
                                     Verify Certificate
                                     <svg
-                                      className="w-3 h-3"
+                                      className="w-2.5 h-2.5 sm:w-3 sm:h-3"
                                       fill="none"
                                       stroke="currentColor"
                                       viewBox="0 0 24 24"
@@ -1039,26 +1070,26 @@ export default function PortfolioPage() {
         )}
 
         {/* Social & Contact Section */}
-        <section id="contact" className="py-20">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <section id="contact" className="py-12 sm:py-16 md:py-20">
+          <div className="container mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
             <div className="max-w-4xl mx-auto text-center">
-              <h2 className="text-4xl font-bold text-jcoder-foreground mb-8">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-jcoder-foreground mb-6 sm:mb-7 md:mb-8">
                 Let's Connect
               </h2>
-              <p className="text-lg text-jcoder-muted mb-12 max-w-2xl mx-auto">
+              <p className="text-sm sm:text-base md:text-lg text-jcoder-muted mb-8 sm:mb-10 md:mb-12 max-w-2xl mx-auto px-2">
                 I'm always open to new opportunities and collaborations.
                 Get in touch with me through social media or email.
               </p>
 
-              <div className="flex flex-wrap justify-center gap-6 mb-12">
+              <div className="flex flex-wrap justify-center gap-3 sm:gap-4 md:gap-6 mb-8 sm:mb-10 md:mb-12 px-2">
                 {user?.githubUrl && (
                   <a
                     href={user.githubUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="group flex items-center gap-3 px-6 py-3 bg-jcoder-card rounded-lg hover:bg-jcoder-gradient transition-all duration-300"
+                    className="group flex items-center gap-2 sm:gap-3 px-4 sm:px-5 md:px-6 py-2 sm:py-2.5 md:py-3 bg-jcoder-card rounded-lg hover:bg-jcoder-gradient transition-all duration-300 text-sm sm:text-base"
                   >
-                    <GitHubIcon className="w-6 h-6" />
+                    <GitHubIcon className="w-5 h-5 sm:w-6 sm:h-6" />
                     <span className="font-semibold">GitHub</span>
                   </a>
                 )}
@@ -1068,15 +1099,15 @@ export default function PortfolioPage() {
                     href={user.linkedinUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="group flex items-center gap-3 px-6 py-3 bg-jcoder-card rounded-lg hover:bg-jcoder-gradient transition-all duration-300"
+                    className="group flex items-center gap-2 sm:gap-3 px-4 sm:px-5 md:px-6 py-2 sm:py-2.5 md:py-3 bg-jcoder-card rounded-lg hover:bg-jcoder-gradient transition-all duration-300 text-sm sm:text-base"
                   >
                     <LazyImage
                       src="/images/icons/linkedin.png"
                       alt="LinkedIn"
                       fallback="Li"
                       size="custom"
-                      width="w-6"
-                      height="h-6"
+                      width="w-5 h-5 sm:w-6 sm:h-6"
+                      height="h-5 sm:h-6"
                       showSkeleton={false}
                     />
                     <span className="font-semibold">LinkedIn</span>
@@ -1086,15 +1117,15 @@ export default function PortfolioPage() {
                 {user?.email && (
                   <a
                     href={`mailto:${user.email}`}
-                    className="group flex items-center gap-3 px-6 py-3 bg-jcoder-card rounded-lg hover:bg-jcoder-gradient transition-all duration-300"
+                    className="group flex items-center gap-2 sm:gap-3 px-4 sm:px-5 md:px-6 py-2 sm:py-2.5 md:py-3 bg-jcoder-card rounded-lg hover:bg-jcoder-gradient transition-all duration-300 text-sm sm:text-base"
                   >
                     <LazyImage
                       src="/images/icons/gmail.png"
                       alt="Gmail"
                       fallback="@"
                       size="custom"
-                      width="w-6"
-                      height="h-6"
+                      width="w-5 h-5 sm:w-6 sm:h-6"
+                      height="h-5 sm:h-6"
                       showSkeleton={false}
                     />
                     <span className="font-semibold">Email</span>
@@ -1102,18 +1133,18 @@ export default function PortfolioPage() {
                 )}
               </div>
 
-              <div className="max-w-2xl mx-auto">
+              <div className="max-w-2xl mx-auto px-2">
                 <div
-                  className="bg-jcoder-card/90 backdrop-blur-sm border border-jcoder rounded-2xl p-6 md:p-8 shadow-xl shadow-jcoder-primary/10 transform-gpu transition-all duration-300 hover:shadow-2xl hover:shadow-jcoder-primary/20 hover:-translate-y-1"
+                  className="bg-jcoder-card/90 backdrop-blur-sm border border-jcoder rounded-2xl p-4 sm:p-5 md:p-6 lg:p-8 shadow-xl shadow-jcoder-primary/10 transform-gpu transition-all duration-300 hover:shadow-2xl hover:shadow-jcoder-primary/20 hover:-translate-y-1"
                   style={{
                     transform: `perspective(1000px) rotateX(${-(mousePosition.y / windowSize.height - 0.5) * 2}deg) rotateY(${(mousePosition.x / windowSize.width - 0.5) * 2}deg) translateZ(0)`,
                   }}
                 >
-                  <h3 className="text-2xl font-bold text-jcoder-foreground mb-6">
+                  <h3 className="text-xl sm:text-2xl font-bold text-jcoder-foreground mb-4 sm:mb-5 md:mb-6">
                     Send a Message
                   </h3>
-                  <form className="space-y-6" onSubmit={handleMessageSubmit}>
-                    <div className="grid md:grid-cols-2 gap-6">
+                  <form className="space-y-4 sm:space-y-5 md:space-y-6" onSubmit={handleMessageSubmit}>
+                    <div className="grid md:grid-cols-2 gap-4 sm:gap-5 md:gap-6">
                       <div className="transform-gpu transition-transform duration-200 hover:scale-[1.02]">
                         <input
                           type="text"
@@ -1122,7 +1153,7 @@ export default function PortfolioPage() {
                           onChange={(e) => setMessageForm({ ...messageForm, senderName: e.target.value })}
                           disabled={sendingMessage}
                           required
-                          className="w-full px-4 py-3 bg-jcoder-secondary border border-jcoder rounded-lg focus:outline-none focus:ring-2 focus:ring-jcoder-primary text-jcoder-foreground placeholder-jcoder-muted disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:border-jcoder-primary/50"
+                          className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base bg-jcoder-secondary border border-jcoder rounded-lg focus:outline-none focus:ring-2 focus:ring-jcoder-primary text-jcoder-foreground placeholder-jcoder-muted disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:border-jcoder-primary/50"
                         />
                       </div>
                       <div className="transform-gpu transition-transform duration-200 hover:scale-[1.02]">
@@ -1133,7 +1164,7 @@ export default function PortfolioPage() {
                           onChange={(e) => setMessageForm({ ...messageForm, senderEmail: e.target.value })}
                           disabled={sendingMessage}
                           required
-                          className="w-full px-4 py-3 bg-jcoder-secondary border border-jcoder rounded-lg focus:outline-none focus:ring-2 focus:ring-jcoder-primary text-jcoder-foreground placeholder-jcoder-muted disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:border-jcoder-primary/50"
+                          className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base bg-jcoder-secondary border border-jcoder rounded-lg focus:outline-none focus:ring-2 focus:ring-jcoder-primary text-jcoder-foreground placeholder-jcoder-muted disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:border-jcoder-primary/50"
                         />
                       </div>
                     </div>
@@ -1146,26 +1177,26 @@ export default function PortfolioPage() {
                         disabled={sendingMessage}
                         required
                         maxLength={5000}
-                        className="w-full px-4 py-3 bg-jcoder-secondary border border-jcoder rounded-lg focus:outline-none focus:ring-2 focus:ring-jcoder-primary text-jcoder-foreground placeholder-jcoder-muted resize-none disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:border-jcoder-primary/50"
+                        className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base bg-jcoder-secondary border border-jcoder rounded-lg focus:outline-none focus:ring-2 focus:ring-jcoder-primary text-jcoder-foreground placeholder-jcoder-muted resize-none disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:border-jcoder-primary/50"
                       ></textarea>
                     </div>
                     <button
                       type="submit"
                       disabled={sendingMessage}
-                      className="w-full px-8 py-4 bg-jcoder-gradient text-black font-semibold rounded-lg hover:shadow-jcoder-primary hover:shadow-xl transition-all duration-300 transform-gpu hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2 group"
+                      className="w-full px-6 sm:px-8 py-3 sm:py-4 bg-jcoder-gradient text-black font-semibold rounded-lg hover:shadow-jcoder-primary hover:shadow-xl transition-all duration-300 transform-gpu hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2 group text-sm sm:text-base"
                     >
                       {sendingMessage ? (
                         <>
-                          <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <svg className="animate-spin h-4 w-4 sm:h-5 sm:w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                           </svg>
-                          Sending...
+                          <span>Sending...</span>
                         </>
                       ) : (
                         <>
                           <svg
-                            className="w-5 h-5 group-hover:translate-y-[-2px] transition-transform"
+                            className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-y-[-2px] transition-transform"
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -1178,7 +1209,7 @@ export default function PortfolioPage() {
                               d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
                             />
                           </svg>
-                          Send Message
+                          <span>Send Message</span>
                         </>
                       )}
                     </button>
@@ -1478,10 +1509,10 @@ function TechnologyCard({ technology, username }: TechnologyCardProps) {
 
   return (
     <div
-      className="text-center group relative w-32"
+      className="text-center group relative w-24 sm:w-28 md:w-32"
       title={`${technology.name} - ${getExpertiseLevelLabel(technology.expertiseLevel)}`}
     >
-      <div className="w-20 h-20 mx-auto mb-4 bg-jcoder-card rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300 p-3 relative">
+      <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-20 md:h-20 mx-auto mb-3 sm:mb-4 bg-jcoder-card rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300 p-2 sm:p-2.5 md:p-3 relative">
         <LazyImage
           src={imageUrl}
           alt={technology.name}
@@ -1494,10 +1525,10 @@ function TechnologyCard({ technology, username }: TechnologyCardProps) {
           rootMargin="150px"
         />
       </div>
-      <h3 className="font-semibold text-jcoder-foreground group-hover:text-jcoder-primary transition-colors">
+      <h3 className="font-semibold text-sm sm:text-base text-jcoder-foreground group-hover:text-jcoder-primary transition-colors">
         {technology.name}
       </h3>
-      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium mt-1 ${getExpertiseLevelColor(technology.expertiseLevel)}`}>
+      <span className={`inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium mt-0.5 sm:mt-1 ${getExpertiseLevelColor(technology.expertiseLevel)}`}>
         {getExpertiseLevelLabel(technology.expertiseLevel)}
       </span>
     </div>

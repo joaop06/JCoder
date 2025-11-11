@@ -18,7 +18,7 @@ export const PortfolioViewService = {
      * Rota otimizada para carregamento inicial do portfólio
      * GET /portfolio/:username/profile
      */
-    async getProfileWithAboutMe(username: string): Promise<User & { aboutMe?: UserComponentAboutMe }> {
+    async getProfileWithAboutMe(username: string): Promise<User> {
         try {
             const response = await ApiService.get(`/portfolio/${username}/profile`);
             return response.data.data;
