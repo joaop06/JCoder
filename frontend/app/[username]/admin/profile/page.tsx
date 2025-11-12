@@ -11,21 +11,23 @@ import {
 } from '@/types';
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
-import { Canvas } from '@react-three/fiber';
 import { useRouter, useParams } from 'next/navigation';
-import Hero3D from '@/components/webgl/Hero3D';
 import { TableSkeleton } from '@/components/ui';
 import { InfoField } from '@/components/profile/InfoField';
 import { StatsCard } from '@/components/profile/StatsCard';
 import { useToast } from '@/components/toast/ToastContext';
 import { SectionCard } from '@/components/profile/SectionCard';
 import { TimelineItem } from '@/components/profile/TimelineItem';
-import WebGLBackground from '@/components/webgl/WebGLBackground';
-import FloatingParticles3D from '@/components/webgl/FloatingParticles3D';
 import { UsersService } from '@/services/administration-by-user/users.service';
-import { useState, useEffect, useCallback, useRef, Suspense, useMemo } from 'react';
+import { useState, useEffect, useCallback, useRef, Suspense, useMemo, lazy, memo } from 'react';
 import { PortfolioViewService } from '@/services/portfolio-view/portfolio-view.service';
 import { ImagesService } from '@/services/administration-by-user/images.service';
+
+// Lazy load componentes WebGL pesados
+const Canvas = lazy(() => import('@react-three/fiber').then(mod => ({ default: mod.Canvas })));
+const WebGLBackground = lazy(() => import('@/components/webgl/WebGLBackground'));
+const Hero3D = lazy(() => import('@/components/webgl/Hero3D'));
+const FloatingParticles3D = lazy(() => import('@/components/webgl/FloatingParticles3D'));
 
 export default function ProfileManagementPage() {
     const toast = useToast();
@@ -56,6 +58,24 @@ export default function ProfileManagementPage() {
     const [educations, setEducations] = useState<UserComponentEducation[]>([]);
     const [experiences, setExperiences] = useState<UserComponentExperience[]>([]);
     const [certificates, setCertificates] = useState<UserComponentCertificate[]>([]);
+
+    // Loading states for progressive loading
+    const [loadingStates, setLoadingStates] = useState({
+        user: true,
+        aboutMe: false,
+        educations: false,
+        experiences: false,
+        certificates: false,
+    });
+
+    // Visibility states for intersection observer
+    const [visibleSections, setVisibleSections] = useState({
+        basicInfo: true,
+        aboutMe: false,
+        education: false,
+        experience: false,
+        certificates: false,
+    });
 
     // Edit states
     const [isEditingBasicInfo, setIsEditingBasicInfo] = useState(false);
@@ -196,8 +216,17 @@ export default function ProfileManagementPage() {
         setCheckingAuth(false);
     }, [router]);
 
+    // Carregamento progressivo: primeiro dados essenciais, depois componentes
     const loadUserProfile = useCallback(async () => {
         setLoading(true);
+        setLoadingStates({
+            user: true,
+            aboutMe: false,
+            educations: false,
+            experiences: false,
+            certificates: false,
+        });
+
         try {
             const userSession = UsersService.getUserSession();
             if (!userSession) {
@@ -206,7 +235,7 @@ export default function ProfileManagementPage() {
                 return;
             }
 
-            // Se o user do localStorage não tiver id, buscar do backend
+            // FASE 1: Carregar dados básicos do usuário primeiro (crítico)
             let userData = userSession.user;
             if (!userData.id && userSession.user.username) {
                 try {
@@ -235,32 +264,95 @@ export default function ProfileManagementPage() {
                 confirmPassword: '',
             });
 
-            // Load components
-            const [aboutMeData, educationsData, experiencesData, certificatesData] = await Promise.all([
-                UsersService.getAboutMe(userData.username),
-                UsersService.getEducations(userData.username),
-                UsersService.getExperiences(userData.username),
-                UsersService.getCertificates(userData.username),
-            ]);
+            setLoadingStates(prev => ({ ...prev, user: false }));
+            setLoading(false); // Permite renderização inicial
 
-            setAboutMe(aboutMeData);
-            if (aboutMeData) {
-                setAboutMeForm({
-                    occupation: aboutMeData.occupation || '',
-                    description: aboutMeData.description || '',
-                    highlights: aboutMeData.highlights?.map(h => ({
-                        title: h.title,
-                        subtitle: h.subtitle,
-                        emoji: h.emoji
-                    })) || [],
-                });
+            // FASE 2: Carregar componentes em paralelo (não bloqueante)
+            // Usar requestIdleCallback se disponível, senão setTimeout
+            const loadComponents = async () => {
+                try {
+                    setLoadingStates(prev => ({ ...prev, aboutMe: true, educations: true, experiences: true, certificates: true }));
+
+                    const [aboutMeData, educationsData, experiencesData, certificatesData] = await Promise.all([
+                        UsersService.getAboutMe(userData.username).catch(err => {
+                            console.error('Error loading aboutMe:', err);
+                            return null;
+                        }),
+                        UsersService.getEducations(userData.username).catch(err => {
+                            console.error('Error loading educations:', err);
+                            return null;
+                        }),
+                        UsersService.getExperiences(userData.username).catch(err => {
+                            console.error('Error loading experiences:', err);
+                            return null;
+                        }),
+                        UsersService.getCertificates(userData.username).catch(err => {
+                            console.error('Error loading certificates:', err);
+                            return null;
+                        }),
+                    ]);
+
+                    setAboutMe(aboutMeData);
+                    if (aboutMeData) {
+                        setAboutMeForm({
+                            occupation: aboutMeData.occupation || '',
+                            description: aboutMeData.description || '',
+                            highlights: aboutMeData.highlights?.map(h => ({
+                                title: h.title,
+                                subtitle: h.subtitle,
+                                emoji: h.emoji
+                            })) || [],
+                        });
+                    }
+
+                    // Helper para extrair array de dados paginados ou arrays
+                    const extractDataArray = <T,>(data: any): T[] => {
+                        if (!data) return [];
+                        if (Array.isArray(data)) return data;
+                        if (data && typeof data === 'object' && 'data' in data && Array.isArray(data.data)) {
+                            return data.data;
+                        }
+                        return [];
+                    };
+
+                    setEducations(extractDataArray<UserComponentEducation>(educationsData));
+                    setExperiences(extractDataArray<UserComponentExperience>(experiencesData));
+                    setCertificates(extractDataArray<UserComponentCertificate>(certificatesData));
+
+                    setLoadingStates({
+                        user: false,
+                        aboutMe: false,
+                        educations: false,
+                        experiences: false,
+                        certificates: false,
+                    });
+                } catch (err: any) {
+                    console.error('Error loading components:', err);
+                    setLoadingStates({
+                        user: false,
+                        aboutMe: false,
+                        educations: false,
+                        experiences: false,
+                        certificates: false,
+                    });
+                }
+            };
+
+            // Aguardar próximo frame para não bloquear renderização inicial
+            if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+                requestIdleCallback(loadComponents, { timeout: 2000 });
+            } else {
+                setTimeout(loadComponents, 100);
             }
-            setEducations(Array.isArray(educationsData?.data) ? educationsData.data : (Array.isArray(educationsData) ? educationsData : []));
-            setExperiences(Array.isArray(experiencesData?.data) ? experiencesData.data : (Array.isArray(experiencesData) ? experiencesData : []));
-            setCertificates(Array.isArray(certificatesData?.data) ? certificatesData.data : (Array.isArray(certificatesData) ? certificatesData : []));
         } catch (err: any) {
             console.error('Error loading profile:', err);
-        } finally {
+            setLoadingStates({
+                user: false,
+                aboutMe: false,
+                educations: false,
+                experiences: false,
+                certificates: false,
+            });
             setLoading(false);
         }
     }, [toast, handleLogout]);
@@ -269,6 +361,51 @@ export default function ProfileManagementPage() {
         if (!isAuthenticated) return;
         loadUserProfile();
     }, [isAuthenticated, loadUserProfile]);
+
+    // Intersection Observer para lazy load de seções
+    useEffect(() => {
+        if (typeof window === 'undefined' || !('IntersectionObserver' in window) || loading) return;
+
+        let observer: IntersectionObserver | null = null;
+        let timeoutId: NodeJS.Timeout;
+
+        // Aguardar próximo frame para garantir que o DOM está renderizado
+        timeoutId = setTimeout(() => {
+            const observerOptions = {
+                root: null,
+                rootMargin: '100px', // Carregar 100px antes de entrar na viewport
+                threshold: 0.01,
+            };
+
+            const newObserver = new IntersectionObserver((entries) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                        const sectionId = entry.target.getAttribute('data-section');
+                        if (sectionId) {
+                            setVisibleSections(prev => ({ ...prev, [sectionId]: true }));
+                            // Desconectar após primeira visualização para economizar recursos
+                            newObserver.unobserve(entry.target);
+                        }
+                    }
+                });
+            }, observerOptions);
+
+            observer = newObserver;
+
+            // Observar seções
+            const sections = document.querySelectorAll('[data-section]');
+            sections.forEach(section => newObserver.observe(section));
+        }, 100);
+
+        return () => {
+            clearTimeout(timeoutId);
+            if (observer) {
+                const sections = document.querySelectorAll('[data-section]');
+                sections.forEach(section => observer!.unobserve(section));
+                observer!.disconnect();
+            }
+        };
+    }, [loading]); // Re-executar quando loading mudar
 
     // Real-time username availability check
     useEffect(() => {
@@ -1312,8 +1449,8 @@ export default function ProfileManagementPage() {
             // Add timestamp to force cache invalidation
             localStorage.setItem('profileImageUpdated', timestamp.toString());
             // Dispatch custom event to notify other components (like Header)
-            window.dispatchEvent(new CustomEvent('profileImageUpdated', { 
-              detail: { profileImage: updatedUser.profileImage, timestamp }
+            window.dispatchEvent(new CustomEvent('profileImageUpdated', {
+                detail: { profileImage: updatedUser.profileImage, timestamp }
             }));
             toast.success('Profile image updated successfully!');
         } catch (err: any) {
@@ -1358,8 +1495,8 @@ export default function ProfileManagementPage() {
             // Add timestamp to force cache invalidation
             localStorage.setItem('profileImageUpdated', timestamp.toString());
             // Dispatch custom event to notify other components (like Header)
-            window.dispatchEvent(new CustomEvent('profileImageUpdated', { 
-              detail: { profileImage: undefined, timestamp }
+            window.dispatchEvent(new CustomEvent('profileImageUpdated', {
+                detail: { profileImage: undefined, timestamp }
             }));
             toast.success('Profile image removed successfully!');
         } catch (err: any) {
@@ -1371,28 +1508,31 @@ export default function ProfileManagementPage() {
         }
     }, [user, toast]);
 
-    const formatDate = (date: Date | string | undefined) => {
+    // Memoizar funções utilitárias para evitar recriações
+    const formatDate = useCallback((date: Date | string | undefined) => {
         if (!date) return 'Present';
         return new Date(date).toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
-    };
+    }, []);
 
-    // Helper para obter inicial do nome
-    const getInitial = () => {
+    // Helper para obter inicial do nome - memoizado
+    const getInitial = useMemo(() => {
         if (user?.fullName) return user.fullName.charAt(0).toUpperCase();
         if (user?.firstName) return user.firstName.charAt(0).toUpperCase();
         if (user?.username) return user.username.charAt(0).toUpperCase();
         return 'U';
-    };
+    }, [user?.fullName, user?.firstName, user?.username]);
 
     if (checkingAuth || !isAuthenticated || loading) {
         return (
             <div className="min-h-screen flex flex-col bg-background overflow-hidden relative">
-                {/* WebGL Background - Animated 3D mesh - Hidden on mobile for performance */}
-                <div className="hidden md:block">
-                    <Suspense fallback={null}>
-                        <WebGLBackground mouse={mousePosition} windowSize={windowSize} />
-                    </Suspense>
-                </div>
+                {/* WebGL Background - Animated 3D mesh - Hidden on mobile for performance - Lazy loaded */}
+                {isVisible && (
+                    <div className="hidden md:block">
+                        <Suspense fallback={null}>
+                            <WebGLBackground mouse={mousePosition} windowSize={windowSize} />
+                        </Suspense>
+                    </div>
+                )}
 
                 {/* Animated Background - CSS layers for depth */}
                 <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
@@ -1431,12 +1571,14 @@ export default function ProfileManagementPage() {
 
     return (
         <div className="min-h-screen flex flex-col bg-background overflow-hidden relative">
-            {/* WebGL Background - Animated 3D mesh - Hidden on mobile for performance */}
-            <div className="hidden md:block">
-                <Suspense fallback={null}>
-                    <WebGLBackground mouse={mousePosition} windowSize={windowSize} />
-                </Suspense>
-            </div>
+            {/* WebGL Background - Animated 3D mesh - Hidden on mobile for performance - Lazy loaded */}
+            {isVisible && (
+                <div className="hidden md:block">
+                    <Suspense fallback={null}>
+                        <WebGLBackground mouse={mousePosition} windowSize={windowSize} />
+                    </Suspense>
+                </div>
+            )}
 
             {/* Animated Background - CSS layers for depth */}
             <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
@@ -1465,31 +1607,35 @@ export default function ProfileManagementPage() {
             <Header isAdmin={true} onLogout={handleLogout} />
 
             <main className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 pt-16 sm:pt-24 pb-6 sm:pb-12 relative z-10">
-                {/* 3D Particles in Background - Hidden on mobile for performance */}
-                <div className="hidden md:block fixed inset-0 pointer-events-none z-0">
-                    <Suspense fallback={null}>
-                        <Canvas
-                            camera={{ position: [0, 0, 5], fov: 75 }}
-                            gl={{ alpha: true, antialias: true }}
-                            style={{ width: '100%', height: '100%' }}
-                        >
-                            <FloatingParticles3D />
-                        </Canvas>
-                    </Suspense>
-                </div>
+                {/* 3D Particles in Background - Hidden on mobile for performance - Lazy loaded */}
+                {isVisible && (
+                    <div className="hidden md:block fixed inset-0 pointer-events-none z-0">
+                        <Suspense fallback={null}>
+                            <Canvas
+                                camera={{ position: [0, 0, 5], fov: 75 }}
+                                gl={{ alpha: true, antialias: true }}
+                                style={{ width: '100%', height: '100%' }}
+                            >
+                                <FloatingParticles3D />
+                            </Canvas>
+                        </Suspense>
+                    </div>
+                )}
 
-                {/* 3D Logo Element (optional, subtle) - Desktop only */}
-                <div className="absolute top-20 right-10 w-32 h-32 pointer-events-none opacity-20 hidden lg:block">
-                    <Suspense fallback={null}>
-                        <Canvas
-                            camera={{ position: [0, 0, 3], fov: 75 }}
-                            gl={{ alpha: true, antialias: true }}
-                            style={{ width: '100%', height: '100%' }}
-                        >
-                            <Hero3D mouse={mousePosition} windowSize={windowSize} />
-                        </Canvas>
-                    </Suspense>
-                </div>
+                {/* 3D Logo Element (optional, subtle) - Desktop only - Lazy loaded */}
+                {isVisible && (
+                    <div className="absolute top-20 right-10 w-32 h-32 pointer-events-none opacity-20 hidden lg:block">
+                        <Suspense fallback={null}>
+                            <Canvas
+                                camera={{ position: [0, 0, 3], fov: 75 }}
+                                gl={{ alpha: true, antialias: true }}
+                                style={{ width: '100%', height: '100%' }}
+                            >
+                                <Hero3D mouse={mousePosition} windowSize={windowSize} />
+                            </Canvas>
+                        </Suspense>
+                    </div>
+                )}
 
                 <div className={`max-w-6xl mx-auto transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
                     {/* Breadcrumb */}
@@ -1537,15 +1683,15 @@ export default function ProfileManagementPage() {
                                             onClick={handleProfileImageClick}
                                             title={user?.profileImage ? 'Click to change photo' : 'Click to upload photo'}
                                         >
-                                        {user?.profileImage && user?.id ? (
-                                            <ProfileImage
-                                                src={`${ImagesService.getUserProfileImageUrl(username, user.id)}?t=${profileImageTimestamp}&v=${user.profileImage}`}
-                                                alt={user.fullName || user.firstName || username}
-                                                fallback={getInitial()}
-                                            />
-                                        ) : (
+                                            {user?.profileImage && user?.id ? (
+                                                <ProfileImage
+                                                    src={`${ImagesService.getUserProfileImageUrl(username, user.id)}?t=${profileImageTimestamp}&v=${user.profileImage}`}
+                                                    alt={user.fullName || user.firstName || username}
+                                                    fallback={getInitial}
+                                                />
+                                            ) : (
                                                 <span className="text-white font-bold text-2xl sm:text-3xl md:text-4xl">
-                                                    {getInitial()}
+                                                    {getInitial}
                                                 </span>
                                             )}
                                             {/* Overlay on hover */}
@@ -1639,1145 +1785,1204 @@ export default function ProfileManagementPage() {
 
                     <div className="space-y-6">
                         {/* Basic Information Section */}
-                        <SectionCard
-                            title="Basic Information"
-                            icon={<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>}
-                            action={
-                                !isEditingBasicInfo && (
-                                    <button
-                                        onClick={() => setIsEditingBasicInfo(true)}
-                                        className="px-3 py-1.5 md:px-4 md:py-2 text-sm bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity font-medium"
-                                    >
-                                        Edit
-                                    </button>
-                                )
-                            }
-                        >
-                            {isEditingBasicInfo ? (
-                                <div className="space-y-4">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-sm font-medium text-jcoder-muted mb-2">Username</label>
-                                            <div className="relative">
-                                                <input
-                                                    type="text"
-                                                    name="username"
-                                                    value={basicInfoForm.username}
-                                                    onChange={handleBasicInfoInputChange}
-                                                    placeholder="johndoe"
-                                                    className={`w-full px-4 py-2 pr-10 bg-jcoder-secondary border rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none ${basicInfoForm.username.trim() !== (user?.username || '') && basicInfoForm.username.trim().length >= 3
-                                                        ? usernameStatus.available === true
-                                                            ? 'border-green-400'
-                                                            : usernameStatus.available === false
-                                                                ? 'border-red-400'
-                                                                : 'border-jcoder'
-                                                        : 'border-jcoder'
-                                                        }`}
-                                                />
-                                                {basicInfoForm.username.trim() !== (user?.username || '') && basicInfoForm.username.trim().length >= 3 && (
-                                                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                                                        {usernameStatus.checking ? (
-                                                            <svg className="animate-spin h-5 w-5 text-jcoder-muted" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                                            </svg>
-                                                        ) : usernameStatus.available === true ? (
-                                                            <svg className="h-5 w-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                                            </svg>
-                                                        ) : usernameStatus.available === false ? (
-                                                            <svg className="h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                                            </svg>
-                                                        ) : null}
-                                                    </div>
-                                                )}
-                                            </div>
-                                            {basicInfoForm.username.trim() !== (user?.username || '') && (
-                                                <>
-                                                    {usernameStatus.available === true && basicInfoForm.username.trim().length >= 3 && (
-                                                        <p className="mt-1 text-sm text-green-400">Username available!</p>
-                                                    )}
-                                                    {usernameStatus.available === false && (
-                                                        <p className="mt-1 text-sm text-red-400">This username is already in use</p>
-                                                    )}
-                                                    <p className="mt-1 text-xs text-jcoder-muted">
-                                                        Minimum of 3 characters. Only letters, numbers, underscores and hyphens.
-                                                    </p>
-                                                </>
-                                            )}
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-jcoder-muted mb-2">First Name</label>
-                                            <input
-                                                type="text"
-                                                name="firstName"
-                                                value={basicInfoForm.firstName}
-                                                onChange={handleBasicInfoInputChange}
-                                                className="w-full px-4 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-jcoder-muted mb-2">Full Name</label>
-                                            <input
-                                                type="text"
-                                                name="fullName"
-                                                value={basicInfoForm.fullName}
-                                                onChange={handleBasicInfoInputChange}
-                                                className="w-full px-4 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-jcoder-muted mb-2">Email</label>
-                                            <div className="relative">
-                                                <input
-                                                    type="email"
-                                                    name="email"
-                                                    value={basicInfoForm.email || ''}
-                                                    onChange={handleBasicInfoInputChange}
-                                                    className={`w-full px-4 py-2 pr-10 bg-jcoder-secondary border rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none ${basicInfoForm.email.trim() !== (user?.email || '') && basicInfoForm.email.trim()
-                                                        ? emailStatus.available === true
-                                                            ? 'border-green-400'
-                                                            : emailStatus.available === false
-                                                                ? 'border-red-400'
-                                                                : 'border-jcoder'
-                                                        : 'border-jcoder'
-                                                        }`}
-                                                />
-                                                {basicInfoForm.email.trim() !== (user?.email || '') && basicInfoForm.email.trim() && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(basicInfoForm.email.trim()) && (
-                                                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                                                        {emailStatus.checking ? (
-                                                            <svg className="animate-spin h-5 w-5 text-jcoder-muted" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                                            </svg>
-                                                        ) : emailStatus.available === true ? (
-                                                            <svg className="h-5 w-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                                            </svg>
-                                                        ) : emailStatus.available === false ? (
-                                                            <svg className="h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                                            </svg>
-                                                        ) : null}
-                                                    </div>
-                                                )}
-                                                {isEmailVerified && basicInfoForm.email.trim() === (user?.email || '') && (
-                                                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                                                        <svg className="h-5 w-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                                        </svg>
-                                                    </div>
-                                                )}
-                                            </div>
-                                            <div className="min-h-[60px]">
-                                                {basicInfoForm.email.trim() !== (user?.email || '') && (
-                                                    <>
-                                                        {emailStatus.available === true && basicInfoForm.email.trim() && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(basicInfoForm.email.trim()) && (
-                                                            <p className="mt-1 text-sm text-green-400">Email available!</p>
-                                                        )}
-                                                        {emailStatus.available === false && (
-                                                            <p className="mt-1 text-sm text-red-400">This email is already in use</p>
-                                                        )}
-                                                    </>
-                                                )}
-                                                {isEmailVerified && basicInfoForm.email.trim() === (user?.email || '') && (
-                                                    <p className="mt-1 text-sm text-green-400">Email verified</p>
-                                                )}
-
-                                                {/* Email Verification Section - Compact */}
-                                                {basicInfoForm.email.trim() !== (user?.email || '') && emailStatus.available === true && (
-                                                    <div className="mt-3 space-y-2">
-                                                        {!isEmailVerified && (
-                                                            <>
-                                                                {!codeSent ? (
-                                                                    <button
-                                                                        type="button"
-                                                                        onClick={handleSendVerificationCode}
-                                                                        disabled={isSendingCode || emailStatus.available !== true}
-                                                                        className="text-sm px-3 py-1.5 bg-jcoder-primary/10 text-jcoder-primary rounded-lg hover:bg-jcoder-primary/20 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                                                                    >
-                                                                        {isSendingCode ? 'Sending...' : 'Send code'}
-                                                                    </button>
-                                                                ) : (
-                                                                    <div className="space-y-2">
-                                                                        <div className="flex gap-2 items-center">
-                                                                            <input
-                                                                                type="text"
-                                                                                value={verificationCode}
-                                                                                onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, ''))}
-                                                                                placeholder="000000"
-                                                                                maxLength={6}
-                                                                                disabled={isVerifyingCode || isEmailVerified}
-                                                                                className="w-36 px-3 py-1.5 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none disabled:opacity-60 text-center text-lg tracking-widest"
-                                                                            />
-                                                                            <button
-                                                                                type="button"
-                                                                                onClick={handleVerifyCode}
-                                                                                disabled={isVerifyingCode || verificationCode.length !== 6 || isEmailVerified}
-                                                                                className="px-3 py-1.5 bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
-                                                                            >
-                                                                                {isVerifyingCode ? 'Verifying...' : 'Verify'}
-                                                                            </button>
-                                                                            <button
-                                                                                type="button"
-                                                                                onClick={handleSendVerificationCode}
-                                                                                disabled={isSendingCode}
-                                                                                className="text-xs text-jcoder-primary hover:text-jcoder-accent transition-colors disabled:opacity-50"
-                                                                            >
-                                                                                {isSendingCode ? 'Sending...' : 'Resend'}
-                                                                            </button>
-                                                                        </div>
-                                                                    </div>
-                                                                )}
-                                                            </>
-                                                        )}
-                                                        {isEmailVerified && (
-                                                            <div className="flex items-center gap-1.5 text-xs text-green-400">
-                                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div data-section="basicInfo">
+                            <SectionCard
+                                title="Basic Information"
+                                icon={<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>}
+                                action={
+                                    !isEditingBasicInfo && (
+                                        <button
+                                            onClick={() => setIsEditingBasicInfo(true)}
+                                            className="px-3 py-1.5 md:px-4 md:py-2 text-sm bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity font-medium"
+                                        >
+                                            Edit
+                                        </button>
+                                    )
+                                }
+                            >
+                                {isEditingBasicInfo ? (
+                                    <div className="space-y-4">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="block text-sm font-medium text-jcoder-muted mb-2">Username</label>
+                                                <div className="relative">
+                                                    <input
+                                                        type="text"
+                                                        name="username"
+                                                        value={basicInfoForm.username}
+                                                        onChange={handleBasicInfoInputChange}
+                                                        placeholder="johndoe"
+                                                        className={`w-full px-4 py-2 pr-10 bg-jcoder-secondary border rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none ${basicInfoForm.username.trim() !== (user?.username || '') && basicInfoForm.username.trim().length >= 3
+                                                            ? usernameStatus.available === true
+                                                                ? 'border-green-400'
+                                                                : usernameStatus.available === false
+                                                                    ? 'border-red-400'
+                                                                    : 'border-jcoder'
+                                                            : 'border-jcoder'
+                                                            }`}
+                                                    />
+                                                    {basicInfoForm.username.trim() !== (user?.username || '') && basicInfoForm.username.trim().length >= 3 && (
+                                                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                                                            {usernameStatus.checking ? (
+                                                                <svg className="animate-spin h-5 w-5 text-jcoder-muted" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                                </svg>
+                                                            ) : usernameStatus.available === true ? (
+                                                                <svg className="h-5 w-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                                                 </svg>
-                                                                <span>Email verified</span>
-                                                            </div>
+                                                            ) : usernameStatus.available === false ? (
+                                                                <svg className="h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                                                </svg>
+                                                            ) : null}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                {basicInfoForm.username.trim() !== (user?.username || '') && (
+                                                    <>
+                                                        {usernameStatus.available === true && basicInfoForm.username.trim().length >= 3 && (
+                                                            <p className="mt-1 text-sm text-green-400">Username available!</p>
                                                         )}
-                                                    </div>
+                                                        {usernameStatus.available === false && (
+                                                            <p className="mt-1 text-sm text-red-400">This username is already in use</p>
+                                                        )}
+                                                        <p className="mt-1 text-xs text-jcoder-muted">
+                                                            Minimum of 3 characters. Only letters, numbers, underscores and hyphens.
+                                                        </p>
+                                                    </>
                                                 )}
                                             </div>
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-jcoder-muted mb-2">GitHub URL</label>
-                                            <input
-                                                type="url"
-                                                name="githubUrl"
-                                                value={basicInfoForm.githubUrl}
-                                                onChange={handleBasicInfoInputChange}
-                                                placeholder="https://github.com/username"
-                                                className="w-full px-4 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none"
-                                            />
-                                        </div>
-                                        <div className="md:col-span-2">
-                                            <label className="block text-sm font-medium text-jcoder-muted mb-2">LinkedIn URL</label>
-                                            <input
-                                                type="url"
-                                                name="linkedinUrl"
-                                                value={basicInfoForm.linkedinUrl}
-                                                onChange={handleBasicInfoInputChange}
-                                                placeholder="https://linkedin.com/in/username"
-                                                className="w-full px-4 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    {/* Password Change */}
-                                    <div className="pt-4 border-t border-jcoder">
-                                        <h4 className="text-base font-semibold text-jcoder-foreground mb-4">Change Password (Optional)</h4>
-                                        <div className="grid grid-cols-1 gap-4">
                                             <div>
-                                                <label className="block text-sm font-medium text-jcoder-muted mb-2">Current Password</label>
+                                                <label className="block text-sm font-medium text-jcoder-muted mb-2">First Name</label>
                                                 <input
-                                                    type="password"
-                                                    name="currentPassword"
-                                                    value={basicInfoForm.currentPassword}
+                                                    type="text"
+                                                    name="firstName"
+                                                    value={basicInfoForm.firstName}
                                                     onChange={handleBasicInfoInputChange}
                                                     className="w-full px-4 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none"
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-jcoder-muted mb-2">New Password</label>
+                                                <label className="block text-sm font-medium text-jcoder-muted mb-2">Full Name</label>
                                                 <input
-                                                    type="password"
-                                                    name="newPassword"
-                                                    value={basicInfoForm.newPassword}
+                                                    type="text"
+                                                    name="fullName"
+                                                    value={basicInfoForm.fullName}
                                                     onChange={handleBasicInfoInputChange}
                                                     className="w-full px-4 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none"
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-jcoder-muted mb-2">Confirm New Password</label>
-                                                <input
-                                                    type="password"
-                                                    name="confirmPassword"
-                                                    value={basicInfoForm.confirmPassword}
-                                                    onChange={handleBasicInfoInputChange}
-                                                    className="w-full px-4 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none"
-                                                />
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Action Buttons */}
-                                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 pt-4">
-                                        <button
-                                            onClick={handleCancelBasicInfo}
-                                            disabled={isSaving}
-                                            className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 border border-jcoder text-jcoder-foreground rounded-lg hover:border-jcoder-primary transition-colors text-sm sm:text-base"
-                                        >
-                                            Cancel
-                                        </button>
-                                        <button
-                                            onClick={handleSaveBasicInfo}
-                                            disabled={isSaving}
-                                            className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity font-medium disabled:opacity-50 text-sm sm:text-base"
-                                        >
-                                            {isSaving ? 'Saving...' : 'Save Changes'}
-                                        </button>
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="space-y-2">
-                                    <InfoField
-                                        label="Username"
-                                        value={user?.username}
-                                        icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>}
-                                    />
-                                    <InfoField
-                                        label="First Name"
-                                        value={user?.firstName}
-                                        icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>}
-                                    />
-                                    <InfoField
-                                        label="Full Name"
-                                        value={user?.fullName}
-                                        icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>}
-                                    />
-                                    <InfoField
-                                        label="Email"
-                                        value={user?.email}
-                                        icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>}
-                                    />
-                                    <InfoField
-                                        label="GitHub"
-                                        value={user?.githubUrl ? (
-                                            <a href={user.githubUrl} target="_blank" rel="noopener noreferrer" className="text-jcoder-primary hover:underline break-all">
-                                                {user.githubUrl}
-                                            </a>
-                                        ) : undefined}
-                                        icon={<svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" /></svg>}
-                                    />
-                                    <InfoField
-                                        label="LinkedIn"
-                                        value={user?.linkedinUrl ? (
-                                            <a href={user.linkedinUrl} target="_blank" rel="noopener noreferrer" className="text-jcoder-primary hover:underline break-all">
-                                                {user.linkedinUrl}
-                                            </a>
-                                        ) : undefined}
-                                        icon={<svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" /></svg>}
-                                    />
-                                </div>
-                            )}
-                        </SectionCard>
-
-                        {/* About Me Section */}
-                        <SectionCard
-                            title="About Me"
-                            icon={<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
-                            action={
-                                !isEditingAboutMe && (
-                                    <button
-                                        onClick={() => setIsEditingAboutMe(true)}
-                                        className="px-3 py-1.5 md:px-4 md:py-2 text-sm bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity font-medium"
-                                    >
-                                        {aboutMe ? 'Edit' : 'Add'}
-                                    </button>
-                                )
-                            }
-                            isEmpty={!aboutMe && !isEditingAboutMe}
-                            emptyMessage="Add information about yourself to showcase on your profile"
-                        >
-                            {isEditingAboutMe ? (
-                                <div className="space-y-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-jcoder-muted mb-2">Occupation/Title</label>
-                                        <input
-                                            type="text"
-                                            name="occupation"
-                                            value={aboutMeForm.occupation}
-                                            onChange={handleAboutMeInputChange}
-                                            placeholder="e.g., Senior Software Engineer"
-                                            className="w-full px-4 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-jcoder-muted mb-2">Description</label>
-                                        <textarea
-                                            name="description"
-                                            value={aboutMeForm.description}
-                                            onChange={handleAboutMeInputChange}
-                                            rows={6}
-                                            placeholder="Tell us about yourself, your experience, and what you're passionate about..."
-                                            className="w-full px-4 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none resize-none"
-                                        />
-                                    </div>
-
-                                    {/* Highlights Section */}
-                                    <div className="pt-4 border-t border-jcoder">
-                                        <div className="flex items-center justify-between mb-4">
-                                            <h4 className="text-base font-semibold text-jcoder-foreground">Highlights</h4>
-                                            <button
-                                                type="button"
-                                                onClick={handleAddHighlight}
-                                                className="px-3 py-1.5 text-sm bg-jcoder-primary/10 text-jcoder-primary rounded-lg hover:bg-jcoder-primary/20 transition-colors font-medium flex items-center gap-1"
-                                            >
-                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                                                </svg>
-                                                Add Highlight
-                                            </button>
-                                        </div>
-
-                                        {aboutMeForm.highlights.length === 0 ? (
-                                            <p className="text-sm text-jcoder-muted italic">No highlights added yet. Click "Add Highlight" to get started.</p>
-                                        ) : (
-                                            <div className="space-y-3">
-                                                {aboutMeForm.highlights.map((highlight, index) => (
-                                                    <div key={index} className="p-4 bg-jcoder-secondary border border-jcoder rounded-lg">
-                                                        <div className="flex items-start justify-between mb-3">
-                                                            <span className="text-sm font-medium text-jcoder-muted">Highlight #{index + 1}</span>
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => handleRemoveHighlight(index)}
-                                                                className="text-red-500 hover:text-red-600 transition-colors"
-                                                                title="Remove highlight"
-                                                            >
-                                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                <label className="block text-sm font-medium text-jcoder-muted mb-2">Email</label>
+                                                <div className="relative">
+                                                    <input
+                                                        type="email"
+                                                        name="email"
+                                                        value={basicInfoForm.email || ''}
+                                                        onChange={handleBasicInfoInputChange}
+                                                        className={`w-full px-4 py-2 pr-10 bg-jcoder-secondary border rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none ${basicInfoForm.email.trim() !== (user?.email || '') && basicInfoForm.email.trim()
+                                                            ? emailStatus.available === true
+                                                                ? 'border-green-400'
+                                                                : emailStatus.available === false
+                                                                    ? 'border-red-400'
+                                                                    : 'border-jcoder'
+                                                            : 'border-jcoder'
+                                                            }`}
+                                                    />
+                                                    {basicInfoForm.email.trim() !== (user?.email || '') && basicInfoForm.email.trim() && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(basicInfoForm.email.trim()) && (
+                                                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                                                            {emailStatus.checking ? (
+                                                                <svg className="animate-spin h-5 w-5 text-jcoder-muted" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                                                 </svg>
-                                                            </button>
+                                                            ) : emailStatus.available === true ? (
+                                                                <svg className="h-5 w-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                                                </svg>
+                                                            ) : emailStatus.available === false ? (
+                                                                <svg className="h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                                                </svg>
+                                                            ) : null}
                                                         </div>
-                                                        <div className="space-y-3">
-                                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                                                <div className="sm:col-span-2">
-                                                                    <label className="block text-xs font-medium text-jcoder-muted mb-1">Title *</label>
-                                                                    <input
-                                                                        type="text"
-                                                                        value={highlight.title}
-                                                                        onChange={(e) => handleHighlightChange(index, 'title', e.target.value)}
-                                                                        placeholder="e.g., 10+ Years Experience"
-                                                                        className="w-full px-3 py-2 bg-jcoder-background border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none text-sm"
-                                                                    />
-                                                                </div>
-                                                                <div>
-                                                                    <label className="block text-xs font-medium text-jcoder-muted mb-1">Subtitle (Optional)</label>
-                                                                    <input
-                                                                        type="text"
-                                                                        value={highlight.subtitle || ''}
-                                                                        onChange={(e) => handleHighlightChange(index, 'subtitle', e.target.value)}
-                                                                        placeholder="e.g., Building amazing software"
-                                                                        className="w-full px-3 py-2 bg-jcoder-background border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none text-sm"
-                                                                    />
-                                                                </div>
-                                                                <div>
-                                                                    <label className="block text-xs font-medium text-jcoder-muted mb-1">Emoji (Optional)</label>
-                                                                    <input
-                                                                        type="text"
-                                                                        value={highlight.emoji || ''}
-                                                                        onChange={(e) => handleHighlightChange(index, 'emoji', e.target.value)}
-                                                                        placeholder="e.g., 🚀"
-                                                                        maxLength={2}
-                                                                        className="w-full px-3 py-2 bg-jcoder-background border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none text-sm"
-                                                                    />
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {/* Action Buttons */}
-                                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 pt-4">
-                                        <button
-                                            onClick={handleCancelAboutMe}
-                                            disabled={isSaving}
-                                            className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 border border-jcoder text-jcoder-foreground rounded-lg hover:border-jcoder-primary transition-colors text-sm sm:text-base"
-                                        >
-                                            Cancel
-                                        </button>
-                                        <button
-                                            onClick={handleSaveAboutMe}
-                                            disabled={isSaving}
-                                            className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity font-medium disabled:opacity-50 text-sm sm:text-base"
-                                        >
-                                            {isSaving ? 'Saving...' : 'Save'}
-                                        </button>
-                                    </div>
-                                </div>
-                            ) : aboutMe ? (
-                                <div className="space-y-4">
-                                    <InfoField label="Occupation" value={aboutMe.occupation} />
-                                    <InfoField
-                                        label="Description"
-                                        value={
-                                            <div
-                                                className="text-sm md:text-base text-jcoder-foreground mt-2 prose prose-sm max-w-none"
-                                                dangerouslySetInnerHTML={{ __html: aboutMe.description || '' }}
-                                            />
-                                        }
-                                    />
-                                    {aboutMe.highlights && aboutMe.highlights.length > 0 && (
-                                        <div className="pt-4">
-                                            <h4 className="text-base font-semibold text-jcoder-foreground mb-3">Highlights</h4>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                                {aboutMe.highlights.map((highlight, index) => (
-                                                    <div key={index} className="p-3 bg-jcoder-secondary rounded-lg border border-jcoder hover:border-jcoder-primary transition-all">
-                                                        <div className="flex items-start gap-2">
-                                                            {highlight.emoji && (
-                                                                <span className="text-2xl flex-shrink-0">{highlight.emoji}</span>
-                                                            )}
-                                                            <div className="flex-1">
-                                                                <p className="text-sm font-medium text-jcoder-foreground">{highlight.title}</p>
-                                                                {highlight.subtitle && (
-                                                                    <p className="text-xs text-jcoder-muted mt-1">{highlight.subtitle}</p>
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            ) : null}
-                        </SectionCard>
-
-                        {/* Education Section */}
-                        <SectionCard
-                            title="Education"
-                            icon={<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>}
-                            action={
-                                !isEditingEducation && (
-                                    <button
-                                        onClick={handleAddEducation}
-                                        className="px-3 py-1.5 md:px-4 md:py-2 text-sm bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity font-medium"
-                                    >
-                                        Add Education
-                                    </button>
-                                )
-                            }
-                            collapsible={true}
-                            isEmpty={educations.length === 0 && !isEditingEducation}
-                            emptyMessage="No education records added yet"
-                        >
-                            {isEditingEducation ? (
-                                <div className="space-y-4">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div className="md:col-span-2">
-                                            <label className="block text-sm font-medium text-jcoder-muted mb-2">Institution Name *</label>
-                                            <input
-                                                type="text"
-                                                name="institutionName"
-                                                value={educationForm.institutionName}
-                                                onChange={handleEducationInputChange}
-                                                placeholder="e.g., University of Technology"
-                                                className="w-full px-4 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none"
-                                            />
-                                        </div>
-                                        <div className="md:col-span-2">
-                                            <label className="block text-sm font-medium text-jcoder-muted mb-2">Course Name *</label>
-                                            <input
-                                                type="text"
-                                                name="courseName"
-                                                value={educationForm.courseName}
-                                                onChange={handleEducationInputChange}
-                                                placeholder="e.g., Computer Science"
-                                                className="w-full px-4 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none"
-                                            />
-                                        </div>
-                                        <div className="md:col-span-2">
-                                            <label className="block text-sm font-medium text-jcoder-muted mb-2">Degree (Optional)</label>
-                                            <input
-                                                type="text"
-                                                name="degree"
-                                                value={educationForm.degree}
-                                                onChange={handleEducationInputChange}
-                                                placeholder="e.g., Bachelor's Degree"
-                                                className="w-full px-4 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-jcoder-muted mb-2">Start Date *</label>
-                                            <input
-                                                type="date"
-                                                name="startDate"
-                                                value={educationForm.startDate}
-                                                onChange={handleEducationInputChange}
-                                                className="w-full px-4 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-jcoder-muted mb-2">
-                                                End Date {educationForm.isCurrentlyStudying ? '(Optional)' : '*'}
-                                            </label>
-                                            <input
-                                                type="date"
-                                                name="endDate"
-                                                value={educationForm.endDate}
-                                                onChange={handleEducationInputChange}
-                                                disabled={educationForm.isCurrentlyStudying}
-                                                className="w-full px-4 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
-                                            />
-                                        </div>
-                                        <div className="md:col-span-2">
-                                            <label className="flex items-center gap-2 cursor-pointer">
-                                                <input
-                                                    type="checkbox"
-                                                    name="isCurrentlyStudying"
-                                                    checked={educationForm.isCurrentlyStudying}
-                                                    onChange={handleEducationInputChange}
-                                                    className="w-4 h-4 text-jcoder-primary bg-jcoder-secondary border-jcoder rounded focus:ring-jcoder-primary"
-                                                />
-                                                <span className="text-sm font-medium text-jcoder-foreground">Currently studying</span>
-                                            </label>
-                                        </div>
-                                    </div>
-
-                                    {/* Action Buttons */}
-                                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 pt-4">
-                                        <button
-                                            onClick={handleCancelEducation}
-                                            disabled={isSaving}
-                                            className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 border border-jcoder text-jcoder-foreground rounded-lg hover:border-jcoder-primary transition-colors text-sm sm:text-base"
-                                        >
-                                            Cancel
-                                        </button>
-                                        <button
-                                            onClick={handleSaveEducation}
-                                            disabled={isSaving}
-                                            className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity font-medium disabled:opacity-50 text-sm sm:text-base"
-                                        >
-                                            {isSaving ? 'Saving...' : editingEducationId ? 'Update' : 'Create'}
-                                        </button>
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="space-y-4">
-                                    {educations.map((edu, index) => {
-                                        const educationId = edu.id;
-                                        return (
-                                            <div key={educationId || index} className="group relative">
-                                                <TimelineItem
-                                                    title={edu.courseName}
-                                                    subtitle={edu.institutionName}
-                                                    period={`${formatDate(edu.startDate)} - ${edu.isCurrentlyStudying ? 'Present' : formatDate(edu.endDate)}`}
-                                                    isActive={edu.isCurrentlyStudying}
-                                                    tags={edu.degree ? [edu.degree] : undefined}
-                                                />
-                                                <div className="absolute top-0 right-0 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    <button
-                                                        onClick={() => handleEditEducation(edu)}
-                                                        className="p-2 bg-jcoder-secondary border border-jcoder rounded-lg hover:border-jcoder-primary transition-colors"
-                                                        title="Edit education"
-                                                    >
-                                                        <svg className="w-4 h-4 text-jcoder-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                                        </svg>
-                                                    </button>
-                                                    {educationId && (
-                                                        <button
-                                                            onClick={() => handleDeleteEducation(educationId)}
-                                                            className="p-2 bg-jcoder-secondary border border-red-500/50 rounded-lg hover:border-red-500 transition-colors"
-                                                            title="Delete education"
-                                                        >
-                                                            <svg className="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                    )}
+                                                    {isEmailVerified && basicInfoForm.email.trim() === (user?.email || '') && (
+                                                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                                                            <svg className="h-5 w-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                                             </svg>
-                                                        </button>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div className="min-h-[60px]">
+                                                    {basicInfoForm.email.trim() !== (user?.email || '') && (
+                                                        <>
+                                                            {emailStatus.available === true && basicInfoForm.email.trim() && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(basicInfoForm.email.trim()) && (
+                                                                <p className="mt-1 text-sm text-green-400">Email available!</p>
+                                                            )}
+                                                            {emailStatus.available === false && (
+                                                                <p className="mt-1 text-sm text-red-400">This email is already in use</p>
+                                                            )}
+                                                        </>
+                                                    )}
+                                                    {isEmailVerified && basicInfoForm.email.trim() === (user?.email || '') && (
+                                                        <p className="mt-1 text-sm text-green-400">Email verified</p>
+                                                    )}
+
+                                                    {/* Email Verification Section - Compact */}
+                                                    {basicInfoForm.email.trim() !== (user?.email || '') && emailStatus.available === true && (
+                                                        <div className="mt-3 space-y-2">
+                                                            {!isEmailVerified && (
+                                                                <>
+                                                                    {!codeSent ? (
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={handleSendVerificationCode}
+                                                                            disabled={isSendingCode || emailStatus.available !== true}
+                                                                            className="text-sm px-3 py-1.5 bg-jcoder-primary/10 text-jcoder-primary rounded-lg hover:bg-jcoder-primary/20 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                                                                        >
+                                                                            {isSendingCode ? 'Sending...' : 'Send code'}
+                                                                        </button>
+                                                                    ) : (
+                                                                        <div className="space-y-2">
+                                                                            <div className="flex gap-2 items-center">
+                                                                                <input
+                                                                                    type="text"
+                                                                                    value={verificationCode}
+                                                                                    onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, ''))}
+                                                                                    placeholder="000000"
+                                                                                    maxLength={6}
+                                                                                    disabled={isVerifyingCode || isEmailVerified}
+                                                                                    className="w-36 px-3 py-1.5 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none disabled:opacity-60 text-center text-lg tracking-widest"
+                                                                                />
+                                                                                <button
+                                                                                    type="button"
+                                                                                    onClick={handleVerifyCode}
+                                                                                    disabled={isVerifyingCode || verificationCode.length !== 6 || isEmailVerified}
+                                                                                    className="px-3 py-1.5 bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                                                                                >
+                                                                                    {isVerifyingCode ? 'Verifying...' : 'Verify'}
+                                                                                </button>
+                                                                                <button
+                                                                                    type="button"
+                                                                                    onClick={handleSendVerificationCode}
+                                                                                    disabled={isSendingCode}
+                                                                                    className="text-xs text-jcoder-primary hover:text-jcoder-accent transition-colors disabled:opacity-50"
+                                                                                >
+                                                                                    {isSendingCode ? 'Sending...' : 'Resend'}
+                                                                                </button>
+                                                                            </div>
+                                                                        </div>
+                                                                    )}
+                                                                </>
+                                                            )}
+                                                            {isEmailVerified && (
+                                                                <div className="flex items-center gap-1.5 text-xs text-green-400">
+                                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                                                    </svg>
+                                                                    <span>Email verified</span>
+                                                                </div>
+                                                            )}
+                                                        </div>
                                                     )}
                                                 </div>
                                             </div>
-                                        );
-                                    })}
-                                </div>
-                            )}
-                        </SectionCard>
+                                            <div>
+                                                <label className="block text-sm font-medium text-jcoder-muted mb-2">GitHub URL</label>
+                                                <input
+                                                    type="url"
+                                                    name="githubUrl"
+                                                    value={basicInfoForm.githubUrl}
+                                                    onChange={handleBasicInfoInputChange}
+                                                    placeholder="https://github.com/username"
+                                                    className="w-full px-4 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none"
+                                                />
+                                            </div>
+                                            <div className="md:col-span-2">
+                                                <label className="block text-sm font-medium text-jcoder-muted mb-2">LinkedIn URL</label>
+                                                <input
+                                                    type="url"
+                                                    name="linkedinUrl"
+                                                    value={basicInfoForm.linkedinUrl}
+                                                    onChange={handleBasicInfoInputChange}
+                                                    placeholder="https://linkedin.com/in/username"
+                                                    className="w-full px-4 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none"
+                                                />
+                                            </div>
+                                        </div>
 
-                        {/* Experience Section */}
-                        <SectionCard
-                            title="Professional Experience"
-                            icon={<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>}
-                            action={
-                                !isEditingExperience && (
-                                    <button
-                                        onClick={handleAddExperience}
-                                        className="px-3 py-1.5 md:px-4 md:py-2 text-sm bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity font-medium"
-                                    >
-                                        Add Experience
-                                    </button>
-                                )
-                            }
-                            collapsible={true}
-                            isEmpty={experiences.length === 0 && !isEditingExperience}
-                            emptyMessage="No professional experience added yet"
-                        >
-                            {isEditingExperience ? (
-                                <div className="space-y-6">
-                                    {/* Company Form */}
-                                    <div className="p-4 bg-jcoder-secondary rounded-lg border border-jcoder">
-                                        <h4 className="text-base font-semibold text-jcoder-foreground mb-4">
-                                            {editingExperienceId ? 'Edit Company' : 'Add Company'}
-                                        </h4>
+                                        {/* Password Change */}
+                                        <div className="pt-4 border-t border-jcoder">
+                                            <h4 className="text-base font-semibold text-jcoder-foreground mb-4">Change Password (Optional)</h4>
+                                            <div className="grid grid-cols-1 gap-4">
+                                                <div>
+                                                    <label className="block text-sm font-medium text-jcoder-muted mb-2">Current Password</label>
+                                                    <input
+                                                        type="password"
+                                                        name="currentPassword"
+                                                        value={basicInfoForm.currentPassword}
+                                                        onChange={handleBasicInfoInputChange}
+                                                        className="w-full px-4 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-jcoder-muted mb-2">New Password</label>
+                                                    <input
+                                                        type="password"
+                                                        name="newPassword"
+                                                        value={basicInfoForm.newPassword}
+                                                        onChange={handleBasicInfoInputChange}
+                                                        className="w-full px-4 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-jcoder-muted mb-2">Confirm New Password</label>
+                                                    <input
+                                                        type="password"
+                                                        name="confirmPassword"
+                                                        value={basicInfoForm.confirmPassword}
+                                                        onChange={handleBasicInfoInputChange}
+                                                        className="w-full px-4 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Action Buttons */}
+                                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 pt-4">
+                                            <button
+                                                onClick={handleCancelBasicInfo}
+                                                disabled={isSaving}
+                                                className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 border border-jcoder text-jcoder-foreground rounded-lg hover:border-jcoder-primary transition-colors text-sm sm:text-base"
+                                            >
+                                                Cancel
+                                            </button>
+                                            <button
+                                                onClick={handleSaveBasicInfo}
+                                                disabled={isSaving}
+                                                className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity font-medium disabled:opacity-50 text-sm sm:text-base"
+                                            >
+                                                {isSaving ? 'Saving...' : 'Save Changes'}
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-2">
+                                        <InfoField
+                                            label="Username"
+                                            value={user?.username}
+                                            icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>}
+                                        />
+                                        <InfoField
+                                            label="First Name"
+                                            value={user?.firstName}
+                                            icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>}
+                                        />
+                                        <InfoField
+                                            label="Full Name"
+                                            value={user?.fullName}
+                                            icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>}
+                                        />
+                                        <InfoField
+                                            label="Email"
+                                            value={user?.email}
+                                            icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>}
+                                        />
+                                        <InfoField
+                                            label="GitHub"
+                                            value={user?.githubUrl ? (
+                                                <a href={user.githubUrl} target="_blank" rel="noopener noreferrer" className="text-jcoder-primary hover:underline break-all">
+                                                    {user.githubUrl}
+                                                </a>
+                                            ) : undefined}
+                                            icon={<svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" /></svg>}
+                                        />
+                                        <InfoField
+                                            label="LinkedIn"
+                                            value={user?.linkedinUrl ? (
+                                                <a href={user.linkedinUrl} target="_blank" rel="noopener noreferrer" className="text-jcoder-primary hover:underline break-all">
+                                                    {user.linkedinUrl}
+                                                </a>
+                                            ) : undefined}
+                                            icon={<svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" /></svg>}
+                                        />
+                                    </div>
+                                )}
+                            </SectionCard>
+                        </div>
+
+                        {/* About Me Section */}
+                        <div data-section="aboutMe">
+                            {loadingStates.aboutMe ? (
+                                <SectionCard
+                                    title="About Me"
+                                    icon={<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
+                                >
+                                    <div className="space-y-3">
+                                        <div className="h-4 bg-jcoder-secondary rounded animate-pulse" />
+                                        <div className="h-4 bg-jcoder-secondary rounded animate-pulse w-3/4" />
+                                        <div className="h-4 bg-jcoder-secondary rounded animate-pulse w-5/6" />
+                                    </div>
+                                </SectionCard>
+                            ) : (
+                                <SectionCard
+                                    title="About Me"
+                                    icon={<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
+                                    action={
+                                        !isEditingAboutMe && (
+                                            <button
+                                                onClick={() => setIsEditingAboutMe(true)}
+                                                className="px-3 py-1.5 md:px-4 md:py-2 text-sm bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity font-medium"
+                                            >
+                                                {aboutMe ? 'Edit' : 'Add'}
+                                            </button>
+                                        )
+                                    }
+                                    isEmpty={!aboutMe && !isEditingAboutMe}
+                                    emptyMessage="Add information about yourself to showcase on your profile"
+                                >
+                                    {isEditingAboutMe ? (
                                         <div className="space-y-4">
                                             <div>
-                                                <label className="block text-sm font-medium text-jcoder-muted mb-2">Company Name *</label>
+                                                <label className="block text-sm font-medium text-jcoder-muted mb-2">Occupation/Title</label>
                                                 <input
                                                     type="text"
-                                                    name="companyName"
-                                                    value={experienceForm.companyName}
-                                                    onChange={handleExperienceInputChange}
-                                                    placeholder="e.g., Tech Company Inc."
-                                                    className="w-full px-4 py-2 bg-jcoder-background border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none"
+                                                    name="occupation"
+                                                    value={aboutMeForm.occupation}
+                                                    onChange={handleAboutMeInputChange}
+                                                    placeholder="e.g., Senior Software Engineer"
+                                                    className="w-full px-4 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-jcoder-muted mb-2">Description</label>
+                                                <textarea
+                                                    name="description"
+                                                    value={aboutMeForm.description}
+                                                    onChange={handleAboutMeInputChange}
+                                                    rows={6}
+                                                    placeholder="Tell us about yourself, your experience, and what you're passionate about..."
+                                                    className="w-full px-4 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none resize-none"
                                                 />
                                             </div>
 
-                                            {/* Action Buttons for Company */}
-                                            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 pt-4 border-t border-jcoder">
+                                            {/* Highlights Section */}
+                                            <div className="pt-4 border-t border-jcoder">
+                                                <div className="flex items-center justify-between mb-4">
+                                                    <h4 className="text-base font-semibold text-jcoder-foreground">Highlights</h4>
+                                                    <button
+                                                        type="button"
+                                                        onClick={handleAddHighlight}
+                                                        className="px-3 py-1.5 text-sm bg-jcoder-primary/10 text-jcoder-primary rounded-lg hover:bg-jcoder-primary/20 transition-colors font-medium flex items-center gap-1"
+                                                    >
+                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                                        </svg>
+                                                        Add Highlight
+                                                    </button>
+                                                </div>
+
+                                                {aboutMeForm.highlights.length === 0 ? (
+                                                    <p className="text-sm text-jcoder-muted italic">No highlights added yet. Click "Add Highlight" to get started.</p>
+                                                ) : (
+                                                    <div className="space-y-3">
+                                                        {aboutMeForm.highlights.map((highlight, index) => (
+                                                            <div key={index} className="p-4 bg-jcoder-secondary border border-jcoder rounded-lg">
+                                                                <div className="flex items-start justify-between mb-3">
+                                                                    <span className="text-sm font-medium text-jcoder-muted">Highlight #{index + 1}</span>
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => handleRemoveHighlight(index)}
+                                                                        className="text-red-500 hover:text-red-600 transition-colors"
+                                                                        title="Remove highlight"
+                                                                    >
+                                                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                                        </svg>
+                                                                    </button>
+                                                                </div>
+                                                                <div className="space-y-3">
+                                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                                        <div className="sm:col-span-2">
+                                                                            <label className="block text-xs font-medium text-jcoder-muted mb-1">Title *</label>
+                                                                            <input
+                                                                                type="text"
+                                                                                value={highlight.title}
+                                                                                onChange={(e) => handleHighlightChange(index, 'title', e.target.value)}
+                                                                                placeholder="e.g., 10+ Years Experience"
+                                                                                className="w-full px-3 py-2 bg-jcoder-background border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none text-sm"
+                                                                            />
+                                                                        </div>
+                                                                        <div>
+                                                                            <label className="block text-xs font-medium text-jcoder-muted mb-1">Subtitle (Optional)</label>
+                                                                            <input
+                                                                                type="text"
+                                                                                value={highlight.subtitle || ''}
+                                                                                onChange={(e) => handleHighlightChange(index, 'subtitle', e.target.value)}
+                                                                                placeholder="e.g., Building amazing software"
+                                                                                className="w-full px-3 py-2 bg-jcoder-background border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none text-sm"
+                                                                            />
+                                                                        </div>
+                                                                        <div>
+                                                                            <label className="block text-xs font-medium text-jcoder-muted mb-1">Emoji (Optional)</label>
+                                                                            <input
+                                                                                type="text"
+                                                                                value={highlight.emoji || ''}
+                                                                                onChange={(e) => handleHighlightChange(index, 'emoji', e.target.value)}
+                                                                                placeholder="e.g., 🚀"
+                                                                                maxLength={2}
+                                                                                className="w-full px-3 py-2 bg-jcoder-background border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none text-sm"
+                                                                            />
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {/* Action Buttons */}
+                                            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 pt-4">
                                                 <button
-                                                    onClick={handleCancelExperience}
+                                                    onClick={handleCancelAboutMe}
                                                     disabled={isSaving}
                                                     className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 border border-jcoder text-jcoder-foreground rounded-lg hover:border-jcoder-primary transition-colors text-sm sm:text-base"
                                                 >
                                                     Cancel
                                                 </button>
                                                 <button
-                                                    onClick={handleSaveExperience}
+                                                    onClick={handleSaveAboutMe}
                                                     disabled={isSaving}
                                                     className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity font-medium disabled:opacity-50 text-sm sm:text-base"
                                                 >
-                                                    {isSaving ? 'Saving...' : editingExperienceId ? 'Update Company' : 'Create Company'}
+                                                    {isSaving ? 'Saving...' : 'Save'}
                                                 </button>
                                             </div>
                                         </div>
-                                    </div>
-
-                                    {/* Positions Management - Only show if company is saved/being edited */}
-                                    {editingExperienceId && (
-                                        <div className="p-4 bg-jcoder-secondary rounded-lg border border-jcoder">
-                                            <div className="flex items-center justify-between mb-4">
-                                                <h4 className="text-base font-semibold text-jcoder-foreground">Positions</h4>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => handleAddPosition(editingExperienceId)}
-                                                    className="px-3 py-1.5 text-sm bg-jcoder-primary/10 text-jcoder-primary rounded-lg hover:bg-jcoder-primary/20 transition-colors font-medium flex items-center gap-1"
-                                                >
-                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                                                    </svg>
-                                                    Add Position
-                                                </button>
-                                            </div>
-
-                                            {/* Position Form - Show when adding or editing a position */}
-                                            {(isAddingPosition || editingPositionIndex !== null) && (
-                                                <div className="mb-4 p-4 bg-jcoder-background rounded-lg border border-jcoder">
-                                                    <h5 className="text-sm font-semibold text-jcoder-foreground mb-3">
-                                                        {editingPositionIndex !== null ? 'Edit Position' : 'New Position'}
-                                                    </h5>
-                                                    <div className="space-y-3">
-                                                        <div>
-                                                            <label className="block text-xs font-medium text-jcoder-muted mb-1">Position Title *</label>
-                                                            <input
-                                                                type="text"
-                                                                name="position"
-                                                                value={positionForm.position}
-                                                                onChange={handlePositionInputChange}
-                                                                placeholder="e.g., Senior Software Engineer"
-                                                                className="w-full px-3 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none text-sm"
-                                                            />
-                                                        </div>
-                                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                                            <div>
-                                                                <label className="block text-xs font-medium text-jcoder-muted mb-1">Start Date *</label>
-                                                                <input
-                                                                    type="date"
-                                                                    name="startDate"
-                                                                    value={positionForm.startDate}
-                                                                    onChange={handlePositionInputChange}
-                                                                    className="w-full px-3 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none text-sm"
-                                                                />
-                                                            </div>
-                                                            <div>
-                                                                <label className="block text-xs font-medium text-jcoder-muted mb-1">
-                                                                    End Date {positionForm.isCurrentPosition ? '(Optional)' : '*'}
-                                                                </label>
-                                                                <input
-                                                                    type="date"
-                                                                    name="endDate"
-                                                                    value={positionForm.endDate}
-                                                                    onChange={handlePositionInputChange}
-                                                                    disabled={positionForm.isCurrentPosition}
-                                                                    className="w-full px-3 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-                                                                />
-                                                            </div>
-                                                        </div>
-                                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                                            <div>
-                                                                <label className="block text-xs font-medium text-jcoder-muted mb-1">Location (Optional)</label>
-                                                                <input
-                                                                    type="text"
-                                                                    name="location"
-                                                                    value={positionForm.location}
-                                                                    onChange={handlePositionInputChange}
-                                                                    placeholder="e.g., São Paulo, Brazil"
-                                                                    className="w-full px-3 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none text-sm"
-                                                                />
-                                                            </div>
-                                                            <div>
-                                                                <label className="block text-xs font-medium text-jcoder-muted mb-1">Location Type (Optional)</label>
-                                                                <select
-                                                                    name="locationType"
-                                                                    value={positionForm.locationType}
-                                                                    onChange={handlePositionInputChange}
-                                                                    className="w-full px-3 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none text-sm"
-                                                                >
-                                                                    <option value="">Select type</option>
-                                                                    <option value={WorkLocationTypeEnum.REMOTE}>Remote</option>
-                                                                    <option value={WorkLocationTypeEnum.HYBRID}>Hybrid</option>
-                                                                    <option value={WorkLocationTypeEnum.IN_PERSON}>In Person</option>
-                                                                </select>
-                                                            </div>
-                                                        </div>
-                                                        <div>
-                                                            <label className="flex items-center gap-2 cursor-pointer">
-                                                                <input
-                                                                    type="checkbox"
-                                                                    name="isCurrentPosition"
-                                                                    checked={positionForm.isCurrentPosition}
-                                                                    onChange={handlePositionInputChange}
-                                                                    className="w-4 h-4 text-jcoder-primary bg-jcoder-secondary border-jcoder rounded focus:ring-jcoder-primary"
-                                                                />
-                                                                <span className="text-xs font-medium text-jcoder-foreground">Currently working in this position</span>
-                                                            </label>
-                                                        </div>
-                                                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-2 pt-2">
-                                                            <button
-                                                                onClick={handleCancelPosition}
-                                                                disabled={isSaving}
-                                                                className="w-full sm:w-auto px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm border border-jcoder text-jcoder-foreground rounded-lg hover:border-jcoder-primary transition-colors"
-                                                            >
-                                                                Cancel
-                                                            </button>
-                                                            <button
-                                                                onClick={() => handleSavePosition(editingExperienceId)}
-                                                                disabled={isSaving}
-                                                                className="w-full sm:w-auto px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity font-medium disabled:opacity-50"
-                                                            >
-                                                                {isSaving ? 'Saving...' : editingPositionIndex !== null ? 'Update' : 'Add'}
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            )}
-
-                                            {/* Existing Positions List */}
-                                            {(() => {
-                                                const currentExp = experiences.find(e => e.id === editingExperienceId);
-                                                const positions = currentExp?.positions || [];
-                                                if (positions.length === 0 && !isAddingPosition && editingPositionIndex === null) {
-                                                    return (
-                                                        <p className="text-sm text-jcoder-muted italic">No positions added yet. Click "Add Position" to get started.</p>
-                                                    );
+                                    ) : aboutMe ? (
+                                        <div className="space-y-4">
+                                            <InfoField label="Occupation" value={aboutMe.occupation} />
+                                            <InfoField
+                                                label="Description"
+                                                value={
+                                                    <div
+                                                        className="text-sm md:text-base text-jcoder-foreground mt-2 prose prose-sm max-w-none"
+                                                        dangerouslySetInnerHTML={{ __html: aboutMe.description || '' }}
+                                                    />
                                                 }
-                                                return (
-                                                    <div className="space-y-3">
-                                                        {positions.map((position, pIndex) => (
-                                                            <div key={pIndex} className="group relative p-3 bg-jcoder-background rounded-lg border border-jcoder">
-                                                                {editingPositionIndex === pIndex ? null : (
-                                                                    <>
-                                                                        <div className="flex items-start justify-between mb-2">
-                                                                            <div className="flex-1">
-                                                                                <div className="flex items-center gap-2">
-                                                                                    <h5 className="text-sm font-semibold text-jcoder-foreground">
-                                                                                        {position.position}
-                                                                                    </h5>
-                                                                                    {position.isCurrentPosition && (
-                                                                                        <span className="px-2 py-0.5 text-xs bg-green-500/20 text-green-500 rounded-full">Current</span>
-                                                                                    )}
-                                                                                </div>
-                                                                                <p className="text-xs text-jcoder-muted mt-1">
-                                                                                    {formatDate(position.startDate)} - {position.isCurrentPosition ? 'Present' : formatDate(position.endDate)}
-                                                                                </p>
-                                                                                {position.location && (
-                                                                                    <p className="text-xs text-jcoder-muted mt-1">
-                                                                                        {position.location} {position.locationType && `• ${position.locationType}`}
-                                                                                    </p>
-                                                                                )}
-                                                                            </div>
-                                                                            <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                                                <button
-                                                                                    onClick={() => handleEditPosition(editingExperienceId, pIndex)}
-                                                                                    className="p-1.5 bg-jcoder-secondary border border-jcoder rounded hover:border-jcoder-primary transition-colors"
-                                                                                    title="Edit position"
-                                                                                >
-                                                                                    <svg className="w-3.5 h-3.5 text-jcoder-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                                                                    </svg>
-                                                                                </button>
-                                                                                <button
-                                                                                    onClick={() => handleDeletePosition(editingExperienceId, pIndex)}
-                                                                                    className="p-1.5 bg-jcoder-secondary border border-red-500/50 rounded hover:border-red-500 transition-colors"
-                                                                                    title="Delete position"
-                                                                                >
-                                                                                    <svg className="w-3.5 h-3.5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                                                    </svg>
-                                                                                </button>
-                                                                            </div>
-                                                                        </div>
-                                                                    </>
-                                                                )}
+                                            />
+                                            {aboutMe.highlights && aboutMe.highlights.length > 0 && (
+                                                <div className="pt-4">
+                                                    <h4 className="text-base font-semibold text-jcoder-foreground mb-3">Highlights</h4>
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                                        {aboutMe.highlights.map((highlight, index) => (
+                                                            <div key={index} className="p-3 bg-jcoder-secondary rounded-lg border border-jcoder hover:border-jcoder-primary transition-all">
+                                                                <div className="flex items-start gap-2">
+                                                                    {highlight.emoji && (
+                                                                        <span className="text-2xl flex-shrink-0">{highlight.emoji}</span>
+                                                                    )}
+                                                                    <div className="flex-1">
+                                                                        <p className="text-sm font-medium text-jcoder-foreground">{highlight.title}</p>
+                                                                        {highlight.subtitle && (
+                                                                            <p className="text-xs text-jcoder-muted mt-1">{highlight.subtitle}</p>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
                                                             </div>
                                                         ))}
                                                     </div>
-                                                );
-                                            })()}
-                                        </div>
-                                    )}
-                                </div>
-                            ) : (
-                                <div className="space-y-6">
-                                    {experiences.map((exp, index) => (
-                                        <div key={exp.id || index} className="group relative">
-                                            <div className="mb-4 flex items-center justify-between">
-                                                <h4 className="text-lg font-semibold text-jcoder-foreground">{exp.companyName}</h4>
-                                                <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    <button
-                                                        onClick={() => handleEditExperience(exp)}
-                                                        className="p-2 bg-jcoder-secondary border border-jcoder rounded-lg hover:border-jcoder-primary transition-colors"
-                                                        title="Edit experience"
-                                                    >
-                                                        <svg className="w-4 h-4 text-jcoder-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                                        </svg>
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleDeleteExperience(exp.id)}
-                                                        className="p-2 bg-jcoder-secondary border border-red-500/50 rounded-lg hover:border-red-500 transition-colors"
-                                                        title="Delete experience"
-                                                    >
-                                                        <svg className="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                        </svg>
-                                                    </button>
                                                 </div>
-                                            </div>
-                                            {exp.positions && exp.positions.length > 0 ? (
-                                                <div className="space-y-3">
-                                                    {exp.positions.map((position, pIndex) => (
-                                                        <TimelineItem
-                                                            key={pIndex}
-                                                            title={position.position || 'Position'}
-                                                            period={`${formatDate(position.startDate)} - ${position.isCurrentPosition ? 'Present' : formatDate(position.endDate)}`}
-                                                            isActive={position.isCurrentPosition}
-                                                            tags={position.location ? [position.location, position.locationType].filter((t): t is string => Boolean(t)) : undefined}
-                                                        />
-                                                    ))}
-                                                </div>
-                                            ) : (
-                                                <p className="text-sm text-jcoder-muted italic">No positions added for this company yet.</p>
                                             )}
                                         </div>
-                                    ))}
-                                </div>
+                                    ) : null}
+                                </SectionCard>
                             )}
-                        </SectionCard>
+                        </div>
 
-                        {/* Certificates Section */}
-                        <SectionCard
-                            title="Certifications"
-                            icon={<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" /></svg>}
-                            action={
-                                !isEditingCertificate && (
-                                    <button
-                                        onClick={handleAddCertificate}
-                                        className="px-3 py-1.5 md:px-4 md:py-2 text-sm bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity font-medium"
-                                    >
-                                        Add Certificate
-                                    </button>
-                                )
-                            }
-                            collapsible={true}
-                            isEmpty={certificates.length === 0 && !isEditingCertificate}
-                            emptyMessage="No certificates added yet"
-                        >
-                            {isEditingCertificate ? (
-                                <div className="space-y-4">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div className="md:col-span-2">
-                                            <label className="block text-sm font-medium text-jcoder-muted mb-2">Certificate Name *</label>
-                                            <input
-                                                type="text"
-                                                name="certificateName"
-                                                value={certificateForm.certificateName}
-                                                onChange={handleCertificateInputChange}
-                                                placeholder="e.g., AWS Certified Solutions Architect"
-                                                className="w-full px-4 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none"
-                                            />
-                                        </div>
-                                        <div className="md:col-span-2">
-                                            <label className="block text-sm font-medium text-jcoder-muted mb-2">Issued To *</label>
-                                            <input
-                                                type="text"
-                                                name="issuedTo"
-                                                value={certificateForm.issuedTo}
-                                                onChange={handleCertificateInputChange}
-                                                placeholder="e.g., John Doe"
-                                                className="w-full px-4 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-jcoder-muted mb-2">Issue Date *</label>
-                                            <input
-                                                type="date"
-                                                name="issueDate"
-                                                value={certificateForm.issueDate}
-                                                onChange={handleCertificateInputChange}
-                                                className="w-full px-4 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-jcoder-muted mb-2">Registration Number (Optional)</label>
-                                            <input
-                                                type="text"
-                                                name="registrationNumber"
-                                                value={certificateForm.registrationNumber}
-                                                onChange={handleCertificateInputChange}
-                                                placeholder="e.g., AWS-1234567890"
-                                                className="w-full px-4 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none"
-                                            />
-                                        </div>
-                                        <div className="md:col-span-2">
-                                            <label className="block text-sm font-medium text-jcoder-muted mb-2">Verification URL (Optional)</label>
-                                            <input
-                                                type="url"
-                                                name="verificationUrl"
-                                                value={certificateForm.verificationUrl}
-                                                onChange={handleCertificateInputChange}
-                                                placeholder="https://verify.credential.com/certificate/123456"
-                                                className="w-full px-4 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none"
-                                            />
-                                        </div>
+                        {/* Education Section */}
+                        <div data-section="education">
+                            {loadingStates.educations ? (
+                                <SectionCard
+                                    title="Education"
+                                    icon={<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>}
+                                >
+                                    <div className="space-y-3">
+                                        <div className="h-16 bg-jcoder-secondary rounded animate-pulse" />
+                                        <div className="h-16 bg-jcoder-secondary rounded animate-pulse" />
                                     </div>
+                                </SectionCard>
+                            ) : (
+                                <SectionCard
+                                    title="Education"
+                                    icon={<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>}
+                                    action={
+                                        !isEditingEducation && (
+                                            <button
+                                                onClick={handleAddEducation}
+                                                className="px-3 py-1.5 md:px-4 md:py-2 text-sm bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity font-medium"
+                                            >
+                                                Add Education
+                                            </button>
+                                        )
+                                    }
+                                    collapsible={true}
+                                    isEmpty={educations.length === 0 && !isEditingEducation}
+                                    emptyMessage="No education records added yet"
+                                >
+                                    {isEditingEducation ? (
+                                        <div className="space-y-4">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div className="md:col-span-2">
+                                                    <label className="block text-sm font-medium text-jcoder-muted mb-2">Institution Name *</label>
+                                                    <input
+                                                        type="text"
+                                                        name="institutionName"
+                                                        value={educationForm.institutionName}
+                                                        onChange={handleEducationInputChange}
+                                                        placeholder="e.g., University of Technology"
+                                                        className="w-full px-4 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none"
+                                                    />
+                                                </div>
+                                                <div className="md:col-span-2">
+                                                    <label className="block text-sm font-medium text-jcoder-muted mb-2">Course Name *</label>
+                                                    <input
+                                                        type="text"
+                                                        name="courseName"
+                                                        value={educationForm.courseName}
+                                                        onChange={handleEducationInputChange}
+                                                        placeholder="e.g., Computer Science"
+                                                        className="w-full px-4 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none"
+                                                    />
+                                                </div>
+                                                <div className="md:col-span-2">
+                                                    <label className="block text-sm font-medium text-jcoder-muted mb-2">Degree (Optional)</label>
+                                                    <input
+                                                        type="text"
+                                                        name="degree"
+                                                        value={educationForm.degree}
+                                                        onChange={handleEducationInputChange}
+                                                        placeholder="e.g., Bachelor's Degree"
+                                                        className="w-full px-4 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-jcoder-muted mb-2">Start Date *</label>
+                                                    <input
+                                                        type="date"
+                                                        name="startDate"
+                                                        value={educationForm.startDate}
+                                                        onChange={handleEducationInputChange}
+                                                        className="w-full px-4 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-jcoder-muted mb-2">
+                                                        End Date {educationForm.isCurrentlyStudying ? '(Optional)' : '*'}
+                                                    </label>
+                                                    <input
+                                                        type="date"
+                                                        name="endDate"
+                                                        value={educationForm.endDate}
+                                                        onChange={handleEducationInputChange}
+                                                        disabled={educationForm.isCurrentlyStudying}
+                                                        className="w-full px-4 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    />
+                                                </div>
+                                                <div className="md:col-span-2">
+                                                    <label className="flex items-center gap-2 cursor-pointer">
+                                                        <input
+                                                            type="checkbox"
+                                                            name="isCurrentlyStudying"
+                                                            checked={educationForm.isCurrentlyStudying}
+                                                            onChange={handleEducationInputChange}
+                                                            className="w-4 h-4 text-jcoder-primary bg-jcoder-secondary border-jcoder rounded focus:ring-jcoder-primary"
+                                                        />
+                                                        <span className="text-sm font-medium text-jcoder-foreground">Currently studying</span>
+                                                    </label>
+                                                </div>
+                                            </div>
 
-                                    {/* Education Link Section */}
-                                    {educations.length > 0 && (
-                                        <div className="pt-4 border-t border-jcoder">
-                                            <h4 className="text-base font-semibold text-jcoder-foreground mb-3">Link to Education (Optional)</h4>
-                                            <p className="text-sm text-jcoder-muted mb-3">Select education records to link this certificate to:</p>
-                                            <div className="space-y-2 max-h-48 overflow-y-auto">
-                                                {educations.map((edu) => {
-                                                    const educationId = edu.id;
-                                                    if (educationId === undefined) return null;
-                                                    const isSelected = certificateForm.educationIds.includes(educationId);
-                                                    return (
-                                                        <label
-                                                            key={educationId}
-                                                            className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${isSelected
-                                                                ? 'bg-jcoder-primary/10 border-jcoder-primary'
-                                                                : 'bg-jcoder-secondary border-jcoder hover:border-jcoder-primary/50'
-                                                                }`}
-                                                        >
-                                                            <input
-                                                                type="checkbox"
-                                                                checked={isSelected}
-                                                                onChange={() => handleEducationToggle(educationId)}
-                                                                className="w-4 h-4 text-jcoder-primary bg-jcoder-secondary border-jcoder rounded focus:ring-jcoder-primary"
-                                                            />
-                                                            <div className="flex-1">
-                                                                <p className="text-sm font-medium text-jcoder-foreground">{edu.courseName}</p>
-                                                                <p className="text-xs text-jcoder-muted">{edu.institutionName}</p>
-                                                                {edu.degree && (
-                                                                    <p className="text-xs text-jcoder-muted">{edu.degree}</p>
-                                                                )}
-                                                            </div>
-                                                        </label>
-                                                    );
-                                                })}
+                                            {/* Action Buttons */}
+                                            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 pt-4">
+                                                <button
+                                                    onClick={handleCancelEducation}
+                                                    disabled={isSaving}
+                                                    className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 border border-jcoder text-jcoder-foreground rounded-lg hover:border-jcoder-primary transition-colors text-sm sm:text-base"
+                                                >
+                                                    Cancel
+                                                </button>
+                                                <button
+                                                    onClick={handleSaveEducation}
+                                                    disabled={isSaving}
+                                                    className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity font-medium disabled:opacity-50 text-sm sm:text-base"
+                                                >
+                                                    {isSaving ? 'Saving...' : editingEducationId ? 'Update' : 'Create'}
+                                                </button>
                                             </div>
                                         </div>
-                                    )}
-
-                                    {/* Action Buttons */}
-                                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 pt-4">
-                                        <button
-                                            onClick={handleCancelCertificate}
-                                            disabled={isSaving}
-                                            className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 border border-jcoder text-jcoder-foreground rounded-lg hover:border-jcoder-primary transition-colors text-sm sm:text-base"
-                                        >
-                                            Cancel
-                                        </button>
-                                        <button
-                                            onClick={handleSaveCertificate}
-                                            disabled={isSaving}
-                                            className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity font-medium disabled:opacity-50 text-sm sm:text-base"
-                                        >
-                                            {isSaving ? 'Saving...' : editingCertificateId ? 'Update' : 'Create'}
-                                        </button>
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    {certificates.map((cert, index) => {
-                                        const certificateId = cert.id;
-                                        return (
-                                            <div key={certificateId || index} className="group relative p-4 bg-jcoder-secondary rounded-lg border border-jcoder hover:border-jcoder-primary transition-all">
-                                                <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    <button
-                                                        onClick={() => handleEditCertificate(cert)}
-                                                        className="p-2 bg-jcoder-background border border-jcoder rounded-lg hover:border-jcoder-primary transition-colors"
-                                                        title="Edit certificate"
-                                                    >
-                                                        <svg className="w-4 h-4 text-jcoder-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                                        </svg>
-                                                    </button>
-                                                    {certificateId && (
-                                                        <button
-                                                            onClick={() => handleDeleteCertificate(certificateId)}
-                                                            className="p-2 bg-jcoder-background border border-red-500/50 rounded-lg hover:border-red-500 transition-colors"
-                                                            title="Delete certificate"
-                                                        >
-                                                            <svg className="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                            </svg>
-                                                        </button>
-                                                    )}
-                                                </div>
-                                                <h4 className="text-base font-semibold text-jcoder-foreground mb-2 pr-12">{cert.certificateName}</h4>
-                                                <p className="text-sm text-jcoder-muted mb-2">Issued to: {cert.issuedTo}</p>
-                                                <p className="text-xs text-jcoder-muted mb-2">Issued: {formatDate(cert.issueDate)}</p>
-                                                {cert.registrationNumber && (
-                                                    <p className="text-xs text-jcoder-muted mb-2">Registration: {cert.registrationNumber}</p>
-                                                )}
-                                                {cert.educations && cert.educations.length > 0 && (
-                                                    <div className="mb-2">
-                                                        <p className="text-xs font-medium text-jcoder-muted mb-1">Linked to Education:</p>
-                                                        <div className="flex flex-wrap gap-1">
-                                                            {cert.educations.map((edu, eduIndex) => (
-                                                                <span key={eduIndex} className="px-2 py-0.5 text-xs bg-jcoder-primary/10 text-jcoder-primary rounded-full">
-                                                                    {edu.institutionName}
-                                                                </span>
-                                                            ))}
+                                    ) : (
+                                        <div className="space-y-4">
+                                            {educations.map((edu, index) => {
+                                                const educationId = edu.id;
+                                                return (
+                                                    <div key={educationId || index} className="group relative">
+                                                        <TimelineItem
+                                                            title={edu.courseName}
+                                                            subtitle={edu.institutionName}
+                                                            period={`${formatDate(edu.startDate)} - ${edu.isCurrentlyStudying ? 'Present' : formatDate(edu.endDate)}`}
+                                                            isActive={edu.isCurrentlyStudying}
+                                                            tags={edu.degree ? [edu.degree] : undefined}
+                                                        />
+                                                        <div className="absolute top-0 right-0 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                            <button
+                                                                onClick={() => handleEditEducation(edu)}
+                                                                className="p-2 bg-jcoder-secondary border border-jcoder rounded-lg hover:border-jcoder-primary transition-colors"
+                                                                title="Edit education"
+                                                            >
+                                                                <svg className="w-4 h-4 text-jcoder-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                                </svg>
+                                                            </button>
+                                                            {educationId && (
+                                                                <button
+                                                                    onClick={() => handleDeleteEducation(educationId)}
+                                                                    className="p-2 bg-jcoder-secondary border border-red-500/50 rounded-lg hover:border-red-500 transition-colors"
+                                                                    title="Delete education"
+                                                                >
+                                                                    <svg className="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                                    </svg>
+                                                                </button>
+                                                            )}
                                                         </div>
                                                     </div>
-                                                )}
-                                                {cert.verificationUrl && (
-                                                    <a
-                                                        href={cert.verificationUrl}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="inline-flex items-center gap-1 text-xs text-jcoder-primary hover:underline mt-2"
-                                                    >
-                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
-                                                        Verify Certificate
-                                                    </a>
-                                                )}
-                                            </div>
-                                        );
-                                    })}
-                                </div>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+                                </SectionCard>
                             )}
-                        </SectionCard>
+                        </div>
+
+                        {/* Experience Section */}
+                        <div data-section="experience">
+                            {loadingStates.experiences ? (
+                                <SectionCard
+                                    title="Professional Experience"
+                                    icon={<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>}
+                                >
+                                    <div className="space-y-3">
+                                        <div className="h-20 bg-jcoder-secondary rounded animate-pulse" />
+                                        <div className="h-20 bg-jcoder-secondary rounded animate-pulse" />
+                                    </div>
+                                </SectionCard>
+                            ) : (
+                                <SectionCard
+                                    title="Professional Experience"
+                                    icon={<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>}
+                                    action={
+                                        !isEditingExperience && (
+                                            <button
+                                                onClick={handleAddExperience}
+                                                className="px-3 py-1.5 md:px-4 md:py-2 text-sm bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity font-medium"
+                                            >
+                                                Add Experience
+                                            </button>
+                                        )
+                                    }
+                                    collapsible={true}
+                                    isEmpty={experiences.length === 0 && !isEditingExperience}
+                                    emptyMessage="No professional experience added yet"
+                                >
+                                    {isEditingExperience ? (
+                                        <div className="space-y-6">
+                                            {/* Company Form */}
+                                            <div className="p-4 bg-jcoder-secondary rounded-lg border border-jcoder">
+                                                <h4 className="text-base font-semibold text-jcoder-foreground mb-4">
+                                                    {editingExperienceId ? 'Edit Company' : 'Add Company'}
+                                                </h4>
+                                                <div className="space-y-4">
+                                                    <div>
+                                                        <label className="block text-sm font-medium text-jcoder-muted mb-2">Company Name *</label>
+                                                        <input
+                                                            type="text"
+                                                            name="companyName"
+                                                            value={experienceForm.companyName}
+                                                            onChange={handleExperienceInputChange}
+                                                            placeholder="e.g., Tech Company Inc."
+                                                            className="w-full px-4 py-2 bg-jcoder-background border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none"
+                                                        />
+                                                    </div>
+
+                                                    {/* Action Buttons for Company */}
+                                                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 pt-4 border-t border-jcoder">
+                                                        <button
+                                                            onClick={handleCancelExperience}
+                                                            disabled={isSaving}
+                                                            className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 border border-jcoder text-jcoder-foreground rounded-lg hover:border-jcoder-primary transition-colors text-sm sm:text-base"
+                                                        >
+                                                            Cancel
+                                                        </button>
+                                                        <button
+                                                            onClick={handleSaveExperience}
+                                                            disabled={isSaving}
+                                                            className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity font-medium disabled:opacity-50 text-sm sm:text-base"
+                                                        >
+                                                            {isSaving ? 'Saving...' : editingExperienceId ? 'Update Company' : 'Create Company'}
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Positions Management - Only show if company is saved/being edited */}
+                                            {editingExperienceId && (
+                                                <div className="p-4 bg-jcoder-secondary rounded-lg border border-jcoder">
+                                                    <div className="flex items-center justify-between mb-4">
+                                                        <h4 className="text-base font-semibold text-jcoder-foreground">Positions</h4>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => handleAddPosition(editingExperienceId)}
+                                                            className="px-3 py-1.5 text-sm bg-jcoder-primary/10 text-jcoder-primary rounded-lg hover:bg-jcoder-primary/20 transition-colors font-medium flex items-center gap-1"
+                                                        >
+                                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                                            </svg>
+                                                            Add Position
+                                                        </button>
+                                                    </div>
+
+                                                    {/* Position Form - Show when adding or editing a position */}
+                                                    {(isAddingPosition || editingPositionIndex !== null) && (
+                                                        <div className="mb-4 p-4 bg-jcoder-background rounded-lg border border-jcoder">
+                                                            <h5 className="text-sm font-semibold text-jcoder-foreground mb-3">
+                                                                {editingPositionIndex !== null ? 'Edit Position' : 'New Position'}
+                                                            </h5>
+                                                            <div className="space-y-3">
+                                                                <div>
+                                                                    <label className="block text-xs font-medium text-jcoder-muted mb-1">Position Title *</label>
+                                                                    <input
+                                                                        type="text"
+                                                                        name="position"
+                                                                        value={positionForm.position}
+                                                                        onChange={handlePositionInputChange}
+                                                                        placeholder="e.g., Senior Software Engineer"
+                                                                        className="w-full px-3 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none text-sm"
+                                                                    />
+                                                                </div>
+                                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                                    <div>
+                                                                        <label className="block text-xs font-medium text-jcoder-muted mb-1">Start Date *</label>
+                                                                        <input
+                                                                            type="date"
+                                                                            name="startDate"
+                                                                            value={positionForm.startDate}
+                                                                            onChange={handlePositionInputChange}
+                                                                            className="w-full px-3 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none text-sm"
+                                                                        />
+                                                                    </div>
+                                                                    <div>
+                                                                        <label className="block text-xs font-medium text-jcoder-muted mb-1">
+                                                                            End Date {positionForm.isCurrentPosition ? '(Optional)' : '*'}
+                                                                        </label>
+                                                                        <input
+                                                                            type="date"
+                                                                            name="endDate"
+                                                                            value={positionForm.endDate}
+                                                                            onChange={handlePositionInputChange}
+                                                                            disabled={positionForm.isCurrentPosition}
+                                                                            className="w-full px-3 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                                                                        />
+                                                                    </div>
+                                                                </div>
+                                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                                    <div>
+                                                                        <label className="block text-xs font-medium text-jcoder-muted mb-1">Location (Optional)</label>
+                                                                        <input
+                                                                            type="text"
+                                                                            name="location"
+                                                                            value={positionForm.location}
+                                                                            onChange={handlePositionInputChange}
+                                                                            placeholder="e.g., São Paulo, Brazil"
+                                                                            className="w-full px-3 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none text-sm"
+                                                                        />
+                                                                    </div>
+                                                                    <div>
+                                                                        <label className="block text-xs font-medium text-jcoder-muted mb-1">Location Type (Optional)</label>
+                                                                        <select
+                                                                            name="locationType"
+                                                                            value={positionForm.locationType}
+                                                                            onChange={handlePositionInputChange}
+                                                                            className="w-full px-3 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none text-sm"
+                                                                        >
+                                                                            <option value="">Select type</option>
+                                                                            <option value={WorkLocationTypeEnum.REMOTE}>Remote</option>
+                                                                            <option value={WorkLocationTypeEnum.HYBRID}>Hybrid</option>
+                                                                            <option value={WorkLocationTypeEnum.IN_PERSON}>In Person</option>
+                                                                        </select>
+                                                                    </div>
+                                                                </div>
+                                                                <div>
+                                                                    <label className="flex items-center gap-2 cursor-pointer">
+                                                                        <input
+                                                                            type="checkbox"
+                                                                            name="isCurrentPosition"
+                                                                            checked={positionForm.isCurrentPosition}
+                                                                            onChange={handlePositionInputChange}
+                                                                            className="w-4 h-4 text-jcoder-primary bg-jcoder-secondary border-jcoder rounded focus:ring-jcoder-primary"
+                                                                        />
+                                                                        <span className="text-xs font-medium text-jcoder-foreground">Currently working in this position</span>
+                                                                    </label>
+                                                                </div>
+                                                                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-2 pt-2">
+                                                                    <button
+                                                                        onClick={handleCancelPosition}
+                                                                        disabled={isSaving}
+                                                                        className="w-full sm:w-auto px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm border border-jcoder text-jcoder-foreground rounded-lg hover:border-jcoder-primary transition-colors"
+                                                                    >
+                                                                        Cancel
+                                                                    </button>
+                                                                    <button
+                                                                        onClick={() => handleSavePosition(editingExperienceId)}
+                                                                        disabled={isSaving}
+                                                                        className="w-full sm:w-auto px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity font-medium disabled:opacity-50"
+                                                                    >
+                                                                        {isSaving ? 'Saving...' : editingPositionIndex !== null ? 'Update' : 'Add'}
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    {/* Existing Positions List */}
+                                                    {(() => {
+                                                        const currentExp = experiences.find(e => e.id === editingExperienceId);
+                                                        const positions = currentExp?.positions || [];
+                                                        if (positions.length === 0 && !isAddingPosition && editingPositionIndex === null) {
+                                                            return (
+                                                                <p className="text-sm text-jcoder-muted italic">No positions added yet. Click "Add Position" to get started.</p>
+                                                            );
+                                                        }
+                                                        return (
+                                                            <div className="space-y-3">
+                                                                {positions.map((position, pIndex) => (
+                                                                    <div key={pIndex} className="group relative p-3 bg-jcoder-background rounded-lg border border-jcoder">
+                                                                        {editingPositionIndex === pIndex ? null : (
+                                                                            <>
+                                                                                <div className="flex items-start justify-between mb-2">
+                                                                                    <div className="flex-1">
+                                                                                        <div className="flex items-center gap-2">
+                                                                                            <h5 className="text-sm font-semibold text-jcoder-foreground">
+                                                                                                {position.position}
+                                                                                            </h5>
+                                                                                            {position.isCurrentPosition && (
+                                                                                                <span className="px-2 py-0.5 text-xs bg-green-500/20 text-green-500 rounded-full">Current</span>
+                                                                                            )}
+                                                                                        </div>
+                                                                                        <p className="text-xs text-jcoder-muted mt-1">
+                                                                                            {formatDate(position.startDate)} - {position.isCurrentPosition ? 'Present' : formatDate(position.endDate)}
+                                                                                        </p>
+                                                                                        {position.location && (
+                                                                                            <p className="text-xs text-jcoder-muted mt-1">
+                                                                                                {position.location} {position.locationType && `• ${position.locationType}`}
+                                                                                            </p>
+                                                                                        )}
+                                                                                    </div>
+                                                                                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                                        <button
+                                                                                            onClick={() => handleEditPosition(editingExperienceId, pIndex)}
+                                                                                            className="p-1.5 bg-jcoder-secondary border border-jcoder rounded hover:border-jcoder-primary transition-colors"
+                                                                                            title="Edit position"
+                                                                                        >
+                                                                                            <svg className="w-3.5 h-3.5 text-jcoder-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                                                            </svg>
+                                                                                        </button>
+                                                                                        <button
+                                                                                            onClick={() => handleDeletePosition(editingExperienceId, pIndex)}
+                                                                                            className="p-1.5 bg-jcoder-secondary border border-red-500/50 rounded hover:border-red-500 transition-colors"
+                                                                                            title="Delete position"
+                                                                                        >
+                                                                                            <svg className="w-3.5 h-3.5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                                                            </svg>
+                                                                                        </button>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </>
+                                                                        )}
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        );
+                                                    })()}
+                                                </div>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-6">
+                                            {experiences.map((exp, index) => (
+                                                <div key={exp.id || index} className="group relative">
+                                                    <div className="mb-4 flex items-center justify-between">
+                                                        <h4 className="text-lg font-semibold text-jcoder-foreground">{exp.companyName}</h4>
+                                                        <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                            <button
+                                                                onClick={() => handleEditExperience(exp)}
+                                                                className="p-2 bg-jcoder-secondary border border-jcoder rounded-lg hover:border-jcoder-primary transition-colors"
+                                                                title="Edit experience"
+                                                            >
+                                                                <svg className="w-4 h-4 text-jcoder-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                                </svg>
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleDeleteExperience(exp.id)}
+                                                                className="p-2 bg-jcoder-secondary border border-red-500/50 rounded-lg hover:border-red-500 transition-colors"
+                                                                title="Delete experience"
+                                                            >
+                                                                <svg className="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                                </svg>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                    {exp.positions && exp.positions.length > 0 ? (
+                                                        <div className="space-y-3">
+                                                            {exp.positions.map((position, pIndex) => (
+                                                                <TimelineItem
+                                                                    key={pIndex}
+                                                                    title={position.position || 'Position'}
+                                                                    period={`${formatDate(position.startDate)} - ${position.isCurrentPosition ? 'Present' : formatDate(position.endDate)}`}
+                                                                    isActive={position.isCurrentPosition}
+                                                                    tags={position.location ? [position.location, position.locationType].filter((t): t is string => Boolean(t)) : undefined}
+                                                                />
+                                                            ))}
+                                                        </div>
+                                                    ) : (
+                                                        <p className="text-sm text-jcoder-muted italic">No positions added for this company yet.</p>
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </SectionCard>
+                            )}
+                        </div>
+
+                        {/* Certificates Section */}
+                        <div data-section="certificates">
+                            {loadingStates.certificates ? (
+                                <SectionCard
+                                    title="Certifications"
+                                    icon={<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" /></svg>}
+                                >
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="h-32 bg-jcoder-secondary rounded animate-pulse" />
+                                        <div className="h-32 bg-jcoder-secondary rounded animate-pulse" />
+                                    </div>
+                                </SectionCard>
+                            ) : (
+                                <SectionCard
+                                    title="Certifications"
+                                    icon={<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" /></svg>}
+                                    action={
+                                        !isEditingCertificate && (
+                                            <button
+                                                onClick={handleAddCertificate}
+                                                className="px-3 py-1.5 md:px-4 md:py-2 text-sm bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity font-medium"
+                                            >
+                                                Add Certificate
+                                            </button>
+                                        )
+                                    }
+                                    collapsible={true}
+                                    isEmpty={certificates.length === 0 && !isEditingCertificate}
+                                    emptyMessage="No certificates added yet"
+                                >
+                                    {isEditingCertificate ? (
+                                        <div className="space-y-4">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div className="md:col-span-2">
+                                                    <label className="block text-sm font-medium text-jcoder-muted mb-2">Certificate Name *</label>
+                                                    <input
+                                                        type="text"
+                                                        name="certificateName"
+                                                        value={certificateForm.certificateName}
+                                                        onChange={handleCertificateInputChange}
+                                                        placeholder="e.g., AWS Certified Solutions Architect"
+                                                        className="w-full px-4 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none"
+                                                    />
+                                                </div>
+                                                <div className="md:col-span-2">
+                                                    <label className="block text-sm font-medium text-jcoder-muted mb-2">Issued To *</label>
+                                                    <input
+                                                        type="text"
+                                                        name="issuedTo"
+                                                        value={certificateForm.issuedTo}
+                                                        onChange={handleCertificateInputChange}
+                                                        placeholder="e.g., John Doe"
+                                                        className="w-full px-4 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-jcoder-muted mb-2">Issue Date *</label>
+                                                    <input
+                                                        type="date"
+                                                        name="issueDate"
+                                                        value={certificateForm.issueDate}
+                                                        onChange={handleCertificateInputChange}
+                                                        className="w-full px-4 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-jcoder-muted mb-2">Registration Number (Optional)</label>
+                                                    <input
+                                                        type="text"
+                                                        name="registrationNumber"
+                                                        value={certificateForm.registrationNumber}
+                                                        onChange={handleCertificateInputChange}
+                                                        placeholder="e.g., AWS-1234567890"
+                                                        className="w-full px-4 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none"
+                                                    />
+                                                </div>
+                                                <div className="md:col-span-2">
+                                                    <label className="block text-sm font-medium text-jcoder-muted mb-2">Verification URL (Optional)</label>
+                                                    <input
+                                                        type="url"
+                                                        name="verificationUrl"
+                                                        value={certificateForm.verificationUrl}
+                                                        onChange={handleCertificateInputChange}
+                                                        placeholder="https://verify.credential.com/certificate/123456"
+                                                        className="w-full px-4 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            {/* Education Link Section */}
+                                            {educations.length > 0 && (
+                                                <div className="pt-4 border-t border-jcoder">
+                                                    <h4 className="text-base font-semibold text-jcoder-foreground mb-3">Link to Education (Optional)</h4>
+                                                    <p className="text-sm text-jcoder-muted mb-3">Select education records to link this certificate to:</p>
+                                                    <div className="space-y-2 max-h-48 overflow-y-auto">
+                                                        {educations.map((edu) => {
+                                                            const educationId = edu.id;
+                                                            if (educationId === undefined) return null;
+                                                            const isSelected = certificateForm.educationIds.includes(educationId);
+                                                            return (
+                                                                <label
+                                                                    key={educationId}
+                                                                    className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${isSelected
+                                                                        ? 'bg-jcoder-primary/10 border-jcoder-primary'
+                                                                        : 'bg-jcoder-secondary border-jcoder hover:border-jcoder-primary/50'
+                                                                        }`}
+                                                                >
+                                                                    <input
+                                                                        type="checkbox"
+                                                                        checked={isSelected}
+                                                                        onChange={() => handleEducationToggle(educationId)}
+                                                                        className="w-4 h-4 text-jcoder-primary bg-jcoder-secondary border-jcoder rounded focus:ring-jcoder-primary"
+                                                                    />
+                                                                    <div className="flex-1">
+                                                                        <p className="text-sm font-medium text-jcoder-foreground">{edu.courseName}</p>
+                                                                        <p className="text-xs text-jcoder-muted">{edu.institutionName}</p>
+                                                                        {edu.degree && (
+                                                                            <p className="text-xs text-jcoder-muted">{edu.degree}</p>
+                                                                        )}
+                                                                    </div>
+                                                                </label>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Action Buttons */}
+                                            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 pt-4">
+                                                <button
+                                                    onClick={handleCancelCertificate}
+                                                    disabled={isSaving}
+                                                    className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 border border-jcoder text-jcoder-foreground rounded-lg hover:border-jcoder-primary transition-colors text-sm sm:text-base"
+                                                >
+                                                    Cancel
+                                                </button>
+                                                <button
+                                                    onClick={handleSaveCertificate}
+                                                    disabled={isSaving}
+                                                    className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity font-medium disabled:opacity-50 text-sm sm:text-base"
+                                                >
+                                                    {isSaving ? 'Saving...' : editingCertificateId ? 'Update' : 'Create'}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            {certificates.map((cert, index) => {
+                                                const certificateId = cert.id;
+                                                return (
+                                                    <div key={certificateId || index} className="group relative p-4 bg-jcoder-secondary rounded-lg border border-jcoder hover:border-jcoder-primary transition-all">
+                                                        <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                            <button
+                                                                onClick={() => handleEditCertificate(cert)}
+                                                                className="p-2 bg-jcoder-background border border-jcoder rounded-lg hover:border-jcoder-primary transition-colors"
+                                                                title="Edit certificate"
+                                                            >
+                                                                <svg className="w-4 h-4 text-jcoder-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                                </svg>
+                                                            </button>
+                                                            {certificateId && (
+                                                                <button
+                                                                    onClick={() => handleDeleteCertificate(certificateId)}
+                                                                    className="p-2 bg-jcoder-background border border-red-500/50 rounded-lg hover:border-red-500 transition-colors"
+                                                                    title="Delete certificate"
+                                                                >
+                                                                    <svg className="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                                    </svg>
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                        <h4 className="text-base font-semibold text-jcoder-foreground mb-2 pr-12">{cert.certificateName}</h4>
+                                                        <p className="text-sm text-jcoder-muted mb-2">Issued to: {cert.issuedTo}</p>
+                                                        <p className="text-xs text-jcoder-muted mb-2">Issued: {formatDate(cert.issueDate)}</p>
+                                                        {cert.registrationNumber && (
+                                                            <p className="text-xs text-jcoder-muted mb-2">Registration: {cert.registrationNumber}</p>
+                                                        )}
+                                                        {cert.educations && cert.educations.length > 0 && (
+                                                            <div className="mb-2">
+                                                                <p className="text-xs font-medium text-jcoder-muted mb-1">Linked to Education:</p>
+                                                                <div className="flex flex-wrap gap-1">
+                                                                    {cert.educations.map((edu, eduIndex) => (
+                                                                        <span key={eduIndex} className="px-2 py-0.5 text-xs bg-jcoder-primary/10 text-jcoder-primary rounded-full">
+                                                                            {edu.institutionName}
+                                                                        </span>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                        {cert.verificationUrl && (
+                                                            <a
+                                                                href={cert.verificationUrl}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="inline-flex items-center gap-1 text-xs text-jcoder-primary hover:underline mt-2"
+                                                            >
+                                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                                                                Verify Certificate
+                                                            </a>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+                                </SectionCard>
+                            )}
+                        </div>
                     </div>
                 </div>
             </main>
@@ -2815,14 +3020,14 @@ export default function ProfileManagementPage() {
     );
 }
 
-// Profile Image Component - Same implementation as portfolio page
+// Profile Image Component - Same implementation as portfolio page - Memoized
 interface ProfileImageProps {
     src: string;
     alt: string;
     fallback: string;
 }
 
-function ProfileImage({ src, alt, fallback }: ProfileImageProps) {
+const ProfileImage = memo(function ProfileImage({ src, alt, fallback }: ProfileImageProps) {
     const [hasError, setHasError] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const imgRef = useRef<HTMLImageElement>(null);
@@ -2904,4 +3109,4 @@ function ProfileImage({ src, alt, fallback }: ProfileImageProps) {
             />
         </>
     );
-}
+});
