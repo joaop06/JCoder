@@ -240,6 +240,7 @@ export default function ProfileManagementPage() {
             educations: false,
             experiences: false,
             certificates: false,
+            references: false,
         });
 
         try {
@@ -376,6 +377,7 @@ export default function ProfileManagementPage() {
                 educations: false,
                 experiences: false,
                 certificates: false,
+                references: false,
             });
             setLoading(false);
         }
