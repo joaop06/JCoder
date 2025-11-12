@@ -135,10 +135,42 @@ export class MessagesService {
             throw new Error(`User with username '${username}' not found`);
         }
 
-        return await this.conversationRepository.find({
+        const conversations = await this.conversationRepository.find({
             where: { userId: user.id },
             order: { lastMessageAt: 'DESC', createdAt: 'DESC' },
         });
+
+        if (conversations.length === 0) {
+            return conversations;
+        }
+
+        // Get all conversation IDs
+        const conversationIds = conversations.map(c => c.id);
+
+        // Get unread counts for all conversations in a single query
+        // Count only messages with readAt = null and not soft deleted
+        const unreadCounts = await this.messageRepository
+            .createQueryBuilder('message')
+            .select('message.conversationId', 'conversationId')
+            .addSelect('COUNT(message.id)', 'count')
+            .where('message.conversationId IN (:...conversationIds)', { conversationIds })
+            .andWhere('message.readAt IS NULL')
+            .andWhere('message.deletedAt IS NULL')
+            .groupBy('message.conversationId')
+            .getRawMany();
+
+        // Create a map of conversationId -> unreadCount
+        const unreadCountMap = new Map<number, number>();
+        unreadCounts.forEach((item: { conversationId: number; count: string }) => {
+            unreadCountMap.set(item.conversationId, parseInt(item.count, 10));
+        });
+
+        // Update unreadCount for each conversation
+        conversations.forEach(conversation => {
+            conversation.unreadCount = unreadCountMap.get(conversation.id) || 0;
+        });
+
+        return conversations;
     }
 
     /**
@@ -202,22 +234,25 @@ export class MessagesService {
     async markMessagesAsRead(
         conversationId: number,
         username: string,
-        messageIds?: number[],
+        messageIds: number[],
     ): Promise<void> {
         await this.findConversationById(conversationId, username);
 
-        const where: any = { conversationId, readAt: null };
+        const readAtDate = new Date();
 
-        if (messageIds && messageIds.length > 0) {
-            where.id = In(messageIds);
+        const result = await this.messageRepository
+            .createQueryBuilder()
+            .update(Message)
+            .set({ readAt: readAtDate })
+            .where('conversationId = :conversationId', { conversationId })
+            .andWhere('readAt IS NULL')
+            .andWhere('id IN (:...messageIds)', { messageIds })
+            .execute();
+
+        // Update conversation statistics only if messages were updated
+        if (result.affected && result.affected > 0) {
+            await this.updateConversationStats(conversationId);
         }
-
-        await this.messageRepository.update(where, {
-            readAt: new Date(),
-        });
-
-        // Update conversation statistics
-        await this.updateConversationStats(conversationId);
     }
 
     /**

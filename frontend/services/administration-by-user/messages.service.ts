@@ -37,10 +37,10 @@ export const MessagesService = {
     async markMessagesAsRead(
         username: string,
         conversationId: number,
-        data?: MarkMessagesReadDto,
+        data: MarkMessagesReadDto,
     ): Promise<void> {
         try {
-            await ApiService.post(`/${username}/messages/conversations/${conversationId}/mark-read`, data || {});
+            await ApiService.post(`/${username}/messages/conversations/${conversationId}/mark-read`, data);
         } catch (error) {
             throw error;
         }

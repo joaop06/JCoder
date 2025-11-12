@@ -85,7 +85,7 @@ export class Message {
         example: new Date(),
         description: 'Date when the message was read by the administrator',
     })
-    @Column({ nullable: true })
+    @Column('datetime', { nullable: true })
     readAt?: Date;
 
     @ApiProperty({

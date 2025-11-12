@@ -3,16 +3,13 @@
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
 import { User } from '@/types/api/users/user.entity';
-import { ConversationResponseDto, Message } from '@/types/api/messages';
 import { useParams, useRouter } from 'next/navigation';
 import { useToast } from '@/components/toast/ToastContext';
-import { useState, useEffect, useCallback, useMemo, Suspense, useRef } from 'react';
-import { UsersService } from '@/services/administration-by-user/users.service';
-import { MessagesService } from '@/services/administration-by-user/messages.service';
-import { Canvas } from '@react-three/fiber';
 import WebGLBackground from '@/components/webgl/WebGLBackground';
-import Hero3D from '@/components/webgl/Hero3D';
-import FloatingParticles3D from '@/components/webgl/FloatingParticles3D';
+import { ConversationResponseDto, Message } from '@/types/api/messages';
+import { UsersService } from '@/services/administration-by-user/users.service';
+import { useState, useEffect, useCallback, useMemo, Suspense, useRef } from 'react';
+import { MessagesService } from '@/services/administration-by-user/messages.service';
 
 export default function MessagesManagementPage() {
     const router = useRouter();
@@ -31,6 +28,8 @@ export default function MessagesManagementPage() {
     const [messages, setMessages] = useState<Message[]>([]);
     const [loadingMessages, setLoadingMessages] = useState(false);
     const [markingAsRead, setMarkingAsRead] = useState(false);
+    const [newMessagesDividerIndex, setNewMessagesDividerIndex] = useState<number | null>(null);
+    const [showNewMessagesDivider, setShowNewMessagesDivider] = useState(false);
 
     // Mobile view state - show conversations list or messages view
     const [mobileView, setMobileView] = useState<'conversations' | 'messages'>('conversations');
@@ -44,6 +43,8 @@ export default function MessagesManagementPage() {
     const mousePositionRef = useRef({ x: 0, y: 0 });
     const rafRef = useRef<number | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const messagesContainerRef = useRef<HTMLDivElement>(null);
+    const messagesContainerMobileRef = useRef<HTMLDivElement>(null);
 
     const toast = useToast();
 
@@ -131,7 +132,7 @@ export default function MessagesManagementPage() {
         }
     }, [toast]);
 
-    const fetchMessages = useCallback(async (conversationId: number) => {
+    const fetchMessages = useCallback(async (conversationId: number): Promise<Message[]> => {
         setLoadingMessages(true);
         try {
             const userSession = UsersService.getUserSession();
@@ -143,23 +144,21 @@ export default function MessagesManagementPage() {
                 conversationId,
             );
             // Ensure data is always an array
-            setMessages(Array.isArray(data) ? data : []);
-
-            // Auto-scroll to bottom
-            setTimeout(() => {
-                messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-            }, 100);
+            const messagesArray = Array.isArray(data) ? data : [];
+            setMessages(messagesArray);
+            return messagesArray;
         } catch (err: any) {
             toast.error('Failed to load messages. Please try again.');
             console.error('Error fetching messages:', err);
             setMessages([]);
+            return [];
         } finally {
             setLoadingMessages(false);
         }
     }, [toast]);
 
-    const markAsRead = useCallback(async (conversationId: number) => {
-        if (markingAsRead) return;
+    const markAsRead = useCallback(async (conversationId: number, messageIds: number[]) => {
+        if (markingAsRead || messageIds.length === 0) return;
 
         setMarkingAsRead(true);
         try {
@@ -167,36 +166,104 @@ export default function MessagesManagementPage() {
             if (!userSession?.user?.username) {
                 throw new Error('User session not found');
             }
-            await MessagesService.markMessagesAsRead(userSession.user.username, conversationId);
-            
+            await MessagesService.markMessagesAsRead(
+                userSession.user.username,
+                conversationId,
+                { messageIds },
+            );
+
+            // Update local messages state first
+            setMessages(prev => prev.map(msg => {
+                if (!messageIds.includes(msg.id)) {
+                    return msg;
+                }
+                return {
+                    ...msg,
+                    readAt: msg.readAt || new Date().toISOString(),
+                };
+            }));
+
             // Refresh conversations to update unread count
-            await fetchConversations();
-            
-            // Update local messages state
-            setMessages(prev => prev.map(msg => ({
-                ...msg,
-                readAt: msg.readAt || new Date().toISOString(),
-            })));
+            const updatedConversations = await MessagesService.findAllConversations(userSession.user.username);
+            const conversationsArray = Array.isArray(updatedConversations) ? updatedConversations : [];
+            setConversations(conversationsArray);
+
+            // Update selected conversation with the updated data
+            const updatedConversation = conversationsArray.find(c => c.id === conversationId);
+            if (updatedConversation) {
+                setSelectedConversation(updatedConversation);
+            }
         } catch (err: any) {
             toast.error('Failed to mark messages as read.');
             console.error('Error marking messages as read:', err);
         } finally {
             setMarkingAsRead(false);
         }
-    }, [toast, fetchConversations, markingAsRead]);
+    }, [toast, markingAsRead]);
 
     useEffect(() => {
         if (!isAuthenticated) return;
         fetchConversations();
     }, [isAuthenticated, fetchConversations]);
 
+    // Scroll to bottom when messages change or conversation is selected
+    useEffect(() => {
+        if (messages.length > 0 && !loadingMessages) {
+            // Use requestAnimationFrame to ensure DOM is fully rendered
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    // Scroll desktop container
+                    if (messagesContainerRef.current) {
+                        messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+                    }
+                    // Scroll mobile container
+                    if (messagesContainerMobileRef.current) {
+                        messagesContainerMobileRef.current.scrollTop = messagesContainerMobileRef.current.scrollHeight;
+                    }
+                });
+            });
+        }
+    }, [messages, loadingMessages, selectedConversation]);
+
+    // Hide new messages divider after a few seconds
+    useEffect(() => {
+        if (showNewMessagesDivider) {
+            const timer = setTimeout(() => {
+                setShowNewMessagesDivider(false);
+                // Clear the index after fade out animation completes
+                setTimeout(() => {
+                    setNewMessagesDividerIndex(null);
+                }, 500); // Wait for fade out animation (500ms)
+            }, 3000); // Show for 3 seconds
+
+            return () => clearTimeout(timer);
+        }
+    }, [showNewMessagesDivider]);
+
     const handleSelectConversation = useCallback(async (conversation: ConversationResponseDto) => {
         setSelectedConversation(conversation);
-        await fetchMessages(conversation.id);
-        
-        // Mark as read if there are unread messages
-        if (conversation.unreadCount > 0) {
-            await markAsRead(conversation.id);
+        const loadedMessages = await fetchMessages(conversation.id);
+
+        // Find the index of the first unread message
+        const firstUnreadIndex = loadedMessages.findIndex(msg => !msg.readAt);
+
+        // If there are unread messages and there are also read messages before them, show divider
+        if (firstUnreadIndex > 0 && firstUnreadIndex !== -1) {
+            setNewMessagesDividerIndex(firstUnreadIndex);
+            setShowNewMessagesDivider(true);
+        } else {
+            setNewMessagesDividerIndex(null);
+            setShowNewMessagesDivider(false);
+        }
+
+        // Get IDs of unread messages (readAt is null/undefined) and mark them as read
+        const unreadMessageIds = loadedMessages
+            .filter(msg => !msg.readAt)
+            .map(msg => msg.id);
+
+        // Only mark as read if there are unread messages with valid IDs
+        if (unreadMessageIds.length > 0) {
+            await markAsRead(conversation.id, unreadMessageIds);
         }
 
         // On mobile, switch to messages view
@@ -209,6 +276,8 @@ export default function MessagesManagementPage() {
         setMobileView('conversations');
         setSelectedConversation(null);
         setMessages([]);
+        setNewMessagesDividerIndex(null);
+        setShowNewMessagesDivider(false);
     }, []);
 
     const formatDate = useCallback((date: Date | string | undefined): string => {
@@ -325,10 +394,10 @@ export default function MessagesManagementPage() {
 
             <Header isAdmin={true} onLogout={handleLogout} />
 
-            <main className="flex-1 container mx-auto px-0 sm:px-4 lg:px-8 pt-16 sm:pt-24 pb-6 sm:pb-12 relative z-10">
-                <div className={`max-w-7xl mx-auto transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-                    {/* Breadcrumb - Desktop only */}
-                    <nav className="hidden md:block mb-4 px-4">
+            <main className="flex-1 container mx-auto px-0 sm:px-4 lg:px-8 pt-16 sm:pt-24 pb-0 sm:pb-6 md:pb-6 relative z-10">
+                <div className={`max-w-7xl mx-auto transition-all duration-1000 h-full md:h-auto ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+                    {/* Breadcrumb */}
+                    <nav className="mb-4 px-4 mt-4 md:mt-0">
                         <ol className="flex items-center gap-2 text-sm text-jcoder-muted">
                             <li>
                                 <button onClick={() => router.push(`/${username}/admin`)} className="hover:text-jcoder-primary transition-colors group">
@@ -345,31 +414,23 @@ export default function MessagesManagementPage() {
                     </nav>
 
                     {/* Page Header */}
-                    <div className="mb-4 sm:mb-6 px-4">
+                    <div className="mb-2 sm:mb-4 md:mb-6 px-4">
                         <div className="flex items-center gap-3">
-                            <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-jcoder-cyan via-jcoder-primary to-jcoder-blue animate-gradient">
+                            <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-jcoder-foreground">
                                 Messages
                             </h1>
-                            {conversations.length > 0 && (() => {
-                                const totalUnread = conversations.reduce((sum, conv) => sum + conv.unreadCount, 0);
-                                return totalUnread > 0 ? (
-                                    <span className="px-2.5 py-1 rounded-full bg-jcoder-primary text-black text-xs font-bold">
-                                        {totalUnread > 99 ? '99+' : totalUnread}
-                                    </span>
-                                ) : null;
-                            })()}
                         </div>
                         <p className="text-xs sm:text-sm md:text-base text-jcoder-muted mt-1 sm:mt-2">Manage and view messages from your portfolio visitors</p>
                     </div>
 
                     {/* Messages Container - WhatsApp-like layout */}
-                    <div className="bg-jcoder-card/90 backdrop-blur-sm border border-jcoder rounded-xl sm:rounded-2xl overflow-hidden shadow-xl shadow-jcoder-primary/10 h-[calc(100vh-12rem)] sm:h-[calc(100vh-14rem)] md:h-[calc(100vh-16rem)] flex flex-col">
+                    <div className="bg-jcoder-card/96 backdrop-blur-sm border border-jcoder rounded-xl sm:rounded-2xl overflow-hidden shadow-xl shadow-jcoder-primary/10 h-[calc(100vh-12rem)] md:h-[calc(100vh-36rem)] flex flex-col px-2 md:px-0">
                         {/* Desktop: Side-by-side layout */}
                         <div className="hidden md:flex flex-1 overflow-hidden">
                             {/* Conversations Sidebar */}
-                            <div className="w-80 border-r border-jcoder flex flex-col bg-jcoder-secondary/30">
+                            <div className="w-80 border-r border-jcoder flex flex-col bg-jcoder-secondary/55">
                                 {/* Conversations Header */}
-                                <div className="p-4 border-b border-jcoder bg-jcoder-card/50">
+                                <div className="p-4 border-b border-jcoder bg-jcoder-card/75">
                                     <h2 className="text-lg font-semibold text-jcoder-foreground">Conversations</h2>
                                     <p className="text-xs text-jcoder-muted mt-1">
                                         {conversations.length} {conversations.length === 1 ? 'conversation' : 'conversations'}
@@ -404,9 +465,8 @@ export default function MessagesManagementPage() {
                                                 <button
                                                     key={conversation.id}
                                                     onClick={() => handleSelectConversation(conversation)}
-                                                    className={`w-full p-4 text-left hover:bg-jcoder-card/50 transition-colors ${
-                                                        selectedConversation?.id === conversation.id ? 'bg-jcoder-card border-l-4 border-jcoder-primary' : ''
-                                                    }`}
+                                                    className={`w-full p-4 text-left hover:bg-jcoder-card/65 transition-colors ${selectedConversation?.id === conversation.id ? 'bg-jcoder-card/85 border-l-4 border-jcoder-primary' : ''
+                                                        }`}
                                                 >
                                                     <div className="flex items-start gap-3">
                                                         {/* Avatar */}
@@ -431,7 +491,7 @@ export default function MessagesManagementPage() {
                                                                     {conversation.lastMessagePreview || 'No messages'}
                                                                 </p>
                                                                 {conversation.unreadCount > 0 && (
-                                                                    <span className="flex-shrink-0 w-5 h-5 rounded-full bg-jcoder-primary text-black text-xs font-bold flex items-center justify-center">
+                                                                    <span className="flex-shrink-0 min-w-[20px] h-5 px-1.5 rounded-full bg-jcoder-blue text-white text-[10px] font-bold flex items-center justify-center shadow-lg shadow-jcoder-blue/50">
                                                                         {conversation.unreadCount > 9 ? '9+' : conversation.unreadCount}
                                                                     </span>
                                                                 )}
@@ -446,11 +506,11 @@ export default function MessagesManagementPage() {
                             </div>
 
                             {/* Messages Area */}
-                            <div className="flex-1 flex flex-col bg-jcoder-card/30">
+                            <div className="flex-1 flex flex-col bg-jcoder-card/55">
                                 {selectedConversation ? (
                                     <>
                                         {/* Messages Header */}
-                                        <div className="p-4 border-b border-jcoder bg-jcoder-card/50 flex items-center gap-3">
+                                        <div className="p-4 border-b border-jcoder bg-jcoder-card/75 flex items-center gap-3">
                                             <div className="w-10 h-10 rounded-full bg-jcoder-gradient flex items-center justify-center text-black font-semibold text-sm">
                                                 {getInitials(selectedConversation.senderName)}
                                             </div>
@@ -461,7 +521,7 @@ export default function MessagesManagementPage() {
                                         </div>
 
                                         {/* Messages List */}
-                                        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                                        <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-4 space-y-4">
                                             {loadingMessages ? (
                                                 <div className="space-y-3">
                                                     {[1, 2, 3].map((i) => (
@@ -485,12 +545,14 @@ export default function MessagesManagementPage() {
                                                     {messages.map((message, index) => {
                                                         const isRead = !!message.readAt;
                                                         const prevMessage = index > 0 ? messages[index - 1] : null;
-                                                        const showDateSeparator = !prevMessage || 
+                                                        const showDateSeparator = !prevMessage ||
                                                             (() => {
                                                                 const currentDate = new Date(message.createdAt);
                                                                 const prevDate = new Date(prevMessage.createdAt);
                                                                 return currentDate.toDateString() !== prevDate.toDateString();
                                                             })();
+
+                                                        const shouldShowDivider = newMessagesDividerIndex !== null && index === newMessagesDividerIndex;
 
                                                         return (
                                                             <div key={message.id}>
@@ -518,8 +580,17 @@ export default function MessagesManagementPage() {
                                                                         </div>
                                                                     </div>
                                                                 )}
+                                                                {shouldShowDivider && (
+                                                                    <div className={`flex items-center justify-center my-4 transition-opacity duration-500 ${showNewMessagesDivider ? 'opacity-100' : 'opacity-0'}`}>
+                                                                        <div className="flex items-center gap-2 px-4 py-1.5 bg-jcoder-blue/20 border border-jcoder-blue/40 rounded-full backdrop-blur-sm">
+                                                                            <div className="w-1.5 h-1.5 rounded-full bg-jcoder-blue animate-pulse"></div>
+                                                                            <span className="text-xs text-jcoder-blue font-semibold">Novas mensagens</span>
+                                                                            <div className="w-1.5 h-1.5 rounded-full bg-jcoder-blue animate-pulse"></div>
+                                                                        </div>
+                                                                    </div>
+                                                                )}
                                                                 <div className="flex justify-start">
-                                                                    <div className="max-w-xs lg:max-w-md bg-jcoder-secondary rounded-2xl p-3 relative group hover:bg-jcoder-secondary/80 transition-colors">
+                                                                    <div className="max-w-xs lg:max-w-md bg-jcoder-secondary/85 rounded-2xl p-3 relative border border-jcoder/35">
                                                                         <p className="text-sm text-jcoder-foreground whitespace-pre-wrap break-words">
                                                                             {message.message}
                                                                         </p>
@@ -562,7 +633,7 @@ export default function MessagesManagementPage() {
                             {mobileView === 'conversations' ? (
                                 <>
                                     {/* Conversations Header */}
-                                    <div className="p-4 border-b border-jcoder bg-jcoder-card/50">
+                                    <div className="p-4 border-b border-jcoder bg-jcoder-card/75">
                                         <h2 className="text-lg font-semibold text-jcoder-foreground">Conversations</h2>
                                         <p className="text-xs text-jcoder-muted mt-1">
                                             {conversations.length} {conversations.length === 1 ? 'conversation' : 'conversations'}
@@ -597,7 +668,7 @@ export default function MessagesManagementPage() {
                                                     <button
                                                         key={conversation.id}
                                                         onClick={() => handleSelectConversation(conversation)}
-                                                        className="w-full p-4 text-left hover:bg-jcoder-card/50 transition-colors"
+                                                        className="w-full p-4 text-left hover:bg-jcoder-card/65 transition-colors"
                                                     >
                                                         <div className="flex items-start gap-3">
                                                             <div className="flex-shrink-0 w-12 h-12 rounded-full bg-jcoder-gradient flex items-center justify-center text-black font-semibold text-sm">
@@ -619,7 +690,7 @@ export default function MessagesManagementPage() {
                                                                         {conversation.lastMessagePreview || 'No messages'}
                                                                     </p>
                                                                     {conversation.unreadCount > 0 && (
-                                                                        <span className="flex-shrink-0 w-5 h-5 rounded-full bg-jcoder-primary text-black text-xs font-bold flex items-center justify-center">
+                                                                        <span className="flex-shrink-0 min-w-[20px] h-5 px-1.5 rounded-full bg-jcoder-blue text-white text-[10px] font-bold flex items-center justify-center shadow-lg shadow-jcoder-blue/50">
                                                                             {conversation.unreadCount > 9 ? '9+' : conversation.unreadCount}
                                                                         </span>
                                                                     )}
@@ -635,7 +706,7 @@ export default function MessagesManagementPage() {
                             ) : (
                                 <>
                                     {/* Messages Header with Back Button */}
-                                    <div className="p-4 border-b border-jcoder bg-jcoder-card/50 flex items-center gap-3">
+                                    <div className="p-4 border-b border-jcoder bg-jcoder-card/75 flex items-center gap-3">
                                         <button
                                             onClick={handleBackToConversations}
                                             className="p-2 hover:bg-jcoder-secondary rounded-lg transition-colors"
@@ -658,7 +729,7 @@ export default function MessagesManagementPage() {
                                     </div>
 
                                     {/* Messages List */}
-                                    <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                                    <div ref={messagesContainerMobileRef} className="flex-1 overflow-y-auto p-4 space-y-4">
                                         {loadingMessages ? (
                                             <div className="space-y-3">
                                                 {[1, 2, 3].map((i) => (
@@ -682,12 +753,14 @@ export default function MessagesManagementPage() {
                                                 {messages.map((message, index) => {
                                                     const isRead = !!message.readAt;
                                                     const prevMessage = index > 0 ? messages[index - 1] : null;
-                                                    const showDateSeparator = !prevMessage || 
+                                                    const showDateSeparator = !prevMessage ||
                                                         (() => {
                                                             const currentDate = new Date(message.createdAt);
                                                             const prevDate = new Date(prevMessage.createdAt);
                                                             return currentDate.toDateString() !== prevDate.toDateString();
                                                         })();
+
+                                                    const shouldShowDivider = newMessagesDividerIndex !== null && index === newMessagesDividerIndex;
 
                                                     return (
                                                         <div key={message.id}>
@@ -715,8 +788,17 @@ export default function MessagesManagementPage() {
                                                                     </div>
                                                                 </div>
                                                             )}
+                                                            {shouldShowDivider && (
+                                                                <div className={`flex items-center justify-center my-4 transition-opacity duration-500 ${showNewMessagesDivider ? 'opacity-100' : 'opacity-0'}`}>
+                                                                    <div className="flex items-center gap-2 px-4 py-1.5 bg-jcoder-blue/20 border border-jcoder-blue/40 rounded-full backdrop-blur-sm">
+                                                                        <div className="w-1.5 h-1.5 rounded-full bg-jcoder-blue animate-pulse"></div>
+                                                                        <span className="text-xs text-jcoder-blue font-semibold">Novas mensagens</span>
+                                                                        <div className="w-1.5 h-1.5 rounded-full bg-jcoder-blue animate-pulse"></div>
+                                                                    </div>
+                                                                </div>
+                                                            )}
                                                             <div className="flex justify-start">
-                                                                <div className="max-w-[85%] bg-jcoder-secondary rounded-2xl p-3 relative hover:bg-jcoder-secondary/80 transition-colors">
+                                                                <div className="max-w-[85%] bg-jcoder-secondary/85 rounded-2xl p-3 relative border border-jcoder/35">
                                                                     <p className="text-sm text-jcoder-foreground whitespace-pre-wrap break-words">
                                                                         {message.message}
                                                                     </p>
@@ -749,18 +831,6 @@ export default function MessagesManagementPage() {
             <Footer user={user} username={username || user?.username} />
 
             <style jsx>{`
-                @keyframes gradient {
-                    0%, 100% {
-                        background-position: 0% 50%;
-                    }
-                    50% {
-                        background-position: 100% 50%;
-                    }
-                }
-                .animate-gradient {
-                    background-size: 200% 200%;
-                    animation: gradient 3s ease infinite;
-                }
                 .delay-1000 {
                     animation-delay: 1s;
                 }
