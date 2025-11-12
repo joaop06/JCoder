@@ -8,24 +8,24 @@ This document explains how to use the migration scripts configured in the projec
 Generates a new migration based on changes in entities:
 
 ```bash
-npm run migration:generate src/migrations/NomeDaMigration
+npm run migration:generate src/@common/database/migrations/NomeDaMigration
 ```
 
 **Example:**
 ```bash
-npm run migration:generate src/migrations/AddConversationTable
+npm run migration:generate src/@common/database/migrations/AddConversationTable
 ```
 
 ### 2. Create Manual Migration
 Creates an empty migration file to write SQL manually:
 
 ```bash
-npm run migration:create src/migrations/NomeDaMigration
+npm run migration:create src/@common/database/migrations/NomeDaMigration
 ```
 
 **Example:**
 ```bash
-npm run migration:create src/migrations/CustomDataMigration
+npm run migration:create src/@common/database/migrations/CustomDataMigration
 ```
 
 ### 3. Run Migrations
@@ -55,10 +55,10 @@ npm run migration:show
 
 2. **Generate the migration automatically:**
    ```bash
-   npm run migration:generate src/migrations/DescricaoDaMudanca
+   npm run migration:generate src/@common/database/migrations/DescricaoDaMudanca
    ```
 
-3. **Review the generated file** in `src/migrations/` to ensure it's correct
+3. **Review the generated file** in `src/@common/database/migrations/` to ensure it's correct
 
 4. **Run the migration:**
    ```bash

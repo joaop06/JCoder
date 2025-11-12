@@ -12,6 +12,7 @@ import { UsersModule } from '../administration-by-user/users/users.module';
 import { User } from '../administration-by-user/users/entities/user.entity';
 import { GetExperiencesUseCase } from './use-cases/get-experiences.use-case';
 import { GetCertificatesUseCase } from './use-cases/get-certificates.use-case';
+import { GetReferencesUseCase } from './use-cases/get-references.use-case';
 import { GetApplicationsUseCase } from './use-cases/get-applications.use-case';
 import { GetTechnologiesUseCase } from './use-cases/get-technologies.use-case';
 import { VerifyEmailCodeUseCase } from './use-cases/verify-email-code.use-case';
@@ -27,6 +28,7 @@ import { UserComponentAboutMe } from '../administration-by-user/users/user-compo
 import { UserComponentEducation } from '../administration-by-user/users/user-components/entities/user-component-education.entity';
 import { UserComponentExperience } from '../administration-by-user/users/user-components/entities/user-component-experience.entity';
 import { UserComponentCertificate } from '../administration-by-user/users/user-components/entities/user-component-certificate.entity';
+import { UserComponentReference } from '../administration-by-user/users/user-components/entities/user-component-reference.entity';
 
 @Module({
   providers: [
@@ -36,6 +38,7 @@ import { UserComponentCertificate } from '../administration-by-user/users/user-c
     GetExperiencesUseCase,
     GetApplicationsUseCase,
     GetCertificatesUseCase,
+    GetReferencesUseCase,
     GetTechnologiesUseCase,
     VerifyEmailCodeUseCase,
     GetApplicationDetailsUseCase,
@@ -61,6 +64,7 @@ import { UserComponentCertificate } from '../administration-by-user/users/user-c
       UserComponentEducation,
       UserComponentExperience,
       UserComponentCertificate,
+      UserComponentReference,
     ]),
     CacheModule.register({
       ttl: 300, // 5 minutes default

@@ -29,6 +29,7 @@ import { AboutMeRepository } from './repositories/about-me.repository';
 import { EducationRepository } from './repositories/education.repository';
 import { ExperienceRepository } from './repositories/experience.repository';
 import { CertificateRepository } from './repositories/certificate.repository';
+import { ReferenceRepository } from './repositories/reference.repository';
 import { UserComponentAboutMe } from './entities/user-component-about-me.entity';
 import { UserComponentEducation } from './entities/user-component-education.entity';
 import { UserComponentsRepository } from './repositories/user-components.repository';
@@ -37,7 +38,14 @@ import { UserComponentCertificate } from './entities/user-component-certificate.
 import { LinkCertificateToEducationUseCase } from './use-cases/link-certificate-education.use-case';
 import { UserComponentAboutMeHighlight } from './entities/user-component-about-me-highlight.entity';
 import { UserComponentExperiencePosition } from './entities/user-component-experience-position.entity';
+import { UserComponentReference } from './entities/user-component-reference.entity';
 import { UnlinkCertificateFromEducationUseCase } from './use-cases/unlink-certificate-education.use-case';
+import {
+    GetReferencesUseCase,
+    CreateReferenceUseCase,
+    DeleteReferenceUseCase,
+    UpdateReferenceUseCase,
+} from './use-cases/reference.use-case';
 
 @Module({
     imports: [
@@ -46,6 +54,7 @@ import { UnlinkCertificateFromEducationUseCase } from './use-cases/unlink-certif
             UserComponentEducation,
             UserComponentExperience,
             UserComponentCertificate,
+            UserComponentReference,
             UserComponentAboutMeHighlight,
             UserComponentExperiencePosition,
         ]),
@@ -81,6 +90,12 @@ import { UnlinkCertificateFromEducationUseCase } from './use-cases/unlink-certif
         /** Certificate-Education Link */
         LinkCertificateToEducationUseCase,
         UnlinkCertificateFromEducationUseCase,
+
+        /** Reference */
+        GetReferencesUseCase,
+        CreateReferenceUseCase,
+        DeleteReferenceUseCase,
+        UpdateReferenceUseCase,
     ],
     providers: [
         CacheService,
@@ -88,6 +103,7 @@ import { UnlinkCertificateFromEducationUseCase } from './use-cases/unlink-certif
         EducationRepository,
         ExperienceRepository,
         CertificateRepository,
+        ReferenceRepository,
         UserComponentsRepository,
 
         /** About Me */
@@ -115,6 +131,12 @@ import { UnlinkCertificateFromEducationUseCase } from './use-cases/unlink-certif
         /** Certificate-Education Link */
         LinkCertificateToEducationUseCase,
         UnlinkCertificateFromEducationUseCase,
+
+        /** Reference */
+        GetReferencesUseCase,
+        CreateReferenceUseCase,
+        DeleteReferenceUseCase,
+        UpdateReferenceUseCase,
     ],
 })
 export class UserComponentsModule { };

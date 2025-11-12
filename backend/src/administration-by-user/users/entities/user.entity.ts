@@ -15,6 +15,7 @@ import { Technology } from '../../technologies/entities/technology.entity';
 import { Application } from '../../applications/entities/application.entity';
 import { UserComponentAboutMe } from '../user-components/entities/user-component-about-me.entity';
 import { UserComponentEducation } from '../user-components/entities/user-component-education.entity';
+import { UserComponentReference } from '../user-components/entities/user-component-reference.entity';
 import { UserComponentExperience } from '../user-components/entities/user-component-experience.entity';
 import { UserComponentCertificate } from '../user-components/entities/user-component-certificate.entity';
 import { ApplicationComponentApi } from '../../applications/application-components/entities/application-component-api.entity';
@@ -99,6 +100,24 @@ export class User {
   @Column({ nullable: true })
   profileImage?: string;
 
+  @ApiPropertyOptional({
+    type: 'string',
+    nullable: true,
+    description: 'User phone number',
+    example: '(206) 742-5187',
+  })
+  @Column({ nullable: true })
+  phone?: string;
+
+  @ApiPropertyOptional({
+    type: 'string',
+    nullable: true,
+    description: 'User address',
+    example: '32600 42nd Ave SW, Seattle, WA 98116, United States',
+  })
+  @Column({ nullable: true })
+  address?: string;
+
   @ApiProperty({
     nullable: false,
     type: () => Date,
@@ -160,6 +179,15 @@ export class User {
   })
   @OneToMany(() => UserComponentCertificate, (certificate) => certificate.user)
   userComponentCertificate?: UserComponentCertificate[];
+
+  @ApiPropertyOptional({
+    isArray: true,
+    nullable: true,
+    type: () => UserComponentReference,
+    description: 'Reference components',
+  })
+  @OneToMany(() => UserComponentReference, (reference) => reference.user)
+  userComponentReference?: UserComponentReference[];
 
   @ApiPropertyOptional({
     isArray: true,

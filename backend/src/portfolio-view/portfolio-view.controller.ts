@@ -16,6 +16,7 @@ import { PaginationDto } from '../@common/dto/pagination.dto';
 import { GetExperiencesDto } from './dto/get-experiences.dto';
 import { GetApplicationsDto } from './dto/get-applications.dto';
 import { GetCertificatesDto } from './dto/get-certificates.dto';
+import { GetReferencesDto } from './dto/get-references.dto';
 import { GetTechnologiesDto } from './dto/get-technologies.dto';
 import { VerifyEmailCodeDto } from './dto/verify-email-code.dto';
 import { CreateUserUseCase } from './use-cases/create-user.use-case';
@@ -28,6 +29,7 @@ import { ApiTags, ApiOkResponse, ApiNoContentResponse } from '@nestjs/swagger';
 import { CheckEmailAvailabilityDto } from './dto/check-email-availability.dto';
 import { GetApplicationsUseCase } from './use-cases/get-applications.use-case';
 import { GetCertificatesUseCase } from './use-cases/get-certificates.use-case';
+import { GetReferencesUseCase } from './use-cases/get-references.use-case';
 import { GetProfileWithAboutMeDto } from './dto/get-profile-with-about-me.dto';
 import { GetTechnologiesUseCase } from './use-cases/get-technologies.use-case';
 import { VerifyEmailCodeUseCase } from './use-cases/verify-email-code.use-case';
@@ -56,6 +58,7 @@ export class PortfolioViewController {
     private readonly getExperiencesUseCase: GetExperiencesUseCase,
     private readonly getApplicationsUseCase: GetApplicationsUseCase,
     private readonly getCertificatesUseCase: GetCertificatesUseCase,
+    private readonly getReferencesUseCase: GetReferencesUseCase,
     private readonly getTechnologiesUseCase: GetTechnologiesUseCase,
     private readonly getApplicationDetailsUseCase: GetApplicationDetailsUseCase,
     private readonly getProfileWithAboutMeUseCase: GetProfileWithAboutMeUseCase,
@@ -233,6 +236,20 @@ export class PortfolioViewController {
     @Param('id', ParseIntPipe) id: number,
   ): Promise<GetApplicationDetailsDto> {
     return await this.getApplicationDetailsUseCase.execute(id, username);
+  }
+
+  /**
+   * Fetches user references
+   */
+  @Get(':username/references')
+  @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ type: () => GetReferencesDto })
+  @ApiExceptionResponse(() => UserNotFoundException)
+  async getReferences(
+    @Param('username') username: string,
+    @Query() paginationDto: PaginationDto,
+  ): Promise<GetReferencesDto> {
+    return await this.getReferencesUseCase.execute(username, paginationDto);
   }
 
   /**

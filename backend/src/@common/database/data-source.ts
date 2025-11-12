@@ -2,11 +2,12 @@ import { config } from 'dotenv';
 import { DataSource, DataSourceOptions } from 'typeorm';
 import { User } from '../../administration-by-user/users/entities/user.entity';
 import { Message } from '../../administration-by-user/messages/entities/message.entity';
-import { Conversation } from '../../administration-by-user/messages/entities/conversation.entity';
 import { EmailVerification } from '../../portfolio-view/entities/email-verification.entity';
+import { Conversation } from '../../administration-by-user/messages/entities/conversation.entity';
 import { Technology } from '../../administration-by-user/technologies/entities/technology.entity';
 import { Application } from '../../administration-by-user/applications/entities/application.entity';
 import { UserComponentAboutMe } from '../../administration-by-user/users/user-components/entities/user-component-about-me.entity';
+import { UserComponentReference } from 'src/administration-by-user/users/user-components/entities/user-component-reference.entity';
 import { UserComponentEducation } from '../../administration-by-user/users/user-components/entities/user-component-education.entity';
 import { UserComponentExperience } from '../../administration-by-user/users/user-components/entities/user-component-experience.entity';
 import { UserComponentCertificate } from '../../administration-by-user/users/user-components/entities/user-component-certificate.entity';
@@ -27,20 +28,16 @@ const configService = {
 
 export const dataSourceOptions: DataSourceOptions = {
   type: 'mysql',
-  host: configService.get('BACKEND_DATABASE_HOST') || 'localhost',
-  port: parseInt(configService.get('BACKEND_DATABASE_PORT') || '3306'),
-  username: configService.get('DATABASE_USER') || 'root',
-  password: configService.get('DATABASE_PASSWORD') || 'password',
-  database: configService.get('DATABASE_NAME') || 'jcoder',
   entities: [
     User,
     Message,
-    Conversation,
     Technology,
     Application,
+    Conversation,
     EmailVerification,
     UserComponentAboutMe,
     UserComponentEducation,
+    UserComponentReference,
     ApplicationComponentApi,
     UserComponentExperience,
     UserComponentCertificate,
@@ -50,10 +47,15 @@ export const dataSourceOptions: DataSourceOptions = {
     UserComponentAboutMeHighlight,
     UserComponentExperiencePosition,
   ],
-  migrations: ['src/migrations/*.ts'],
-  migrationsTableName: 'migrations',
-  synchronize: false, // Always false for migrations
   logging: true,
+  synchronize: false, // Always false for migrations
+  migrationsTableName: 'migrations',
+  migrations: ['src/@common/database/migrations/*.ts'],
+  username: configService.get('DATABASE_USER') || 'root',
+  database: configService.get('DATABASE_NAME') || 'jcoder',
+  password: configService.get('DATABASE_PASSWORD') || 'password',
+  host: configService.get('BACKEND_DATABASE_HOST') || 'localhost',
+  port: parseInt(configService.get('BACKEND_DATABASE_PORT') || '3306'),
 };
 
 const dataSource = new DataSource(dataSourceOptions);

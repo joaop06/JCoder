@@ -9,6 +9,7 @@ import { Technology } from "../../administration-by-user/technologies/entities/t
 import { Application } from "../../administration-by-user/applications/entities/application.entity";
 import { UserComponentAboutMe } from "../../administration-by-user/users/user-components/entities/user-component-about-me.entity";
 import { UserComponentEducation } from "../../administration-by-user/users/user-components/entities/user-component-education.entity";
+import { UserComponentReference } from "../../administration-by-user/users/user-components/entities/user-component-reference.entity";
 import { UserComponentExperience } from "../../administration-by-user/users/user-components/entities/user-component-experience.entity";
 import { UserComponentCertificate } from "../../administration-by-user/users/user-components/entities/user-component-certificate.entity";
 import { ApplicationComponentApi } from "../../administration-by-user/applications/application-components/entities/application-component-api.entity";
@@ -26,12 +27,13 @@ export const TypeormMysqlModule = TypeOrmModule.forRoot({
   entities: [
     User,
     Message,
-    Conversation,
     Technology,
     Application,
+    Conversation,
     EmailVerification,
     UserComponentAboutMe,
     UserComponentEducation,
+    UserComponentReference,
     ApplicationComponentApi,
     UserComponentExperience,
     UserComponentCertificate,

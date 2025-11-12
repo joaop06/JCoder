@@ -31,6 +31,12 @@ import {
     DeleteCertificateUseCase,
     UpdateCertificateUseCase,
 } from './user-components/use-cases/certificate.use-case';
+import {
+    GetReferencesUseCase,
+    CreateReferenceUseCase,
+    DeleteReferenceUseCase,
+    UpdateReferenceUseCase,
+} from './user-components/use-cases/reference.use-case';
 import { User } from './entities/user.entity';
 import { OwnerGuard } from '../../@common/guards/owner.guard';
 import { UpdateProfileDto } from './dto/update-profile.dto';
@@ -48,6 +54,7 @@ import { UserComponentEducation } from './user-components/entities/user-componen
 import { UserComponentExperience } from './user-components/entities/user-component-experience.entity';
 import { UpdateAboutMeUseCase, GetAboutMeUseCase } from './user-components/use-cases/about-me.use-case';
 import { UserComponentCertificate } from './user-components/entities/user-component-certificate.entity';
+import { UserComponentReference } from './user-components/entities/user-component-reference.entity';
 import { ComponentNotFoundException } from './user-components/exceptions/component-not-found.exceptions';
 import { UpdateUserComponentAboutMeDto } from './user-components/dto/update-user-component-about-me.dto';
 import { CreateUserComponentEducationDto } from './user-components/dto/create-user-component-education.dto';
@@ -58,6 +65,8 @@ import { ApiExceptionResponse } from '../../@common/decorators/documentation/api
 import { CreateUserComponentCertificateDto } from './user-components/dto/create-user-component-certificate.dto';
 import { InvalidEducationDatesException } from './user-components/exceptions/invalid-education-dates.exception';
 import { UpdateUserComponentCertificateDto } from './user-components/dto/update-user-component-certificate.dto';
+import { CreateUserComponentReferenceDto } from './user-components/dto/create-user-component-reference.dto';
+import { UpdateUserComponentReferenceDto } from './user-components/dto/update-user-component-reference.dto';
 import { LinkCertificateToEducationUseCase } from './user-components/use-cases/link-certificate-education.use-case';
 import { UnlinkCertificateFromEducationUseCase } from './user-components/use-cases/unlink-certificate-education.use-case';
 import { InvalidExperiencePositionDatesException } from './user-components/exceptions/invalid-experience-position-dates.exception';
@@ -85,6 +94,10 @@ export class UsersController {
         private readonly updateCertificateUseCase: UpdateCertificateUseCase,
         private readonly linkCertificateToEducationUseCase: LinkCertificateToEducationUseCase,
         private readonly unlinkCertificateFromEducationUseCase: UnlinkCertificateFromEducationUseCase,
+        private readonly getReferencesUseCase: GetReferencesUseCase,
+        private readonly createReferenceUseCase: CreateReferenceUseCase,
+        private readonly deleteReferenceUseCase: DeleteReferenceUseCase,
+        private readonly updateReferenceUseCase: UpdateReferenceUseCase,
     ) { }
 
     // ==================== PROFILE ENDPOINTS ====================
@@ -312,5 +325,56 @@ export class UsersController {
         @Param('educationId', ParseIntPipe) educationId: number,
     ): Promise<void> {
         await this.unlinkCertificateFromEducationUseCase.execute(username, certificateId, educationId);
+    }
+
+    // ==================== REFERENCE ENDPOINTS ====================
+
+    @Get('references')
+    @UseGuards(JwtAuthGuard, OwnerGuard)
+    @HttpCode(HttpStatus.OK)
+    @ApiOkResponse()
+    @ApiExceptionResponse(() => UnauthorizedAccessException)
+    async getReferences(
+        @Param('username') username: string,
+        @Query() paginationDto: PaginationDto,
+    ): Promise<PaginatedResponseDto<UserComponentReference>> {
+        return await this.getReferencesUseCase.execute(username, paginationDto);
+    }
+
+    @Post('references')
+    @UseGuards(JwtAuthGuard, OwnerGuard)
+    @HttpCode(HttpStatus.CREATED)
+    @ApiOkResponse()
+    @ApiExceptionResponse(() => UnauthorizedAccessException)
+    async createReference(
+        @Param('username') username: string,
+        @Body() dto: CreateUserComponentReferenceDto,
+    ): Promise<UserComponentReference> {
+        return await this.createReferenceUseCase.execute(username, dto);
+    }
+
+    @Put('references/:id')
+    @UseGuards(JwtAuthGuard, OwnerGuard)
+    @HttpCode(HttpStatus.OK)
+    @ApiOkResponse()
+    @ApiExceptionResponse(() => [ComponentNotFoundException, UnauthorizedAccessException])
+    async updateReference(
+        @Param('username') username: string,
+        @Param('id', ParseIntPipe) id: number,
+        @Body() dto: UpdateUserComponentReferenceDto,
+    ): Promise<UserComponentReference> {
+        return await this.updateReferenceUseCase.execute(id, dto);
+    }
+
+    @Delete('references/:id')
+    @UseGuards(JwtAuthGuard, OwnerGuard)
+    @HttpCode(HttpStatus.NO_CONTENT)
+    @ApiNoContentResponse()
+    @ApiExceptionResponse(() => [ComponentNotFoundException, UnauthorizedAccessException])
+    async deleteReference(
+        @Param('username') username: string,
+        @Param('id', ParseIntPipe) id: number,
+    ): Promise<void> {
+        await this.deleteReferenceUseCase.execute(id);
     }
 };
