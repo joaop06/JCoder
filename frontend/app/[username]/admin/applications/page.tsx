@@ -2,20 +2,20 @@
 
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
+import { Canvas } from '@react-three/fiber';
+import Hero3D from '@/components/webgl/Hero3D';
 import { User } from '@/types/api/users/user.entity';
 import { useParams, useRouter } from 'next/navigation';
 import { useToast } from '@/components/toast/ToastContext';
 import { PaginationDto } from '@/types/api/pagination.dto';
-import { useState, useEffect, useMemo, useCallback, memo, Suspense, useRef } from 'react';
+import WebGLBackground from '@/components/webgl/WebGLBackground';
+import FloatingParticles3D from '@/components/webgl/FloatingParticles3D';
 import { Application } from '@/types/api/applications/application.entity';
 import { LazyImage, TableSkeleton, ManagementTable } from '@/components/ui';
 import { UsersService } from '@/services/administration-by-user/users.service';
 import { ImagesService } from '@/services/administration-by-user/images.service';
+import { useState, useEffect, useMemo, useCallback, memo, Suspense, useRef } from 'react';
 import { ApplicationService } from '@/services/administration-by-user/applications.service';
-import { Canvas } from '@react-three/fiber';
-import WebGLBackground from '@/components/webgl/WebGLBackground';
-import Hero3D from '@/components/webgl/Hero3D';
-import FloatingParticles3D from '@/components/webgl/FloatingParticles3D';
 
 // Memoized Application Row Component (Desktop)
 interface ApplicationRowProps {
@@ -50,15 +50,14 @@ const ApplicationRow = memo(({
             onDragOver={(e) => onDragOver(e, index)}
             onDragLeave={onDragLeave}
             onDrop={(e) => onDrop(e, index)}
-            className={`group relative transition-all duration-200 ${
-                dragOverIndex === index && draggedIndex !== index
-                    ? 'border-l-4 border-jcoder-primary bg-gradient-to-r from-jcoder-primary/10 via-jcoder-primary/5 to-transparent shadow-lg shadow-jcoder-primary/10'
-                    : 'hover:bg-gradient-to-r hover:from-jcoder-secondary/30 hover:via-jcoder-secondary/20 hover:to-transparent hover:shadow-sm'
-            }`}
+            className={`group relative transition-all duration-200 ${dragOverIndex === index && draggedIndex !== index
+                ? 'border-l-4 border-jcoder-primary bg-gradient-to-r from-jcoder-primary/10 via-jcoder-primary/5 to-transparent shadow-lg shadow-jcoder-primary/10'
+                : 'hover:bg-gradient-to-r hover:from-jcoder-secondary/30 hover:via-jcoder-secondary/20 hover:to-transparent hover:shadow-sm'
+                }`}
         >
             {/* Subtle left border on hover */}
             <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-jcoder-primary/0 group-hover:bg-jcoder-primary/50 transition-all duration-200" />
-            
+
             <td className="px-3 py-5">
                 <div className="flex items-center justify-center">
                     <div
@@ -147,11 +146,10 @@ const ApplicationRow = memo(({
                 <p className="text-sm text-jcoder-muted truncate max-w-xs group-hover:text-jcoder-foreground/70 transition-colors duration-200">{app.description}</p>
             </td>
             <td className="px-4 py-5 text-center">
-                <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap shadow-sm transition-all duration-200 ${
-                    app.isActive
-                        ? 'bg-gradient-to-r from-green-500/20 to-green-500/10 text-green-500 border border-green-500/30 group-hover:from-green-500/30 group-hover:to-green-500/20 group-hover:shadow-green-500/20'
-                        : 'bg-gradient-to-r from-red-500/20 to-red-500/10 text-red-500 border border-red-500/30 group-hover:from-red-500/30 group-hover:to-red-500/20 group-hover:shadow-red-500/20'
-                }`}>
+                <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap shadow-sm transition-all duration-200 ${app.isActive
+                    ? 'bg-gradient-to-r from-green-500/20 to-green-500/10 text-green-500 border border-green-500/30 group-hover:from-green-500/30 group-hover:to-green-500/20 group-hover:shadow-green-500/20'
+                    : 'bg-gradient-to-r from-red-500/20 to-red-500/10 text-red-500 border border-red-500/30 group-hover:from-red-500/30 group-hover:to-red-500/20 group-hover:shadow-red-500/20'
+                    }`}>
                     <div className={`w-2 h-2 rounded-full ${app.isActive ? 'bg-green-500 shadow-sm shadow-green-500/50' : 'bg-red-500 shadow-sm shadow-red-500/50'}`} />
                     {app.isActive ? 'Active' : 'Inactive'}
                 </span>
@@ -789,15 +787,15 @@ export default function ApplicationsManagementPage() {
 
                 <div className={`max-w-7xl mx-auto transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
                     {/* Breadcrumb */}
-                    <nav className="mb-3 sm:mb-4 md:mb-6">
-                        <ol className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-jcoder-muted">
+                    <nav className="mb-4 px-4 mt-4 md:mt-0">
+                        <ol className="flex items-center gap-2 text-sm text-jcoder-muted">
                             <li>
                                 <button onClick={() => router.push(`/${username}/admin`)} className="hover:text-jcoder-primary transition-colors group">
                                     <span className="group-hover:underline">Admin</span>
                                 </button>
                             </li>
                             <li>
-                                <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                                 </svg>
                             </li>
@@ -806,11 +804,13 @@ export default function ApplicationsManagementPage() {
                     </nav>
 
                     {/* Page Header */}
-                    <div className="mb-4 sm:mb-6 md:mb-8">
-                        <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold mb-1 sm:mb-2 bg-clip-text text-transparent bg-gradient-to-r from-jcoder-cyan via-jcoder-primary to-jcoder-blue animate-gradient">
-                            Applications Management
-                        </h1>
-                        <p className="text-xs sm:text-sm md:text-base text-jcoder-muted">Create, update, and delete portfolio applications</p>
+                    <div className="mb-2 sm:mb-4 md:mb-6 px-4">
+                        <div className="flex items-center gap-3">
+                            <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-jcoder-foreground">
+                                Applications
+                            </h1>
+                        </div>
+                        <p className="text-xs sm:text-sm md:text-base text-jcoder-muted mt-1 sm:mt-2">Create, update, and delete portfolio applications</p>
                     </div>
 
                     {/* Stats Cards */}

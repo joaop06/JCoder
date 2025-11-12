@@ -2,23 +2,23 @@
 
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
+import { Canvas } from '@react-three/fiber';
+import Hero3D from '@/components/webgl/Hero3D';
 import { User } from '@/types/api/users/user.entity';
 import { useRouter, useParams } from 'next/navigation';
 import { useToast } from '@/components/toast/ToastContext';
 import { PaginationDto } from '@/types/api/pagination.dto';
+import WebGLBackground from '@/components/webgl/WebGLBackground';
 import { ExpertiseLevel } from '@/types/enums/expertise-level.enum';
 import { Technology } from '@/types/api/technologies/technology.entity';
-import { useState, useEffect, useMemo, useCallback, memo, Suspense, useRef } from 'react';
+import FloatingParticles3D from '@/components/webgl/FloatingParticles3D';
 import { LazyImage, TableSkeleton, ManagementTable } from '@/components/ui';
 import { UsersService } from '@/services/administration-by-user/users.service';
 import { ImagesService } from '@/services/administration-by-user/images.service';
+import { useState, useEffect, useMemo, useCallback, memo, Suspense, useRef } from 'react';
 import { CreateTechnologyDto } from '@/types/api/technologies/dtos/create-technology.dto';
 import { UpdateTechnologyDto } from '@/types/api/technologies/dtos/update-technology.dto';
 import { TechnologiesService } from '@/services/administration-by-user/technologies.service';
-import { Canvas } from '@react-three/fiber';
-import WebGLBackground from '@/components/webgl/WebGLBackground';
-import Hero3D from '@/components/webgl/Hero3D';
-import FloatingParticles3D from '@/components/webgl/FloatingParticles3D';
 
 // Helper to get expertise level label
 const getExpertiseLevelLabel = (level: ExpertiseLevel): string => {
@@ -889,15 +889,15 @@ export default function TechnologiesManagementPage() {
 
                 <div className={`max-w-7xl mx-auto transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
                     {/* Breadcrumb */}
-                    <nav className="mb-3 sm:mb-4 md:mb-6">
-                        <ol className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-jcoder-muted">
+                    <nav className="mb-4 px-4 mt-4 md:mt-0">
+                        <ol className="flex items-center gap-2 text-sm text-jcoder-muted">
                             <li>
                                 <button onClick={() => router.push(`/${urlUsername}/admin`)} className="hover:text-jcoder-primary transition-colors group">
                                     <span className="group-hover:underline">Admin</span>
                                 </button>
                             </li>
                             <li>
-                                <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                                 </svg>
                             </li>
@@ -906,11 +906,13 @@ export default function TechnologiesManagementPage() {
                     </nav>
 
                     {/* Page Header */}
-                    <div className="mb-4 sm:mb-6 md:mb-8">
-                        <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold mb-1 sm:mb-2 bg-clip-text text-transparent bg-gradient-to-r from-jcoder-cyan via-jcoder-primary to-jcoder-blue animate-gradient">
-                            Technologies Management
-                        </h1>
-                        <p className="text-xs sm:text-sm md:text-base text-jcoder-muted">Manage technologies and tech stack for your portfolio</p>
+                    <div className="mb-2 sm:mb-4 md:mb-6 px-4">
+                        <div className="flex items-center gap-3">
+                            <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-jcoder-foreground">
+                                Technologies
+                            </h1>
+                        </div>
+                        <p className="text-xs sm:text-sm md:text-base text-jcoder-muted mt-1 sm:mt-2">Manage technologies and tech stack for your portfolio</p>
                     </div>
 
                     {/* Stats Cards */}

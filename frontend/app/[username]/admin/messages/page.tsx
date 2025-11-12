@@ -394,7 +394,7 @@ export default function MessagesManagementPage() {
 
             <Header isAdmin={true} onLogout={handleLogout} />
 
-            <main className="flex-1 container mx-auto px-0 sm:px-4 lg:px-8 pt-16 sm:pt-24 pb-0 sm:pb-6 md:pb-6 relative z-10">
+            <main className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 pt-16 sm:pt-24 pb-6 sm:pb-12 relative z-10">
                 <div className={`max-w-7xl mx-auto transition-all duration-1000 h-full md:h-auto ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
                     {/* Breadcrumb */}
                     <nav className="mb-4 px-4 mt-4 md:mt-0">

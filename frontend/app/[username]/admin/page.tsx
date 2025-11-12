@@ -284,11 +284,13 @@ export default function AdminDashboardPage() {
 
         <div className={`max-w-7xl mx-auto transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
           {/* Page Header */}
-          <div className="mb-8 sm:mb-12">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold mb-2 sm:mb-3 bg-clip-text text-transparent bg-gradient-to-r from-jcoder-cyan via-jcoder-primary to-jcoder-blue animate-gradient">
-              Admin Dashboard
-            </h1>
-            <p className="text-sm sm:text-base md:text-lg lg:text-xl text-jcoder-muted">Welcome to your administration panel. Choose a section to manage.</p>
+          <div className="mb-2 sm:mb-4 md:mb-6 px-4 mt-4 md:mt-0">
+            <div className="flex items-center gap-3">
+              <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-jcoder-foreground">
+                Admin Dashboard
+              </h1>
+            </div>
+            <p className="text-xs sm:text-sm md:text-base text-jcoder-muted mt-1 sm:mt-2">Welcome to your administration panel. Choose a section to manage.</p>
           </div>
 
           {/* Admin Sections Grid */}
