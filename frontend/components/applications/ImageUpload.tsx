@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { useToast } from '@/components/toast/ToastContext';
-import { ApplicationService } from '@/services/applications.service';
 import LazyImage from '@/components/ui/LazyImage';
+import { useToast } from '@/components/toast/ToastContext';
+import { UsersService } from '@/services/administration-by-user/users.service';
+import { ImagesService } from '@/services/administration-by-user/images.service';
 
 interface ImageUploadProps {
     images: string[];
@@ -47,10 +48,22 @@ export default function ImageUpload({ images, onImagesChange, applicationId, dis
             // Upload to server
             setUploading(true);
             try {
-                const { ApplicationService } = await import('@/services/applications.service');
-                const updatedApplication = await ApplicationService.uploadImages(applicationId, validFiles);
-                onImagesChange(updatedApplication.images || []);
-                toast.success(`${validFiles.length} image(s) uploaded successfully!`);
+                const userSession = UsersService.getUserSession();
+                if (!userSession?.user?.username) {
+                    throw new Error('User session not found');
+                }
+                const updatedApplication = await ImagesService.uploadApplicationImages(userSession.user.username, applicationId, validFiles);
+                // Update images list with the filenames returned from server
+                if (updatedApplication.images && Array.isArray(updatedApplication.images)) {
+                    onImagesChange(updatedApplication.images);
+                    toast.success(`${validFiles.length} image(s) uploaded successfully!`);
+                } else {
+                    // Fallback: keep existing images and add new ones
+                    const currentImages = images.filter(img => !img.startsWith('data:'));
+                    const newFilenames = validFiles.map((_, i) => `image-${Date.now()}-${i}.jpg`);
+                    onImagesChange([...currentImages, ...newFilenames]);
+                    toast.success(`${validFiles.length} image(s) uploaded successfully!`);
+                }
             } catch (error: any) {
                 const errorMessage = error?.response?.data?.message || error.message || 'Failed to upload images';
                 toast.error(errorMessage);
@@ -76,9 +89,20 @@ export default function ImageUpload({ images, onImagesChange, applicationId, dis
         if (applicationId && filename) {
             // Delete from server
             try {
-                const { ApplicationService } = await import('@/services/applications.service');
-                await ApplicationService.deleteImage(applicationId, filename);
-                const newImages = images.filter((_, i) => i !== index);
+                const userSession = UsersService.getUserSession();
+                if (!userSession?.user?.username) {
+                    throw new Error('User session not found');
+                }
+                await ImagesService.deleteApplicationImage(userSession.user.username, applicationId, filename);
+                // Remove the image by filtering out the deleted filename
+                const newImages = images.filter((img, i) => {
+                    // If it's a filename (not a data URL), compare by value
+                    if (typeof img === 'string' && !img.startsWith('data:')) {
+                        return img !== filename;
+                    }
+                    // If it's a data URL or we're using index, remove by index
+                    return i !== index;
+                });
                 onImagesChange(newImages);
                 toast.success('Image deleted successfully!');
             } catch (error: any) {
@@ -166,7 +190,11 @@ export default function ImageUpload({ images, onImagesChange, applicationId, dis
                     {images.map((image, index) => (
                         <div key={index} className="relative group">
                             <LazyImage
-                                src={image.startsWith('data:') ? image : (applicationId ? ApplicationService.getImageUrl(applicationId, image) : '')}
+                                src={image.startsWith('data:') ? image : (applicationId ? (() => {
+                                    const userSession = UsersService.getUserSession();
+                                    if (!userSession?.user?.username) return '';
+                                    return ImagesService.getApplicationImageUrl(userSession.user.username, applicationId, image);
+                                })() : '')}
                                 alt={`Application image ${index + 1}`}
                                 fallback={`Img ${index + 1}`}
                                 size="custom"

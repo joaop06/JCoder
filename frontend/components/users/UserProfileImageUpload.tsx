@@ -1,10 +1,11 @@
 'use client';
 
+import { User } from '@/types';
 import { useState, useRef } from 'react';
-import { UsersService } from '@/services/users.service';
-import { useToast } from '@/components/toast/ToastContext';
 import LazyImage from '@/components/ui/LazyImage';
-import { User } from '@/types/entities/user.entity';
+import { useToast } from '@/components/toast/ToastContext';
+import { UsersService } from '@/services/administration-by-user/users.service';
+import { ImagesService } from '@/services/administration-by-user/images.service';
 
 interface UserProfileImageUploadProps {
     currentUser: User;
@@ -56,7 +57,11 @@ export default function UserProfileImageUpload({
     const uploadProfileImage = async (file: File) => {
         setUploading(true);
         try {
-            const updatedUser = await UsersService.uploadProfileImage(file);
+            const userSession = UsersService.getUserSession();
+            if (!userSession?.user?.username) {
+                throw new Error('User session not found');
+            }
+            const updatedUser = await ImagesService.uploadUserProfileImage(userSession.user.username, currentUser.id, file);
             toast.success('Profile image uploaded successfully!');
             onProfileImageChange?.(updatedUser);
         } catch (error: any) {
@@ -86,12 +91,16 @@ export default function UserProfileImageUpload({
 
         setUploading(true);
         try {
-            await UsersService.deleteProfileImage();
+            const userSession = UsersService.getUserSession();
+            if (!userSession?.user?.username) {
+                throw new Error('User session not found');
+            }
+            await ImagesService.deleteUserProfileImage(userSession.user.username, currentUser.id);
             setPreview(null);
             toast.success('Profile image deleted successfully!');
 
             // Update user in local storage and trigger callback
-            const updatedUser = { ...currentUser, profileImage: null };
+            const updatedUser = { ...currentUser, profileImage: undefined };
             onProfileImageChange?.(updatedUser);
         } catch (error: any) {
             console.error('Error deleting profile image:', error);
@@ -115,7 +124,11 @@ export default function UserProfileImageUpload({
             return preview;
         }
         if (currentUser.profileImage) {
-            return UsersService.getProfileImageUrl(currentUser.id);
+            const userSession = UsersService.getUserSession();
+            if (!userSession?.user?.username) {
+                throw new Error('User session not found');
+            }
+            return ImagesService.getUserProfileImageUrl(userSession.user.username, currentUser.id);
         }
         return null;
     };

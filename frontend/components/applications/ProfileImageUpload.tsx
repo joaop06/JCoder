@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { ApplicationService } from '@/services/applications.service';
-import { useToast } from '@/components/toast/ToastContext';
 import LazyImage from '@/components/ui/LazyImage';
+import { useToast } from '@/components/toast/ToastContext';
+import { UsersService } from '@/services/administration-by-user/users.service';
+import { ImagesService } from '@/services/administration-by-user/images.service';
 
 interface ProfileImageUploadProps {
     applicationId: number;
@@ -57,7 +58,11 @@ export default function ProfileImageUpload({
     const uploadProfileImage = async (file: File) => {
         setUploading(true);
         try {
-            const updatedApplication = await ApplicationService.uploadProfileImage(applicationId, file);
+            const userSession = UsersService.getUserSession();
+            if (!userSession?.user?.username) {
+                throw new Error('User session not found');
+            }
+            const updatedApplication = await ImagesService.uploadApplicationProfileImage(userSession.user.username, applicationId, file);
             toast.success('Profile image uploaded successfully!');
             onProfileImageChange?.(updatedApplication.profileImage || null);
         } catch (error: any) {
@@ -75,7 +80,11 @@ export default function ProfileImageUpload({
     const updateProfileImage = async (file: File) => {
         setUploading(true);
         try {
-            const updatedApplication = await ApplicationService.updateProfileImage(applicationId, file);
+            const userSession = UsersService.getUserSession();
+            if (!userSession?.user?.username) {
+                throw new Error('User session not found');
+            }
+            const updatedApplication = await ImagesService.updateApplicationProfileImage(userSession.user.username, applicationId, file);
             toast.success('Profile image updated successfully!');
             onProfileImageChange?.(updatedApplication.profileImage || null);
         } catch (error: any) {
@@ -95,7 +104,11 @@ export default function ProfileImageUpload({
 
         setUploading(true);
         try {
-            await ApplicationService.deleteProfileImage(applicationId);
+            const userSession = UsersService.getUserSession();
+            if (!userSession?.user?.username) {
+                throw new Error('User session not found');
+            }
+            await ImagesService.deleteApplicationProfileImage(userSession.user.username, applicationId);
             setPreview(null);
             toast.success('Profile image deleted successfully!');
             onProfileImageChange?.(null);
@@ -121,7 +134,9 @@ export default function ProfileImageUpload({
             return preview;
         }
         if (currentProfileImage) {
-            return ApplicationService.getProfileImageUrl(applicationId);
+            const userSession = UsersService.getUserSession();
+            const username = userSession?.user?.username || '';
+            return username ? ImagesService.getApplicationProfileImageUrl(username, applicationId) : '';
         }
         return null;
     };

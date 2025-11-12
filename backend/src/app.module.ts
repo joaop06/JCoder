@@ -1,15 +1,18 @@
 import { Module } from '@nestjs/common';
 import { WinstonModule } from 'nest-winston';
 import { ConfigModule } from '@nestjs/config';
-import { AuthModule } from './auth/auth.module';
-import { UsersModule } from './users/users.module';
+import { EmailModule } from './email/email.module';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { HealthModule } from './health/health.module';
-import { ImagesModule } from './images/images.module';
 import { loggerConfig } from './@common/config/logger.config';
-import { ApplicationsModule } from './applications/applications.module';
-import { TechnologiesModule } from './technologies/technologies.module';
+import { AuthModule } from './administration-by-user/auth/auth.module';
+import { UsersModule } from './administration-by-user/users/users.module';
+import { ImagesModule } from './administration-by-user/images/images.module';
+import { PortfolioViewModule } from './portfolio-view/portfolio-view.module';
 import { TypeormMysqlModule } from './@common/database/typeorm-mysql-module';
+import { MessagesModule } from './administration-by-user/messages/messages.module';
+import { ApplicationsModule } from './administration-by-user/applications/applications.module';
+import { TechnologiesModule } from './administration-by-user/technologies/technologies.module';
 
 @Module({
   imports: [
@@ -27,12 +30,15 @@ import { TypeormMysqlModule } from './@common/database/typeorm-mysql-module';
       },
     ]),
     AuthModule,
+    EmailModule,
     UsersModule,
     HealthModule,
     ImagesModule,
+    MessagesModule,
     ApplicationsModule,
     TechnologiesModule,
     TypeormMysqlModule,
+    PortfolioViewModule,
   ],
 })
 export class AppModule { };

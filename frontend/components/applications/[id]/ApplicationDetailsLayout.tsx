@@ -1,10 +1,11 @@
 import React from 'react';
+import { LazyImage } from '@/components/ui';
 import LinkDisplayBlock from './LinkDisplayBlock';
 import ApplicationTechnologies from './ApplicationTechnologies';
 import ApplicationImagesGallery from './ApplicationImagesGallery';
-import { Application } from '@/types/entities/application.entity';
-import { ApplicationService } from '@/services/applications.service';
-import { LazyImage } from '@/components/ui';
+import { Application } from '@/types/api/applications/application.entity';
+import { UsersService } from '@/services/administration-by-user/users.service';
+import { ImagesService } from '@/services/administration-by-user/images.service';
 
 interface ApplicationDetailsLayoutProps {
   application: Application;
@@ -18,44 +19,58 @@ const ApplicationDetailsLayout: React.FC<ApplicationDetailsLayoutProps> = ({
   const getInitial = (name: string) => name?.charAt(0)?.toUpperCase() ?? '';
 
   return (
-    <div className="bg-jcoder-card border border-jcoder rounded-lg p-4 sm:p-8 mb-6 shadow-lg hover:shadow-xl hover:shadow-jcoder-primary/20 transition-all duration-300">
+    <div className="bg-jcoder-card/80 backdrop-blur-sm border border-jcoder rounded-3xl p-6 sm:p-8 md:p-12 shadow-2xl shadow-jcoder-primary/10 hover:shadow-jcoder-primary/20 transition-all duration-500 transform hover:-translate-y-1">
       {/* Application Header */}
-      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-6 gap-4">
-        <div className="flex items-start gap-3 sm:gap-4 min-w-0">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-8 gap-6">
+        <div className="flex items-start gap-4 sm:gap-6 min-w-0">
           {application.profileImage ? (
-            <LazyImage
-              src={ApplicationService.getProfileImageUrl(application.id)}
-              alt={application.name}
-              fallback={application.name}
-              className="object-cover"
-              size="custom"
-              width="w-12 sm:w-16"
-              height="h-12 sm:h-16"
-            />
+            <div className="flex-shrink-0 transform hover:scale-110 transition-transform duration-300">
+              <LazyImage
+                src={(() => {
+                  const userSession = UsersService.getUserSession();
+                  const username = userSession?.user?.username || '';
+                  return username ? ImagesService.getApplicationProfileImageUrl(username, application.id) : '';
+                })()}
+                alt={application.name}
+                fallback={application.name}
+                className="object-cover rounded-2xl shadow-lg"
+                size="custom"
+                width="w-16 sm:w-20 md:w-24"
+                height="h-16 sm:h-20 md:h-24"
+              />
+            </div>
           ) : application.images && application.images.length > 0 ? (
-            <LazyImage
-              src={ApplicationService.getImageUrl(application.id, application.images[0])}
-              alt={application.name}
-              fallback={application.name}
-              className="object-cover"
-              size="custom"
-              width="w-12 sm:w-16"
-              height="h-12 sm:h-16"
-            />
+            <div className="flex-shrink-0 transform hover:scale-110 transition-transform duration-300">
+              <LazyImage
+                src={(() => {
+                  const userSession = UsersService.getUserSession();
+                  const username = userSession?.user?.username || '';
+                  return ImagesService.getApplicationImageUrl(username, application.id, application.images[0]);
+                })()}
+                alt={application.name}
+                fallback={application.name}
+                className="object-cover rounded-2xl shadow-lg"
+                size="custom"
+                width="w-16 sm:w-20 md:w-24"
+                height="h-16 sm:h-20 md:h-24"
+              />
+            </div>
           ) : (
-            <div className="w-12 h-12 sm:w-16 sm:h-16 bg-jcoder-gradient rounded-lg flex items-center justify-center flex-shrink-0">
-              <span className="text-black font-bold text-lg sm:text-2xl">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 bg-jcoder-gradient rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg transform hover:scale-110 transition-transform duration-300">
+              <span className="text-black font-bold text-2xl sm:text-3xl md:text-4xl">
                 {getInitial(application.name)}
               </span>
             </div>
           )}
-          <div className="min-w-0">
-            <h1 className="text-xl sm:text-2xl font-bold text-jcoder-foreground mb-1 sm:mb-2 truncate">
+          <div className="min-w-0 flex-1">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-jcoder-foreground mb-2 sm:mb-3 bg-clip-text text-transparent bg-gradient-to-r from-jcoder-cyan via-jcoder-primary to-jcoder-blue">
               {application.name}
             </h1>
-            <p className="text-xs sm:text-sm text-jcoder-muted overflow-hidden text-ellipsis">
-              Type: {application.applicationType}
-            </p>
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-jcoder-secondary/50 border border-jcoder-primary/30 rounded-full">
+              <span className="text-xs sm:text-sm font-semibold text-jcoder-primary uppercase tracking-wide">
+                {application.applicationType}
+              </span>
+            </div>
           </div>
         </div>
 
@@ -85,9 +100,12 @@ const ApplicationDetailsLayout: React.FC<ApplicationDetailsLayoutProps> = ({
       </div>
 
       {/* Description */}
-      <div className="mb-6">
-        <h2 className="text-base sm:text-lg font-semibold text-jcoder-foreground mb-2 sm:mb-3">Description</h2>
-        <p className="text-sm sm:text-base text-jcoder-muted">{application.description}</p>
+      <div className="mb-8">
+        <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-jcoder-foreground mb-4 sm:mb-5 flex items-center gap-2">
+          <span className="w-1 h-6 sm:h-8 bg-jcoder-gradient rounded-full"></span>
+          <span>Description</span>
+        </h2>
+        <p className="text-sm sm:text-base md:text-lg text-jcoder-muted leading-relaxed pl-3 sm:pl-4">{application.description}</p>
       </div>
 
       {/* Technologies */}

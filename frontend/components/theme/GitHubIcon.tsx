@@ -17,7 +17,7 @@ export default function GitHubIcon({ className = "w-6 h-6", alt = "GitHub" }: Gi
 
     return (
         <img
-            src="/icons/github.png"
+            src="/images/icons/github.png"
             alt={alt}
             className={iconClassName}
         />

@@ -1,6 +1,6 @@
 import { Type } from 'class-transformer';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional, IsPositive, Max, Min, IsString } from 'class-validator';
+import { IsOptional, IsPositive, Max, Min, IsString, IsBoolean } from 'class-validator';
 
 export class PaginationDto {
     @ApiPropertyOptional({
@@ -44,29 +44,20 @@ export class PaginationDto {
     @IsOptional()
     @IsString()
     sortOrder?: 'ASC' | 'DESC' = 'DESC';
+
+    @ApiPropertyOptional({
+        type: 'boolean',
+        description: 'Filter by active status',
+    })
+    @IsOptional()
+    @Type(() => Boolean)
+    @IsBoolean()
+    isActive?: boolean;
 }
 
 export class PaginatedResponseDto<T> {
     @ApiPropertyOptional()
-    data: T[];
-
-    @ApiPropertyOptional()
-    total?: number;
-
-    @ApiPropertyOptional()
-    page?: number;
-
-    @ApiPropertyOptional()
-    limit?: number;
-
-    @ApiPropertyOptional()
-    totalPages?: number;
-
-    @ApiPropertyOptional()
-    hasNext?: boolean;
-
-    @ApiPropertyOptional()
-    hasPrev?: boolean;
+    data!: T[];
 
     @ApiPropertyOptional()
     meta?: {

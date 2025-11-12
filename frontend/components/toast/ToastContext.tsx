@@ -9,7 +9,6 @@ import {
     useCallback,
     createContext,
 } from 'react';
-import React from 'react';
 import {
     ToastId,
     ToastType,
@@ -17,7 +16,8 @@ import {
     ToastInternal,
     ToastContextValue,
     ToastProviderProps,
-} from '@/types/components/toast/toast.type';
+} from '@/types';
+import React from 'react';
 
 const ToastContext = createContext<ToastContextValue | null>(null);
 

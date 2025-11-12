@@ -49,16 +49,17 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 
         // Log the error
         this.logger.error({
-            message: 'Exception caught',
-            statusCode: status,
-            timestamp: errorResponse.timestamp,
-            path: errorResponse.path,
-            method: errorResponse.method,
-            error: errorResponse.error,
-            stack: exception instanceof Error ? exception.stack : undefined,
-            userId: (request as any).user?.userId,
             ip: request.ip,
+            statusCode: status,
+            path: errorResponse.path,
+            error: errorResponse.error,
+            message: 'Exception caught',
+            method: errorResponse.method,
+            userId: (request as any).user?.id,
+            timestamp: errorResponse.timestamp,
             userAgent: request.headers['user-agent'],
+            username: (request as any).user?.username,
+            stack: exception instanceof Error ? exception.stack : undefined,
         });
 
         response.status(status).json(errorResponse);

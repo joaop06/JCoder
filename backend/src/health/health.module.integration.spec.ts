@@ -1,14 +1,12 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { TerminusModule } from '@nestjs/terminus';
-import { ConfigModule } from '@nestjs/config';
-import { HealthModule } from './health.module';
-import { HealthController } from './health.controller';
 import {
     HealthCheckService,
-    TypeOrmHealthIndicator,
-    MemoryHealthIndicator,
     DiskHealthIndicator,
+    MemoryHealthIndicator,
+    TypeOrmHealthIndicator,
 } from '@nestjs/terminus';
+import { ConfigModule } from '@nestjs/config';
+import { Test, TestingModule } from '@nestjs/testing';
+import { HealthController } from './health.controller';
 
 // Mock health indicators
 class MockTypeOrmHealthIndicator {
@@ -222,13 +220,13 @@ describe('HealthModule Integration', () => {
             it('should detect memory threshold exceeded', async () => {
                 // Mock high memory usage
                 const originalMemoryUsage = process.memoryUsage;
-                process.memoryUsage = jest.fn().mockReturnValue({
+                process.memoryUsage = jest.fn(() => ({
                     rss: 400 * 1024 * 1024, // 400MB
                     heapTotal: 200 * 1024 * 1024,
                     heapUsed: 400 * 1024 * 1024, // 400MB
                     external: 100 * 1024 * 1024,
                     arrayBuffers: 50 * 1024 * 1024,
-                });
+                })) as unknown as typeof process.memoryUsage;
 
                 const result = await memoryHealthIndicator.checkHeap('memory_heap', 300 * 1024 * 1024);
 
@@ -320,7 +318,7 @@ describe('HealthModule Integration', () => {
             const result = await healthCheckService.check(healthIndicators);
 
             expect(result.status).toBe('error');
-            expect(result.error.memory_heap.status).toBe('down');
+            expect((result.error as any).memory_heap.status).toBe('down');
         });
 
         it('should handle multiple health indicators', async () => {
@@ -472,8 +470,8 @@ describe('HealthModule Integration', () => {
             const result = await healthCheckService.check(healthIndicators);
 
             expect(result.status).toBe('error');
-            expect(result.info.database.status).toBe('up');
-            expect(result.error.memory_heap.status).toBe('down');
+            expect((result.info as any).database.status).toBe('up');
+            expect((result.error as any).memory_heap.status).toBe('down');
         });
     });
 

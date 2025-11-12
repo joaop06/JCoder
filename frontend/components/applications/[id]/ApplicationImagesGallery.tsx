@@ -1,6 +1,7 @@
-import React, { useState, useCallback, useMemo } from 'react';
-import { ApplicationService } from '@/services/applications.service';
 import { LazyImage } from '@/components/ui';
+import React, { useState, useCallback, useMemo } from 'react';
+import { UsersService } from '@/services/administration-by-user/users.service';
+import { ImagesService } from '@/services/administration-by-user/images.service';
 
 interface ApplicationImagesGalleryProps {
     applicationId: number;
@@ -80,7 +81,9 @@ const ApplicationImagesGallery: React.FC<ApplicationImagesGalleryProps> = ({
     }, []);
 
     const getImageUrl = useCallback((filename: string) => {
-        return ApplicationService.getImageUrl(applicationId, filename);
+        const userSession = UsersService.getUserSession();
+        const username = userSession?.user?.username || '';
+        return ImagesService.getApplicationImageUrl(username, applicationId, filename);
     }, [applicationId]);
 
     const displayedImages = useMemo(

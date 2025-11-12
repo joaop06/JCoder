@@ -31,7 +31,6 @@ services:
       DATABASE_USER: ${DATABASE_USER}
       DATABASE_NAME: ${DATABASE_NAME}
       BACKEND_DATABASE_HOST: "database"
-      UPLOAD_PATH: /app/uploads
       DATABASE_PASSWORD: ${DATABASE_PASSWORD}
       BACKEND_JWT_SECRET: ${BACKEND_JWT_SECRET}
       BACKEND_SYNCHRONIZE_DATABASE: ${BACKEND_SYNCHRONIZE_DATABASE}
@@ -43,7 +42,7 @@ services:
     ports:
       - "${BACKEND_PORT}:${BACKEND_PORT}"
     volumes:
-      - ./backend/uploads:/app/uploads
+      - ./backend/src/administration-by-user/images/storage:/app/src/administration-by-user/images/storage
 
   frontend:
     build:

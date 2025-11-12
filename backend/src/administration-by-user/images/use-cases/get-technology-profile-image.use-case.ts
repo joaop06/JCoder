@@ -1,0 +1,40 @@
+import { Repository } from 'typeorm';
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { ResourceType } from '../enums/resource-type.enum';
+import { ImageStorageService } from '../services/image-storage.service';
+import { Technology } from '../../technologies/entities/technology.entity';
+import { TechnologyNotFoundException } from '../../technologies/exceptions/technology-not-found.exception';
+
+@Injectable()
+export class GetTechnologyProfileImageUseCase {
+    constructor(
+        private readonly imageStorageService: ImageStorageService,
+
+        @InjectRepository(Technology)
+        private readonly technologyRepository: Repository<Technology>,
+    ) { }
+
+    async execute(id: number): Promise<string> {
+        const technology = await this.technologyRepository.findOne({ 
+            where: { id },
+            relations: ['user'],
+        });
+
+        if (!technology) {
+            throw new TechnologyNotFoundException();
+        }
+
+        if (!technology.profileImage) {
+            throw new Error('Technology has no profile image');
+        }
+
+        return await this.imageStorageService.getImagePath(
+            ResourceType.Technology,
+            id,
+            technology.profileImage,
+            undefined,
+            technology.user.username,
+        );
+    }
+};

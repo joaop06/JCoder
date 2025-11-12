@@ -8,7 +8,7 @@ export const useSmoothScroll = () => {
         const elementPosition = element.getBoundingClientRect().top;
         const offsetPosition = elementPosition + window.pageYOffset - offset;
 
-        // Função de easing para scroll suave
+        // Easing function for smooth scroll
         const easeInOutCubic = (t: number): number => {
             return t < 0.5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1;
         };

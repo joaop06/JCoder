@@ -1,7 +1,6 @@
 import React from 'react';
-import CopyToClipboardButton from '@/components/clipboard/CopyToClipboardButton';
 import LinkDisplayBlock from './LinkDisplayBlock';
-import { ApplicationComponentFrontend } from '@/types/entities/application-component-frontend.entity';
+import { ApplicationComponentFrontend } from '@/types';
 
 interface ApplicationFrontendDetailsProps {
   frontendDetails: ApplicationComponentFrontend;

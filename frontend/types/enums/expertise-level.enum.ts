@@ -3,5 +3,4 @@ export enum ExpertiseLevel {
     INTERMEDIATE = 'intermediate',
     ADVANCED = 'advanced',
     EXPERT = 'expert',
-}
-
+};

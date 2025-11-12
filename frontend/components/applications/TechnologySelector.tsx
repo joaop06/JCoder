@@ -1,20 +1,24 @@
 'use client';
 
-import { useState, useEffect, useMemo, memo } from 'react';
-import { Technology } from '@/types/entities/technology.entity';
-import { TechnologiesService } from '@/services/technologies.service';
+import { Technology } from '@/types';
 import LazyImage from '@/components/ui/LazyImage';
+import { useState, useEffect, useMemo } from 'react';
+import { UsersService } from '@/services/administration-by-user/users.service';
+import { ImagesService } from '@/services/administration-by-user/images.service';
+import { TechnologiesService } from '@/services/administration-by-user/technologies.service';
 
 interface TechnologySelectorProps {
     selectedTechnologyIds: number[];
     onSelectionChange: (technologyIds: number[]) => void;
     disabled?: boolean;
+    refreshKey?: number | string;
 }
 
 export default function TechnologySelector({
     selectedTechnologyIds,
     onSelectionChange,
     disabled = false,
+    refreshKey,
 }: TechnologySelectorProps) {
     const [technologies, setTechnologies] = useState<Technology[]>([]);
     const [loading, setLoading] = useState(true);
@@ -25,11 +29,14 @@ export default function TechnologySelector({
         const loadTechnologies = async () => {
             setLoading(true);
             try {
-                const response = await TechnologiesService.query({
-                    isActive: true,
+                const userSession = UsersService.getUserSession();
+                if (!userSession?.user?.username) {
+                    throw new Error('User session not found');
+                }
+                const response = await TechnologiesService.findAll(userSession.user.username, {
+                    limit: 100,
                     sortBy: 'name',
                     sortOrder: 'ASC',
-                    limit: 100,
                 });
                 setTechnologies(response.data || []);
             } catch (error) {
@@ -41,7 +48,7 @@ export default function TechnologySelector({
         };
 
         loadTechnologies();
-    }, []);
+    }, [refreshKey]);
 
     const filteredTechnologies = useMemo(() => {
         if (!searchTerm.trim()) return technologies;
@@ -98,29 +105,33 @@ export default function TechnologySelector({
                     <div className="flex flex-wrap gap-2">
                         {selectedTechnologies.map((tech) => {
                             const hasImage = tech.profileImage && !imageLoadErrors.has(tech.id);
-                            const showImageOnly = hasImage; // Em mobile, mostra apenas imagem se disponível
+                            const showImageOnly = hasImage; // On mobile, show only image if available
 
                             return (
                                 <div
                                     key={tech.id}
                                     className={`inline-flex items-center gap-2 px-3 py-2 bg-jcoder-gradient/10 border border-jcoder-primary rounded-lg group hover:bg-jcoder-gradient/20 transition-colors ${showImageOnly ? 'md:px-3 px-2' : ''
                                         }`}
-                                    title={tech.name} // Tooltip para mobile quando só mostra imagem
+                                    title={tech.name} // Tooltip for mobile when only showing image
                                 >
-                                    {/* Só renderiza a imagem se não houve erro ao carregar */}
-                                    {hasImage && (
-                                        <LazyImage
-                                            src={TechnologiesService.getProfileImageUrl(tech.id)}
-                                            alt={tech.name}
-                                            fallback={tech.name.substring(0, 2)}
-                                            size="custom"
-                                            width={showImageOnly ? 'w-6 md:w-5' : 'w-5'}
-                                            height={showImageOnly ? 'h-6 md:h-5' : 'h-5'}
-                                            objectFit="object-contain"
-                                            showSkeleton={false}
-                                            onError={() => handleImageError(tech.id)}
-                                        />
-                                    )}
+                                    {/* Only render image if there was no error loading */}
+                                    {hasImage && (() => {
+                                        const userSession = UsersService.getUserSession();
+                                        const username = userSession?.user?.username || '';
+                                        return username ? (
+                                            <LazyImage
+                                                src={ImagesService.getTechnologyProfileImageUrl(username, tech.id)}
+                                                alt={tech.name}
+                                                fallback={tech.name.substring(0, 2)}
+                                                size="custom"
+                                                width={showImageOnly ? 'w-6 md:w-5' : 'w-5'}
+                                                height={showImageOnly ? 'h-6 md:h-5' : 'h-5'}
+                                                objectFit="object-contain"
+                                                showSkeleton={false}
+                                                onError={() => handleImageError(tech.id)}
+                                            />
+                                        ) : null;
+                                    })()}
                                     <span className={`text-sm font-medium text-jcoder-foreground ${showImageOnly ? 'hidden md:inline' : ''
                                         }`}>
                                         {tech.name}
@@ -230,7 +241,11 @@ export default function TechnologySelector({
                                                 {/* Technology Image */}
                                                 {tech.profileImage && (
                                                     <LazyImage
-                                                        src={TechnologiesService.getProfileImageUrl(tech.id)}
+                                                        src={(() => {
+                                                            const userSession = UsersService.getUserSession();
+                                                            const username = userSession?.user?.username || '';
+                                                            return username ? ImagesService.getTechnologyProfileImageUrl(username, tech.id) : '';
+                                                        })()}
                                                         alt={tech.name}
                                                         fallback={tech.name.substring(0, 2)}
                                                         size="custom"

@@ -5,6 +5,10 @@ module.exports = {
     transform: {
         '^.+\\.(t|j)s$': '@swc/jest',
     },
+    transformIgnorePatterns: [
+        'node_modules/(?!(uuid|uuidv7|@swc)/)',
+        'node_modules/.pnpm/(?!(uuid|uuidv7)@)',
+    ],
     collectCoverageFrom: [
         '**/*.(t|j)s',
         '!**/*.spec.ts',

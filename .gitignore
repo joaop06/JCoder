@@ -1,7 +1,7 @@
 .env
 .vscode
 
-# Backend uploads - ignore all files except .gitkeep
-backend/uploads/**/*
-!backend/uploads/**/.gitkeep
-!backend/uploads/.gitkeep
+# Backend image storage - ignore all files except .gitkeep
+backend/src/administration-by-user/images/storage/**/*
+!backend/src/administration-by-user/images/storage/**/.gitkeep
+!backend/src/administration-by-user/images/storage/.gitkeep
