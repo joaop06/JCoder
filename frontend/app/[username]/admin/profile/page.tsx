@@ -7,6 +7,7 @@ import {
     UserComponentEducation,
     UserComponentExperience,
     UserComponentCertificate,
+    UserComponentReference,
     UserComponentExperiencePosition,
 } from '@/types';
 import Footer from '@/components/Footer';
@@ -58,6 +59,7 @@ export default function ProfileManagementPage() {
     const [educations, setEducations] = useState<UserComponentEducation[]>([]);
     const [experiences, setExperiences] = useState<UserComponentExperience[]>([]);
     const [certificates, setCertificates] = useState<UserComponentCertificate[]>([]);
+    const [references, setReferences] = useState<UserComponentReference[]>([]);
 
     // Loading states for progressive loading
     const [loadingStates, setLoadingStates] = useState({
@@ -66,6 +68,7 @@ export default function ProfileManagementPage() {
         educations: false,
         experiences: false,
         certificates: false,
+        references: false,
     });
 
     // Visibility states for intersection observer
@@ -75,6 +78,7 @@ export default function ProfileManagementPage() {
         education: false,
         experience: false,
         certificates: false,
+        references: false,
     });
 
     // Edit states
@@ -88,6 +92,8 @@ export default function ProfileManagementPage() {
     const [isAddingPosition, setIsAddingPosition] = useState(false);
     const [isEditingCertificate, setIsEditingCertificate] = useState(false);
     const [editingCertificateId, setEditingCertificateId] = useState<number | null>(null);
+    const [isEditingReference, setIsEditingReference] = useState(false);
+    const [editingReferenceId, setEditingReferenceId] = useState<number | null>(null);
     const [isSaving, setIsSaving] = useState(false);
 
     // Profile image upload states
@@ -121,6 +127,8 @@ export default function ProfileManagementPage() {
         firstName: '',
         fullName: '',
         email: '',
+        phone: '',
+        address: '',
         githubUrl: '',
         linkedinUrl: '',
         currentPassword: '',
@@ -163,6 +171,13 @@ export default function ProfileManagementPage() {
         issueDate: '',
         issuedTo: '',
         educationIds: [] as number[],
+    });
+
+    const [referenceForm, setReferenceForm] = useState({
+        name: '',
+        company: '',
+        email: '',
+        phone: '',
     });
 
     const handleLogout = useCallback(() => {
@@ -257,6 +272,8 @@ export default function ProfileManagementPage() {
                 firstName: userData.firstName || '',
                 fullName: userData.fullName || '',
                 email: userData.email || '',
+                phone: userData.phone || '',
+                address: userData.address || '',
                 githubUrl: userData.githubUrl || '',
                 linkedinUrl: userData.linkedinUrl || '',
                 currentPassword: '',
@@ -271,9 +288,9 @@ export default function ProfileManagementPage() {
             // Usar requestIdleCallback se disponível, senão setTimeout
             const loadComponents = async () => {
                 try {
-                    setLoadingStates(prev => ({ ...prev, aboutMe: true, educations: true, experiences: true, certificates: true }));
+                    setLoadingStates(prev => ({ ...prev, aboutMe: true, educations: true, experiences: true, certificates: true, references: true }));
 
-                    const [aboutMeData, educationsData, experiencesData, certificatesData] = await Promise.all([
+                    const [aboutMeData, educationsData, experiencesData, certificatesData, referencesData] = await Promise.all([
                         UsersService.getAboutMe(userData.username).catch(err => {
                             console.error('Error loading aboutMe:', err);
                             return null;
@@ -288,6 +305,10 @@ export default function ProfileManagementPage() {
                         }),
                         UsersService.getCertificates(userData.username).catch(err => {
                             console.error('Error loading certificates:', err);
+                            return null;
+                        }),
+                        UsersService.getReferences(userData.username).catch(err => {
+                            console.error('Error loading references:', err);
                             return null;
                         }),
                     ]);
@@ -318,6 +339,7 @@ export default function ProfileManagementPage() {
                     setEducations(extractDataArray<UserComponentEducation>(educationsData));
                     setExperiences(extractDataArray<UserComponentExperience>(experiencesData));
                     setCertificates(extractDataArray<UserComponentCertificate>(certificatesData));
+                    setReferences(extractDataArray<UserComponentReference>(referencesData));
 
                     setLoadingStates({
                         user: false,
@@ -325,6 +347,7 @@ export default function ProfileManagementPage() {
                         educations: false,
                         experiences: false,
                         certificates: false,
+                        references: false,
                     });
                 } catch (err: any) {
                     console.error('Error loading components:', err);
@@ -334,6 +357,7 @@ export default function ProfileManagementPage() {
                         educations: false,
                         experiences: false,
                         certificates: false,
+                        references: false,
                     });
                 }
             };
@@ -635,6 +659,8 @@ export default function ProfileManagementPage() {
             const updateData: any = {
                 firstName: basicInfoForm.firstName,
                 fullName: basicInfoForm.fullName,
+                phone: basicInfoForm.phone || undefined,
+                address: basicInfoForm.address || undefined,
                 githubUrl: basicInfoForm.githubUrl || undefined,
                 linkedinUrl: basicInfoForm.linkedinUrl || undefined,
             };
@@ -671,6 +697,8 @@ export default function ProfileManagementPage() {
                 firstName: updatedUser.firstName || '',
                 fullName: updatedUser.fullName || '',
                 email: updatedUser.email || '',
+                phone: updatedUser.phone || '',
+                address: updatedUser.address || '',
                 githubUrl: updatedUser.githubUrl || '',
                 linkedinUrl: updatedUser.linkedinUrl || '',
                 currentPassword: '',
@@ -732,6 +760,8 @@ export default function ProfileManagementPage() {
                 firstName: user.firstName || '',
                 fullName: user.fullName || '',
                 email: user.email || '',
+                phone: user.phone || '',
+                address: user.address || '',
                 githubUrl: user.githubUrl || '',
                 linkedinUrl: user.linkedinUrl || '',
                 currentPassword: '',
@@ -1409,6 +1439,112 @@ export default function ProfileManagementPage() {
         });
     }, []);
 
+    // Reference handlers
+    const handleReferenceInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        setReferenceForm(prev => ({ ...prev, [name]: value }));
+    }, []);
+
+    const handleAddReference = useCallback(() => {
+        setReferenceForm({
+            name: '',
+            company: '',
+            email: '',
+            phone: '',
+        });
+        setEditingReferenceId(null);
+        setIsEditingReference(true);
+    }, []);
+
+    const handleEditReference = useCallback((reference: UserComponentReference) => {
+        setReferenceForm({
+            name: reference.name || '',
+            company: reference.company || '',
+            email: reference.email || '',
+            phone: reference.phone || '',
+        });
+        setEditingReferenceId(reference.id || null);
+        setIsEditingReference(true);
+    }, []);
+
+    const handleCancelReference = useCallback(() => {
+        setIsEditingReference(false);
+        setEditingReferenceId(null);
+        setReferenceForm({
+            name: '',
+            company: '',
+            email: '',
+            phone: '',
+        });
+    }, []);
+
+    const handleSaveReference = useCallback(async () => {
+        if (!referenceForm.name.trim()) {
+            toast.error('Reference name is required.');
+            return;
+        }
+
+        setIsSaving(true);
+        try {
+            const userSession = UsersService.getUserSession();
+            if (!userSession?.user?.username) {
+                throw new Error('User session not found');
+            }
+            const referenceData: any = {
+                name: referenceForm.name,
+                company: referenceForm.company?.trim() || undefined,
+                email: referenceForm.email?.trim() || undefined,
+                phone: referenceForm.phone?.trim() || undefined,
+            };
+
+            let updatedReference: UserComponentReference;
+            if (editingReferenceId) {
+                updatedReference = await UsersService.updateReference(userSession.user.username, editingReferenceId, referenceData);
+                setReferences(prev => prev.map(ref => ref.id === editingReferenceId ? updatedReference : ref));
+            } else {
+                updatedReference = await UsersService.createReference(userSession.user.username, referenceData);
+                setReferences(prev => [...prev, updatedReference]);
+            }
+
+            setIsEditingReference(false);
+            setEditingReferenceId(null);
+            toast.success(`Reference ${editingReferenceId ? 'updated' : 'created'} successfully!`);
+        } catch (err: any) {
+            toast.error(err.message || `Failed to ${editingReferenceId ? 'update' : 'create'} reference. Please try again.`);
+        } finally {
+            setIsSaving(false);
+        }
+    }, [referenceForm, editingReferenceId, toast]);
+
+    const handleDeleteReference = useCallback(async (referenceId: number) => {
+        const confirmed = await toast.confirm(
+            'Are you sure you want to delete this reference?',
+            {
+                confirmText: 'Delete',
+                cancelText: 'Cancel',
+            }
+        );
+
+        if (!confirmed) {
+            return;
+        }
+
+        setIsSaving(true);
+        try {
+            const userSession = UsersService.getUserSession();
+            if (!userSession?.user?.username) {
+                throw new Error('User session not found');
+            }
+            await UsersService.deleteReference(userSession.user.username, referenceId);
+            setReferences(prev => prev.filter(ref => ref.id !== referenceId));
+            toast.success('Reference deleted successfully!');
+        } catch (err: any) {
+            toast.error(err.message || 'Failed to delete reference. Please try again.');
+        } finally {
+            setIsSaving(false);
+        }
+    }, [toast]);
+
     // Profile image handlers
     const handleProfileImageClick = useCallback(() => {
         if (!uploadingProfileImage && !deletingProfileImage && user?.id) {
@@ -1992,6 +2128,28 @@ export default function ProfileManagementPage() {
                                                 </div>
                                             </div>
                                             <div>
+                                                <label className="block text-sm font-medium text-jcoder-muted mb-2">Phone</label>
+                                                <input
+                                                    type="tel"
+                                                    name="phone"
+                                                    value={basicInfoForm.phone}
+                                                    onChange={handleBasicInfoInputChange}
+                                                    placeholder="(206) 742-5187"
+                                                    className="w-full px-4 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none"
+                                                />
+                                            </div>
+                                            <div className="md:col-span-2">
+                                                <label className="block text-sm font-medium text-jcoder-muted mb-2">Address</label>
+                                                <input
+                                                    type="text"
+                                                    name="address"
+                                                    value={basicInfoForm.address}
+                                                    onChange={handleBasicInfoInputChange}
+                                                    placeholder="32600 42nd Ave SW, Seattle, WA 98116, United States"
+                                                    className="w-full px-4 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none"
+                                                />
+                                            </div>
+                                            <div>
                                                 <label className="block text-sm font-medium text-jcoder-muted mb-2">GitHub URL</label>
                                                 <input
                                                     type="url"
@@ -2091,6 +2249,16 @@ export default function ProfileManagementPage() {
                                             label="Email"
                                             value={user?.email}
                                             icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>}
+                                        />
+                                        <InfoField
+                                            label="Phone"
+                                            value={user?.phone}
+                                            icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>}
+                                        />
+                                        <InfoField
+                                            label="Address"
+                                            value={user?.address}
+                                            icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>}
                                         />
                                         <InfoField
                                             label="GitHub"
@@ -2974,6 +3142,156 @@ export default function ProfileManagementPage() {
                                                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
                                                                 Verify Certificate
                                                             </a>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+                                </SectionCard>
+                            )}
+                        </div>
+
+                        {/* References Section */}
+                        <div data-section="references">
+                            {loadingStates.references ? (
+                                <SectionCard
+                                    title="References"
+                                    icon={<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>}
+                                >
+                                    <div className="space-y-3">
+                                        <div className="h-16 bg-jcoder-secondary rounded animate-pulse" />
+                                        <div className="h-16 bg-jcoder-secondary rounded animate-pulse" />
+                                    </div>
+                                </SectionCard>
+                            ) : (
+                                <SectionCard
+                                    title="References"
+                                    icon={<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>}
+                                    action={
+                                        !isEditingReference && (
+                                            <button
+                                                onClick={handleAddReference}
+                                                className="px-3 py-1.5 md:px-4 md:py-2 text-sm bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity font-medium"
+                                            >
+                                                Add Reference
+                                            </button>
+                                        )
+                                    }
+                                    collapsible={true}
+                                    isEmpty={references.length === 0 && !isEditingReference}
+                                    emptyMessage="No references added yet"
+                                >
+                                    {isEditingReference ? (
+                                        <div className="space-y-4">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div className="md:col-span-2">
+                                                    <label className="block text-sm font-medium text-jcoder-muted mb-2">Name *</label>
+                                                    <input
+                                                        type="text"
+                                                        name="name"
+                                                        value={referenceForm.name}
+                                                        onChange={handleReferenceInputChange}
+                                                        placeholder="e.g., Marissa Leeds"
+                                                        className="w-full px-4 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none"
+                                                    />
+                                                </div>
+                                                <div className="md:col-span-2">
+                                                    <label className="block text-sm font-medium text-jcoder-muted mb-2">Company (Optional)</label>
+                                                    <input
+                                                        type="text"
+                                                        name="company"
+                                                        value={referenceForm.company}
+                                                        onChange={handleReferenceInputChange}
+                                                        placeholder="e.g., Gold Coast Hotel"
+                                                        className="w-full px-4 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-jcoder-muted mb-2">Email (Optional)</label>
+                                                    <input
+                                                        type="email"
+                                                        name="email"
+                                                        value={referenceForm.email}
+                                                        onChange={handleReferenceInputChange}
+                                                        placeholder="e.g., mleeds@goldcoast.com"
+                                                        className="w-full px-4 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-jcoder-muted mb-2">Phone (Optional)</label>
+                                                    <input
+                                                        type="tel"
+                                                        name="phone"
+                                                        value={referenceForm.phone}
+                                                        onChange={handleReferenceInputChange}
+                                                        placeholder="e.g., 732-189-0909"
+                                                        className="w-full px-4 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:border-jcoder-primary focus:outline-none"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            {/* Action Buttons */}
+                                            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 pt-4">
+                                                <button
+                                                    onClick={handleCancelReference}
+                                                    disabled={isSaving}
+                                                    className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 border border-jcoder text-jcoder-foreground rounded-lg hover:border-jcoder-primary transition-colors text-sm sm:text-base"
+                                                >
+                                                    Cancel
+                                                </button>
+                                                <button
+                                                    onClick={handleSaveReference}
+                                                    disabled={isSaving}
+                                                    className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity font-medium disabled:opacity-50 text-sm sm:text-base"
+                                                >
+                                                    {isSaving ? 'Saving...' : editingReferenceId ? 'Update' : 'Create'}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-4">
+                                            {references.map((ref, index) => {
+                                                const referenceId = ref.id;
+                                                return (
+                                                    <div key={referenceId || index} className="group relative p-4 bg-jcoder-secondary rounded-lg border border-jcoder hover:border-jcoder-primary transition-all">
+                                                        <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                            <button
+                                                                onClick={() => handleEditReference(ref)}
+                                                                className="p-2 bg-jcoder-background border border-jcoder rounded-lg hover:border-jcoder-primary transition-colors"
+                                                                title="Edit reference"
+                                                            >
+                                                                <svg className="w-4 h-4 text-jcoder-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                                </svg>
+                                                            </button>
+                                                            {referenceId && (
+                                                                <button
+                                                                    onClick={() => handleDeleteReference(referenceId)}
+                                                                    className="p-2 bg-jcoder-background border border-red-500/50 rounded-lg hover:border-red-500 transition-colors"
+                                                                    title="Delete reference"
+                                                                >
+                                                                    <svg className="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                                    </svg>
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                        <h4 className="text-base font-semibold text-jcoder-foreground mb-2 pr-12">
+                                                            {ref.name}
+                                                            {ref.company && (
+                                                                <span className="text-sm font-normal text-jcoder-muted ml-2">from {ref.company}</span>
+                                                            )}
+                                                        </h4>
+                                                        {ref.email && (
+                                                            <p className="text-sm text-jcoder-muted mb-1">
+                                                                📧 {ref.email}
+                                                            </p>
+                                                        )}
+                                                        {ref.phone && (
+                                                            <p className="text-sm text-jcoder-muted">
+                                                                📞 {ref.phone}
+                                                            </p>
                                                         )}
                                                     </div>
                                                 );

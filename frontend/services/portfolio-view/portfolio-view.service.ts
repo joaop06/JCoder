@@ -9,6 +9,7 @@ import {
     UserComponentEducation,
     UserComponentExperience,
     UserComponentCertificate,
+    UserComponentReference,
 } from "@/types";
 import { ApiService } from "../api.service";
 
@@ -84,6 +85,27 @@ export const PortfolioViewService = {
 
             const queryString = params.toString();
             const url = `/portfolio/${username}/certificates${queryString ? `?${queryString}` : ''}`;
+            const response = await ApiService.get(url);
+            return response.data.data;
+        } catch (error) {
+            throw error;
+        }
+    },
+
+    /**
+     * Busca referências do usuário
+     * GET /portfolio/:username/references
+     */
+    async getReferences(username: string, pagination: PaginationDto = {}): Promise<PaginatedResponseDto<UserComponentReference>> {
+        try {
+            const params = new URLSearchParams();
+            if (pagination.page) params.append('page', pagination.page.toString());
+            if (pagination.limit) params.append('limit', pagination.limit.toString());
+            if (pagination.sortBy) params.append('sortBy', pagination.sortBy);
+            if (pagination.sortOrder) params.append('sortOrder', pagination.sortOrder);
+
+            const queryString = params.toString();
+            const url = `/portfolio/${username}/references${queryString ? `?${queryString}` : ''}`;
             const response = await ApiService.get(url);
             return response.data.data;
         } catch (error) {

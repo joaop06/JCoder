@@ -3,6 +3,7 @@ import {
     UserComponentEducation,
     UserComponentExperience,
     UserComponentCertificate,
+    UserComponentReference,
 } from "./user-components";
 import {
     ApplicationComponentApi,
@@ -19,6 +20,8 @@ export interface User {
     firstName?: string;
     fullName?: string;
     email?: string;
+    phone?: string;
+    address?: string;
     githubUrl?: string;
     linkedinUrl?: string;
     profileImage?: string;
@@ -29,6 +32,7 @@ export interface User {
     userComponentEducation?: UserComponentEducation[];
     userComponentExperience?: UserComponentExperience[];
     userComponentCertificate?: UserComponentCertificate[];
+    userComponentReference?: UserComponentReference[];
     technologies?: Technology[];
     applications?: Application[];
     applicationsComponentsApis?: ApplicationComponentApi[];

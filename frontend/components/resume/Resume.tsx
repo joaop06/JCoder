@@ -9,7 +9,9 @@ import {
   UserComponentEducation,
   UserComponentExperience,
   UserComponentCertificate,
+  UserComponentReference,
 } from "@/types";
+import { ImagesService } from "@/services/administration-by-user/images.service";
 
 
 interface ResumeProps {
@@ -17,6 +19,7 @@ interface ResumeProps {
   educations: UserComponentEducation[];
   experiences: UserComponentExperience[];
   certificates: UserComponentCertificate[];
+  references: UserComponentReference[];
   applications: Application[];
   technologies: Technology[];
   user?: User | null;
@@ -27,6 +30,7 @@ export default function Resume({
   educations,
   experiences,
   certificates,
+  references,
   applications,
   technologies,
   user,
@@ -67,365 +71,420 @@ export default function Resume({
     return html.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
   };
 
+  // Get profile image URL
+  const getProfileImageUrl = () => {
+    if (user?.profileImage && user?.id && user?.username) {
+      return ImagesService.getUserProfileImageUrl(user.username, user.id);
+    }
+    return null;
+  };
+
   return (
     <div id="resume-content" className="resume-pdf" style={{
       width: '210mm',
       minHeight: '297mm',
-      padding: '20mm',
       backgroundColor: '#ffffff',
       color: '#000000',
       fontFamily: 'Arial, sans-serif',
       fontSize: '11pt',
       lineHeight: '1.6',
+      display: 'flex',
     }}>
-      {/* Header */}
-      <header style={{
-        borderBottom: '3px solid #00d4ff',
-        paddingBottom: '15px',
-        marginBottom: '20px',
+      {/* Left Column - Dark Blue */}
+      <div style={{
+        width: '35%',
+        backgroundColor: '#1e3a5f',
+        color: '#ffffff',
+        padding: '20mm 15mm',
+        display: 'flex',
+        flexDirection: 'column',
       }}>
+        {/* Profile Picture */}
+        {getProfileImageUrl() ? (
+          <div style={{
+            width: '120px',
+            height: '120px',
+            borderRadius: '50%',
+            margin: '0 auto 20px',
+            overflow: 'hidden',
+            border: '3px solid #ffffff',
+          }}>
+            <img
+              src={getProfileImageUrl() || ''}
+              alt={user?.fullName || 'Profile'}
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+              }}
+            />
+          </div>
+        ) : (
+          <div style={{
+            width: '120px',
+            height: '120px',
+            borderRadius: '50%',
+            margin: '0 auto 20px',
+            backgroundColor: '#ffffff',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            border: '3px solid #ffffff',
+            color: '#1e3a5f',
+            fontSize: '48pt',
+            fontWeight: 'bold',
+          }}>
+            {(user?.fullName || user?.firstName || 'U').charAt(0).toUpperCase()}
+          </div>
+        )}
+
+        {/* Name */}
         <h1 style={{
-          fontSize: '28pt',
+          fontSize: '24pt',
           fontWeight: 'bold',
-          color: '#00d4ff',
-          margin: '0 0 5px 0',
+          color: '#ffffff',
+          margin: '0 0 10px 0',
+          textAlign: 'center',
+          textTransform: 'uppercase',
         }}>
-          {user?.fullName || 'João Pedro Borges'}
+          {user?.fullName || user?.firstName || 'Name'}
         </h1>
+
+        {/* Title/Occupation */}
         {aboutMe?.occupation && (
           <h2 style={{
-            fontSize: '16pt',
+            fontSize: '12pt',
             fontWeight: 'normal',
-            color: '#666666',
-            margin: '0 0 10px 0',
+            color: '#ffffff',
+            margin: '0 0 30px 0',
+            textAlign: 'center',
+            textTransform: 'uppercase',
+            letterSpacing: '1px',
           }}>
             {aboutMe.occupation}
           </h2>
         )}
-        <div style={{
-          fontSize: '10pt',
-          color: '#666666',
-        }}>
+
+        {/* Details Section */}
+        <div style={{ marginBottom: '30px' }}>
+          <h3 style={{
+            fontSize: '14pt',
+            fontWeight: 'bold',
+            color: '#ffffff',
+            margin: '0 0 15px 0',
+            textTransform: 'uppercase',
+            borderBottom: '2px solid #ffffff',
+            paddingBottom: '5px',
+          }}>
+            Details
+          </h3>
+          {user?.address && (
+            <p style={{
+              fontSize: '10pt',
+              color: '#ffffff',
+              margin: '5px 0',
+              lineHeight: '1.5',
+            }}>
+              {user.address}
+            </p>
+          )}
+          {user?.phone && (
+            <p style={{
+              fontSize: '10pt',
+              color: '#ffffff',
+              margin: '5px 0',
+            }}>
+              {user.phone}
+            </p>
+          )}
           {user?.email && (
-            <p style={{ margin: '2px 0' }}>
-              📧 {user.email}
-            </p>
-          )}
-          {user?.githubUrl && (
-            <p style={{ margin: '2px 0' }}>
-              🔗 {user.githubUrl}
-            </p>
-          )}
-          {user?.linkedinUrl && (
-            <p style={{ margin: '2px 0' }}>
-              🔗 {user.linkedinUrl}
+            <p style={{
+              fontSize: '10pt',
+              color: '#ffffff',
+              margin: '5px 0',
+            }}>
+              {user.email}
             </p>
           )}
         </div>
-      </header>
 
-      {/* About Me */}
-      {aboutMe?.description && (
-        <section style={{ marginBottom: '20px' }}>
-          <h3 style={{
-            fontSize: '16pt',
-            fontWeight: 'bold',
-            color: '#00d4ff',
-            borderBottom: '2px solid #00d4ff',
-            paddingBottom: '5px',
-            marginBottom: '10px',
-          }}>
-            About Me
-          </h3>
-          <p style={{
-            textAlign: 'justify',
-            color: '#333333',
-          }}>
-            {stripHtml(aboutMe.description)}
-          </p>
-        </section>
-      )}
-
-      {/* Professional Experience */}
-      {experiences.length > 0 && (
-        <section style={{ marginBottom: '20px' }}>
-          <h3 style={{
-            fontSize: '16pt',
-            fontWeight: 'bold',
-            color: '#00d4ff',
-            borderBottom: '2px solid #00d4ff',
-            paddingBottom: '5px',
-            marginBottom: '15px',
-          }}>
-            Professional Experience
-          </h3>
-          {experiences.map((experience, expIndex) => (
-            <div key={`exp-${expIndex}`} style={{ marginBottom: '15px' }}>
-              <h4 style={{
-                fontSize: '14pt',
-                fontWeight: 'bold',
-                color: '#333333',
-                marginBottom: '5px',
-              }}>
-                {experience.companyName}
-              </h4>
-              {experience.positions && experience.positions.length > 0 && (
-                <div style={{ marginLeft: '15px' }}>
-                  {experience.positions.map((position, posIndex) => (
-                    <div key={`pos-${posIndex}`} style={{ marginBottom: '10px' }}>
-                      <div style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'flex-start',
-                        marginBottom: '5px',
-                      }}>
-                        <h5 style={{
-                          fontSize: '12pt',
-                          fontWeight: 'bold',
-                          color: '#444444',
-                          margin: 0,
-                        }}>
-                          {position.position}
-                        </h5>
-                        <span style={{
-                          fontSize: '10pt',
-                          color: '#666666',
-                          whiteSpace: 'nowrap',
-                          marginLeft: '10px',
-                        }}>
-                          {formatDateRange(
-                            position.startDate,
-                            position.endDate,
-                            position.isCurrentPosition
-                          )}
-                        </span>
-                      </div>
-                      {position.location && (
-                        <p style={{
-                          fontSize: '10pt',
-                          color: '#666666',
-                          margin: '2px 0',
-                        }}>
-                          📍 {position.location}{position.locationType ? ` • ${position.locationType}` : ''}
-                        </p>
-                      )}
-                    </div>
-                  ))}
+        {/* Skills Section */}
+        {technologies.length > 0 && (
+          <div>
+            <h3 style={{
+              fontSize: '14pt',
+              fontWeight: 'bold',
+              color: '#ffffff',
+              margin: '0 0 15px 0',
+              textTransform: 'uppercase',
+              borderBottom: '2px solid #ffffff',
+              paddingBottom: '5px',
+            }}>
+              Skills
+            </h3>
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '12px',
+            }}>
+              {technologies.map((tech) => (
+                <div key={tech.id} style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '5px',
+                }}>
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                  }}>
+                    <span style={{
+                      fontSize: '10pt',
+                      color: '#ffffff',
+                    }}>
+                      {tech.name}
+                    </span>
+                    <span style={{
+                      fontSize: '9pt',
+                      color: '#ffffff',
+                      opacity: 0.8,
+                    }}>
+                      {getExpertiseLevelLabel(tech.expertiseLevel)}
+                    </span>
+                  </div>
+                  {/* Skill Bar */}
+                  <div style={{
+                    width: '100%',
+                    height: '4px',
+                    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+                    borderRadius: '2px',
+                    overflow: 'hidden',
+                  }}>
+                    <div style={{
+                      width: tech.expertiseLevel === ExpertiseLevel.EXPERT ? '100%' :
+                        tech.expertiseLevel === ExpertiseLevel.ADVANCED ? '85%' :
+                          tech.expertiseLevel === ExpertiseLevel.INTERMEDIATE ? '65%' : '40%',
+                      height: '100%',
+                      backgroundColor: '#ffffff',
+                    }} />
+                  </div>
                 </div>
-              )}
+              ))}
             </div>
-          ))}
-        </section>
-      )}
+          </div>
+        )}
+      </div>
 
-      {/* Education */}
-      {educations.length > 0 && (
-        <section style={{ marginBottom: '20px' }}>
-          <h3 style={{
-            fontSize: '16pt',
-            fontWeight: 'bold',
-            color: '#00d4ff',
-            borderBottom: '2px solid #00d4ff',
-            paddingBottom: '5px',
-            marginBottom: '15px',
-          }}>
-            Education
-          </h3>
-          {educations.map((education, eduIndex) => (
-            <div key={`edu-${eduIndex}`} style={{ marginBottom: '12px' }}>
-              <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'flex-start',
-              }}>
-                <div>
-                  <h4 style={{
-                    fontSize: '12pt',
-                    fontWeight: 'bold',
-                    color: '#333333',
-                    margin: '0 0 3px 0',
-                  }}>
-                    {education.courseName}
-                  </h4>
-                  <p style={{
-                    fontSize: '11pt',
-                    color: '#444444',
-                    margin: '0 0 3px 0',
-                  }}>
-                    {education.institutionName}
-                  </p>
-                  {education.degree && (
+      {/* Right Column - White */}
+      <div style={{
+        width: '65%',
+        backgroundColor: '#ffffff',
+        color: '#000000',
+        padding: '20mm',
+      }}>
+        {/* Profile Section */}
+        {aboutMe?.description && (
+          <section style={{ marginBottom: '25px' }}>
+            <h3 style={{
+              fontSize: '16pt',
+              fontWeight: 'bold',
+              color: '#000000',
+              margin: '0 0 10px 0',
+              textTransform: 'uppercase',
+            }}>
+              Profile
+            </h3>
+            <p style={{
+              fontSize: '10pt',
+              color: '#333333',
+              textAlign: 'justify',
+              lineHeight: '1.6',
+            }}>
+              {stripHtml(aboutMe.description)}
+            </p>
+          </section>
+        )}
+
+        {/* Employment History */}
+        {experiences.length > 0 && (
+          <section style={{ marginBottom: '25px' }}>
+            <h3 style={{
+              fontSize: '16pt',
+              fontWeight: 'bold',
+              color: '#000000',
+              margin: '0 0 15px 0',
+              textTransform: 'uppercase',
+            }}>
+              Employment History
+            </h3>
+            {experiences.map((experience, expIndex) => (
+              <div key={`exp-${expIndex}`} style={{ marginBottom: '20px' }}>
+                <h4 style={{
+                  fontSize: '13pt',
+                  fontWeight: 'bold',
+                  color: '#000000',
+                  margin: '0 0 8px 0',
+                }}>
+                  {experience.companyName}
+                </h4>
+                {experience.positions && experience.positions.length > 0 && (
+                  <div style={{ marginLeft: '10px' }}>
+                    {experience.positions.map((position, posIndex) => (
+                      <div key={`pos-${posIndex}`} style={{ marginBottom: '12px' }}>
+                        <div style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'flex-start',
+                          marginBottom: '5px',
+                        }}>
+                          <h5 style={{
+                            fontSize: '11pt',
+                            fontWeight: 'bold',
+                            color: '#333333',
+                            margin: 0,
+                          }}>
+                            {position.position}
+                          </h5>
+                          <span style={{
+                            fontSize: '9pt',
+                            color: '#666666',
+                            whiteSpace: 'nowrap',
+                            marginLeft: '10px',
+                          }}>
+                            {formatDateRange(
+                              position.startDate,
+                              position.endDate,
+                              position.isCurrentPosition
+                            )}
+                          </span>
+                        </div>
+                        {position.location && (
+                          <p style={{
+                            fontSize: '9pt',
+                            color: '#666666',
+                            margin: '2px 0',
+                          }}>
+                            📍 {position.location}{position.locationType ? ` • ${position.locationType}` : ''}
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </section>
+        )}
+
+        {/* Education */}
+        {educations.length > 0 && (
+          <section style={{ marginBottom: '25px' }}>
+            <h3 style={{
+              fontSize: '16pt',
+              fontWeight: 'bold',
+              color: '#000000',
+              margin: '0 0 15px 0',
+              textTransform: 'uppercase',
+            }}>
+              Education
+            </h3>
+            {educations.map((education, eduIndex) => (
+              <div key={`edu-${eduIndex}`} style={{ marginBottom: '15px' }}>
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'flex-start',
+                }}>
+                  <div>
+                    <h4 style={{
+                      fontSize: '11pt',
+                      fontWeight: 'bold',
+                      color: '#000000',
+                      margin: '0 0 3px 0',
+                    }}>
+                      {education.courseName}
+                    </h4>
                     <p style={{
                       fontSize: '10pt',
-                      color: '#666666',
-                      margin: 0,
+                      color: '#333333',
+                      margin: '0 0 3px 0',
                     }}>
-                      {education.degree}
+                      {education.institutionName}
                     </p>
-                  )}
+                    {education.degree && (
+                      <p style={{
+                        fontSize: '9pt',
+                        color: '#666666',
+                        margin: 0,
+                      }}>
+                        {education.degree}
+                      </p>
+                    )}
+                  </div>
+                  <span style={{
+                    fontSize: '9pt',
+                    color: '#666666',
+                    whiteSpace: 'nowrap',
+                    marginLeft: '10px',
+                  }}>
+                    {formatDateRange(
+                      education.startDate,
+                      education.endDate,
+                      education.isCurrentlyStudying
+                    )}
+                  </span>
                 </div>
-                <span style={{
-                  fontSize: '10pt',
-                  color: '#666666',
-                  whiteSpace: 'nowrap',
-                  marginLeft: '10px',
-                }}>
-                  {formatDateRange(
-                    education.startDate,
-                    education.endDate,
-                    education.isCurrentlyStudying
-                  )}
-                </span>
               </div>
-            </div>
-          ))}
-        </section>
-      )}
+            ))}
+          </section>
+        )}
 
-      {/* Certifications */}
-      {certificates.length > 0 && (
-        <section style={{ marginBottom: '20px' }}>
-          <h3 style={{
-            fontSize: '16pt',
-            fontWeight: 'bold',
-            color: '#00d4ff',
-            borderBottom: '2px solid #00d4ff',
-            paddingBottom: '5px',
-            marginBottom: '15px',
-          }}>
-            Certifications
-          </h3>
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(2, 1fr)',
-            gap: '10px',
-          }}>
-            {certificates.map((certificate, certIndex) => (
-              <div key={`cert-${certIndex}`} style={{
-                padding: '8px',
-                border: '1px solid #e0e0e0',
-                borderRadius: '4px',
-              }}>
+        {/* References */}
+        {references.length > 0 && (
+          <section style={{ marginBottom: '25px' }}>
+            <h3 style={{
+              fontSize: '16pt',
+              fontWeight: 'bold',
+              color: '#000000',
+              margin: '0 0 15px 0',
+              textTransform: 'uppercase',
+            }}>
+              References
+            </h3>
+            {references.map((reference, refIndex) => (
+              <div key={`ref-${refIndex}`} style={{ marginBottom: '12px' }}>
                 <h4 style={{
                   fontSize: '11pt',
                   fontWeight: 'bold',
-                  color: '#333333',
-                  margin: '0 0 5px 0',
+                  color: '#000000',
+                  margin: '0 0 3px 0',
                 }}>
-                  {certificate.certificateName}
+                  {reference.name}
+                  {reference.company && ` from ${reference.company}`}
                 </h4>
-                {certificate.registrationNumber && (
+                {reference.email && (
                   <p style={{
                     fontSize: '9pt',
                     color: '#666666',
                     margin: '2px 0',
                   }}>
-                    Reg: {certificate.registrationNumber}
+                    {reference.email}
                   </p>
                 )}
-                <p style={{
-                  fontSize: '9pt',
-                  color: '#666666',
-                  margin: '2px 0',
-                }}>
-                  Issued: {formatDate(certificate.issueDate)}
-                </p>
-                {certificate.issuedTo && (
+                {reference.phone && (
                   <p style={{
                     fontSize: '9pt',
                     color: '#666666',
                     margin: '2px 0',
                   }}>
-                    To: {certificate.issuedTo}
+                    {reference.phone}
                   </p>
                 )}
               </div>
             ))}
-          </div>
-        </section>
-      )}
-
-      {/* Technologies & Skills */}
-      {technologies.length > 0 && (
-        <section style={{ marginBottom: '20px' }}>
-          <h3 style={{
-            fontSize: '16pt',
-            fontWeight: 'bold',
-            color: '#00d4ff',
-            borderBottom: '2px solid #00d4ff',
-            paddingBottom: '5px',
-            marginBottom: '15px',
-          }}>
-            Technologies & Skills
-          </h3>
-          <div style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            gap: '8px',
-          }}>
-            {technologies.map((tech) => (
-              <span key={tech.id} style={{
-                display: 'inline-block',
-                padding: '4px 10px',
-                backgroundColor: '#f0f0f0',
-                border: '1px solid #d0d0d0',
-                borderRadius: '4px',
-                fontSize: '10pt',
-              }}>
-                {tech.name} ({getExpertiseLevelLabel(tech.expertiseLevel)})
-              </span>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* Projects & Applications */}
-      {applications.length > 0 && (
-        <section style={{ marginBottom: '20px' }}>
-          <h3 style={{
-            fontSize: '16pt',
-            fontWeight: 'bold',
-            color: '#00d4ff',
-            borderBottom: '2px solid #00d4ff',
-            paddingBottom: '5px',
-            marginBottom: '15px',
-          }}>
-            Projects & Applications
-          </h3>
-          {applications.map((app) => (
-            <div key={app.id} style={{ marginBottom: '12px' }}>
-              <h4 style={{
-                fontSize: '12pt',
-                fontWeight: 'bold',
-                color: '#333333',
-                margin: '0 0 5px 0',
-              }}>
-                {app.name}
-              </h4>
-              {app.description && (
-                <p style={{
-                  fontSize: '10pt',
-                  color: '#555555',
-                  textAlign: 'justify',
-                  margin: '0 0 5px 0',
-                }}>
-                  {app.description}
-                </p>
-              )}
-              {app.githubUrl && (
-                <p style={{
-                  fontSize: '9pt',
-                  color: '#666666',
-                  margin: 0,
-                }}>
-                  🔗 {app.githubUrl}
-                </p>
-              )}
-            </div>
-          ))}
-        </section>
-      )}
+          </section>
+        )}
+      </div>
     </div>
   );
 }
-

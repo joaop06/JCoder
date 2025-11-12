@@ -6,6 +6,7 @@ import {
     UserComponentEducation,
     UserComponentExperience,
     UserComponentCertificate,
+    UserComponentReference,
 } from "@/types";
 import { ApiService } from "../api.service";
 
@@ -333,6 +334,67 @@ export const UsersService = {
     async unlinkCertificateFromEducation(username: string, certificateId: number, educationId: number): Promise<void> {
         try {
             await ApiService.delete(`/${username}/users/certificates/${certificateId}/unlink-education/${educationId}`);
+        } catch (error) {
+            throw error;
+        }
+    },
+
+    // ==================== REFERENCE ENDPOINTS ====================
+
+    /**
+     * Get references
+     * GET /:username/users/references
+     */
+    async getReferences(username: string, pagination: PaginationDto = {}): Promise<PaginatedResponseDto<UserComponentReference>> {
+        try {
+            const params = new URLSearchParams();
+            if (pagination.page) params.append('page', pagination.page.toString());
+            if (pagination.limit) params.append('limit', pagination.limit.toString());
+            if (pagination.sortBy) params.append('sortBy', pagination.sortBy);
+            if (pagination.sortOrder) params.append('sortOrder', pagination.sortOrder);
+
+            const queryString = params.toString();
+            const url = `/${username}/users/references${queryString ? `?${queryString}` : ''}`;
+            const response = await ApiService.get(url);
+            return response.data.data;
+        } catch (error) {
+            throw error;
+        }
+    },
+
+    /**
+     * Create reference
+     * POST /:username/users/references
+     */
+    async createReference(username: string, data: Omit<UserComponentReference, 'id' | 'userId'>): Promise<UserComponentReference> {
+        try {
+            const response = await ApiService.post(`/${username}/users/references`, data);
+            return response.data.data;
+        } catch (error) {
+            throw error;
+        }
+    },
+
+    /**
+     * Update reference
+     * PUT /:username/users/references/:id
+     */
+    async updateReference(username: string, id: number, data: Partial<UserComponentReference>): Promise<UserComponentReference> {
+        try {
+            const response = await ApiService.put(`/${username}/users/references/${id}`, data);
+            return response.data.data;
+        } catch (error) {
+            throw error;
+        }
+    },
+
+    /**
+     * Delete reference
+     * DELETE /:username/users/references/:id
+     */
+    async deleteReference(username: string, id: number): Promise<void> {
+        try {
+            await ApiService.delete(`/${username}/users/references/${id}`);
         } catch (error) {
             throw error;
         }

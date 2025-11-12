@@ -9,6 +9,7 @@ import {
   UserComponentEducation,
   UserComponentExperience,
   UserComponentCertificate,
+  UserComponentReference,
 } from '@/types';
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
@@ -47,6 +48,8 @@ export default function PortfolioPage() {
   const [loadingExperiences, setLoadingExperiences] = useState(true);
   const [certificates, setCertificates] = useState<UserComponentCertificate[]>([]);
   const [loadingCertificates, setLoadingCertificates] = useState(true);
+  const [references, setReferences] = useState<UserComponentReference[]>([]);
+  const [loadingReferences, setLoadingReferences] = useState(true);
   const [generatingPDF, setGeneratingPDF] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [userNotFound, setUserNotFound] = useState(false);
@@ -292,6 +295,26 @@ export default function PortfolioPage() {
     }
   }, [username]);
 
+  const loadReferences = useCallback(async () => {
+    if (!username) return;
+    setLoadingReferences(true);
+    try {
+      const data = await PortfolioViewService.getReferences(username);
+      console.log('[Portfolio] References data loaded:', {
+        hasData: !!data,
+        dataLength: data?.data?.length || 0,
+        data: data?.data,
+        meta: data?.meta,
+      });
+      setReferences(data.data || []);
+    } catch (err) {
+      console.error('Failure to load references', err);
+      setReferences([]);
+    } finally {
+      setLoadingReferences(false);
+    }
+  }, [username]);
+
   // User pre-check
   useEffect(() => {
     if (!username) return;
@@ -319,6 +342,7 @@ export default function PortfolioPage() {
             loadEducations(),
             loadExperiences(),
             loadCertificates(),
+            loadReferences(),
           ]);
           setCheckingUser(false);
         }
@@ -336,7 +360,7 @@ export default function PortfolioPage() {
     return () => {
       isMounted = false;
     };
-  }, [username, loadAboutMe, loadApplications, loadTechnologies, loadEducations, loadExperiences, loadCertificates]);
+  }, [username, loadAboutMe, loadApplications, loadTechnologies, loadEducations, loadExperiences, loadCertificates, loadReferences]);
 
   const scrollToSection = (sectionId: string) => {
     scrollToElement(sectionId, 80);
@@ -1260,6 +1284,7 @@ export default function PortfolioPage() {
           educations={educations}
           experiences={experiences}
           certificates={certificates}
+          references={references}
           applications={applications}
           technologies={technologies}
           user={user}
