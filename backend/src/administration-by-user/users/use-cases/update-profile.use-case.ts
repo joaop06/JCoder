@@ -71,6 +71,14 @@ export class UpdateProfileUseCase {
             user.profileImage = updateProfileDto.profileImage;
         }
 
+        if (updateProfileDto.phone !== undefined) {
+            user.phone = updateProfileDto.phone;
+        }
+
+        if (updateProfileDto.address !== undefined) {
+            user.address = updateProfileDto.address;
+        }
+
         return await this.usersService.update(user);
     }
 };

@@ -15,16 +15,16 @@ import Footer from '@/components/Footer';
 import Header from '@/components/Header';
 import { useParams } from 'next/navigation';
 import { Canvas } from '@react-three/fiber';
+import Hero3D from '@/components/webgl/Hero3D';
 import { GitHubIcon } from '@/components/theme';
 import Resume from '@/components/resume/Resume';
+import { ResumeTemplateType } from '@/components/resume';
 import LazyImage from '@/components/ui/LazyImage';
 import ScrollToTop from '@/components/ScrollToTop';
-import { generateResumePDF } from '@/utils/resume-pdf';
 import { useSmoothScroll } from '@/hooks/useSmoothScroll';
 import { useToast } from '@/components/toast/ToastContext';
 import FeatureCard3D from '@/components/webgl/FeatureCard3D';
 import WebGLBackground from '@/components/webgl/WebGLBackground';
-import Hero3D from '@/components/webgl/Hero3D';
 import { useEffect, useState, useMemo, Suspense, useRef, useCallback } from 'react';
 import FloatingParticles3D from '@/components/webgl/FloatingParticles3D';
 import { ImagesService } from '@/services/administration-by-user/images.service';
@@ -69,6 +69,8 @@ export default function PortfolioPage() {
   // Refs for mouse position throttling
   const mousePositionRef = useRef({ x: 0, y: 0 });
   const rafRef = useRef<number | null>(null);
+  const lastPositionRef = useRef({ x: 0, y: 0 });
+  const isUpdatingRef = useRef(false);
 
   const toast = useToast();
   const { scrollToElement } = useSmoothScroll();
@@ -87,7 +89,6 @@ export default function PortfolioPage() {
 
   useEffect(() => {
     let isMounted = true;
-    let lastPosition = { x: 0, y: 0 };
 
     const handleMouseMove = (e: MouseEvent) => {
       if (!isMounted) return;
@@ -104,10 +105,32 @@ export default function PortfolioPage() {
           }
 
           const currentPos = mousePositionRef.current;
-          // Only update if position actually changed
-          if (currentPos.x !== lastPosition.x || currentPos.y !== lastPosition.y) {
-            lastPosition = { x: currentPos.x, y: currentPos.y };
-            setMousePosition({ x: currentPos.x, y: currentPos.y });
+          const lastPos = lastPositionRef.current;
+
+          // Only update if position actually changed (with threshold to avoid micro-movements)
+          const threshold = 1;
+          const hasChanged =
+            Math.abs(currentPos.x - lastPos.x) > threshold ||
+            Math.abs(currentPos.y - lastPos.y) > threshold;
+
+          if (hasChanged && !isUpdatingRef.current) {
+            isUpdatingRef.current = true;
+            lastPositionRef.current = { x: currentPos.x, y: currentPos.y };
+            // Use functional update to ensure we only update when value actually changes
+            setMousePosition((prev) => {
+              // Double-check to prevent unnecessary updates
+              if (
+                prev.x === currentPos.x &&
+                prev.y === currentPos.y
+              ) {
+                return prev;
+              }
+              return { x: currentPos.x, y: currentPos.y };
+            });
+            // Reset flag after a short delay to allow state update to complete
+            setTimeout(() => {
+              isUpdatingRef.current = false;
+            }, 0);
           }
           rafRef.current = null;
         });
@@ -386,7 +409,10 @@ export default function PortfolioPage() {
   const handleDownloadResume = async () => {
     setGeneratingPDF(true);
     try {
-      await generateResumePDF();
+      const { generateResumePDF, ResumeTemplateType } = await import('@/components/resume');
+      await generateResumePDF({
+        templateType: ResumeTemplateType.MODERN,
+      });
       toast.success('Resume downloaded successfully!');
     } catch (error) {
       console.error('Error generating resume PDF:', error);
@@ -1280,14 +1306,14 @@ export default function PortfolioPage() {
       {/* Hidden Resume Component for PDF Generation */}
       <div style={{ display: 'none' }}>
         <Resume
+          user={user}
           aboutMe={aboutMe}
           educations={educations}
+          references={references}
           experiences={experiences}
           certificates={certificates}
-          references={references}
-          applications={applications}
           technologies={technologies}
-          user={user}
+          templateType={ResumeTemplateType.MODERN}
         />
       </div>
     </div>
