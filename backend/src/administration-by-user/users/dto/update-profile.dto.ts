@@ -100,4 +100,24 @@ export class UpdateProfileDto {
     @IsOptional()
     @IsString()
     declare profileImage?: string;
+
+    @ApiProperty({
+        type: 'string',
+        required: false,
+        example: '(206) 742-5187',
+        description: 'User phone number',
+    })
+    @IsOptional()
+    @IsString()
+    declare phone?: string;
+
+    @ApiProperty({
+        type: 'string',
+        required: false,
+        description: 'User address',
+        example: '32600 42nd Ave SW, Seattle, WA 98116, United States',
+    })
+    @IsOptional()
+    @IsString()
+    declare address?: string;
 };
