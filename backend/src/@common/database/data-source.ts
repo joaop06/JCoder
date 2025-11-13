@@ -1,6 +1,7 @@
 import { config } from 'dotenv';
 import { DataSource, DataSourceOptions } from 'typeorm';
 import { User } from '../../administration-by-user/users/entities/user.entity';
+import { PortfolioView } from '../../portfolio-view/entities/portfolio-view.entity';
 import { Message } from '../../administration-by-user/messages/entities/message.entity';
 import { EmailVerification } from '../../portfolio-view/entities/email-verification.entity';
 import { Conversation } from '../../administration-by-user/messages/entities/conversation.entity';
@@ -34,6 +35,7 @@ export const dataSourceOptions: DataSourceOptions = {
     Technology,
     Application,
     Conversation,
+    PortfolioView,
     EmailVerification,
     UserComponentAboutMe,
     UserComponentEducation,

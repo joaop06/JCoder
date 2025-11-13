@@ -258,3 +258,6 @@ export const PortfolioViewService = {
         }
     },
 };
+
+// Re-export tracking service
+export { PortfolioTrackingService } from './portfolio-tracking.service';

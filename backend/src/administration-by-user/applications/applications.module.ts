@@ -24,6 +24,7 @@ import { ApplicationComponentsModule } from './application-components/applicatio
     UpdateApplicationUseCase,
     ReorderApplicationUseCase,
   ],
+  exports: [ApplicationsService],
   controllers: [ApplicationsController],
   imports: [
     UsersModule,

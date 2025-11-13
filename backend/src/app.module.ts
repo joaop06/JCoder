@@ -11,6 +11,7 @@ import { ImagesModule } from './administration-by-user/images/images.module';
 import { PortfolioViewModule } from './portfolio-view/portfolio-view.module';
 import { TypeormMysqlModule } from './@common/database/typeorm-mysql-module';
 import { MessagesModule } from './administration-by-user/messages/messages.module';
+import { DashboardModule } from './administration-by-user/dashboard/dashboard.module';
 import { ApplicationsModule } from './administration-by-user/applications/applications.module';
 import { TechnologiesModule } from './administration-by-user/technologies/technologies.module';
 
@@ -35,6 +36,7 @@ import { TechnologiesModule } from './administration-by-user/technologies/techno
     HealthModule,
     ImagesModule,
     MessagesModule,
+    DashboardModule,
     ApplicationsModule,
     TechnologiesModule,
     TypeormMysqlModule,

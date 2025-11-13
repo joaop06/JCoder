@@ -7,9 +7,9 @@ import {
   ExpertiseLevel,
   UserComponentAboutMe,
   UserComponentEducation,
+  UserComponentReference,
   UserComponentExperience,
   UserComponentCertificate,
-  UserComponentReference,
 } from '@/types';
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
@@ -18,18 +18,18 @@ import { Canvas } from '@react-three/fiber';
 import Hero3D from '@/components/webgl/Hero3D';
 import { GitHubIcon } from '@/components/theme';
 import Resume from '@/components/resume/Resume';
-import { ResumeTemplateType } from '@/components/resume';
 import LazyImage from '@/components/ui/LazyImage';
 import ScrollToTop from '@/components/ScrollToTop';
+import { ResumeTemplateType } from '@/components/resume';
 import { useSmoothScroll } from '@/hooks/useSmoothScroll';
 import { useToast } from '@/components/toast/ToastContext';
 import FeatureCard3D from '@/components/webgl/FeatureCard3D';
 import WebGLBackground from '@/components/webgl/WebGLBackground';
-import { useEffect, useState, useMemo, Suspense, useRef, useCallback } from 'react';
 import FloatingParticles3D from '@/components/webgl/FloatingParticles3D';
 import { ImagesService } from '@/services/administration-by-user/images.service';
 import ApplicationsCarousel from '@/components/applications/ApplicationsCarousel';
-import { PortfolioViewService } from '@/services/portfolio-view/portfolio-view.service';
+import { useEffect, useState, useMemo, Suspense, useRef, useCallback } from 'react';
+import { PortfolioViewService, PortfolioTrackingService } from '@/services/portfolio-view/portfolio-view.service';
 
 export default function PortfolioPage() {
   const params = useParams();
@@ -368,6 +368,9 @@ export default function PortfolioPage() {
             loadReferences(),
           ]);
           setCheckingUser(false);
+
+          // Track portfolio view after confirming user exists
+          PortfolioTrackingService.trackView(username);
         }
       } catch (err) {
         console.error('Error checking user', err);
