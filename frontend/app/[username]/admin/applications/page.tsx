@@ -55,9 +55,6 @@ const ApplicationRow = memo(({
                 : 'hover:bg-gradient-to-r hover:from-jcoder-secondary/30 hover:via-jcoder-secondary/20 hover:to-transparent hover:shadow-sm'
                 }`}
         >
-            {/* Subtle left border on hover */}
-            <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-jcoder-primary/0 group-hover:bg-jcoder-primary/50 transition-all duration-200" />
-
             <td className="px-3 py-5">
                 <div className="flex items-center justify-center">
                     <div
@@ -67,8 +64,13 @@ const ApplicationRow = memo(({
                         className="p-1.5 text-jcoder-muted/60 hover:text-jcoder-primary transition-all duration-200 cursor-grab active:cursor-grabbing select-none rounded-md hover:bg-jcoder-secondary/50"
                         title="Drag to reorder"
                     >
-                        <svg className="w-4 h-4 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
+                        <svg className="w-4 h-4 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M12 5L12 19" />
+                            <path d="M9 17L12 20L15 17" />
+                            <path d="M15 7L12 4L9 7" />
+                            <path d="M5 12L19 12" />
+                            <path d="M17 15L20 12L17 9" />
+                            <path d="M7 9L4 12L7 15" />
                         </svg>
                     </div>
                 </div>
@@ -208,8 +210,13 @@ const ApplicationCard = memo(({
                     className="p-1.5 text-jcoder-muted/60 hover:text-jcoder-primary transition-colors cursor-grab active:cursor-grabbing select-none flex-shrink-0"
                     title="Drag to reorder"
                 >
-                    <svg className="w-4 h-4 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
+                    <svg className="w-4 h-4 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M12 5L12 19" />
+                        <path d="M9 17L12 20L15 17" />
+                        <path d="M15 7L12 4L9 7" />
+                        <path d="M5 12L19 12" />
+                        <path d="M17 15L20 12L17 9" />
+                        <path d="M7 9L4 12L7 15" />
                     </svg>
                 </div>
 
@@ -907,13 +914,13 @@ export default function ApplicationsManagementPage() {
                             onClick: () => router.push(`/${username}/admin/applications/new`),
                         }}
                         columns={[
-                            { label: '', className: 'px-2 py-4 text-center text-sm font-semibold text-jcoder-foreground w-12' },
-                            { label: 'Actions', className: 'px-3 py-4 text-center text-sm font-semibold text-jcoder-foreground w-24' },
-                            { label: 'Name', className: 'px-4 py-4 text-left text-sm font-semibold text-jcoder-foreground' },
-                            { label: 'Type', className: 'px-3 py-4 text-center text-sm font-semibold text-jcoder-foreground w-28' },
-                            { label: 'URL (GitHub)', className: 'px-3 py-4 text-center text-sm font-semibold text-jcoder-foreground w-28' },
-                            { label: 'Description', className: 'px-4 py-4 text-left text-sm font-semibold text-jcoder-foreground' },
-                            { label: 'Status', className: 'px-3 py-4 text-center text-sm font-semibold text-jcoder-foreground w-28' },
+                            { label: '', className: 'px-3 py-5 text-center text-sm font-semibold text-jcoder-foreground w-12' },
+                            { label: 'Actions', className: 'px-3 py-5 text-center text-sm font-semibold text-jcoder-foreground w-24' },
+                            { label: 'Name', className: 'px-4 py-5 text-left text-sm font-semibold text-jcoder-foreground' },
+                            { label: 'Type', className: 'px-4 py-5 text-center text-sm font-semibold text-jcoder-foreground w-28' },
+                            { label: 'URL (GitHub)', className: 'px-4 py-5 text-center text-sm font-semibold text-jcoder-foreground w-28' },
+                            { label: 'Description', className: 'px-4 py-5 text-left text-sm font-semibold text-jcoder-foreground' },
+                            { label: 'Status', className: 'px-4 py-5 text-center text-sm font-semibold text-jcoder-foreground w-28' },
                         ]}
                         data={displayApplications}
                         loading={loading}

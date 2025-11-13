@@ -13,6 +13,8 @@ interface ManagementTableProps<T> {
     };
 
     // Table Props
+    // Note: First column should have empty label ('') for drag/reorder handle
+    // Second column should be 'Actions' for edit/delete buttons
     columns: {
         label: string;
         className?: string;
@@ -61,13 +63,13 @@ export function ManagementTable<T>({
     onRetry,
 }: ManagementTableProps<T>) {
     return (
-        <div className="bg-jcoder-card border border-jcoder rounded-lg overflow-hidden">
+        <div className="bg-jcoder-card/95 backdrop-blur-sm border border-jcoder rounded-xl overflow-hidden shadow-xl shadow-jcoder-primary/5">
             {/* Header */}
-            <div className="p-4 sm:p-6 border-b border-jcoder">
+            <div className="p-4 sm:p-6 border-b border-jcoder/50 bg-gradient-to-r from-jcoder-card via-jcoder-card/98 to-jcoder-card">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div className="min-w-0 flex-1">
-                        <h2 className="text-lg sm:text-xl font-semibold text-jcoder-foreground mb-1">{title}</h2>
-                        <p className="text-xs sm:text-sm text-jcoder-muted">{subtitle}</p>
+                        <h2 className="text-lg sm:text-xl font-bold text-jcoder-foreground mb-1.5 tracking-tight">{title}</h2>
+                        <p className="text-xs sm:text-sm text-jcoder-muted/80">{subtitle}</p>
                     </div>
                     {actionButton && (
                         <button
@@ -121,25 +123,25 @@ export function ManagementTable<T>({
                     <div className="hidden md:block overflow-x-auto">
                         <table className="w-full">
                             <thead>
-                                <tr className="bg-gradient-to-r from-jcoder-secondary via-jcoder-secondary/80 to-jcoder-secondary border-b-2 border-jcoder-primary/30">
+                                <tr className="bg-gradient-to-r from-jcoder-secondary/80 via-jcoder-secondary to-jcoder-secondary/80 border-b-2 border-jcoder-primary/50 shadow-md shadow-jcoder-primary/10">
                                     {columns.map((column, index) => (
                                         <th
                                             key={index}
-                                            className={`${column.className || 'px-4 py-4 text-left text-sm font-semibold text-jcoder-foreground'} relative`}
+                                            className={`${column.className || 'px-4 py-5 text-left text-sm font-semibold text-jcoder-foreground'} relative`}
                                         >
-                                            <div className="flex items-center gap-2">
-                                                <span className="bg-clip-text text-transparent bg-gradient-to-r from-jcoder-cyan via-jcoder-primary to-jcoder-blue">
+                                            {column.label && (
+                                                <span className="text-jcoder-foreground font-semibold tracking-wide">
                                                     {column.label}
                                                 </span>
-                                            </div>
+                                            )}
                                             {index < columns.length - 1 && (
-                                                <div className="absolute right-0 top-1/2 -translate-y-1/2 w-px h-6 bg-jcoder/30" />
+                                                <div className="absolute right-0 top-1/2 -translate-y-1/2 w-px h-6 bg-gradient-to-b from-transparent via-jcoder-primary/50 to-transparent" />
                                             )}
                                         </th>
                                     ))}
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-jcoder/50">
+                            <tbody className="divide-y divide-jcoder/20">
                                 {data.map((item, index) => renderDesktopRow(item, index))}
                             </tbody>
                         </table>
@@ -152,7 +154,7 @@ export function ManagementTable<T>({
 
                     {/* Pagination */}
                     {paginationMeta && onPageChange && onLimitChange && (
-                        <div className="border-t border-jcoder">
+                        <div className="border-t border-jcoder/30 bg-gradient-to-r from-jcoder-card/50 via-jcoder-card to-jcoder-card/50">
                             <Pagination
                                 meta={paginationMeta}
                                 onPageChange={onPageChange}
