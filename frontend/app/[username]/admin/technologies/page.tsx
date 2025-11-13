@@ -1133,6 +1133,7 @@ interface TechnologyFormModalProps {
 function TechnologyFormModal({ title, technology, onClose, onSubmit, submitting }: TechnologyFormModalProps) {
     const isEditMode = !!technology;
     const toast = useToast();
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const [formData, setFormData] = useState({
         name: technology?.name || '',
@@ -1144,6 +1145,28 @@ function TechnologyFormModal({ title, technology, onClose, onSubmit, submitting 
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [preview, setPreview] = useState<string | null>(null);
     const [deleteImage, setDeleteImage] = useState(false);
+
+    // Update form data when technology changes
+    useEffect(() => {
+        if (technology) {
+            setFormData({
+                name: technology.name || '',
+                expertiseLevel: technology.expertiseLevel || ExpertiseLevel.INTERMEDIATE,
+                displayOrder: technology.displayOrder || 1,
+                isActive: technology.isActive ?? true,
+            });
+        } else {
+            setFormData({
+                name: '',
+                expertiseLevel: ExpertiseLevel.INTERMEDIATE,
+                displayOrder: 1,
+                isActive: true,
+            });
+        }
+        setSelectedFile(null);
+        setPreview(null);
+        setDeleteImage(false);
+    }, [technology]);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -1271,21 +1294,148 @@ function TechnologyFormModal({ title, technology, onClose, onSubmit, submitting 
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-jcoder-foreground mb-2">
+                        <label className="block text-sm font-medium text-jcoder-foreground mb-3">
                             Expertise Level <span className="text-red-500">*</span>
                         </label>
-                        <select
-                            required
-                            value={formData.expertiseLevel}
-                            onChange={(e) => setFormData({ ...formData, expertiseLevel: e.target.value as ExpertiseLevel })}
-                            className="w-full px-4 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-transparent transition-all duration-200 hover:border-jcoder-primary/50"
-                        >
-                            <option value={ExpertiseLevel.BASIC}>Basic</option>
-                            <option value={ExpertiseLevel.INTERMEDIATE}>Intermediate</option>
-                            <option value={ExpertiseLevel.ADVANCED}>Advanced</option>
-                            <option value={ExpertiseLevel.EXPERT}>Expert</option>
-                        </select>
-                        <p className="text-sm text-jcoder-muted mt-2">
+                        
+                        {/* Visual Expertise Level Selector */}
+                        <div className="space-y-3">
+                            {/* Level Label */}
+                            <div className="flex items-center gap-2">
+                                <span className="text-xs text-jcoder-muted">Level</span>
+                                <span className="text-xs font-semibold transition-colors duration-300" style={{
+                                    color: formData.expertiseLevel === ExpertiseLevel.BASIC ? '#9ca3af' :
+                                           formData.expertiseLevel === ExpertiseLevel.INTERMEDIATE ? '#60a5fa' :
+                                           formData.expertiseLevel === ExpertiseLevel.ADVANCED ? '#a78bfa' :
+                                           '#fbbf24'
+                                }}>
+                                    {getExpertiseLevelLabel(formData.expertiseLevel)}
+                                </span>
+                            </div>
+
+                            {/* Progress Bar Container */}
+                            <div className="relative w-full h-12 bg-yellow-500/10 rounded-lg overflow-hidden border border-jcoder/30 group">
+                                {/* Background segments with dividers */}
+                                <div className="absolute inset-0 flex">
+                                    {/* Basic - Gray */}
+                                    <button
+                                        type="button"
+                                        onClick={() => setFormData({ ...formData, expertiseLevel: ExpertiseLevel.BASIC })}
+                                        className={`h-full flex-1 transition-all duration-300 relative ${
+                                            formData.expertiseLevel === ExpertiseLevel.BASIC 
+                                                ? 'bg-gray-500/30' 
+                                                : 'bg-gray-500/10 hover:bg-gray-500/20'
+                                        }`}
+                                    />
+                                    <div className="w-px h-full bg-gray-500/20" />
+                                    
+                                    {/* Intermediate - Blue */}
+                                    <button
+                                        type="button"
+                                        onClick={() => setFormData({ ...formData, expertiseLevel: ExpertiseLevel.INTERMEDIATE })}
+                                        className={`h-full flex-1 transition-all duration-300 relative ${
+                                            formData.expertiseLevel === ExpertiseLevel.INTERMEDIATE 
+                                                ? 'bg-blue-500/30' 
+                                                : 'bg-blue-500/10 hover:bg-blue-500/20'
+                                        }`}
+                                    />
+                                    <div className="w-px h-full bg-blue-500/20" />
+                                    
+                                    {/* Advanced - Purple */}
+                                    <button
+                                        type="button"
+                                        onClick={() => setFormData({ ...formData, expertiseLevel: ExpertiseLevel.ADVANCED })}
+                                        className={`h-full flex-1 transition-all duration-300 relative ${
+                                            formData.expertiseLevel === ExpertiseLevel.ADVANCED 
+                                                ? 'bg-purple-500/30' 
+                                                : 'bg-purple-500/10 hover:bg-purple-500/20'
+                                        }`}
+                                    />
+                                    <div className="w-px h-full bg-purple-500/20" />
+                                    
+                                    {/* Expert - Yellow/Orange */}
+                                    <button
+                                        type="button"
+                                        onClick={() => setFormData({ ...formData, expertiseLevel: ExpertiseLevel.EXPERT })}
+                                        className={`h-full flex-1 transition-all duration-300 relative ${
+                                            formData.expertiseLevel === ExpertiseLevel.EXPERT 
+                                                ? 'bg-yellow-500/40' 
+                                                : 'bg-yellow-500/10 hover:bg-yellow-500/20'
+                                        }`}
+                                    />
+                                </div>
+
+                                {/* Active indicator bar - overlays the selected segment */}
+                                <div 
+                                    className="absolute top-0 bottom-0 transition-all duration-300 ease-out rounded-lg pointer-events-none"
+                                    style={{
+                                        left: formData.expertiseLevel === ExpertiseLevel.BASIC ? '0%' :
+                                              formData.expertiseLevel === ExpertiseLevel.INTERMEDIATE ? '25%' :
+                                              formData.expertiseLevel === ExpertiseLevel.ADVANCED ? '50%' :
+                                              '75%',
+                                        width: '25%',
+                                        backgroundColor: formData.expertiseLevel === ExpertiseLevel.BASIC ? 'rgba(156, 163, 175, 0.5)' :
+                                                       formData.expertiseLevel === ExpertiseLevel.INTERMEDIATE ? 'rgba(96, 165, 250, 0.5)' :
+                                                       formData.expertiseLevel === ExpertiseLevel.ADVANCED ? 'rgba(167, 139, 250, 0.5)' :
+                                                       'rgba(251, 191, 36, 0.6)',
+                                        boxShadow: formData.expertiseLevel === ExpertiseLevel.BASIC ? 'inset 0 0 0 1px rgba(156, 163, 175, 0.3), 0 0 12px rgba(156, 163, 175, 0.3)' :
+                                                   formData.expertiseLevel === ExpertiseLevel.INTERMEDIATE ? 'inset 0 0 0 1px rgba(96, 165, 250, 0.3), 0 0 12px rgba(96, 165, 250, 0.3)' :
+                                                   formData.expertiseLevel === ExpertiseLevel.ADVANCED ? 'inset 0 0 0 1px rgba(167, 139, 250, 0.3), 0 0 12px rgba(167, 139, 250, 0.3)' :
+                                                   'inset 0 0 0 1px rgba(251, 191, 36, 0.3), 0 0 12px rgba(251, 191, 36, 0.4)',
+                                    }}
+                                />
+                            </div>
+
+                            {/* Level Labels Below Bar */}
+                            <div className="flex justify-between text-xs">
+                                <button
+                                    type="button"
+                                    onClick={() => setFormData({ ...formData, expertiseLevel: ExpertiseLevel.BASIC })}
+                                    className={`px-2 py-1 rounded transition-all duration-200 ${
+                                        formData.expertiseLevel === ExpertiseLevel.BASIC
+                                            ? 'text-gray-400 font-semibold'
+                                            : 'text-jcoder-muted hover:text-gray-400'
+                                    }`}
+                                >
+                                    Basic
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setFormData({ ...formData, expertiseLevel: ExpertiseLevel.INTERMEDIATE })}
+                                    className={`px-2 py-1 rounded transition-all duration-200 ${
+                                        formData.expertiseLevel === ExpertiseLevel.INTERMEDIATE
+                                            ? 'text-blue-400 font-semibold'
+                                            : 'text-jcoder-muted hover:text-blue-400'
+                                    }`}
+                                >
+                                    Intermediate
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setFormData({ ...formData, expertiseLevel: ExpertiseLevel.ADVANCED })}
+                                    className={`px-2 py-1 rounded transition-all duration-200 ${
+                                        formData.expertiseLevel === ExpertiseLevel.ADVANCED
+                                            ? 'text-purple-400 font-semibold'
+                                            : 'text-jcoder-muted hover:text-purple-400'
+                                    }`}
+                                >
+                                    Advanced
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setFormData({ ...formData, expertiseLevel: ExpertiseLevel.EXPERT })}
+                                    className={`px-2 py-1 rounded transition-all duration-200 ${
+                                        formData.expertiseLevel === ExpertiseLevel.EXPERT
+                                            ? 'text-yellow-400 font-semibold'
+                                            : 'text-jcoder-muted hover:text-yellow-400'
+                                    }`}
+                                >
+                                    Expert
+                                </button>
+                            </div>
+                        </div>
+
+                        <p className="text-sm text-jcoder-muted mt-3">
                             Select your proficiency level with this technology
                         </p>
                     </div>
@@ -1377,12 +1527,27 @@ function TechnologyFormModal({ title, technology, onClose, onSubmit, submitting 
 
                         {/* Upload Input */}
                         <div>
-                            <input
-                                type="file"
-                                accept="image/png,image/jpeg,image/jpg,image/webp,image/svg+xml"
-                                onChange={handleFileChange}
-                                className="w-full px-4 py-2 bg-jcoder-secondary border border-jcoder rounded-lg text-jcoder-foreground focus:outline-none focus:border-jcoder-primary file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-jcoder-gradient file:text-black file:font-medium hover:file:opacity-90"
-                            />
+                            <div className="relative">
+                                <input
+                                    ref={fileInputRef}
+                                    type="file"
+                                    accept="image/png,image/jpeg,image/jpg,image/webp,image/svg+xml"
+                                    onChange={handleFileChange}
+                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                                />
+                                <div className="flex items-center gap-3 px-4 py-2 bg-jcoder-secondary border border-jcoder rounded-lg hover:border-jcoder-primary transition-colors min-h-[44px]">
+                                    <button
+                                        type="button"
+                                        onClick={() => fileInputRef.current?.click()}
+                                        className="px-4 py-2 bg-jcoder-gradient text-black rounded-lg font-medium hover:opacity-90 transition-opacity flex-shrink-0"
+                                    >
+                                        Choose file
+                                    </button>
+                                    <span className="text-sm text-jcoder-foreground flex-1 truncate">
+                                        {selectedFile ? selectedFile.name : 'No file chosen'}
+                                    </span>
+                                </div>
+                            </div>
                             <p className="text-sm text-jcoder-muted mt-2">
                                 Accepted formats: PNG, JPEG, WebP, SVG (max 5MB)
                             </p>
