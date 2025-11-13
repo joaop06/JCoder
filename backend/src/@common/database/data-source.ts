@@ -52,7 +52,9 @@ export const dataSourceOptions: DataSourceOptions = {
   logging: true,
   synchronize: false, // Always false for migrations
   migrationsTableName: 'migrations',
-  migrations: ['src/@common/database/migrations/*.ts'],
+  migrations: process.env.NODE_ENV === 'production'
+    ? ['dist/@common/database/migrations/*.js']
+    : ['src/@common/database/migrations/*.ts'],
   username: configService.get('DATABASE_USER') || 'root',
   database: configService.get('DATABASE_NAME') || 'jcoder',
   password: configService.get('DATABASE_PASSWORD') || 'password',

@@ -1,6 +1,9 @@
 FROM node:23.11.1
 WORKDIR /app
 
+# Install netcat for database health check
+RUN apt-get update && apt-get install -y netcat-openbsd && rm -rf /var/lib/apt/lists/*
+
 # Enable pnpm via corepack
 RUN corepack enable
 
@@ -16,6 +19,9 @@ COPY backend/ ./
 # Build
 RUN pnpm run build
 
-RUN npm run migration:run
+# Copy entrypoint script
+COPY backend/docker-entrypoint.sh /app/docker-entrypoint.sh
+RUN chmod +x /app/docker-entrypoint.sh
 
+ENTRYPOINT ["/app/docker-entrypoint.sh"]
 CMD ["pnpm", "run", "start:prod"]
