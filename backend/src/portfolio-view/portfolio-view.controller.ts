@@ -8,20 +8,24 @@ import {
   Controller,
   HttpStatus,
   ParseIntPipe,
+  Req,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { Throttle } from '@nestjs/throttler';
 import { CreateUserDto } from './dto/create-user.dto';
 import { GetEducationsDto } from './dto/get-educations.dto';
+import { GetReferencesDto } from './dto/get-references.dto';
 import { PaginationDto } from '../@common/dto/pagination.dto';
 import { GetExperiencesDto } from './dto/get-experiences.dto';
 import { GetApplicationsDto } from './dto/get-applications.dto';
 import { GetCertificatesDto } from './dto/get-certificates.dto';
-import { GetReferencesDto } from './dto/get-references.dto';
 import { GetTechnologiesDto } from './dto/get-technologies.dto';
 import { VerifyEmailCodeDto } from './dto/verify-email-code.dto';
 import { CreateUserUseCase } from './use-cases/create-user.use-case';
 import { GetEducationsUseCase } from './use-cases/get-educations.use-case';
+import { GetReferencesUseCase } from './use-cases/get-references.use-case';
 import { User } from '../administration-by-user/users/entities/user.entity';
+import { RegisterPortfolioViewDto } from './dto/register-portfolio-view.dto';
 import { GetApplicationDetailsDto } from './dto/get-application-details.dto';
 import { GetExperiencesUseCase } from './use-cases/get-experiences.use-case';
 import { SendEmailVerificationDto } from './dto/send-email-verification.dto';
@@ -29,12 +33,12 @@ import { ApiTags, ApiOkResponse, ApiNoContentResponse } from '@nestjs/swagger';
 import { CheckEmailAvailabilityDto } from './dto/check-email-availability.dto';
 import { GetApplicationsUseCase } from './use-cases/get-applications.use-case';
 import { GetCertificatesUseCase } from './use-cases/get-certificates.use-case';
-import { GetReferencesUseCase } from './use-cases/get-references.use-case';
 import { GetProfileWithAboutMeDto } from './dto/get-profile-with-about-me.dto';
 import { GetTechnologiesUseCase } from './use-cases/get-technologies.use-case';
 import { VerifyEmailCodeUseCase } from './use-cases/verify-email-code.use-case';
 import { CheckUsernameAvailabilityDto } from './dto/check-username-availability.dto';
 import { GetApplicationDetailsUseCase } from './use-cases/get-application-details.use-case';
+import { RegisterPortfolioViewUseCase } from './use-cases/register-portfolio-view.use-case';
 import { SendEmailVerificationUseCase } from './use-cases/send-email-verification.use-case';
 import { CreateMessageDto } from '../administration-by-user/messages/dto/create-message.dto';
 import { CheckEmailAvailabilityUseCase } from './use-cases/check-email-availability.use-case';
@@ -52,20 +56,21 @@ import { ApplicationNotFoundException } from '../administration-by-user/applicat
 @Controller('portfolio')
 export class PortfolioViewController {
   constructor(
-    private readonly createMessageUseCase: CreateMessageUseCase,
     private readonly createUserUseCase: CreateUserUseCase,
+    private readonly createMessageUseCase: CreateMessageUseCase,
     private readonly getEducationsUseCase: GetEducationsUseCase,
+    private readonly getReferencesUseCase: GetReferencesUseCase,
     private readonly getExperiencesUseCase: GetExperiencesUseCase,
     private readonly getApplicationsUseCase: GetApplicationsUseCase,
     private readonly getCertificatesUseCase: GetCertificatesUseCase,
-    private readonly getReferencesUseCase: GetReferencesUseCase,
     private readonly getTechnologiesUseCase: GetTechnologiesUseCase,
+    private readonly verifyEmailCodeUseCase: VerifyEmailCodeUseCase,
     private readonly getApplicationDetailsUseCase: GetApplicationDetailsUseCase,
     private readonly getProfileWithAboutMeUseCase: GetProfileWithAboutMeUseCase,
-    private readonly checkUsernameAvailabilityUseCase: CheckUsernameAvailabilityUseCase,
-    private readonly checkEmailAvailabilityUseCase: CheckEmailAvailabilityUseCase,
+    private readonly registerPortfolioViewUseCase: RegisterPortfolioViewUseCase,
     private readonly sendEmailVerificationUseCase: SendEmailVerificationUseCase,
-    private readonly verifyEmailCodeUseCase: VerifyEmailCodeUseCase,
+    private readonly checkEmailAvailabilityUseCase: CheckEmailAvailabilityUseCase,
+    private readonly checkUsernameAvailabilityUseCase: CheckUsernameAvailabilityUseCase,
   ) { }
 
   /**
@@ -264,5 +269,23 @@ export class PortfolioViewController {
     @Query() paginationDto: PaginationDto,
   ): Promise<GetTechnologiesDto> {
     return await this.getTechnologiesUseCase.execute(username, paginationDto);
+  }
+
+  /**
+   * Registers a portfolio view/access
+   * Public endpoint - no authentication required
+   * Implements deduplication logic to prevent duplicate counts
+   */
+  @Post(':username/track-view')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Throttle({ short: { limit: 10, ttl: 60000 } }) // 10 requests per minute
+  @ApiNoContentResponse()
+  @ApiExceptionResponse(() => UserNotFoundException)
+  async registerPortfolioView(
+    @Param('username') username: string,
+    @Body() dto: RegisterPortfolioViewDto,
+    @Req() request: Request,
+  ): Promise<void> {
+    return await this.registerPortfolioViewUseCase.execute(username, dto, request);
   }
 };

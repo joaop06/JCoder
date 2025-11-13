@@ -502,6 +502,13 @@ export default function Header({
                         <div className="absolute right-0 top-full mt-2 w-48 bg-jcoder-card border border-jcoder rounded-lg shadow-lg z-50">
                           <div className="p-2">
                             <Link
+                              href={getAdminRoute('/')}
+                              onClick={() => setIsProfileDropdownOpen(false)}
+                              className="block px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors"
+                            >
+                              Dashboard
+                            </Link>
+                            <Link
                               href={getAdminRoute('/profile')}
                               onClick={() => setIsProfileDropdownOpen(false)}
                               className="block px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors"
@@ -592,6 +599,13 @@ export default function Header({
                           {isOwnPortfolio && (
                             <>
                               <div className="border-t border-jcoder my-2"></div>
+                              <Link
+                                href={getAdminRoute('/')}
+                                onClick={() => setIsMobileMenuOpen(false)}
+                                className="block px-3 py-2 rounded-md text-sm text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors"
+                              >
+                                Dashboard
+                              </Link>
                               <Link
                                 href={getAdminRoute('/profile')}
                                 onClick={() => setIsMobileMenuOpen(false)}
@@ -791,6 +805,7 @@ export default function Header({
   if (pageType === 'admin' && isLoggedIn) {
     const loggedInUsername = userSession?.user?.username || username;
     const adminTabs = [
+      { path: '/', label: 'Dashboard' },
       { path: '/profile', label: 'Profile' },
       { path: '/applications', label: 'Applications' },
       { path: '/technologies', label: 'Technologies' },
@@ -801,9 +816,9 @@ export default function Header({
 
     // Helper function to check if a tab is active
     const isTabActive = (tabPath: string, currentPath: string): boolean => {
-      // If current path is empty or '/', no tab should be active (dashboard page)
-      if (currentPath === '' || currentPath === '/') {
-        return false;
+      // Dashboard is active when path is empty or '/'
+      if (tabPath === '/') {
+        return currentPath === '' || currentPath === '/';
       }
       // Check if current path starts with tab path (handles sub-routes like /applications/new)
       return currentPath.startsWith(tabPath);
@@ -879,6 +894,13 @@ export default function Header({
                     {isProfileDropdownOpen && (
                       <div className="absolute right-0 top-full mt-2 w-48 bg-jcoder-card border border-jcoder rounded-lg shadow-lg z-50">
                         <div className="p-2">
+                          <Link
+                            href={getAdminRoute('/')}
+                            onClick={() => setIsProfileDropdownOpen(false)}
+                            className="block px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors"
+                          >
+                            Dashboard
+                          </Link>
                           <Link
                             href={getAdminRoute('/profile')}
                             onClick={() => setIsProfileDropdownOpen(false)}

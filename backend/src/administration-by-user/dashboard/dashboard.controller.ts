@@ -1,13 +1,16 @@
-import { Controller, Get, Param, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../../@common/guards/jwt-auth.guard';
 import { ApiTags, ApiBearerAuth, ApiOkResponse } from '@nestjs/swagger';
+import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
 import { ApplicationsStatsDto } from '../applications/dto/applications-stats.dto';
 import { TechnologiesStatsDto } from '../technologies/dto/technologies-stats.dto';
+import { PortfolioEngagementStatsDto } from './dto/portfolio-engagement-stats.dto';
 import { ProfileCompletenessDto, UnreadMessagesDto } from './dto/dashboard-response.dto';
 import { GetApplicationsStatsUseCase } from './use-cases/get-applications-stats.use-case';
 import { GetTechnologiesStatsUseCase } from './use-cases/get-technologies-stats.use-case';
 import { GetProfileCompletenessUseCase } from './use-cases/get-profile-completeness.use-case';
 import { GetUnreadMessagesStatsUseCase } from './use-cases/get-unread-messages-stats.use-case';
+import { GetPortfolioEngagementStatsUseCase } from './use-cases/get-portfolio-engagement-stats.use-case';
+import { GetPortfolioEngagementQueryDto } from '../../portfolio-view/dto/get-portfolio-engagement-query.dto';
 
 @ApiBearerAuth()
 @Controller(':username/dashboard')
@@ -19,6 +22,7 @@ export class DashboardController {
     private readonly getTechnologiesStatsUseCase: GetTechnologiesStatsUseCase,
     private readonly getUnreadMessagesStatsUseCase: GetUnreadMessagesStatsUseCase,
     private readonly getProfileCompletenessUseCase: GetProfileCompletenessUseCase,
+    private readonly getPortfolioEngagementStatsUseCase: GetPortfolioEngagementStatsUseCase,
   ) { }
 
   /**
@@ -63,5 +67,18 @@ export class DashboardController {
     @Param('username') username: string,
   ): Promise<ProfileCompletenessDto> {
     return await this.getProfileCompletenessUseCase.execute(username);
+  }
+
+  /**
+   * Get portfolio engagement statistics
+   * Returns views, unique visitors, and analytics data
+   */
+  @Get('engagement/stats')
+  @ApiOkResponse({ type: PortfolioEngagementStatsDto })
+  async getPortfolioEngagementStats(
+    @Param('username') username: string,
+    @Query() query: GetPortfolioEngagementQueryDto,
+  ): Promise<PortfolioEngagementStatsDto> {
+    return await this.getPortfolioEngagementStatsUseCase.execute(username, query);
   }
 }

@@ -44,3 +44,36 @@ export interface DashboardResponseDto {
   profileCompleteness: ProfileCompletenessDto;
 }
 
+export interface DailyStatsDto {
+  date: string;
+  views: number;
+  uniqueVisitors: number;
+}
+
+export interface TopCountryDto {
+  country: string;
+  count: number;
+}
+
+export interface TopRefererDto {
+  referer: string;
+  count: number;
+}
+
+export interface PortfolioEngagementStatsDto {
+  totalViews: number;
+  uniqueVisitors: number;
+  ownerViews: number;
+  dailyStats: DailyStatsDto[];
+  topCountries: TopCountryDto[];
+  topReferers: TopRefererDto[];
+}
+
+export enum DateRangeType {
+  DAY = 'day',
+  WEEK = 'week',
+  MONTH = 'month',
+  YEAR = 'year',
+  CUSTOM = 'custom',
+}
+

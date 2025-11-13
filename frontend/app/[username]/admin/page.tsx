@@ -17,6 +17,7 @@ import { Canvas } from '@react-three/fiber';
 import WebGLBackground from '@/components/webgl/WebGLBackground';
 import Hero3D from '@/components/webgl/Hero3D';
 import FloatingParticles3D from '@/components/webgl/FloatingParticles3D';
+import PortfolioViewsChart from '@/components/dashboard/PortfolioViewsChart';
 
 export default function AdminDashboardPage() {
   const router = useRouter();
@@ -158,6 +159,18 @@ export default function AdminDashboardPage() {
   // Quick navigation sections
   const adminSections = useMemo(() => [
     {
+      title: 'Profile',
+      description: 'Manage your administrator profile',
+      icon: (
+        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+        </svg>
+      ),
+      href: `/${urlUsername}/admin/profile`,
+      color: 'from-orange-500 to-red-500',
+      profileCompleteness: profileCompleteness,
+    },
+    {
       title: 'Applications',
       description: 'Manage your portfolio applications',
       icon: (
@@ -191,19 +204,7 @@ export default function AdminDashboardPage() {
       ),
       href: `/${urlUsername}/admin/messages`,
       color: 'from-purple-500 to-pink-500',
-      unreadCount: unreadMessages?.total || 0,
-    },
-    {
-      title: 'Profile',
-      description: 'Manage your administrator profile',
-      icon: (
-        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-        </svg>
-      ),
-      href: `/${urlUsername}/admin/profile`,
-      color: 'from-orange-500 to-red-500',
-      completeness: profileCompleteness?.percentage || 0,
+      unreadMessages: unreadMessages,
     },
   ], [urlUsername, applicationsStats, technologiesStats, unreadMessages, profileCompleteness]);
 
@@ -340,213 +341,6 @@ export default function AdminDashboardPage() {
             </div>
           )}
 
-          {/* Stats Cards Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
-            {/* Applications Stats Card */}
-            <div
-              className="bg-jcoder-card/90 backdrop-blur-sm border border-jcoder rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-xl shadow-jcoder-primary/10 transform-gpu transition-all duration-300 hover:shadow-2xl hover:shadow-jcoder-primary/20 md:hover:-translate-y-1 cursor-pointer group"
-              onClick={() => router.push(`/${urlUsername}/admin/applications`)}
-              style={{
-                transform: windowSize.width >= 768 ? `perspective(1000px) rotateX(${-(mousePosition.y / windowSize.height - 0.5) * 1}deg) rotateY(${(mousePosition.x / windowSize.width - 0.5) * 1}deg) translateZ(0)` : 'none',
-              }}
-            >
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center transform-gpu group-hover:scale-110 transition-transform">
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                </div>
-                {loadingStats ? (
-                  <div className="h-4 w-16 bg-jcoder-secondary rounded animate-pulse"></div>
-                ) : (
-                  <span className="text-xs sm:text-sm text-jcoder-muted">Applications</span>
-                )}
-              </div>
-              {loadingStats ? (
-                <div className="space-y-2">
-                  <div className="h-8 w-20 bg-jcoder-secondary rounded animate-pulse"></div>
-                  <div className="h-4 w-full bg-jcoder-secondary rounded animate-pulse"></div>
-                </div>
-              ) : (
-                <>
-                  <div className="text-2xl sm:text-3xl font-bold text-jcoder-foreground mb-2">
-                    {applicationsStats?.total || 0}
-                  </div>
-                  <div className="flex items-center gap-2 text-xs sm:text-sm">
-                    <span className="text-green-500 font-semibold">{applicationsStats?.active || 0} active</span>
-                    <span className="text-jcoder-muted">•</span>
-                    <span className="text-red-500 font-semibold">{applicationsStats?.inactive || 0} inactive</span>
-                  </div>
-                </>
-              )}
-            </div>
-
-            {/* Technologies Stats Card */}
-            <div
-              className="bg-jcoder-card/90 backdrop-blur-sm border border-jcoder rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-xl shadow-jcoder-primary/10 transform-gpu transition-all duration-300 hover:shadow-2xl hover:shadow-jcoder-primary/20 md:hover:-translate-y-1 cursor-pointer group"
-              onClick={() => router.push(`/${urlUsername}/admin/technologies`)}
-              style={{
-                transform: windowSize.width >= 768 ? `perspective(1000px) rotateX(${-(mousePosition.y / windowSize.height - 0.5) * 1}deg) rotateY(${(mousePosition.x / windowSize.width - 0.5) * 1}deg) translateZ(0)` : 'none',
-              }}
-            >
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-500 rounded-lg flex items-center justify-center transform-gpu group-hover:scale-110 transition-transform">
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-                  </svg>
-                </div>
-                {loadingStats ? (
-                  <div className="h-4 w-16 bg-jcoder-secondary rounded animate-pulse"></div>
-                ) : (
-                  <span className="text-xs sm:text-sm text-jcoder-muted">Technologies</span>
-                )}
-              </div>
-              {loadingStats ? (
-                <div className="space-y-2">
-                  <div className="h-8 w-20 bg-jcoder-secondary rounded animate-pulse"></div>
-                  <div className="h-4 w-full bg-jcoder-secondary rounded animate-pulse"></div>
-                </div>
-              ) : (
-                <>
-                  <div className="text-2xl sm:text-3xl font-bold text-jcoder-foreground mb-2">
-                    {technologiesStats?.total || 0}
-                  </div>
-                  <div className="flex items-center gap-2 text-xs sm:text-sm">
-                    <span className="text-green-500 font-semibold">{technologiesStats?.active || 0} active</span>
-                    <span className="text-jcoder-muted">•</span>
-                    <span className="text-red-500 font-semibold">{technologiesStats?.inactive || 0} inactive</span>
-                  </div>
-                </>
-              )}
-            </div>
-
-            {/* Unread Messages Card */}
-            <div
-              className="bg-jcoder-card/90 backdrop-blur-sm border border-jcoder rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-xl shadow-jcoder-primary/10 transform-gpu transition-all duration-300 hover:shadow-2xl hover:shadow-jcoder-primary/20 md:hover:-translate-y-1 cursor-pointer group relative"
-              onClick={() => router.push(`/${urlUsername}/admin/messages`)}
-              style={{
-                transform: windowSize.width >= 768 ? `perspective(1000px) rotateX(${-(mousePosition.y / windowSize.height - 0.5) * 1}deg) rotateY(${(mousePosition.x / windowSize.width - 0.5) * 1}deg) translateZ(0)` : 'none',
-              }}
-            >
-              {unreadMessages && unreadMessages.total > 0 && (
-                <div className="absolute top-3 right-3 w-6 h-6 bg-jcoder-blue rounded-full flex items-center justify-center text-white text-xs font-bold animate-pulse">
-                  {unreadMessages.total > 9 ? '9+' : unreadMessages.total}
-                </div>
-              )}
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center transform-gpu group-hover:scale-110 transition-transform">
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                  </svg>
-                </div>
-                {loadingStats ? (
-                  <div className="h-4 w-16 bg-jcoder-secondary rounded animate-pulse"></div>
-                ) : (
-                  <span className="text-xs sm:text-sm text-jcoder-muted">Messages</span>
-                )}
-              </div>
-              {loadingStats ? (
-                <div className="space-y-2">
-                  <div className="h-8 w-20 bg-jcoder-secondary rounded animate-pulse"></div>
-                  <div className="h-4 w-full bg-jcoder-secondary rounded animate-pulse"></div>
-                </div>
-              ) : (
-                <>
-                  <div className="text-2xl sm:text-3xl font-bold text-jcoder-foreground mb-2">
-                    {unreadMessages?.total || 0}
-                  </div>
-                  <div className="text-xs sm:text-sm text-jcoder-muted">
-                    {unreadMessages?.conversations || 0} {unreadMessages?.conversations === 1 ? 'conversation' : 'conversations'} with unread messages
-                  </div>
-                </>
-              )}
-            </div>
-
-            {/* Profile Completeness Card */}
-            <div
-              className="bg-jcoder-card/90 backdrop-blur-sm border border-jcoder rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-xl shadow-jcoder-primary/10 transform-gpu transition-all duration-300 hover:shadow-2xl hover:shadow-jcoder-primary/20 md:hover:-translate-y-1 cursor-pointer group"
-              onClick={() => router.push(`/${urlUsername}/admin/profile`)}
-              style={{
-                transform: windowSize.width >= 768 ? `perspective(1000px) rotateX(${-(mousePosition.y / windowSize.height - 0.5) * 1}deg) rotateY(${(mousePosition.x / windowSize.width - 0.5) * 1}deg) translateZ(0)` : 'none',
-              }}
-            >
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg flex items-center justify-center transform-gpu group-hover:scale-110 transition-transform">
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                </div>
-                {loadingStats ? (
-                  <div className="h-4 w-16 bg-jcoder-secondary rounded animate-pulse"></div>
-                ) : (
-                  <span className="text-xs sm:text-sm text-jcoder-muted">Profile</span>
-                )}
-              </div>
-              {loadingStats ? (
-                <div className="space-y-2">
-                  <div className="h-8 w-20 bg-jcoder-secondary rounded animate-pulse"></div>
-                  <div className="h-4 w-full bg-jcoder-secondary rounded animate-pulse"></div>
-                </div>
-              ) : (
-                <>
-                  <div className="text-2xl sm:text-3xl font-bold text-jcoder-foreground mb-2">
-                    {profileCompleteness?.percentage || 0}%
-                  </div>
-                  <div className="w-full bg-jcoder-secondary rounded-full h-2 mb-2">
-                    <div
-                      className="bg-gradient-to-r from-orange-500 to-red-500 h-2 rounded-full transition-all duration-500"
-                      style={{ width: `${profileCompleteness?.percentage || 0}%` }}
-                    ></div>
-                  </div>
-                  <div className="text-xs sm:text-sm text-jcoder-muted">
-                    {profileCompleteness?.completedFields || 0} of {profileCompleteness?.totalFields || 12} fields completed
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-
-          {/* Quick Actions Section */}
-          <div
-            className="bg-jcoder-card/90 backdrop-blur-sm border border-jcoder rounded-xl sm:rounded-2xl p-6 sm:p-8 shadow-xl shadow-jcoder-primary/10 transform-gpu transition-all duration-300 md:hover:shadow-2xl md:hover:shadow-jcoder-primary/20 md:hover:-translate-y-1 mb-6 sm:mb-8"
-            style={{
-              transform: windowSize.width >= 768 ? `perspective(1000px) rotateX(${-(mousePosition.y / windowSize.height - 0.5) * 1}deg) rotateY(${(mousePosition.x / windowSize.width - 0.5) * 1}deg) translateZ(0)` : 'none',
-            }}
-          >
-            <h2 className="text-xl sm:text-2xl font-bold text-jcoder-foreground mb-4 sm:mb-6">Quick Actions</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
-              <button
-                onClick={() => router.push(`/${urlUsername}/admin/applications/new`)}
-                className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-jcoder-secondary/50 border border-jcoder rounded-lg hover:border-jcoder-primary hover:bg-jcoder-secondary transition-all duration-200 text-left group"
-              >
-                <div className="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 bg-jcoder-gradient rounded-lg flex items-center justify-center transform-gpu md:group-hover:scale-110 transition-transform">
-                  <svg className="w-5 h-5 sm:w-6 sm:h-6 text-black md:group-hover:rotate-90 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                  </svg>
-                </div>
-                <div className="min-w-0 flex-1">
-                  <h3 className="font-semibold text-sm sm:text-base text-jcoder-foreground">New Application</h3>
-                  <p className="text-xs sm:text-sm text-jcoder-muted">Create a new portfolio application</p>
-                </div>
-              </button>
-
-              <button
-                onClick={() => router.push(`/${urlUsername}/admin/applications`)}
-                className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-jcoder-secondary/50 border border-jcoder rounded-lg hover:border-jcoder-primary hover:bg-jcoder-secondary transition-all duration-200 text-left group"
-              >
-                <div className="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center transform-gpu md:group-hover:scale-110 transition-transform">
-                  <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
-                  </svg>
-                </div>
-                <div className="min-w-0 flex-1">
-                  <h3 className="font-semibold text-sm sm:text-base text-jcoder-foreground">View All Applications</h3>
-                  <p className="text-xs sm:text-sm text-jcoder-muted">Browse and manage existing applications</p>
-                </div>
-              </button>
-            </div>
-          </div>
-
           {/* Admin Sections Grid */}
           <div className="mb-6 sm:mb-8">
             <h2 className="text-xl sm:text-2xl font-bold text-jcoder-foreground mb-4 sm:mb-6 px-4">Management Sections</h2>
@@ -560,24 +354,21 @@ export default function AdminDashboardPage() {
                     transform: windowSize.width >= 768 ? `perspective(1000px) rotateX(${-(mousePosition.y / windowSize.height - 0.5) * 1}deg) rotateY(${(mousePosition.x / windowSize.width - 0.5) * 1}deg) translateZ(0)` : undefined,
                   }}
                 >
-                  {/* Badge for unread messages */}
-                  {section.unreadCount && section.unreadCount > 0 && (
-                    <div className="absolute top-3 right-3 sm:top-4 sm:right-4">
-                      <span className="px-2 sm:px-3 py-0.5 sm:py-1 bg-jcoder-blue text-white text-xs font-bold rounded-full shadow-lg shadow-jcoder-blue/50 animate-pulse">
-                        {section.unreadCount > 9 ? '9+' : section.unreadCount}
-                      </span>
+                  {/* Unread messages badge */}
+                  {section.unreadMessages && section.unreadMessages.total > 0 && (
+                    <div className="absolute top-3 right-3 sm:top-4 sm:right-4 w-6 h-6 bg-jcoder-blue rounded-full flex items-center justify-center text-white text-xs font-bold animate-pulse z-10">
+                      {section.unreadMessages.total > 9 ? '9+' : section.unreadMessages.total}
                     </div>
                   )}
 
                   {/* Completeness badge */}
-                  {section.completeness !== undefined && (
+                  {section.profileCompleteness && (
                     <div className="absolute top-3 right-3 sm:top-4 sm:right-4">
-                      <span className={`px-2 sm:px-3 py-0.5 sm:py-1 text-xs font-semibold rounded-full ${
-                        section.completeness >= 80 ? 'bg-green-500/20 text-green-400 border border-green-500/40' :
-                        section.completeness >= 50 ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/40' :
-                        'bg-red-500/20 text-red-400 border border-red-500/40'
-                      }`}>
-                        {section.completeness}%
+                      <span className={`px-2 sm:px-3 py-0.5 sm:py-1 text-xs font-semibold rounded-full ${section.profileCompleteness.percentage >= 80 ? 'bg-green-500/20 text-green-400 border border-green-500/40' :
+                          section.profileCompleteness.percentage >= 50 ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/40' :
+                            'bg-red-500/20 text-red-400 border border-red-500/40'
+                        }`}>
+                        {section.profileCompleteness.percentage}%
                       </span>
                     </div>
                   )}
@@ -600,14 +391,54 @@ export default function AdminDashboardPage() {
 
                   {/* Stats preview for Applications and Technologies */}
                   {section.stats && (
-                    <div className="mt-4 pt-4 border-t border-jcoder/30">
-                      <div className="flex items-center justify-between text-xs sm:text-sm">
-                        <span className="text-jcoder-muted">Total:</span>
-                        <span className="font-semibold text-jcoder-foreground">{section.stats.total}</span>
+                    <div className="mt-4 pt-4 border-t border-jcoder/30 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs sm:text-sm text-jcoder-muted">Total:</span>
+                        <span className="text-lg sm:text-xl font-bold text-jcoder-foreground">{section.stats.total}</span>
                       </div>
-                      <div className="flex items-center justify-between text-xs sm:text-sm mt-1">
+                      <div className="flex items-center justify-between text-xs sm:text-sm">
                         <span className="text-green-500">Active:</span>
                         <span className="font-semibold text-green-500">{section.stats.active}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-xs sm:text-sm">
+                        <span className="text-red-500">Inactive:</span>
+                        <span className="font-semibold text-red-500">{section.stats.inactive}</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Messages stats */}
+                  {section.unreadMessages && (
+                    <div className="mt-4 pt-4 border-t border-jcoder/30 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs sm:text-sm text-jcoder-muted">Unread:</span>
+                        <span className="text-lg sm:text-xl font-bold text-jcoder-foreground">{section.unreadMessages.total}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-xs sm:text-sm">
+                        <span className="text-jcoder-muted">Conversations:</span>
+                        <span className="font-semibold text-jcoder-foreground">{section.unreadMessages.conversations}</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Profile completeness stats */}
+                  {section.profileCompleteness && (
+                    <div className="mt-4 pt-4 border-t border-jcoder/30 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs sm:text-sm text-jcoder-muted">Completeness:</span>
+                        <span className="text-lg sm:text-xl font-bold text-jcoder-foreground">{section.profileCompleteness.percentage}%</span>
+                      </div>
+                      <div className="w-full bg-jcoder-secondary rounded-full h-2 mb-2">
+                        <div
+                          className="bg-gradient-to-r from-orange-500 to-red-500 h-2 rounded-full transition-all duration-500"
+                          style={{ width: `${section.profileCompleteness.percentage}%` }}
+                        ></div>
+                      </div>
+                      <div className="flex items-center justify-between text-xs sm:text-sm">
+                        <span className="text-jcoder-muted">Fields:</span>
+                        <span className="font-semibold text-jcoder-foreground">
+                          {section.profileCompleteness.completedFields} / {section.profileCompleteness.totalFields}
+                        </span>
                       </div>
                     </div>
                   )}
@@ -621,6 +452,11 @@ export default function AdminDashboardPage() {
                 </button>
               ))}
             </div>
+          </div>
+
+          {/* Portfolio Views Chart Section */}
+          <div className="mb-6 sm:mb-8">
+            <PortfolioViewsChart username={urlUsername} />
           </div>
         </div>
       </main>
