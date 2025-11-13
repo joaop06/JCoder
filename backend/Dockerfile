@@ -16,4 +16,6 @@ COPY backend/ ./
 # Build
 RUN pnpm run build
 
+RUN npm run migration:run
+
 CMD ["pnpm", "run", "start:prod"]
