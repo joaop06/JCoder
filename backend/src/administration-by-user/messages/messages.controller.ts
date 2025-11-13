@@ -14,11 +14,11 @@ import { Message } from './entities/message.entity';
 import { MessagesService } from './messages.service';
 import { OwnerGuard } from '../../@common/guards/owner.guard';
 import { JwtAuthGuard } from '../../@common/guards/jwt-auth.guard';
-import { MessageNotFoundException } from './exceptions/message-not-found.exception';
-import { ConversationNotFoundException } from './exceptions/conversation-not-found.exception';
-import { ConversationResponseDto } from './dto/conversation-response.dto';
 import { MarkMessagesReadDto } from './dto/mark-messages-read.dto';
+import { ConversationResponseDto } from './dto/conversation-response.dto';
+import { MessageNotFoundException } from './exceptions/message-not-found.exception';
 import { ApiTags, ApiOkResponse, ApiNoContentResponse, ApiBearerAuth } from '@nestjs/swagger';
+import { ConversationNotFoundException } from './exceptions/conversation-not-found.exception';
 import { ApiExceptionResponse } from '../../@common/decorators/documentation/api-exception-response.decorator';
 
 @Controller(':username/messages')
@@ -37,7 +37,7 @@ export class MessagesController {
     @ApiOkResponse({ isArray: true, type: () => ConversationResponseDto })
     async findAllConversations(@Param('username') username: string): Promise<ConversationResponseDto[]> {
         const conversations = await this.messagesService.findAllConversations(username);
-        
+
         // Get last message preview for each conversation
         const conversationsWithPreview = await Promise.all(
             conversations.map(async (conversation) => {
