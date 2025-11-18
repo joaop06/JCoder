@@ -14,6 +14,7 @@ import { DeleteApplicationUseCase } from './use-cases/delete-application.use-cas
 import { UpdateApplicationUseCase } from './use-cases/update-application.use-case';
 import { ReorderApplicationUseCase } from './use-cases/reorder-application.use-case';
 import { ApplicationComponentsModule } from './application-components/application-components.module';
+import { DeleteApplicationComponentUseCase } from './use-cases/delete-application-component.use-case';
 
 @Module({
   providers: [
@@ -23,6 +24,7 @@ import { ApplicationComponentsModule } from './application-components/applicatio
     DeleteApplicationUseCase,
     UpdateApplicationUseCase,
     ReorderApplicationUseCase,
+    DeleteApplicationComponentUseCase,
   ],
   exports: [ApplicationsService],
   controllers: [ApplicationsController],

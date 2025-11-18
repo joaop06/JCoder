@@ -2,15 +2,9 @@ import { Injectable } from "@nestjs/common";
 import { UsersService } from "../../users/users.service";
 import { Application } from "../entities/application.entity";
 import { ApplicationsService } from "../applications.service";
-import { ApplicationTypeEnum } from "../enums/application-type.enum";
 import { CreateApplicationDto } from "../dto/create-application.dto";
-import { RequiredApiComponentToApiApplication } from "../exceptions/required-api-component.exception";
 import { AlreadyExistsApplicationException } from "../exceptions/already-exists-application-exception";
 import { ApplicationComponentsService } from "../application-components/application-components.service";
-import { RequiredMobileComponentToMobileApplication } from "../exceptions/required-mobile-component.exception";
-import { RequiredFrontendComponentToApiApplication } from "../exceptions/required-frontend-component.exception";
-import { RequiredLibraryComponentToLibraryApplication } from "../exceptions/required-library-component.exception";
-import { RequiredApiAndFrontendComponentsToFullstackApplication } from "../exceptions/required-api-and-frontend-components.exception";
 
 @Injectable()
 export class CreateApplicationUseCase {
@@ -21,9 +15,6 @@ export class CreateApplicationUseCase {
     ) { }
 
     async execute(username: string, createApplicationDto: CreateApplicationDto): Promise<Application> {
-        // Validate whether components are present based on type
-        this.validateDetailsForType(createApplicationDto);
-
         // Verify whether the Application name already exists for this user
         const exists = await this.applicationsService.existsByApplicationNameAndUsername(username, createApplicationDto.name);
         if (exists) throw new AlreadyExistsApplicationException();
@@ -43,12 +34,11 @@ export class CreateApplicationUseCase {
         });
 
         /**
-         * Create the components from application
+         * Create the components from application based on what was provided
          */
-        await this.applicationComponentsService.saveComponentsForType({
+        await this.applicationComponentsService.saveComponents({
             user,
             application,
-            applicationType: createApplicationDto.applicationType,
             dtos: {
                 applicationComponentApi: createApplicationDto.applicationComponentApi,
                 applicationComponentMobile: createApplicationDto.applicationComponentMobile,
@@ -68,38 +58,5 @@ export class CreateApplicationUseCase {
         }
 
         return await this.applicationsService.findById(application.id, username);
-    }
-
-    private validateDetailsForType(dto: CreateApplicationDto): void {
-        switch (dto.applicationType) {
-            case ApplicationTypeEnum.API:
-                if (!dto.applicationComponentApi) {
-                    throw new RequiredApiComponentToApiApplication();
-                }
-                break;
-            case ApplicationTypeEnum.FRONTEND:
-                if (!dto.applicationComponentFrontend) {
-                    throw new RequiredFrontendComponentToApiApplication();
-                }
-                break;
-
-            case ApplicationTypeEnum.FULLSTACK:
-                if (!dto.applicationComponentApi || !dto.applicationComponentFrontend) {
-                    throw new RequiredApiAndFrontendComponentsToFullstackApplication();
-                }
-                break;
-
-            case ApplicationTypeEnum.MOBILE:
-                if (!dto.applicationComponentMobile) {
-                    throw new RequiredMobileComponentToMobileApplication();
-                }
-                break;
-
-            case ApplicationTypeEnum.LIBRARY:
-                if (!dto.applicationComponentLibrary) {
-                    throw new RequiredLibraryComponentToLibraryApplication();
-                }
-                break;
-        }
     }
 };

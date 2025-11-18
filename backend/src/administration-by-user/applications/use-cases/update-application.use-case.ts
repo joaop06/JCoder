@@ -23,12 +23,12 @@ export class UpdateApplicationUseCase {
         const updatedApplication = await this.applicationsService.update(id, updateApplicationDto);
 
         /**
-         * Update the components from application
+         * Update the components from application based on what was provided
+         * Only components explicitly provided will be updated/created
          */
-        await this.applicationComponentsService.saveComponentsForType({
+        await this.applicationComponentsService.updateComponents({
             user: application.user,
             application: updatedApplication,
-            applicationType: updateApplicationDto.applicationType,
             dtos: {
                 applicationComponentApi: updateApplicationDto.applicationComponentApi,
                 applicationComponentMobile: updateApplicationDto.applicationComponentMobile,

@@ -50,17 +50,17 @@ export class CreateApplicationDto {
   @IsString()
   description: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     type: 'string',
-    required: true,
-    nullable: false,
+    required: false,
+    nullable: true,
     enum: ApplicationTypeEnum,
     example: ApplicationTypeEnum.API,
-    description: 'Application type (involves defining components)',
+    description: 'Application type (optional, kept for backward compatibility)',
   })
-  @IsNotEmpty()
+  @IsOptional()
   @IsEnum(ApplicationTypeEnum)
-  applicationType: ApplicationTypeEnum;
+  applicationType?: ApplicationTypeEnum;
 
   @ApiPropertyOptional({
     nullable: true,

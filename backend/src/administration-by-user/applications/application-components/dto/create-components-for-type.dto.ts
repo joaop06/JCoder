@@ -45,15 +45,16 @@ export class CreateComponentsForTypeDto {
     @ValidateNested()
     dtos: ApplicationComponentsDto;
 
-    @ApiProperty({
-        required: true,
+    @ApiPropertyOptional({
+        required: false,
+        nullable: true,
         enum: ApplicationTypeEnum,
         example: ApplicationTypeEnum.API,
-        description: 'Type of the components composition from the application',
+        description: 'Application type (optional, kept for backward compatibility)',
     })
-    @IsNotEmpty()
+    @IsOptional()
     @IsEnum(ApplicationTypeEnum)
-    applicationType: ApplicationTypeEnum;
+    applicationType?: ApplicationTypeEnum;
 };
 
 export class ApplicationComponentsDto {

@@ -33,10 +33,10 @@ export class UpdateApplicationDto {
     @ApiPropertyOptional({
         type: 'string',
         required: false,
-        nullable: false,
+        nullable: true,
         enum: ApplicationTypeEnum,
         example: ApplicationTypeEnum.API,
-        description: 'Application type (involves defining components)',
+        description: 'Application type (optional, kept for backward compatibility)',
     })
     @IsOptional()
     @IsEnum(ApplicationTypeEnum)

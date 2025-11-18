@@ -63,19 +63,19 @@ export class Application {
   @Column('text', { nullable: false })
   description: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     type: 'string',
-    nullable: false,
+    nullable: true,
     enum: ApplicationTypeEnum,
     example: ApplicationTypeEnum.API,
-    description: 'Application type (involves defining components)',
+    description: 'Application type (optional, kept for backward compatibility)',
   })
   @Column({
     type: 'enum',
-    nullable: false,
+    nullable: true,
     enum: ApplicationTypeEnum,
   })
-  applicationType: ApplicationTypeEnum;
+  applicationType?: ApplicationTypeEnum;
 
   @ApiPropertyOptional({
     nullable: true,

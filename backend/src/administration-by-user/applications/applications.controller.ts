@@ -26,14 +26,10 @@ import { ReorderApplicationUseCase } from './use-cases/reorder-application.use-c
 import { PaginationDto, PaginatedResponseDto } from '../../@common/dto/pagination.dto';
 import { ApplicationNotFoundException } from './exceptions/application-not-found.exception';
 import { ApiNoContentResponse, ApiOkResponse, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
-import { RequiredApiComponentToApiApplication } from './exceptions/required-api-component.exception';
 import { AlreadyExistsApplicationException } from './exceptions/already-exists-application-exception';
+import { DeleteApplicationComponentUseCase } from './use-cases/delete-application-component.use-case';
 import { AlreadyDeletedApplicationException } from './exceptions/already-deleted-application.exception';
-import { RequiredMobileComponentToMobileApplication } from './exceptions/required-mobile-component.exception';
 import { ApiExceptionResponse } from '../../@common/decorators/documentation/api-exception-response.decorator';
-import { RequiredFrontendComponentToApiApplication } from './exceptions/required-frontend-component.exception';
-import { RequiredLibraryComponentToLibraryApplication } from './exceptions/required-library-component.exception';
-import { RequiredApiAndFrontendComponentsToFullstackApplication } from './exceptions/required-api-and-frontend-components.exception';
 
 @ApiBearerAuth()
 @Controller(':username/applications')
@@ -45,6 +41,7 @@ export class ApplicationsController {
     private readonly deleteApplicationUseCase: DeleteApplicationUseCase,
     private readonly updateApplicationUseCase: UpdateApplicationUseCase,
     private readonly reorderApplicationUseCase: ReorderApplicationUseCase,
+    private readonly deleteApplicationComponentUseCase: DeleteApplicationComponentUseCase,
   ) { }
 
   @Get()
@@ -80,11 +77,6 @@ export class ApplicationsController {
   @ApiExceptionResponse(() => [
     ApplicationNotFoundException,
     AlreadyExistsApplicationException,
-    RequiredApiComponentToApiApplication,
-    RequiredFrontendComponentToApiApplication,
-    RequiredMobileComponentToMobileApplication,
-    RequiredLibraryComponentToLibraryApplication,
-    RequiredApiAndFrontendComponentsToFullstackApplication,
   ])
   async create(
     @Param('username') username: string,
@@ -130,5 +122,53 @@ export class ApplicationsController {
     @Body() reorderApplicationDto: ReorderApplicationDto,
   ): Promise<Application> {
     return await this.reorderApplicationUseCase.execute(username, id, reorderApplicationDto);
+  }
+
+  @Delete(':id/components/api')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  @ApiOkResponse({ type: () => Application })
+  @ApiExceptionResponse(() => [ApplicationNotFoundException])
+  async deleteApiComponent(
+    @Param('username') username: string,
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<Application> {
+    return await this.deleteApplicationComponentUseCase.execute(username, id, 'api');
+  }
+
+  @Delete(':id/components/mobile')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  @ApiOkResponse({ type: () => Application })
+  @ApiExceptionResponse(() => [ApplicationNotFoundException])
+  async deleteMobileComponent(
+    @Param('username') username: string,
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<Application> {
+    return await this.deleteApplicationComponentUseCase.execute(username, id, 'mobile');
+  }
+
+  @Delete(':id/components/library')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  @ApiOkResponse({ type: () => Application })
+  @ApiExceptionResponse(() => [ApplicationNotFoundException])
+  async deleteLibraryComponent(
+    @Param('username') username: string,
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<Application> {
+    return await this.deleteApplicationComponentUseCase.execute(username, id, 'library');
+  }
+
+  @Delete(':id/components/frontend')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  @ApiOkResponse({ type: () => Application })
+  @ApiExceptionResponse(() => [ApplicationNotFoundException])
+  async deleteFrontendComponent(
+    @Param('username') username: string,
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<Application> {
+    return await this.deleteApplicationComponentUseCase.execute(username, id, 'frontend');
   }
 };
