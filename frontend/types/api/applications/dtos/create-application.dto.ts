@@ -13,7 +13,7 @@ export interface CreateApplicationDto {
 
   description: string;
 
-  applicationType: ApplicationTypeEnum;
+  applicationType?: ApplicationTypeEnum;
 
   githubUrl?: string;
 

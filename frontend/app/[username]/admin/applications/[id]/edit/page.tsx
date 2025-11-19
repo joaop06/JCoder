@@ -3,36 +3,40 @@
 
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
-import { User } from '@/types/api/users/user.entity';
-import { useRouter, useParams } from 'next/navigation';
+import { Canvas } from '@react-three/fiber';
+import { MobilePlatformEnum } from '@/types';
+import { ApplicationTypeEnum } from '@/types/enums/application-type.enum';
+import Hero3D from '@/components/webgl/Hero3D';
 import { LazyImage, TableSkeleton } from '@/components/ui';
+import { User } from '@/types/api/users/user.entity';
+import { useParams, useRouter } from 'next/navigation';
 import { useToast } from '@/components/toast/ToastContext';
 import ImageUpload from '@/components/applications/ImageUpload';
-import { useState, useEffect, useCallback, useRef, Suspense } from 'react';
-import { ApplicationTypeEnum } from '@/types/enums/application-type.enum';
+import WebGLBackground from '@/components/webgl/WebGLBackground';
+import { ExpertiseLevel } from '@/types/enums/expertise-level.enum';
+import FloatingParticles3D from '@/components/webgl/FloatingParticles3D';
 import TechnologySelector from '@/components/applications/TechnologySelector';
 import { UsersService } from '@/services/administration-by-user/users.service';
 import { ImagesService } from '@/services/administration-by-user/images.service';
-import { ApplicationService } from '@/services/administration-by-user/applications.service';
-import { TechnologiesService } from '@/services/administration-by-user/technologies.service';
-import { UpdateApplicationDto } from '@/types/api/applications/dtos/update-application.dto';
+import { useState, useEffect, useCallback, useMemo, useRef, Suspense } from 'react';
 import { CreateTechnologyDto } from '@/types/api/technologies/dtos/create-technology.dto';
-import { ExpertiseLevel } from '@/types/enums/expertise-level.enum';
-import { Canvas } from '@react-three/fiber';
-import WebGLBackground from '@/components/webgl/WebGLBackground';
-import Hero3D from '@/components/webgl/Hero3D';
-import FloatingParticles3D from '@/components/webgl/FloatingParticles3D';
+import { ApplicationService } from '@/services/administration-by-user/applications.service';
+import { UpdateApplicationDto } from '@/types/api/applications/dtos/update-application.dto';
+import { TechnologiesService } from '@/services/administration-by-user/technologies.service';
 
 export default function EditApplicationPage() {
     const router = useRouter();
     const params = useParams();
     const applicationId = params?.id as string;
 
-    const userSession = UsersService.getUserSession();
-    const username = userSession?.user?.username || '';
+    const username = useMemo(() => {
+        const raw = params?.username;
+        return Array.isArray(raw) ? raw[0] : raw || '';
+    }, [params]);
 
     const [loading, setLoading] = useState(true);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [checkingAuth, setCheckingAuth] = useState(true);
     const [formError, setFormError] = useState<string | null>(null);
     const [user, setUser] = useState<User | null>(null);
     const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
@@ -46,8 +50,18 @@ export default function EditApplicationPage() {
     const [formData, setFormData] = useState<UpdateApplicationDto>({
         name: '',
         description: '',
-        applicationType: ApplicationTypeEnum.API,
         isActive: true,
+    });
+    const [selectedComponents, setSelectedComponents] = useState<{
+        api: boolean;
+        frontend: boolean;
+        mobile: boolean;
+        library: boolean;
+    }>({
+        api: false,
+        frontend: false,
+        mobile: false,
+        library: false,
     });
     const [images, setImages] = useState<string[]>([]);
     const [profileImage, setProfileImage] = useState<string | null>(null);
@@ -129,6 +143,7 @@ export default function EditApplicationPage() {
         };
 
         setIsAuthenticated(true);
+        setCheckingAuth(false);
         loadUserProfile();
     }, [router, username]);
 
@@ -169,6 +184,14 @@ export default function EditApplicationPage() {
                 setImages(data.images || []);
                 setProfileImage(data.profileImage || null);
                 setOriginalProfileImage(data.profileImage || null);
+
+                // Initialize selected components based on existing data
+                setSelectedComponents({
+                    api: !!data.applicationComponentApi,
+                    frontend: !!data.applicationComponentFrontend,
+                    mobile: !!data.applicationComponentMobile,
+                    library: !!data.applicationComponentLibrary,
+                });
             } catch (err: any) {
                 const errorMessage = err?.response?.data?.message
                     || err.message
@@ -182,7 +205,58 @@ export default function EditApplicationPage() {
         };
 
         fetchApplication();
-    }, [isAuthenticated, applicationId]);
+    }, [isAuthenticated, applicationId, username, toast]);
+
+    // Initialize component objects when components are selected
+    useEffect(() => {
+        setFormData((prev) => {
+            const newData = { ...prev };
+
+            // Initialize API component if selected
+            if (selectedComponents.api && !newData.applicationComponentApi) {
+                newData.applicationComponentApi = {
+                    domain: '',
+                    apiUrl: '',
+                    documentationUrl: undefined,
+                    healthCheckEndpoint: undefined,
+                };
+            } else if (!selectedComponents.api) {
+                delete newData.applicationComponentApi;
+            }
+
+            // Initialize Frontend component if selected
+            if (selectedComponents.frontend && !newData.applicationComponentFrontend) {
+                newData.applicationComponentFrontend = {
+                    frontendUrl: '',
+                    screenshotUrl: undefined,
+                };
+            } else if (!selectedComponents.frontend) {
+                delete newData.applicationComponentFrontend;
+            }
+
+            // Initialize Mobile component if selected
+            if (selectedComponents.mobile && !newData.applicationComponentMobile) {
+                newData.applicationComponentMobile = {
+                    platform: MobilePlatformEnum.ANDROID,
+                    downloadUrl: undefined,
+                };
+            } else if (!selectedComponents.mobile) {
+                delete newData.applicationComponentMobile;
+            }
+
+            // Initialize Library component if selected
+            if (selectedComponents.library && !newData.applicationComponentLibrary) {
+                newData.applicationComponentLibrary = {
+                    packageManagerUrl: '',
+                    readmeContent: undefined,
+                };
+            } else if (!selectedComponents.library) {
+                delete newData.applicationComponentLibrary;
+            }
+
+            return newData;
+        });
+    }, [selectedComponents]);
 
     const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
@@ -191,7 +265,7 @@ export default function EditApplicationPage() {
             setFormData((prev) => ({
                 ...prev,
                 [parent]: {
-                    ...(prev as any)[parent],
+                    ...(prev as any)[parent] || {},
                     [child]: value,
                 },
             }));
@@ -219,46 +293,30 @@ export default function EditApplicationPage() {
         try {
             const payload: UpdateApplicationDto = { ...formData };
 
-            // Clean up components based on applicationType
-            switch (payload.applicationType) {
-                case ApplicationTypeEnum.API:
-                    delete payload.applicationComponentMobile;
-                    delete payload.applicationComponentLibrary;
-                    delete payload.applicationComponentFrontend;
-                    delete payload.applicationComponentApi?.userId;
-                    delete payload.applicationComponentApi?.applicationId;
-                    break;
-                case ApplicationTypeEnum.FRONTEND:
-                    delete payload.applicationComponentApi;
-                    delete payload.applicationComponentMobile;
-                    delete payload.applicationComponentLibrary;
-                    delete payload.applicationComponentFrontend?.userId;
-                    delete payload.applicationComponentFrontend?.applicationId;
-                    break;
-                case ApplicationTypeEnum.MOBILE:
-                    delete payload.applicationComponentApi;
-                    delete payload.applicationComponentLibrary;
-                    delete payload.applicationComponentFrontend;
-                    delete payload.applicationComponentMobile?.userId;
-                    delete payload.applicationComponentMobile?.applicationId;
-                    break;
-                case ApplicationTypeEnum.LIBRARY:
-                    delete payload.applicationComponentApi;
-                    delete payload.applicationComponentMobile;
-                    delete payload.applicationComponentFrontend;
-                    delete payload.applicationComponentLibrary?.userId;
-                    delete payload.applicationComponentLibrary?.applicationId;
-                    break;
-                case ApplicationTypeEnum.FULLSTACK:
-                    delete payload.applicationComponentMobile;
-                    delete payload.applicationComponentLibrary;
-                    delete payload.applicationComponentApi?.userId;
-                    delete payload.applicationComponentFrontend?.userId;
-                    delete payload.applicationComponentApi?.applicationId;
-                    delete payload.applicationComponentFrontend?.applicationId;
-                    break;
-                default:
-                    break;
+            // Clean up components that are not selected
+            if (!selectedComponents.api) {
+                delete payload.applicationComponentApi;
+            } else {
+                delete payload.applicationComponentApi?.userId;
+                delete payload.applicationComponentApi?.applicationId;
+            }
+            if (!selectedComponents.frontend) {
+                delete payload.applicationComponentFrontend;
+            } else {
+                delete payload.applicationComponentFrontend?.userId;
+                delete payload.applicationComponentFrontend?.applicationId;
+            }
+            if (!selectedComponents.mobile) {
+                delete payload.applicationComponentMobile;
+            } else {
+                delete payload.applicationComponentMobile?.userId;
+                delete payload.applicationComponentMobile?.applicationId;
+            }
+            if (!selectedComponents.library) {
+                delete payload.applicationComponentLibrary;
+            } else {
+                delete payload.applicationComponentLibrary?.userId;
+                delete payload.applicationComponentLibrary?.applicationId;
             }
 
             if (!username) {
@@ -314,11 +372,11 @@ export default function EditApplicationPage() {
             setLoading(false);
             isSubmittingRef.current = false;
         }
-    }, [formData, router, applicationId, pendingProfileImageAction, pendingProfileImageFile, username, toast]);
+    }, [formData, selectedComponents, router, applicationId, pendingProfileImageAction, pendingProfileImageFile, username, toast]);
 
     const handleCreateTechnology = useCallback(async (e: React.FormEvent) => {
         e.preventDefault();
-        
+
         if (!newTechnologyData.name.trim()) {
             toast.error('Technology name is required');
             return;
@@ -329,23 +387,23 @@ export default function EditApplicationPage() {
             if (!username) {
                 throw new Error('User session not found');
             }
-            
+
             const createdTech = await TechnologiesService.create(username, newTechnologyData);
             toast.success(`Technology "${createdTech.name}" created successfully!`);
-            
+
             // Reset form
             setNewTechnologyData({
                 name: '',
                 expertiseLevel: ExpertiseLevel.INTERMEDIATE,
             });
             setShowCreateTechnologyModal(false);
-            
+
             // Add the newly created technology to the selection
             setFormData((prev) => ({
                 ...prev,
                 technologyIds: [...(prev.technologyIds || []), createdTech.id],
             }));
-            
+
             // Force TechnologySelector to reload
             setTechnologyRefreshKey((prev) => prev + 1);
         } catch (err: any) {
@@ -359,7 +417,7 @@ export default function EditApplicationPage() {
         }
     }, [newTechnologyData, username, toast]);
 
-    if (!isAuthenticated || loading) {
+    if (checkingAuth || !isAuthenticated || loading) {
         return (
             <div className="min-h-screen flex flex-col bg-background overflow-hidden relative">
                 {/* WebGL Background - Animated 3D mesh */}
@@ -471,47 +529,82 @@ export default function EditApplicationPage() {
                 </div>
 
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-12 relative z-10">
-                    <div className={`max-w-4xl mx-auto transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-                        {/* Back Button */}
-                        <button
-                            onClick={() => router.back()}
-                            className="group inline-flex items-center gap-2 px-4 py-2 mb-6 sm:mb-8 text-jcoder-muted hover:text-jcoder-primary border border-jcoder/50 hover:border-jcoder-primary rounded-lg transition-all duration-300 hover:bg-jcoder-secondary/50 hover:shadow-lg hover:shadow-jcoder-primary/20 text-sm sm:text-base font-medium"
-                        >
-                            <svg className="w-4 h-4 sm:w-5 sm:h-5 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                            </svg>
-                            <span>Back</span>
-                        </button>
+                    <div className={`max-w-full mx-auto transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+                        {/* Breadcrumb */}
+                        <nav className="mb-3 sm:mb-4 px-2 sm:px-4 mt-2 sm:mt-4 md:mt-0">
+                            <ol className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-jcoder-muted">
+                                <li>
+                                    <button onClick={() => router.push(`/${username}/admin`)} className="hover:text-jcoder-primary transition-colors group">
+                                        <span className="group-hover:underline">Dashboard</span>
+                                    </button>
+                                </li>
+                                <li>
+                                    <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                    </svg>
+                                </li>
+                                <li>
+                                    <button onClick={() => router.push(`/${username}/admin/applications`)} className="hover:text-jcoder-primary transition-colors group">
+                                        <span className="group-hover:underline">Applications</span>
+                                    </button>
+                                </li>
+                                <li>
+                                    <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                    </svg>
+                                </li>
+                                <li className="text-jcoder-foreground font-medium">Edit</li>
+                            </ol>
+                        </nav>
 
-                        <div className="mb-6 sm:mb-8">
-                            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-2 sm:mb-3">
-                                <span className="relative inline-block">
-                                    {/* Base text visible as fallback */}
-                                    <span className="text-jcoder-foreground opacity-100">
-                                        Edit Application
-                                    </span>
-                                    {/* Gradient on top with animation */}
-                                    <span
-                                        className="absolute inset-0 inline-block animate-gradient"
-                                        style={{
-                                            background: 'linear-gradient(to right, #00c8ff, #00c8ff, #0050a0)',
-                                            backgroundSize: '200% 200%',
-                                            WebkitBackgroundClip: 'text',
-                                            WebkitTextFillColor: 'transparent',
-                                            backgroundClip: 'text',
-                                        }}
-                                    >
-                                        Edit Application
-                                    </span>
-                                </span>
-                            </h1>
-                            <p className="text-sm sm:text-base md:text-lg text-jcoder-muted">Edit the details of your application</p>
+                        {/* Page Header */}
+                        <div className="mb-3 sm:mb-4 md:mb-6 px-2 sm:px-4">
+                            <div className="flex items-center gap-2 sm:gap-3">
+                                <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold text-jcoder-foreground">
+                                    Edit Application
+                                </h1>
+                            </div>
+                            <p className="text-xs sm:text-sm md:text-base text-jcoder-muted mt-1 sm:mt-2">Edit the details of your application</p>
                         </div>
 
-                        <div className="bg-jcoder-card/80 backdrop-blur-sm border border-jcoder rounded-3xl p-6 sm:p-8 md:p-12 shadow-2xl shadow-jcoder-primary/10 transform-gpu transition-all duration-500 hover:shadow-jcoder-primary/20 hover:-translate-y-1">
-                            <form onSubmit={handleSubmit}>
+                        <div className="bg-jcoder-card-light backdrop-blur-sm border border-jcoder rounded-2xl lg:rounded-3xl p-4 sm:p-6 md:p-8 lg:p-12 shadow-2xl shadow-jcoder-primary/10 max-w-full mx-auto">
+                            <form id="application-form" onSubmit={handleSubmit}>
+                                {/* Action Buttons Bar - Fixed at top */}
+                                <div className="sticky top-20 sm:top-24 z-30 mb-4 sm:mb-6 -mx-4 sm:-mx-6 md:-mx-8 lg:-mx-12 px-4 sm:px-6 md:px-8 lg:px-12 py-3 sm:py-4 bg-jcoder-card-light/95 backdrop-blur-md border-b border-jcoder shadow-lg">
+                                    <div className="flex flex-col sm:flex-row justify-end gap-2.5 sm:gap-3 lg:gap-4">
+                                        <button
+                                            type="button"
+                                            onClick={() => router.push(`/${username}/admin/applications`)}
+                                            className="w-full sm:w-auto px-5 sm:px-6 lg:px-8 py-2.5 sm:py-3 border-2 border-jcoder rounded-lg sm:rounded-xl text-jcoder-muted hover:bg-jcoder-secondary hover:text-jcoder-foreground hover:border-jcoder-primary transition-all duration-300 font-semibold text-sm sm:text-base"
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            type="submit"
+                                            disabled={loading}
+                                            className="w-full sm:w-auto px-5 sm:px-6 lg:px-8 py-2.5 sm:py-3 bg-jcoder-gradient text-black rounded-lg sm:rounded-xl hover:opacity-90 transition-all duration-300 font-bold transform-gpu hover:scale-105 hover:shadow-xl hover:shadow-jcoder-primary/50 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2 group text-sm sm:text-base"
+                                        >
+                                            {loading ? (
+                                                <>
+                                                    <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                    </svg>
+                                                    Updating...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <svg className="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                                    </svg>
+                                                    Update Application
+                                                </>
+                                            )}
+                                        </button>
+                                    </div>
+                                </div>
                                 {formError && (
-                                    <div className="mb-6 p-4 border border-red-400/50 bg-red-900/20 backdrop-blur-sm text-red-400 rounded-xl shadow-lg shadow-red-500/10 text-sm sm:text-base">
+                                    <div className="mb-4 sm:mb-6 p-3 sm:p-4 border border-red-400/50 bg-red-900/20 backdrop-blur-sm text-red-400 rounded-xl shadow-lg shadow-red-500/10 text-sm sm:text-base">
                                         <div className="flex items-center gap-2">
                                             <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -521,9 +614,9 @@ export default function EditApplicationPage() {
                                     </div>
                                 )}
 
-                                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                                <div className="grid grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2">
                                     <div>
-                                        <label htmlFor="name" className="block text-sm font-semibold text-jcoder-foreground mb-2">Name</label>
+                                        <label htmlFor="name" className="block text-xs sm:text-sm font-semibold text-jcoder-foreground mb-1.5 sm:mb-2">Name</label>
                                         <input
                                             type="text"
                                             name="name"
@@ -531,11 +624,11 @@ export default function EditApplicationPage() {
                                             value={formData.name}
                                             onChange={handleChange}
                                             required
-                                            className="block w-full border border-jcoder rounded-xl shadow-sm py-3 px-4 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted hover:border-jcoder-primary/50"
+                                            className="block w-full border border-jcoder rounded-lg sm:rounded-xl shadow-sm py-2.5 sm:py-3 px-3 sm:px-4 text-sm focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary transition-all duration-200 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted hover:border-jcoder-primary/50"
                                         />
                                     </div>
                                     <div>
-                                        <label htmlFor="description" className="block text-sm font-semibold text-jcoder-foreground mb-2">Description</label>
+                                        <label htmlFor="description" className="block text-xs sm:text-sm font-semibold text-jcoder-foreground mb-1.5 sm:mb-2">Description</label>
                                         <textarea
                                             name="description"
                                             id="description"
@@ -543,523 +636,511 @@ export default function EditApplicationPage() {
                                             onChange={handleChange}
                                             required
                                             rows={3}
-                                            className="block w-full border border-jcoder rounded-xl shadow-sm py-3 px-4 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted hover:border-jcoder-primary/50 resize-none"
+                                            className="block w-full border border-jcoder rounded-lg sm:rounded-xl shadow-sm py-2.5 sm:py-3 px-3 sm:px-4 text-sm focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary transition-all duration-200 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted hover:border-jcoder-primary/50 resize-none"
                                         ></textarea>
                                     </div>
                                     <div>
-                                        <label htmlFor="applicationType" className="block text-sm font-semibold text-jcoder-foreground mb-2">Application Type</label>
+                                        <label htmlFor="applicationType" className="block text-xs sm:text-sm font-semibold text-jcoder-foreground mb-1.5 sm:mb-2">Application Type <span className="text-jcoder-muted font-normal">(Optional)</span></label>
                                         <select
                                             name="applicationType"
                                             id="applicationType"
-                                            value={formData.applicationType}
-                                            onChange={handleChange}
-                                            required
-                                            className="block w-full border border-jcoder rounded-xl shadow-sm py-3 px-4 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-jcoder-foreground hover:border-jcoder-primary/50"
+                                            value={formData.applicationType || ''}
+                                            onChange={(e) => {
+                                                const value = e.target.value;
+                                                setFormData((prev) => ({
+                                                    ...prev,
+                                                    applicationType: value === '' ? undefined : value as ApplicationTypeEnum,
+                                                }));
+                                            }}
+                                            className="block w-full border border-jcoder rounded-lg sm:rounded-xl shadow-sm py-2.5 sm:py-3 px-3 sm:px-4 text-sm focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary transition-all duration-200 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted hover:border-jcoder-primary/50"
                                         >
-                                            {Object.values(ApplicationTypeEnum).map((type) => (
-                                                <option key={type} value={type}>{type}</option>
-                                            ))}
+                                            <option value="">Nenhum</option>
+                                            <option value={ApplicationTypeEnum.API}>API</option>
+                                            <option value={ApplicationTypeEnum.FRONTEND}>Frontend</option>
+                                            <option value={ApplicationTypeEnum.MOBILE}>Mobile</option>
+                                            <option value={ApplicationTypeEnum.LIBRARY}>Library</option>
+                                            <option value={ApplicationTypeEnum.FULLSTACK}>Fullstack</option>
                                         </select>
                                     </div>
                                     <div>
-                                        <label htmlFor="githubUrl" className="block text-sm font-semibold text-jcoder-foreground mb-2">GitHub URL <span className="text-jcoder-muted font-normal">(Optional)</span></label>
+                                        <label htmlFor="githubUrl" className="block text-xs sm:text-sm font-semibold text-jcoder-foreground mb-1.5 sm:mb-2">GitHub URL <span className="text-jcoder-muted font-normal">(Optional)</span></label>
                                         <input
                                             type="url"
-                                            id="githubUrl"
                                             name="githubUrl"
-                                            onChange={handleChange}
+                                            id="githubUrl"
                                             value={formData.githubUrl || ''}
-                                            className="block w-full border border-jcoder rounded-xl shadow-sm py-3 px-4 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted hover:border-jcoder-primary/50"
+                                            onChange={handleChange}
+                                            className="block w-full border border-jcoder rounded-lg sm:rounded-xl shadow-sm py-2.5 sm:py-3 px-3 sm:px-4 text-sm focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary transition-all duration-200 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted hover:border-jcoder-primary/50"
                                         />
                                     </div>
-                            </div>
+                                </div>
 
                                 {/* Status Toggle */}
-                                <div className="mt-8 pt-8 border-t border-jcoder">
+                                <div className="mt-6 sm:mt-8 pt-6 sm:pt-8 border-t border-jcoder">
                                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-5 sm:p-6 bg-jcoder-secondary/50 backdrop-blur-sm border border-jcoder rounded-2xl shadow-lg">
-                                    <div className="flex-1">
-                                        <label className="block text-sm font-medium text-jcoder-foreground mb-1">
-                                            Application Status
-                                        </label>
-                                        <p className="text-xs sm:text-sm text-jcoder-muted">
-                                            {formData.isActive ? 'Application is visible on the public site' : 'Application is hidden from the public site'}
-                                        </p>
-                                    </div>
-                                    <button
-                                        type="button"
-                                        onClick={() => setFormData({ ...formData, isActive: !formData.isActive })}
-                                        className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:ring-offset-2 focus:ring-offset-jcoder-card flex-shrink-0 ${formData.isActive ? 'bg-green-500' : 'bg-gray-600'
-                                            }`}
-                                    >
-                                        <span
-                                            className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${formData.isActive ? 'translate-x-7' : 'translate-x-1'
+                                        <div className="flex-1">
+                                            <label className="block text-sm font-medium text-jcoder-foreground mb-1">
+                                                Application Status
+                                            </label>
+                                            <p className="text-xs sm:text-sm text-jcoder-muted">
+                                                {formData.isActive ? 'Application is visible on the public site' : 'Application is hidden from the public site'}
+                                            </p>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => setFormData({ ...formData, isActive: !formData.isActive })}
+                                            className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:ring-offset-2 focus:ring-offset-jcoder-card flex-shrink-0 ${formData.isActive ? 'bg-green-500' : 'bg-gray-600'
                                                 }`}
-                                        />
-                                    </button>
+                                        >
+                                            <span
+                                                className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${formData.isActive ? 'translate-x-7' : 'translate-x-1'
+                                                    }`}
+                                            />
+                                        </button>
+                                    </div>
                                 </div>
-                            </div>
 
-                                {/* Conditional Component Fields */}
-                                {formData.applicationType === ApplicationTypeEnum.API && (
-                                    <div className="mt-8 pt-8 border-t border-jcoder border-l-4 border-jcoder-primary pl-4 sm:pl-6">
-                                        <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-jcoder-foreground mb-4 sm:mb-6 flex items-center gap-2">
-                                            <span className="w-1 h-6 sm:h-8 bg-jcoder-gradient rounded-full"></span>
+                                {/* Grid Layout for Side-by-Side Sections */}
+                                <div className="mt-6 sm:mt-8 grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
+                                    {/* Component Selection Section */}
+                                    <div className="pt-6 sm:pt-8 border-t border-jcoder lg:border-l-4 lg:border-l-jcoder-primary pl-0 lg:pl-4 lg:pl-6">
+                                        <h3 className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-jcoder-foreground mb-3 sm:mb-4 md:mb-6 flex items-center gap-2">
+                                            <span className="w-1 h-5 sm:h-6 md:h-8 bg-jcoder-gradient rounded-full"></span>
+                                            <span>Select Components</span>
+                                        </h3>
+                                        <p className="text-xs sm:text-sm text-jcoder-muted mb-4 sm:mb-6">
+                                            Select which components your application has. You can choose one or more components.
+                                        </p>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                                            {/* API Component Checkbox */}
+                                            <label className="flex items-center gap-2.5 sm:gap-3 p-3 sm:p-4 border border-jcoder rounded-lg sm:rounded-xl hover:border-jcoder-primary transition-all duration-200 cursor-pointer bg-jcoder-secondary/50 hover:bg-jcoder-secondary">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedComponents.api}
+                                                    onChange={(e) => {
+                                                        setSelectedComponents((prev) => ({
+                                                            ...prev,
+                                                            api: e.target.checked,
+                                                        }));
+                                                    }}
+                                                    className="w-5 h-5 text-jcoder-primary border-jcoder rounded focus:ring-jcoder-primary focus:ring-2 flex-shrink-0"
+                                                />
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="font-semibold text-sm sm:text-base text-jcoder-foreground">API</div>
+                                                    <div className="text-xs text-jcoder-muted">Backend/REST API</div>
+                                                </div>
+                                            </label>
+
+                                            {/* Frontend Component Checkbox */}
+                                            <label className="flex items-center gap-2.5 sm:gap-3 p-3 sm:p-4 border border-jcoder rounded-lg sm:rounded-xl hover:border-jcoder-primary transition-all duration-200 cursor-pointer bg-jcoder-secondary/50 hover:bg-jcoder-secondary">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedComponents.frontend}
+                                                    onChange={(e) => {
+                                                        setSelectedComponents((prev) => ({
+                                                            ...prev,
+                                                            frontend: e.target.checked,
+                                                        }));
+                                                    }}
+                                                    className="w-5 h-5 text-jcoder-primary border-jcoder rounded focus:ring-jcoder-primary focus:ring-2 flex-shrink-0"
+                                                />
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="font-semibold text-sm sm:text-base text-jcoder-foreground">Frontend</div>
+                                                    <div className="text-xs text-jcoder-muted">Web Interface</div>
+                                                </div>
+                                            </label>
+
+                                            {/* Mobile Component Checkbox */}
+                                            <label className="flex items-center gap-2.5 sm:gap-3 p-3 sm:p-4 border border-jcoder rounded-lg sm:rounded-xl hover:border-jcoder-primary transition-all duration-200 cursor-pointer bg-jcoder-secondary/50 hover:bg-jcoder-secondary">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedComponents.mobile}
+                                                    onChange={(e) => {
+                                                        setSelectedComponents((prev) => ({
+                                                            ...prev,
+                                                            mobile: e.target.checked,
+                                                        }));
+                                                    }}
+                                                    className="w-5 h-5 text-jcoder-primary border-jcoder rounded focus:ring-jcoder-primary focus:ring-2 flex-shrink-0"
+                                                />
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="font-semibold text-sm sm:text-base text-jcoder-foreground">Mobile</div>
+                                                    <div className="text-xs text-jcoder-muted">Mobile App</div>
+                                                </div>
+                                            </label>
+
+                                            {/* Library Component Checkbox */}
+                                            <label className="flex items-center gap-2.5 sm:gap-3 p-3 sm:p-4 border border-jcoder rounded-lg sm:rounded-xl hover:border-jcoder-primary transition-all duration-200 cursor-pointer bg-jcoder-secondary/50 hover:bg-jcoder-secondary">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedComponents.library}
+                                                    onChange={(e) => {
+                                                        setSelectedComponents((prev) => ({
+                                                            ...prev,
+                                                            library: e.target.checked,
+                                                        }));
+                                                    }}
+                                                    className="w-5 h-5 text-jcoder-primary border-jcoder rounded focus:ring-jcoder-primary focus:ring-2 flex-shrink-0"
+                                                />
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="font-semibold text-sm sm:text-base text-jcoder-foreground">Library</div>
+                                                    <div className="text-xs text-jcoder-muted">Library/Package</div>
+                                                </div>
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    {/* Technologies Section */}
+                                    <div className="pt-6 sm:pt-8 border-t border-jcoder lg:border-l-4 lg:border-l-jcoder-primary pl-0 lg:pl-4 lg:pl-6">
+                                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0 mb-3 sm:mb-4">
+                                            <div className="flex-1">
+                                                <h3 className="text-base sm:text-lg font-medium text-jcoder-foreground">Technologies</h3>
+                                                <p className="text-xs sm:text-sm text-jcoder-muted mt-1">
+                                                    Select the technologies used in this application
+                                                </p>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowCreateTechnologyModal(true)}
+                                                disabled={loading}
+                                                className="inline-flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-xs sm:text-sm transform-gpu hover:scale-105 hover:shadow-lg hover:shadow-jcoder-primary/50 active:scale-95 group flex-shrink-0 w-full sm:w-auto"
+                                            >
+                                                <svg className="w-4 h-4 sm:w-5 sm:h-5 group-hover:rotate-90 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                                </svg>
+                                                New Technology
+                                            </button>
+                                        </div>
+                                        <TechnologySelector
+                                            selectedTechnologyIds={formData.technologyIds || []}
+                                            onSelectionChange={(technologyIds) => {
+                                                setFormData((prev) => ({
+                                                    ...prev,
+                                                    technologyIds,
+                                                }));
+                                            }}
+                                            disabled={loading}
+                                            refreshKey={technologyRefreshKey}
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Grid Layout for Images Sections */}
+                                <div className="mt-6 sm:mt-8 grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
+                                    {/* Profile Image Upload Section */}
+                                    <div className="pt-6 sm:pt-8 border-t border-jcoder lg:border-l-4 lg:border-l-jcoder-primary pl-0 lg:pl-4 lg:pl-6">
+                                        <h3 className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-jcoder-foreground mb-3 sm:mb-4 md:mb-6 flex items-center gap-2">
+                                            <span className="w-1 h-5 sm:h-6 md:h-8 bg-jcoder-gradient rounded-full"></span>
+                                            <span>Profile Image</span>
+                                        </h3>
+                                        <p className="text-xs sm:text-sm text-jcoder-muted mb-3 sm:mb-4">
+                                            Manage the logo or profile image for your application (optional)
+                                        </p>
+                                        <div className="space-y-3 sm:space-y-4">
+                                            <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+                                                <div className="relative flex-shrink-0">
+                                                    {pendingProfileImageFile ? (
+                                                        <img
+                                                            src={URL.createObjectURL(pendingProfileImageFile)}
+                                                            alt="Profile preview"
+                                                            className="w-20 h-20 rounded-lg object-cover border border-jcoder"
+                                                        />
+                                                    ) : profileImage ? (
+                                                        <LazyImage
+                                                            src={ImagesService.getApplicationProfileImageUrl(username, Number(applicationId))}
+                                                            alt="Current profile"
+                                                            fallback={formData.name!}
+                                                            className="w-20 h-20 rounded-lg border border-jcoder object-cover"
+                                                            size="custom"
+                                                            width="w-20"
+                                                            height="h-20"
+                                                        />
+                                                    ) : (
+                                                        <div className="w-20 h-20 rounded-lg border-2 border-dashed border-jcoder flex items-center justify-center bg-jcoder-secondary">
+                                                            <svg
+                                                                className="w-8 h-8 text-jcoder-muted"
+                                                                fill="none"
+                                                                stroke="currentColor"
+                                                                viewBox="0 0 24 24"
+                                                            >
+                                                                <path
+                                                                    strokeLinecap="round"
+                                                                    strokeLinejoin="round"
+                                                                    strokeWidth={2}
+                                                                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                                                />
+                                                            </svg>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-xs sm:text-sm text-jcoder-muted">
+                                                        {pendingProfileImageAction === 'delete'
+                                                            ? 'Profile image will be deleted'
+                                                            : pendingProfileImageFile
+                                                                ? 'New profile image selected'
+                                                                : profileImage
+                                                                    ? 'Current profile image'
+                                                                    : 'No profile image set'
+                                                        }
+                                                    </p>
+                                                    <p className="text-xs text-jcoder-muted mt-0.5">
+                                                        Recommended: 400x400px, max. 5MB
+                                                    </p>
+                                                    {pendingProfileImageAction !== 'none' && (
+                                                        <p className="text-xs text-yellow-400 mt-1">
+                                                            Changes will be applied when you save
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            <div className="flex flex-wrap gap-2">
+                                                <label className="px-3 sm:px-4 py-2 bg-jcoder-gradient text-black rounded-md hover:opacity-90 transition-opacity duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-xs sm:text-sm cursor-pointer inline-flex items-center justify-center">
+                                                    {profileImage ? 'Change Image' : 'Select Image'}
+                                                    <input
+                                                        type="file"
+                                                        accept="image/jpeg,image/jpg,image/png,image/webp"
+                                                        onChange={(e) => {
+                                                            const file = e.target.files?.[0];
+                                                            if (file) {
+                                                                // Validate file type
+                                                                const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+                                                                if (!allowedTypes.includes(file.type)) {
+                                                                    toast.error('Invalid file type. Only JPEG, PNG and WebP images are allowed.');
+                                                                    return;
+                                                                }
+
+                                                                // Validate file size (5MB)
+                                                                const maxSize = 5 * 1024 * 1024; // 5MB
+                                                                if (file.size > maxSize) {
+                                                                    toast.error('File too large. Maximum size is 5MB.');
+                                                                    return;
+                                                                }
+
+                                                                setPendingProfileImageFile(file);
+                                                                const action = profileImage ? 'update' : 'upload';
+                                                                setPendingProfileImageAction(action);
+                                                            }
+                                                        }}
+                                                        disabled={loading}
+                                                        className="hidden"
+                                                    />
+                                                </label>
+
+                                                {profileImage && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setPendingProfileImageFile(null);
+                                                            setPendingProfileImageAction('delete');
+                                                        }}
+                                                        disabled={loading}
+                                                        className="px-3 sm:px-4 py-2 border border-red-400 text-red-400 rounded-md hover:bg-red-900/20 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-xs sm:text-sm"
+                                                    >
+                                                        Remove Image
+                                                    </button>
+                                                )}
+
+                                                {pendingProfileImageAction !== 'none' && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setPendingProfileImageFile(null);
+                                                            setPendingProfileImageAction('none');
+                                                        }}
+                                                        disabled={loading}
+                                                        className="px-3 sm:px-4 py-2 border border-jcoder text-jcoder-muted rounded-md hover:bg-jcoder-secondary transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-xs sm:text-sm"
+                                                    >
+                                                        Cancel Changes
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Image Upload Section */}
+                                    <div className="pt-6 sm:pt-8 border-t border-jcoder lg:border-l-4 lg:border-l-jcoder-primary pl-0 lg:pl-4 lg:pl-6">
+                                        <h3 className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-jcoder-foreground mb-3 sm:mb-4 md:mb-6 flex items-center gap-2">
+                                            <span className="w-1 h-5 sm:h-6 md:h-8 bg-jcoder-gradient rounded-full"></span>
+                                            <span>Application Images</span>
+                                        </h3>
+                                        <ImageUpload
+                                            images={images}
+                                            onImagesChange={setImages}
+                                            applicationId={Number(applicationId)}
+                                            disabled={loading}
+                                        />
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+
+                        {/* Component Cards - Separate cards below main card */}
+                        <div className="mt-4 sm:mt-6 max-w-full mx-auto">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+                                {selectedComponents.api && (
+                                    <div className="bg-jcoder-card-light backdrop-blur-sm border border-jcoder rounded-2xl lg:rounded-3xl p-4 sm:p-6 md:p-8 lg:p-12 shadow-2xl shadow-jcoder-primary/10">
+                                        <h3 className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-jcoder-foreground mb-3 sm:mb-4 md:mb-6 flex items-center gap-2">
+                                            <span className="w-1 h-5 sm:h-6 md:h-8 bg-jcoder-gradient rounded-full"></span>
                                             <span>API Component Details</span>
                                         </h3>
-                                    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                                        <div>
-                                            <label htmlFor="api-domain" className="block text-sm font-medium text-jcoder-muted">Domain</label>
-                                            <input
-                                                type="text"
-                                                name="applicationComponentApi.domain"
-                                                id="api-domain"
-                                                value={formData.applicationComponentApi?.domain || ''}
-                                                onChange={handleChange}
-                                                required
-                                                className="mt-1 block w-full border border-jcoder rounded-lg shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted hover:border-jcoder-primary/50"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label htmlFor="api-apiUrl" className="block text-sm font-medium text-jcoder-muted">API URL</label>
-                                            <input
-                                                type="url"
-                                                name="applicationComponentApi.apiUrl"
-                                                id="api-apiUrl"
-                                                value={formData.applicationComponentApi?.apiUrl || ''}
-                                                onChange={handleChange}
-                                                required
-                                                className="mt-1 block w-full border border-jcoder rounded-lg shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted hover:border-jcoder-primary/50"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label htmlFor="api-documentationUrl" className="block text-sm font-medium text-jcoder-muted">Documentation URL (Optional)</label>
-                                            <input
-                                                type="url"
-                                                name="applicationComponentApi.documentationUrl"
-                                                id="api-documentationUrl"
-                                                value={formData.applicationComponentApi?.documentationUrl || ''}
-                                                onChange={handleChange}
-                                                className="mt-1 block w-full border border-jcoder rounded-lg shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted hover:border-jcoder-primary/50"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label htmlFor="api-healthCheckEndpoint" className="block text-sm font-medium text-jcoder-muted">Health Check Endpoint (Optional)</label>
-                                            <input
-                                                type="text"
-                                                name="applicationComponentApi.healthCheckEndpoint"
-                                                id="api-healthCheckEndpoint"
-                                                value={formData.applicationComponentApi?.healthCheckEndpoint || ''}
-                                                onChange={handleChange}
-                                                className="mt-1 block w-full border border-jcoder rounded-lg shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted hover:border-jcoder-primary/50"
-                                            />
+                                        <div className="grid grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2">
+                                            <div className="sm:col-span-2">
+                                                <label htmlFor="api-domain" className="block text-xs sm:text-sm font-medium text-jcoder-muted mb-1.5">Domain</label>
+                                                <input
+                                                    type="text"
+                                                    name="applicationComponentApi.domain"
+                                                    id="api-domain"
+                                                    value={formData.applicationComponentApi?.domain || ''}
+                                                    onChange={handleChange}
+                                                    required
+                                                    className="block w-full border border-jcoder rounded-lg shadow-sm py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary transition-all duration-200 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted hover:border-jcoder-primary/50"
+                                                />
+                                            </div>
+                                            <div className="sm:col-span-2">
+                                                <label htmlFor="api-apiUrl" className="block text-xs sm:text-sm font-medium text-jcoder-muted mb-1.5">API URL</label>
+                                                <input
+                                                    type="url"
+                                                    name="applicationComponentApi.apiUrl"
+                                                    id="api-apiUrl"
+                                                    value={formData.applicationComponentApi?.apiUrl || ''}
+                                                    onChange={handleChange}
+                                                    required
+                                                    className="block w-full border border-jcoder rounded-lg shadow-sm py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary transition-all duration-200 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted hover:border-jcoder-primary/50"
+                                                />
+                                            </div>
+                                            <div className="sm:col-span-2">
+                                                <label htmlFor="api-documentationUrl" className="block text-xs sm:text-sm font-medium text-jcoder-muted mb-1.5">Documentation URL (Optional)</label>
+                                                <input
+                                                    type="url"
+                                                    name="applicationComponentApi.documentationUrl"
+                                                    id="api-documentationUrl"
+                                                    value={formData.applicationComponentApi?.documentationUrl || ''}
+                                                    onChange={handleChange}
+                                                    className="block w-full border border-jcoder rounded-lg shadow-sm py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary transition-all duration-200 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted hover:border-jcoder-primary/50"
+                                                />
+                                            </div>
+                                            <div className="sm:col-span-2">
+                                                <label htmlFor="api-healthCheckEndpoint" className="block text-xs sm:text-sm font-medium text-jcoder-muted mb-1.5">Health Check Endpoint (Optional)</label>
+                                                <input
+                                                    type="text"
+                                                    name="applicationComponentApi.healthCheckEndpoint"
+                                                    id="api-healthCheckEndpoint"
+                                                    value={formData.applicationComponentApi?.healthCheckEndpoint || ''}
+                                                    onChange={handleChange}
+                                                    className="block w-full border border-jcoder rounded-lg shadow-sm py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary transition-all duration-200 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted hover:border-jcoder-primary/50"
+                                                />
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            )}
+                                )}
 
-                                {formData.applicationType === ApplicationTypeEnum.FRONTEND && (
-                                    <div className="mt-8 pt-8 border-t border-jcoder border-l-4 border-jcoder-primary pl-4 sm:pl-6">
-                                        <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-jcoder-foreground mb-4 sm:mb-6 flex items-center gap-2">
-                                            <span className="w-1 h-6 sm:h-8 bg-jcoder-gradient rounded-full"></span>
+                                {selectedComponents.frontend && (
+                                    <div className="bg-jcoder-card-light backdrop-blur-sm border border-jcoder rounded-2xl lg:rounded-3xl p-4 sm:p-6 md:p-8 lg:p-12 shadow-2xl shadow-jcoder-primary/10">
+                                        <h3 className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-jcoder-foreground mb-3 sm:mb-4 md:mb-6 flex items-center gap-2">
+                                            <span className="w-1 h-5 sm:h-6 md:h-8 bg-jcoder-gradient rounded-full"></span>
                                             <span>Frontend Component Details</span>
                                         </h3>
-                                    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                                        <div>
-                                            <label htmlFor="frontend-frontendUrl" className="block text-sm font-medium text-jcoder-muted">Frontend URL</label>
-                                            <input
-                                                type="url"
-                                                name="applicationComponentFrontend.frontendUrl"
-                                                id="frontend-frontendUrl"
-                                                value={formData.applicationComponentFrontend?.frontendUrl || ''}
-                                                onChange={handleChange}
-                                                required
-                                                className="mt-1 block w-full border border-jcoder rounded-lg shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted hover:border-jcoder-primary/50"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label htmlFor="frontend-screenshotUrl" className="block text-sm font-medium text-jcoder-muted">Screenshot URL (Optional)</label>
-                                            <input
-                                                type="url"
-                                                name="applicationComponentFrontend.screenshotUrl"
-                                                id="frontend-screenshotUrl"
-                                                value={formData.applicationComponentFrontend?.screenshotUrl || ''}
-                                                onChange={handleChange}
-                                                className="mt-1 block w-full border border-jcoder rounded-lg shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted hover:border-jcoder-primary/50"
-                                            />
+                                        <div className="grid grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2">
+                                            <div className="sm:col-span-2">
+                                                <label htmlFor="frontend-frontendUrl" className="block text-xs sm:text-sm font-medium text-jcoder-muted mb-1.5">Frontend URL</label>
+                                                <input
+                                                    type="url"
+                                                    name="applicationComponentFrontend.frontendUrl"
+                                                    id="frontend-frontendUrl"
+                                                    value={formData.applicationComponentFrontend?.frontendUrl || ''}
+                                                    onChange={handleChange}
+                                                    required
+                                                    className="block w-full border border-jcoder rounded-lg shadow-sm py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary transition-all duration-200 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted hover:border-jcoder-primary/50"
+                                                />
+                                            </div>
+                                            <div className="sm:col-span-2">
+                                                <label htmlFor="frontend-screenshotUrl" className="block text-xs sm:text-sm font-medium text-jcoder-muted mb-1.5">Screenshot URL (Optional)</label>
+                                                <input
+                                                    type="url"
+                                                    name="applicationComponentFrontend.screenshotUrl"
+                                                    id="frontend-screenshotUrl"
+                                                    value={formData.applicationComponentFrontend?.screenshotUrl || ''}
+                                                    onChange={handleChange}
+                                                    className="block w-full border border-jcoder rounded-lg shadow-sm py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary transition-all duration-200 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted hover:border-jcoder-primary/50"
+                                                />
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            )}
+                                )}
 
-                                {formData.applicationType === ApplicationTypeEnum.MOBILE && (
-                                    <div className="mt-8 pt-8 border-t border-jcoder border-l-4 border-jcoder-primary pl-4 sm:pl-6">
-                                        <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-jcoder-foreground mb-4 sm:mb-6 flex items-center gap-2">
-                                            <span className="w-1 h-6 sm:h-8 bg-jcoder-gradient rounded-full"></span>
+                                {selectedComponents.mobile && (
+                                    <div className="bg-jcoder-card-light backdrop-blur-sm border border-jcoder rounded-2xl lg:rounded-3xl p-4 sm:p-6 md:p-8 lg:p-12 shadow-2xl shadow-jcoder-primary/10">
+                                        <h3 className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-jcoder-foreground mb-3 sm:mb-4 md:mb-6 flex items-center gap-2">
+                                            <span className="w-1 h-5 sm:h-6 md:h-8 bg-jcoder-gradient rounded-full"></span>
                                             <span>Mobile Component Details</span>
                                         </h3>
-                                    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                                        <div>
-                                            <label htmlFor="mobile-platform" className="block text-sm font-medium text-jcoder-muted">Platform</label>
-                                            <select
-                                                name="applicationComponentMobile.platform"
-                                                id="mobile-platform"
-                                                value={formData.applicationComponentMobile?.platform || 'Android'}
-                                                onChange={handleChange}
-                                                required
-                                                className="mt-1 block w-full border border-jcoder rounded-lg shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted hover:border-jcoder-primary/50"
-                                            >
-                                                <option value="iOS">iOS</option>
-                                                <option value="Android">Android</option>
-                                                <option value="Multiplatform">Multiplatform</option>
-                                            </select>
-                                        </div>
-                                        <div>
-                                            <label htmlFor="mobile-downloadUrl" className="block text-sm font-medium text-jcoder-muted">Download URL (Optional)</label>
-                                            <input
-                                                type="url"
-                                                name="applicationComponentMobile.downloadUrl"
-                                                id="mobile-downloadUrl"
-                                                value={formData.applicationComponentMobile?.downloadUrl || ''}
-                                                onChange={handleChange}
-                                                className="mt-1 block w-full border border-jcoder rounded-lg shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted hover:border-jcoder-primary/50"
-                                            />
+                                        <div className="grid grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2">
+                                            <div className="sm:col-span-2">
+                                                <label htmlFor="mobile-platform" className="block text-xs sm:text-sm font-medium text-jcoder-muted mb-1.5">Platform</label>
+                                                <select
+                                                    name="applicationComponentMobile.platform"
+                                                    id="mobile-platform"
+                                                    value={formData.applicationComponentMobile?.platform || MobilePlatformEnum.ANDROID}
+                                                    onChange={handleChange}
+                                                    required
+                                                    className="block w-full border border-jcoder rounded-lg shadow-sm py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary transition-all duration-200 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted hover:border-jcoder-primary/50"
+                                                >
+                                                    <option value={MobilePlatformEnum.IOS}>iOS</option>
+                                                    <option value={MobilePlatformEnum.ANDROID}>Android</option>
+                                                    <option value={MobilePlatformEnum.MULTIPLATFORM}>Multiplatform</option>
+                                                </select>
+                                            </div>
+                                            <div className="sm:col-span-2">
+                                                <label htmlFor="mobile-downloadUrl" className="block text-xs sm:text-sm font-medium text-jcoder-muted mb-1.5">Download URL (Optional)</label>
+                                                <input
+                                                    type="url"
+                                                    name="applicationComponentMobile.downloadUrl"
+                                                    id="mobile-downloadUrl"
+                                                    value={formData.applicationComponentMobile?.downloadUrl || ''}
+                                                    onChange={handleChange}
+                                                    className="block w-full border border-jcoder rounded-lg shadow-sm py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary transition-all duration-200 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted hover:border-jcoder-primary/50"
+                                                />
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            )}
+                                )}
 
-                                {formData.applicationType === ApplicationTypeEnum.LIBRARY && (
-                                    <div className="mt-8 pt-8 border-t border-jcoder border-l-4 border-jcoder-primary pl-4 sm:pl-6">
-                                        <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-jcoder-foreground mb-4 sm:mb-6 flex items-center gap-2">
-                                            <span className="w-1 h-6 sm:h-8 bg-jcoder-gradient rounded-full"></span>
+                                {selectedComponents.library && (
+                                    <div className="bg-jcoder-card-light backdrop-blur-sm border border-jcoder rounded-2xl lg:rounded-3xl p-4 sm:p-6 md:p-8 lg:p-12 shadow-2xl shadow-jcoder-primary/10">
+                                        <h3 className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-jcoder-foreground mb-3 sm:mb-4 md:mb-6 flex items-center gap-2">
+                                            <span className="w-1 h-5 sm:h-6 md:h-8 bg-jcoder-gradient rounded-full"></span>
                                             <span>Library Component Details</span>
                                         </h3>
-                                    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                                        <div>
-                                            <label htmlFor="library-packageManagerUrl" className="block text-sm font-medium text-jcoder-muted">Package Manager URL</label>
-                                            <input
-                                                type="url"
-                                                name="applicationComponentLibrary.packageManagerUrl"
-                                                id="library-packageManagerUrl"
-                                                value={formData.applicationComponentLibrary?.packageManagerUrl || ''}
-                                                onChange={handleChange}
-                                                required
-                                                className="mt-1 block w-full border border-jcoder rounded-lg shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted hover:border-jcoder-primary/50"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label htmlFor="library-readmeContent" className="block text-sm font-medium text-jcoder-muted">README Content (Optional)</label>
-                                            <textarea
-                                                name="applicationComponentLibrary.readmeContent"
-                                                id="library-readmeContent"
-                                                value={formData.applicationComponentLibrary?.readmeContent || ''}
-                                                onChange={handleChange}
-                                                rows={5}
-                                                className="mt-1 block w-full border border-jcoder rounded-lg shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted hover:border-jcoder-primary/50"
-                                            ></textarea>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                                {formData.applicationType === ApplicationTypeEnum.FULLSTACK && (
-                                    <div className="mt-8 pt-8 border-t border-jcoder border-l-4 border-jcoder-primary pl-4 sm:pl-6">
-                                        <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-jcoder-foreground mb-4 sm:mb-6 flex items-center gap-2">
-                                            <span className="w-1 h-6 sm:h-8 bg-jcoder-gradient rounded-full"></span>
-                                            <span>Frontend Component Details</span>
-                                        </h3>
-                                    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                                        <div>
-                                            <label htmlFor="fullstack-frontendUrl" className="block text-sm font-medium text-jcoder-muted">Frontend URL</label>
-                                            <input
-                                                type="url"
-                                                name="applicationComponentFrontend.frontendUrl"
-                                                id="fullstack-frontendUrl"
-                                                value={formData.applicationComponentFrontend?.frontendUrl || ''}
-                                                onChange={handleChange}
-                                                required
-                                                className="mt-1 block w-full border border-jcoder rounded-lg shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted hover:border-jcoder-primary/50"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label htmlFor="fullstack-screenshotUrl" className="block text-sm font-medium text-jcoder-muted">Screenshot URL (Optional)</label>
-                                            <input
-                                                type="url"
-                                                name="applicationComponentFrontend.screenshotUrl"
-                                                id="fullstack-screenshotUrl"
-                                                value={formData.applicationComponentFrontend?.screenshotUrl || ''}
-                                                onChange={handleChange}
-                                                className="mt-1 block w-full border border-jcoder rounded-lg shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted hover:border-jcoder-primary/50"
-                                            />
-                                        </div>
-                                    </div>
-                                        <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-jcoder-foreground mb-4 sm:mb-6 mt-6 sm:mt-8 flex items-center gap-2">
-                                            <span className="w-1 h-6 sm:h-8 bg-jcoder-gradient rounded-full"></span>
-                                            <span>API Component Details (for Fullstack)</span>
-                                        </h3>
-                                    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                                        <div>
-                                            <label htmlFor="fullstack-api-domain" className="block text-sm font-medium text-jcoder-muted">Domain</label>
-                                            <input
-                                                type="text"
-                                                name="applicationComponentApi.domain"
-                                                id="fullstack-api-domain"
-                                                value={formData.applicationComponentApi?.domain || ''}
-                                                onChange={handleChange}
-                                                required
-                                                className="mt-1 block w-full border border-jcoder rounded-lg shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted hover:border-jcoder-primary/50"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label htmlFor="fullstack-api-apiUrl" className="block text-sm font-medium text-jcoder-muted">API URL</label>
-                                            <input
-                                                type="url"
-                                                name="applicationComponentApi.apiUrl"
-                                                id="fullstack-api-apiUrl"
-                                                value={formData.applicationComponentApi?.apiUrl || ''}
-                                                onChange={handleChange}
-                                                required
-                                                className="mt-1 block w-full border border-jcoder rounded-lg shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted hover:border-jcoder-primary/50"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label htmlFor="fullstack-api-documentationUrl" className="block text-sm font-medium text-jcoder-muted">Documentation URL (Optional)</label>
-                                            <input
-                                                type="url"
-                                                name="applicationComponentApi.documentationUrl"
-                                                id="fullstack-api-documentationUrl"
-                                                value={formData.applicationComponentApi?.documentationUrl || ''}
-                                                onChange={handleChange}
-                                                className="mt-1 block w-full border border-jcoder rounded-lg shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted hover:border-jcoder-primary/50"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label htmlFor="fullstack-api-healthCheckEndpoint" className="block text-sm font-medium text-jcoder-muted">Health Check Endpoint (Optional)</label>
-                                            <input
-                                                type="text"
-                                                name="applicationComponentApi.healthCheckEndpoint"
-                                                id="fullstack-api-healthCheckEndpoint"
-                                                value={formData.applicationComponentApi?.healthCheckEndpoint || ''}
-                                                onChange={handleChange}
-                                                className="mt-1 block w-full border border-jcoder rounded-lg shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary sm:text-sm transition-all duration-200 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted hover:border-jcoder-primary/50"
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                                {/* Technologies Section */}
-                                <div className="mt-8 pt-8 border-t border-jcoder border-l-4 border-jcoder-primary pl-4 sm:pl-6">
-                                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0 mb-4">
-                                    <div className="flex-1">
-                                        <h3 className="text-base sm:text-lg font-medium text-jcoder-foreground">Technologies</h3>
-                                        <p className="text-xs sm:text-sm text-jcoder-muted mt-1">
-                                            Select the technologies used in this application
-                                        </p>
-                                    </div>
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowCreateTechnologyModal(true)}
-                                        disabled={loading}
-                                        className="inline-flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-xs sm:text-sm flex-shrink-0"
-                                    >
-                                        <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                                        </svg>
-                                        Nova Tecnologia
-                                    </button>
-                                </div>
-                                <TechnologySelector
-                                    selectedTechnologyIds={formData.technologyIds || []}
-                                    onSelectionChange={(technologyIds) => {
-                                        setFormData((prev) => ({
-                                            ...prev,
-                                            technologyIds,
-                                        }));
-                                    }}
-                                    disabled={loading}
-                                    refreshKey={technologyRefreshKey}
-                                />
-                            </div>
-
-                                {/* Profile Image Management Section */}
-                                <div className="mt-8 pt-8 border-t border-jcoder border-l-4 border-jcoder-primary pl-4 sm:pl-6">
-                                    <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-jcoder-foreground mb-4 sm:mb-6 flex items-center gap-2">
-                                        <span className="w-1 h-6 sm:h-8 bg-jcoder-gradient rounded-full"></span>
-                                        <span>Profile Image</span>
-                                    </h3>
-                                <p className="text-xs sm:text-sm text-jcoder-muted mb-3 sm:mb-4">
-                                    Manage the logo or profile image for your application
-                                </p>
-                                <div className="space-y-4">
-                                    <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
-                                        <div className="relative">
-                                            {pendingProfileImageFile ? (
-                                                <img
-                                                    src={URL.createObjectURL(pendingProfileImageFile)}
-                                                    alt="Profile preview"
-                                                    className="w-20 h-20 rounded-lg object-cover border border-jcoder"
+                                        <div className="grid grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2">
+                                            <div className="sm:col-span-2">
+                                                <label htmlFor="library-packageManagerUrl" className="block text-xs sm:text-sm font-medium text-jcoder-muted mb-1.5">Package Manager URL</label>
+                                                <input
+                                                    type="url"
+                                                    name="applicationComponentLibrary.packageManagerUrl"
+                                                    id="library-packageManagerUrl"
+                                                    value={formData.applicationComponentLibrary?.packageManagerUrl || ''}
+                                                    onChange={handleChange}
+                                                    required
+                                                    className="block w-full border border-jcoder rounded-lg shadow-sm py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary transition-all duration-200 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted hover:border-jcoder-primary/50"
                                                 />
-                                            ) : profileImage ? (
-                                                <LazyImage
-                                                    src={ImagesService.getApplicationProfileImageUrl(username, Number(applicationId))}
-                                                    alt="Current profile"
-                                                    fallback={formData.name!}
-                                                    className="border border-jcoder object-cover"
-                                                    size="custom"
-                                                    width="w-20"
-                                                    height="h-20"
-                                                />
-                                            ) : (
-                                                <div className="w-20 h-20 rounded-lg border-2 border-dashed border-jcoder flex items-center justify-center bg-jcoder-secondary">
-                                                    <svg
-                                                        className="w-8 h-8 text-jcoder-muted"
-                                                        fill="none"
-                                                        stroke="currentColor"
-                                                        viewBox="0 0 24 24"
-                                                    >
-                                                        <path
-                                                            strokeLinecap="round"
-                                                            strokeLinejoin="round"
-                                                            strokeWidth={2}
-                                                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                                                        />
-                                                    </svg>
-                                                </div>
-                                            )}
-                                        </div>
-                                        <div className="flex-1">
-                                            <p className="text-sm text-jcoder-muted">
-                                                {pendingProfileImageAction === 'delete'
-                                                    ? 'Profile image will be deleted'
-                                                    : pendingProfileImageFile
-                                                        ? 'New profile image selected'
-                                                        : profileImage
-                                                            ? 'Current profile image'
-                                                            : 'No profile image set'
-                                                }
-                                            </p>
-                                            <p className="text-xs text-jcoder-muted">
-                                                Recommended: 400x400px, max 5MB
-                                            </p>
-                                            {pendingProfileImageAction !== 'none' && (
-                                                <p className="text-xs text-yellow-400 mt-1">
-                                                    Changes will be applied when you save the application
-                                                </p>
-                                            )}
+                                            </div>
+                                            <div className="sm:col-span-2">
+                                                <label htmlFor="library-readmeContent" className="block text-xs sm:text-sm font-medium text-jcoder-muted mb-1.5">README Content (Optional)</label>
+                                                <textarea
+                                                    name="applicationComponentLibrary.readmeContent"
+                                                    id="library-readmeContent"
+                                                    value={formData.applicationComponentLibrary?.readmeContent || ''}
+                                                    onChange={handleChange}
+                                                    rows={5}
+                                                    className="block w-full border border-jcoder rounded-lg shadow-sm py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary transition-all duration-200 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted hover:border-jcoder-primary/50 resize-none"
+                                                ></textarea>
+                                            </div>
                                         </div>
                                     </div>
-
-                                    <div className="flex flex-wrap gap-2">
-                                        <label className="px-4 py-2 bg-jcoder-gradient text-black rounded-md hover:opacity-90 transition-opacity duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm cursor-pointer">
-                                            {profileImage ? 'Change Image' : 'Upload Image'}
-                                            <input
-                                                type="file"
-                                                accept="image/jpeg,image/jpg,image/png,image/webp"
-                                                onChange={(e) => {
-                                                    const file = e.target.files?.[0];
-                                                    if (file) {
-                                                        // Validate file type
-                                                        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-                                                        if (!allowedTypes.includes(file.type)) {
-                                                            toast.error('Invalid file type. Only JPEG, PNG and WebP images are allowed.');
-                                                            return;
-                                                        }
-
-                                                        // Validate file size (5MB)
-                                                        const maxSize = 5 * 1024 * 1024; // 5MB
-                                                        if (file.size > maxSize) {
-                                                            toast.error('File too large. Maximum size is 5MB.');
-                                                            return;
-                                                        }
-
-                                                        setPendingProfileImageFile(file);
-                                                        const action = profileImage ? 'update' : 'upload';
-                                                        setPendingProfileImageAction(action);
-                                                    }
-                                                }}
-                                                disabled={loading}
-                                                className="hidden"
-                                            />
-                                        </label>
-
-                                        {profileImage && (
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    setPendingProfileImageFile(null);
-                                                    setPendingProfileImageAction('delete');
-                                                }}
-                                                disabled={loading}
-                                                className="px-4 py-2 border border-red-400 text-red-400 rounded-md hover:bg-red-900/20 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm"
-                                            >
-                                                Delete Image
-                                            </button>
-                                        )}
-
-                                        {pendingProfileImageAction !== 'none' && (
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    setPendingProfileImageFile(null);
-                                                    setPendingProfileImageAction('none');
-                                                }}
-                                                disabled={loading}
-                                                className="px-4 py-2 border border-jcoder text-jcoder-muted rounded-md hover:bg-jcoder-secondary transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm"
-                                            >
-                                                Cancel Changes
-                                            </button>
-                                        )}
-                                    </div>
-                                </div>
+                                )}
                             </div>
-
-                                {/* Image Upload Section */}
-                                <div className="mt-8 pt-8 border-t border-jcoder border-l-4 border-jcoder-primary pl-4 sm:pl-6">
-                                    <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-jcoder-foreground mb-4 sm:mb-6 flex items-center gap-2">
-                                        <span className="w-1 h-6 sm:h-8 bg-jcoder-gradient rounded-full"></span>
-                                        <span>Application Images</span>
-                                    </h3>
-                                <ImageUpload
-                                    images={images}
-                                    onImagesChange={setImages}
-                                    applicationId={Number(applicationId)}
-                                    disabled={loading}
-                                />
-                            </div>
-
-                                <div className="mt-8 sm:mt-10 flex flex-col sm:flex-row justify-end gap-3 sm:gap-4">
-                                    <button
-                                        type="button"
-                                        onClick={() => router.push(`/${username}/admin/applications`)}
-                                        className="w-full sm:w-auto px-6 sm:px-8 py-3 border-2 border-jcoder rounded-xl text-jcoder-muted hover:bg-jcoder-secondary hover:text-jcoder-foreground hover:border-jcoder-primary transition-all duration-300 font-semibold text-sm sm:text-base"
-                                    >
-                                        Cancel
-                                    </button>
-                                    <button
-                                        type="submit"
-                                        disabled={loading}
-                                        className="w-full sm:w-auto px-6 sm:px-8 py-3 bg-jcoder-gradient text-black rounded-xl hover:opacity-90 transition-all duration-300 font-bold transform-gpu hover:scale-105 hover:shadow-xl hover:shadow-jcoder-primary/50 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2 group text-sm sm:text-base"
-                                    >
-                                    {loading ? (
-                                        <>
-                                            <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                            </svg>
-                                            Updating...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <svg className="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                            </svg>
-                                            Update Application
-                                        </>
-                                    )}
-                                </button>
-                            </div>
-                            </form>
                         </div>
                     </div>
                 </div>
@@ -1073,7 +1154,9 @@ export default function EditApplicationPage() {
                     <div className="bg-jcoder-card/95 backdrop-blur-md border border-jcoder rounded-3xl max-w-md w-full max-h-[90vh] overflow-y-auto shadow-2xl shadow-jcoder-primary/20">
                         <div className="p-6 sm:p-8 border-b border-jcoder">
                             <div className="flex items-center justify-between gap-2">
-                                <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-jcoder-foreground bg-clip-text text-transparent bg-gradient-to-r from-jcoder-cyan via-jcoder-primary to-jcoder-blue">Criar Nova Tecnologia</h2>
+                                <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-jcoder-foreground bg-clip-text text-transparent bg-gradient-to-r from-jcoder-cyan via-jcoder-primary to-jcoder-blue">
+                                    Create New Technology
+                                </h2>
                                 <button
                                     onClick={() => {
                                         setShowCreateTechnologyModal(false);
@@ -1082,10 +1165,10 @@ export default function EditApplicationPage() {
                                             expertiseLevel: ExpertiseLevel.INTERMEDIATE,
                                         });
                                     }}
-                                    className="p-2 hover:bg-jcoder-secondary rounded-lg transition-colors"
+                                    className="p-2 hover:bg-jcoder-secondary rounded-lg transition-all duration-200 group"
                                     disabled={creatingTechnology}
                                 >
-                                    <svg className="w-6 h-6 text-jcoder-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg className="w-6 h-6 text-jcoder-muted group-hover:rotate-90 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                                     </svg>
                                 </button>
@@ -1095,7 +1178,7 @@ export default function EditApplicationPage() {
                         <form onSubmit={handleCreateTechnology} className="p-6 sm:p-8 space-y-6 sm:space-y-8">
                             <div>
                                 <label className="block text-sm font-semibold text-jcoder-foreground mb-3">
-                                    Nome <span className="text-red-400">*</span>
+                                    Name <span className="text-red-400">*</span>
                                 </label>
                                 <input
                                     type="text"
@@ -1110,7 +1193,7 @@ export default function EditApplicationPage() {
 
                             <div>
                                 <label className="block text-sm font-semibold text-jcoder-foreground mb-3">
-                                    Nível de Expertise <span className="text-red-400">*</span>
+                                    Expertise Level <span className="text-red-400">*</span>
                                 </label>
                                 <select
                                     required
@@ -1119,13 +1202,13 @@ export default function EditApplicationPage() {
                                     className="w-full px-4 py-3 bg-jcoder-secondary border border-jcoder rounded-xl text-jcoder-foreground focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-jcoder-primary transition-all duration-200 hover:border-jcoder-primary/50"
                                     disabled={creatingTechnology}
                                 >
-                                    <option value={ExpertiseLevel.BASIC}>Básico</option>
-                                    <option value={ExpertiseLevel.INTERMEDIATE}>Intermediário</option>
-                                    <option value={ExpertiseLevel.ADVANCED}>Avançado</option>
-                                    <option value={ExpertiseLevel.EXPERT}>Especialista</option>
+                                    <option value={ExpertiseLevel.BASIC}>Basic</option>
+                                    <option value={ExpertiseLevel.INTERMEDIATE}>Intermediate</option>
+                                    <option value={ExpertiseLevel.ADVANCED}>Advanced</option>
+                                    <option value={ExpertiseLevel.EXPERT}>Expert</option>
                                 </select>
                                 <p className="text-sm text-jcoder-muted mt-3">
-                                    Selecione seu nível de proficiência com esta tecnologia
+                                    Select your proficiency level with this technology
                                 </p>
                             </div>
 
@@ -1142,7 +1225,7 @@ export default function EditApplicationPage() {
                                     disabled={creatingTechnology}
                                     className="w-full sm:w-auto px-6 sm:px-8 py-3 border-2 border-jcoder rounded-xl text-jcoder-muted hover:bg-jcoder-secondary hover:text-jcoder-foreground hover:border-jcoder-primary transition-all duration-300 font-semibold disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
                                 >
-                                    Cancelar
+                                    Cancel
                                 </button>
                                 <button
                                     type="submit"
@@ -1155,14 +1238,14 @@ export default function EditApplicationPage() {
                                                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                             </svg>
-                                            Criando...
+                                            Creating...
                                         </>
                                     ) : (
                                         <>
-                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <svg className="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                             </svg>
-                                            Criar Tecnologia
+                                            Create Technology
                                         </>
                                     )}
                                 </button>

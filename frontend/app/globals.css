@@ -5,6 +5,7 @@
   --background: #000000;
   --foreground: #ffffff;
   --card: #0a0a0a;
+  --card-light: #151515;
   --card-foreground: #ffffff;
   --primary: #00c8ff;
   --primary-foreground: #000000;
@@ -53,6 +54,7 @@
   --background: #ffffff;
   --foreground: #000000;
   --card: #f8f9fa;
+  --card-light: #f8f9fa;
   --card-foreground: #000000;
   --primary: #0050a0;
   --primary-foreground: #ffffff;
@@ -256,6 +258,17 @@ body {
 .bg-jcoder-card {
   background-color: var(--card);
   transition: background-color 0.3s ease;
+}
+
+.bg-jcoder-card-light {
+  background-color: var(--card);
+  transition: background-color 0.3s ease;
+}
+
+/* Use lighter color only in dark theme */
+[data-theme="dark"] .bg-jcoder-card-light,
+:root:not([data-theme="light"]) .bg-jcoder-card-light {
+  background-color: var(--card-light);
 }
 
 .bg-jcoder-secondary {
