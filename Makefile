@@ -10,7 +10,7 @@ up:
 	make up.f
 
 
-# Reload individual das aplicações
+# Individual application reload
 down.b:
 	docker compose down backend
 up.b:
@@ -36,18 +36,18 @@ start.b:
 	make env
 	make up.d
 	make down.b
-	cd backend && npm run start:dev
+	cd backend && pnpm install && pnpm run build && pnpm run start:dev
 
 start.f:
 	make env
 	make down.f
-	cd frontend && npm run dev
+	cd frontend && pnpm install && pnpm run build && pnpm run dev
 
 .PHONY: env
 
 ifeq ($(OS),Windows_NT)
 env:
-	@powershell -NoProfile -Command "if (-not (Test-Path '.env')) { throw '.env não encontrado' }"
+	@powershell -NoProfile -Command "if (-not (Test-Path '.env')) { throw '.env not found' }"
 	@powershell -NoProfile -Command "New-Item -ItemType Directory -Path './backend' -Force | Out-Null"
 	@powershell -NoProfile -Command "New-Item -ItemType Directory -Path './frontend' -Force | Out-Null"
 	@powershell -NoProfile -Command "Copy-Item -Force '.env' './backend/.env'"

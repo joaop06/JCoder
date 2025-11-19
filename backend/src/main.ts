@@ -1,12 +1,15 @@
-import { join } from 'path';
 import { config } from 'dotenv';
-import { readFileSync } from 'fs';
 import { AppModule } from './app.module';
 import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
+import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
-import { createInitialUserAdmin } from 'scripts/create-initial-user-admin';
+import { PayloadSizeValidationPipe } from './@common/pipes/payload-size.pipe';
 import { DocumentBuilder, OpenAPIObject, SwaggerModule } from '@nestjs/swagger';
+import { LoggingInterceptor } from './@common/interceptors/logging.interceptor';
+import { GlobalExceptionFilter } from './@common/filters/global-exception.filter';
+import { TransformInterceptor } from './@common/interceptors/transform.interceptor';
+import { SecurityMiddleware, CompressionMiddleware } from './@common/middleware/security.middleware';
 
 config();
 const configService = new ConfigService();
@@ -18,23 +21,56 @@ const routeDocsJson = `${routeDocs}-json`;
 async function bootstrap() {
 	const app = await NestFactory.create(AppModule);
 
-	// Enable CORS to allow frontend requests
-	app.enableCors();
+	const logger = app.get(WINSTON_MODULE_NEST_PROVIDER);
+	app.useLogger(logger);
 
-	// Enable global validations of the DTOs
+	// Configure CORS with specific origins
+	const allowedOrigins = configService.get("ALLOWED_ORIGINS")?.split(',') || '*'; // Allow all origins
+	app.enableCors({
+		origin: allowedOrigins,
+		methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+		allowedHeaders: ['Content-Type', 'Authorization'],
+		credentials: true,
+	});
+
+	// Apply security middleware
+	app.use(new SecurityMiddleware(configService).use.bind(new SecurityMiddleware(configService)));
+	app.use(new CompressionMiddleware().use.bind(new CompressionMiddleware()));
+
+	// Global interceptors
+	app.useGlobalInterceptors(
+		new LoggingInterceptor(),
+		new TransformInterceptor(),
+	);
+
+	// Global exception filter
+	app.useGlobalFilters(new GlobalExceptionFilter());
+
+	// Enable global validations of the DTOs with enhanced security
 	app.useGlobalPipes(
 		new ValidationPipe({
 			transform: true,
 			whitelist: true,
 			forbidNonWhitelisted: true,
+			disableErrorMessages: configService.get('NODE_ENV') === 'production',
+			validationError: {
+				target: false,
+				value: false,
+			},
 		}),
+		new PayloadSizeValidationPipe(5 * 1024 * 1024), // 5MB limit
 	);
 
-	await setupSwagger(app);
-	await createInitialUserAdmin();
+	// Set global prefix
+	app.setGlobalPrefix('api/v1');
 
-	const port = configService.get("BACKEND_PORT");
+	await setupSwagger(app);
+
+	const port = configService.get("BACKEND_PORT") || 3001;
 	await app.listen(parseInt(port, 10));
+
+	logger.log(`🚀 Application is running on: http://localhost:${port}/api/v1`);
+	logger.log(`📚 API Documentation: http://localhost:${port}/docs`);
 }
 
 
@@ -48,7 +84,7 @@ export function setupSwagger(app: INestApplication) {
 		deepScanRoutes: true,
 	});
 
-	// Loga refs inválidos/ausentes no startup
+	// Log invalid/missing refs on startup
 	// findMissingRefs(document);
 
 	SwaggerModule.setup("swagger", app, document);
@@ -57,7 +93,7 @@ export function setupSwagger(app: INestApplication) {
 }
 
 function ScalarDocumentation(app: INestApplication, document: OpenAPIObject) {
-	// Configurar Scalar
+	// Configure Scalar
 	const scalarConfig = {
 		layout: "modern",
 		searchHotKey: "k",
@@ -67,8 +103,8 @@ function ScalarDocumentation(app: INestApplication, document: OpenAPIObject) {
 		hideDownloadButton: false,
 	};
 
-	// Configurar Scalar em vez do Swagger UI padrão
-	app.use(routeDocs, (req, res) => {
+	// Configure Scalar instead of the default Swagger UI
+	app.use(routeDocs, (_req: any, res: any) => {
 		const html = `
 			<!doctype html>
 			<html>
@@ -111,13 +147,13 @@ function ScalarDocumentation(app: INestApplication, document: OpenAPIObject) {
 		res.send(html);
 	});
 
-	// Endpoint para servir o JSON do OpenAPI
-	app.use(routeDocsJson, (req, res) => {
+	// Endpoint to serve the OpenAPI JSON
+	app.use(routeDocsJson, (_req: any, res: any) => {
 		res.json(document);
 	});
 }
 
-function findMissingRefs(doc: OpenAPIObject): void {
+function _findMissingRefs(doc: OpenAPIObject): void {
 	const missing = new Set<string>();
 	const components = doc.components ?? ({} as OpenAPIObject["components"]);
 
@@ -137,8 +173,8 @@ function findMissingRefs(doc: OpenAPIObject): void {
 		const match = ref.match(/^#\/components\/([^/]+)\/(.+)$/);
 		if (!match) return;
 		const [, group, name] = match;
-		const registry: Set<string> | undefined = (catalogs as any)[group];
-		if (registry && !registry.has(name)) missing.add(ref);
+		const registry: Set<string> | undefined = (catalogs as any)[group!];
+		if (registry && !registry.has(name!)) missing.add(ref);
 	}
 
 	function walk(node: any) {
@@ -151,10 +187,10 @@ function findMissingRefs(doc: OpenAPIObject): void {
 	walk(doc as any);
 	const missingRefs = Array.from(missing);
 
-	if (missingRefs.length) {
-		// eslint-disable-next-line no-console
-		console.warn("[OpenAPI] Refs inválidos/ausentes detectados:", missingRefs);
-	}
+	// Note: Missing refs detection is commented out to avoid console warnings
+	// if (missingRefs.length) {
+	//     console.warn("[OpenAPI] Invalid/missing refs detected:", missingRefs);
+	// }
 }
 
 bootstrap();
