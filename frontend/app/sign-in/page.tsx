@@ -140,7 +140,7 @@ export default function LoginPage() {
       <header className="border-b border-jcoder bg-jcoder-card/80 backdrop-blur-sm relative z-10">
         <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
           <div className="flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-1.5 sm:gap-2 hover:opacity-80 transition-opacity">
+            <Link href="/" className="flex items-center gap-1.5 sm:gap-2 hover:opacity-80 transition-opacity cursor-pointer">
               <div className="w-8 h-8 sm:w-10 sm:h-10 bg-transparent rounded-lg flex items-center justify-center">
                 <LazyImage
                   src="/images/jcoder-logo.png"
@@ -270,7 +270,7 @@ export default function LoginPage() {
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     disabled={isLoading}
-                    className="absolute right-3 sm:right-4 top-1/2 transform -translate-y-1/2 text-jcoder-muted hover:text-jcoder-foreground transition-colors disabled:opacity-50"
+                    className="absolute right-3 sm:right-4 top-1/2 transform -translate-y-1/2 text-jcoder-muted hover:text-jcoder-foreground transition-colors disabled:opacity-50 cursor-pointer"
                     aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
                   >
                     {showPassword ? (
@@ -290,7 +290,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 sm:py-3 mt-6 sm:mt-8 bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-sm sm:text-base transform-gpu hover:scale-105 hover:shadow-lg hover:shadow-jcoder-primary/50 active:scale-95 group"
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 sm:py-3 mt-6 sm:mt-8 bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-sm sm:text-base transform-gpu hover:scale-105 hover:shadow-lg hover:shadow-jcoder-primary/50 active:scale-95 group cursor-pointer"
               >
                 {isLoading ? (
                   <span className="flex items-center gap-2">
@@ -318,14 +318,14 @@ export default function LoginPage() {
               Don't have an account?{' '}
               <Link
                 href="/register"
-                className="text-jcoder-primary hover:text-jcoder-accent transition-all duration-200 font-medium hover:underline"
+                className="text-jcoder-primary hover:text-jcoder-accent transition-all duration-200 font-medium hover:underline cursor-pointer"
               >
                 Sign up
               </Link>
             </p>
             <Link
               href="/"
-              className="text-xs sm:text-sm text-jcoder-muted hover:text-jcoder-primary transition-all duration-200 inline-flex items-center gap-1 hover:gap-2 group"
+              className="text-xs sm:text-sm text-jcoder-muted hover:text-jcoder-primary transition-all duration-200 inline-flex items-center gap-1 hover:gap-2 group cursor-pointer"
             >
               <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />

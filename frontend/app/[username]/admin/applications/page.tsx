@@ -79,7 +79,7 @@ const ApplicationRow = memo(({
                 <div className="flex items-center justify-center gap-1.5">
                     <button
                         onClick={() => onEdit(app)}
-                        className="p-2 text-blue-500 hover:bg-blue-500/15 rounded-lg transition-all duration-200 hover:scale-110 active:scale-95 hover:shadow-md hover:shadow-blue-500/20"
+                        className="p-2 text-blue-500 hover:bg-blue-500/15 rounded-lg transition-all duration-200 hover:scale-110 active:scale-95 hover:shadow-md hover:shadow-blue-500/20 cursor-pointer"
                         title="Edit"
                     >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -88,7 +88,7 @@ const ApplicationRow = memo(({
                     </button>
                     <button
                         onClick={() => onDelete(app)}
-                        className="p-2 text-red-500 hover:bg-red-500/15 rounded-lg transition-all duration-200 hover:scale-110 active:scale-95 hover:shadow-md hover:shadow-red-500/20"
+                        className="p-2 text-red-500 hover:bg-red-500/15 rounded-lg transition-all duration-200 hover:scale-110 active:scale-95 hover:shadow-md hover:shadow-red-500/20 cursor-pointer"
                         title="Delete"
                     >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -288,7 +288,7 @@ const ApplicationCard = memo(({
                 <div className="flex gap-1">
                     <button
                         onClick={() => onEdit(app)}
-                        className="p-2 text-blue-500 hover:bg-blue-500/10 rounded-lg transition-colors active:scale-95"
+                        className="p-2 text-blue-500 hover:bg-blue-500/10 rounded-lg transition-colors active:scale-95 cursor-pointer"
                         title="Edit"
                     >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -297,7 +297,7 @@ const ApplicationCard = memo(({
                     </button>
                     <button
                         onClick={() => onDelete(app)}
-                        className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors active:scale-95"
+                        className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors active:scale-95 cursor-pointer"
                         title="Delete"
                     >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -797,8 +797,8 @@ export default function ApplicationsManagementPage() {
                     <nav className="mb-4 px-4 mt-4 md:mt-0">
                         <ol className="flex items-center gap-2 text-sm text-jcoder-muted">
                             <li>
-                                <button onClick={() => router.push(`/${username}/admin`)} className="hover:text-jcoder-primary transition-colors group">
-                                    <span className="group-hover:underline">Admin</span>
+                                <button onClick={() => router.push(`/${username}/admin`)} className="hover:text-jcoder-primary transition-colors group cursor-pointer">
+                                    <span className="group-hover:underline">Dashboard</span>
                                 </button>
                             </li>
                             <li>
@@ -824,7 +824,7 @@ export default function ApplicationsManagementPage() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 md:gap-6 mb-4 sm:mb-6 md:mb-8">
                         {/* Total Applications Card */}
                         <div
-                            className="bg-jcoder-card/90 backdrop-blur-sm border border-jcoder rounded-2xl p-4 sm:p-6 shadow-xl shadow-jcoder-primary/10 transform-gpu transition-all duration-300 hover:shadow-2xl hover:shadow-jcoder-primary/20 md:hover:-translate-y-1"
+                            className="bg-jcoder-card border border-jcoder rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-xl shadow-jcoder-primary/10 transform-gpu transition-all duration-300 hover:shadow-2xl hover:shadow-jcoder-primary/20 md:hover:-translate-y-1"
                             style={{
                                 transform: windowSize.width >= 768 ? `perspective(1000px) rotateX(${-(mousePosition.y / windowSize.height - 0.5) * 1}deg) rotateY(${(mousePosition.x / windowSize.width - 0.5) * 1}deg) translateZ(0)` : 'none',
                             }}
@@ -844,7 +844,7 @@ export default function ApplicationsManagementPage() {
 
                         {/* Status Card */}
                         <div
-                            className="bg-jcoder-card/90 backdrop-blur-sm border border-jcoder rounded-2xl p-4 sm:p-6 shadow-xl shadow-jcoder-primary/10 transform-gpu transition-all duration-300 hover:shadow-2xl hover:shadow-jcoder-primary/20 md:hover:-translate-y-1"
+                            className="bg-jcoder-card border border-jcoder rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-xl shadow-jcoder-primary/10 transform-gpu transition-all duration-300 hover:shadow-2xl hover:shadow-jcoder-primary/20 md:hover:-translate-y-1"
                             style={{
                                 transform: windowSize.width >= 768 ? `perspective(1000px) rotateX(${-(mousePosition.y / windowSize.height - 0.5) * 1}deg) rotateY(${(mousePosition.x / windowSize.width - 0.5) * 1}deg) translateZ(0)` : 'none',
                             }}
@@ -881,7 +881,7 @@ export default function ApplicationsManagementPage() {
 
                         {/* Last Update Card */}
                         <div
-                            className="bg-jcoder-card/90 backdrop-blur-sm border border-jcoder rounded-2xl p-4 sm:p-6 shadow-xl shadow-jcoder-primary/10 transform-gpu transition-all duration-300 hover:shadow-2xl hover:shadow-jcoder-primary/20 md:hover:-translate-y-1"
+                            className="bg-jcoder-card border border-jcoder rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-xl shadow-jcoder-primary/10 transform-gpu transition-all duration-300 hover:shadow-2xl hover:shadow-jcoder-primary/20 md:hover:-translate-y-1"
                             style={{
                                 transform: windowSize.width >= 768 ? `perspective(1000px) rotateX(${-(mousePosition.y / windowSize.height - 0.5) * 1}deg) rotateY(${(mousePosition.x / windowSize.width - 0.5) * 1}deg) translateZ(0)` : 'none',
                             }}

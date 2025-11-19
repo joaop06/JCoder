@@ -527,13 +527,13 @@ export default function PortfolioPage() {
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center px-2">
               <a
                 href="/"
-                className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-jcoder-gradient text-black font-semibold rounded-lg hover:shadow-jcoder-primary transition-all duration-300 transform hover:scale-105 text-sm sm:text-base"
+                className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-jcoder-gradient text-black font-semibold rounded-lg hover:shadow-jcoder-primary transition-all duration-300 transform hover:scale-105 text-sm sm:text-base cursor-pointer"
               >
                 Back to Home
               </a>
               <button
                 onClick={() => window.history.back()}
-                className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 border-2 border-jcoder-primary text-jcoder-primary font-semibold rounded-lg hover:bg-jcoder-primary hover:text-black transition-all duration-300 text-sm sm:text-base"
+                className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 border-2 border-jcoder-primary text-jcoder-primary font-semibold rounded-lg hover:bg-jcoder-primary hover:text-black transition-all duration-300 text-sm sm:text-base cursor-pointer"
               >
                 Back
               </button>
@@ -679,7 +679,7 @@ export default function PortfolioPage() {
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center w-full px-2">
               <button
                 onClick={() => scrollToSection('projects')}
-                className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-jcoder-gradient text-black font-semibold rounded-lg hover:shadow-jcoder-primary hover:shadow-xl transition-all duration-300 transform-gpu hover:scale-105 active:scale-95 flex items-center justify-center gap-2 group text-sm sm:text-base"
+                className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-jcoder-gradient text-black font-semibold rounded-lg hover:shadow-jcoder-primary hover:shadow-xl transition-all duration-300 transform-gpu hover:scale-105 active:scale-95 flex items-center justify-center gap-2 group text-sm sm:text-base cursor-pointer"
               >
                 View Projects
                 <svg className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -689,7 +689,7 @@ export default function PortfolioPage() {
               <button
                 onClick={handleDownloadResume}
                 disabled={generatingPDF}
-                className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-jcoder-card border-2 border-jcoder-primary text-jcoder-primary font-semibold rounded-lg hover:bg-jcoder-primary hover:text-black transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transform-gpu hover:scale-105 active:scale-95 group text-sm sm:text-base"
+                className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-jcoder-card border-2 border-jcoder-primary text-jcoder-primary font-semibold rounded-lg hover:bg-jcoder-primary hover:text-black transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transform-gpu hover:scale-105 active:scale-95 group text-sm sm:text-base cursor-pointer"
               >
                 {generatingPDF ? (
                   <>
@@ -721,7 +721,7 @@ export default function PortfolioPage() {
               </button>
               <button
                 onClick={() => scrollToSection('contact')}
-                className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 border-2 border-jcoder-primary text-jcoder-primary font-semibold rounded-lg hover:bg-jcoder-primary hover:text-black transition-all duration-300 flex items-center justify-center gap-2 transform-gpu hover:scale-105 active:scale-95 group text-sm sm:text-base"
+                className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 border-2 border-jcoder-primary text-jcoder-primary font-semibold rounded-lg hover:bg-jcoder-primary hover:text-black transition-all duration-300 flex items-center justify-center gap-2 transform-gpu hover:scale-105 active:scale-95 group text-sm sm:text-base cursor-pointer"
               >
                 Get in Touch
                 <svg
@@ -821,13 +821,13 @@ export default function PortfolioPage() {
                     <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start">
                       <button
                         onClick={() => scrollToSection('projects')}
-                        className="px-5 sm:px-6 py-2.5 sm:py-3 bg-jcoder-gradient text-black font-semibold rounded-lg hover:shadow-jcoder-primary transition-all duration-300 transform hover:scale-105 text-sm sm:text-base"
+                        className="px-5 sm:px-6 py-2.5 sm:py-3 bg-jcoder-gradient text-black font-semibold rounded-lg hover:shadow-jcoder-primary transition-all duration-300 transform hover:scale-105 text-sm sm:text-base cursor-pointer"
                       >
                         View My Work
                       </button>
                       <button
                         onClick={() => scrollToSection('contact')}
-                        className="px-5 sm:px-6 py-2.5 sm:py-3 border-2 border-jcoder-primary text-jcoder-primary font-semibold rounded-lg hover:bg-jcoder-primary hover:text-black transition-all duration-300 text-sm sm:text-base"
+                        className="px-5 sm:px-6 py-2.5 sm:py-3 border-2 border-jcoder-primary text-jcoder-primary font-semibold rounded-lg hover:bg-jcoder-primary hover:text-black transition-all duration-300 text-sm sm:text-base cursor-pointer"
                       >
                         Get in Touch
                       </button>
@@ -923,7 +923,7 @@ export default function PortfolioPage() {
                   <p className="text-red-400 mb-4">{error}</p>
                   <button
                     onClick={loadApplications}
-                    className="px-6 py-3 bg-jcoder-primary text-black font-semibold rounded-lg hover:bg-jcoder-accent transition-colors"
+                    className="px-6 py-3 bg-jcoder-primary text-black font-semibold rounded-lg hover:bg-jcoder-accent transition-colors cursor-pointer"
                   >
                     Try Again
                   </button>
@@ -958,7 +958,7 @@ export default function PortfolioPage() {
                 <div className="flex flex-wrap justify-center gap-4 sm:gap-6 md:gap-8">
                   {technologies.map((tech, index) => (
                     <FeatureCard3D key={tech.id} mouse={mousePosition} index={index}>
-                      <TechnologyCard technology={tech} username={username} />
+                      <TechnologyCard technology={tech} username={username} index={index} />
                     </FeatureCard3D>
                   ))}
                 </div>
@@ -1086,7 +1086,7 @@ export default function PortfolioPage() {
                                     href={certificate.verificationUrl}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-1 text-jcoder-primary hover:text-jcoder-accent transition-colors text-[10px] sm:text-xs font-semibold"
+                                    className="inline-flex items-center gap-1 text-jcoder-primary hover:text-jcoder-accent transition-colors text-[10px] sm:text-xs font-semibold cursor-pointer"
                                   >
                                     Verify Certificate
                                     <svg
@@ -1140,7 +1140,7 @@ export default function PortfolioPage() {
                     href={user.githubUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="group flex items-center gap-2 sm:gap-3 px-4 sm:px-5 md:px-6 py-2 sm:py-2.5 md:py-3 bg-jcoder-card rounded-lg hover:bg-jcoder-gradient transition-all duration-300 text-sm sm:text-base"
+                    className="group flex items-center gap-2 sm:gap-3 px-4 sm:px-5 md:px-6 py-2 sm:py-2.5 md:py-3 bg-jcoder-card rounded-lg hover:bg-jcoder-gradient transition-all duration-300 text-sm sm:text-base cursor-pointer"
                   >
                     <GitHubIcon className="w-5 h-5 sm:w-6 sm:h-6" />
                     <span className="font-semibold">GitHub</span>
@@ -1152,7 +1152,7 @@ export default function PortfolioPage() {
                     href={user.linkedinUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="group flex items-center gap-2 sm:gap-3 px-4 sm:px-5 md:px-6 py-2 sm:py-2.5 md:py-3 bg-jcoder-card rounded-lg hover:bg-jcoder-gradient transition-all duration-300 text-sm sm:text-base"
+                    className="group flex items-center gap-2 sm:gap-3 px-4 sm:px-5 md:px-6 py-2 sm:py-2.5 md:py-3 bg-jcoder-card rounded-lg hover:bg-jcoder-gradient transition-all duration-300 text-sm sm:text-base cursor-pointer"
                   >
                     <LazyImage
                       src="/images/icons/linkedin.png"
@@ -1170,7 +1170,7 @@ export default function PortfolioPage() {
                 {user?.email && (
                   <a
                     href={`mailto:${user.email}`}
-                    className="group flex items-center gap-2 sm:gap-3 px-4 sm:px-5 md:px-6 py-2 sm:py-2.5 md:py-3 bg-jcoder-card rounded-lg hover:bg-jcoder-gradient transition-all duration-300 text-sm sm:text-base"
+                    className="group flex items-center gap-2 sm:gap-3 px-4 sm:px-5 md:px-6 py-2 sm:py-2.5 md:py-3 bg-jcoder-card rounded-lg hover:bg-jcoder-gradient transition-all duration-300 text-sm sm:text-base cursor-pointer"
                   >
                     <LazyImage
                       src="/images/icons/gmail.png"
@@ -1236,7 +1236,7 @@ export default function PortfolioPage() {
                     <button
                       type="submit"
                       disabled={sendingMessage}
-                      className="w-full px-6 sm:px-8 py-3 sm:py-4 bg-jcoder-gradient text-black font-semibold rounded-lg hover:shadow-jcoder-primary hover:shadow-xl transition-all duration-300 transform-gpu hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2 group text-sm sm:text-base"
+                      className="w-full px-6 sm:px-8 py-3 sm:py-4 bg-jcoder-gradient text-black font-semibold rounded-lg hover:shadow-jcoder-primary hover:shadow-xl transition-all duration-300 transform-gpu hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2 group text-sm sm:text-base cursor-pointer"
                     >
                       {sendingMessage ? (
                         <>
@@ -1294,12 +1294,25 @@ export default function PortfolioPage() {
             background-position: 100% 50%;
           }
         }
+        @keyframes tech-card-enter {
+          0% {
+            opacity: 0;
+            transform: translateY(20px) scale(0.9);
+          }
+          100% {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+        }
         .animate-bounce-slow {
           animation: bounce-slow 3s ease-in-out infinite;
         }
         .animate-gradient {
           background-size: 200% 200%;
           animation: gradient 3s ease infinite;
+        }
+        .animate-tech-card-enter {
+          animation: tech-card-enter 0.6s ease-out forwards;
         }
         .delay-1000 {
           animation-delay: 1s;
@@ -1536,9 +1549,10 @@ function HeroProfileImage({ src, alt, fallback }: HeroProfileImageProps) {
 interface TechnologyCardProps {
   technology: Technology;
   username: string;
+  index: number;
 }
 
-function TechnologyCard({ technology, username }: TechnologyCardProps) {
+function TechnologyCard({ technology, username, index }: TechnologyCardProps) {
   const imageUrl = ImagesService.getTechnologyProfileImageUrl(username, technology.id);
 
   const getExpertiseLevelLabel = (level: ExpertiseLevel): string => {
@@ -1563,10 +1577,14 @@ function TechnologyCard({ technology, username }: TechnologyCardProps) {
 
   return (
     <div
-      className="text-center group relative w-24 sm:w-28 md:w-32"
+      className="text-center group relative w-24 sm:w-28 md:w-32 animate-tech-card-enter transition-all duration-300 hover:-translate-y-2 hover:scale-105"
+      style={{
+        animationDelay: `${index * 0.1}s`,
+        animationFillMode: 'both',
+      }}
       title={`${technology.name} - ${getExpertiseLevelLabel(technology.expertiseLevel)}`}
     >
-      <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-20 md:h-20 mx-auto mb-3 sm:mb-4 bg-jcoder-card rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300 p-2 sm:p-2.5 md:p-3 relative">
+      <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-20 md:h-20 mx-auto mb-3 sm:mb-4 bg-jcoder-card rounded-2xl flex items-center justify-center group-hover:bg-jcoder-gradient transition-all duration-300 p-2 sm:p-2.5 md:p-3 relative group-hover:scale-110">
         <LazyImage
           src={imageUrl}
           alt={technology.name}
@@ -1582,7 +1600,7 @@ function TechnologyCard({ technology, username }: TechnologyCardProps) {
       <h3 className="font-semibold text-sm sm:text-base text-jcoder-foreground group-hover:text-jcoder-primary transition-colors">
         {technology.name}
       </h3>
-      <span className={`inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium mt-0.5 sm:mt-1 ${getExpertiseLevelColor(technology.expertiseLevel)}`}>
+      <span className={`inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium mt-0.5 sm:mt-1 transition-all duration-300 ${getExpertiseLevelColor(technology.expertiseLevel)}`}>
         {getExpertiseLevelLabel(technology.expertiseLevel)}
       </span>
     </div>

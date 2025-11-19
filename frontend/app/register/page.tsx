@@ -49,6 +49,7 @@ export default function RegisterPage() {
   const [codeSent, setCodeSent] = useState(false);
   const emailDebounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastVerifiedCodeRef = useRef<string>('');
+  const descriptionTextareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   // Step 3: Password and About Me
   const [password, setPassword] = useState('');
@@ -400,6 +401,30 @@ export default function RegisterPage() {
     }
   }, [password, passwordRequirements]);
 
+  // Auto-resize description textarea
+  useEffect(() => {
+    if (currentStep !== 3) return;
+
+    const textarea = descriptionTextareaRef.current;
+    if (!textarea) return;
+
+    // Reset height to auto to get the correct scrollHeight
+    textarea.style.height = 'auto';
+
+    // Calculate the new height (max 200px = ~8-10 lines depending on font size)
+    const maxHeight = 200; // pixels
+    const scrollHeight = textarea.scrollHeight;
+
+    // Set the height, but cap it at maxHeight
+    if (scrollHeight <= maxHeight) {
+      textarea.style.height = `${scrollHeight}px`;
+      textarea.style.overflowY = 'hidden';
+    } else {
+      textarea.style.height = `${maxHeight}px`;
+      textarea.style.overflowY = 'auto';
+    }
+  }, [description, currentStep]);
+
   const handleSubmit = useCallback(async () => {
     const newErrors: Record<string, string> = {};
 
@@ -481,7 +506,7 @@ export default function RegisterPage() {
       <header className="border-b border-jcoder bg-jcoder-card/80 backdrop-blur-sm relative z-10 shrink-0">
         <div className="container mx-auto px-3 sm:px-4 py-2 sm:py-2.5 md:py-3">
           <div className="flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-1.5 sm:gap-2 hover:opacity-80 transition-opacity">
+            <Link href="/" className="flex items-center gap-1.5 sm:gap-2 hover:opacity-80 transition-opacity cursor-pointer">
               <div className="w-8 h-8 sm:w-10 sm:h-10 bg-transparent rounded-lg flex items-center justify-center">
                 <LazyImage
                   src="/images/jcoder-logo.png"
@@ -607,7 +632,10 @@ export default function RegisterPage() {
 
           {/* Registration Form */}
           <div
-            className="bg-jcoder-card/90 backdrop-blur-sm border border-jcoder rounded-2xl p-3 sm:p-4 md:p-5 lg:p-6 shadow-xl shadow-jcoder-primary/10 transition-all duration-300 hover:shadow-2xl hover:shadow-jcoder-primary/20"
+            className={`bg-jcoder-card/90 backdrop-blur-sm border border-jcoder rounded-2xl p-3 sm:p-4 md:p-5 lg:p-6 shadow-xl shadow-jcoder-primary/10 transition-all duration-300 hover:shadow-2xl hover:shadow-jcoder-primary/20 ${currentStep === 3
+              ? 'max-h-[calc(100vh-180px)] sm:max-h-[calc(100vh-200px)] md:max-h-[calc(100vh-220px)] overflow-y-auto'
+              : ''
+              }`}
           >
             {/* Step 1: Username */}
             {currentStep === 1 && (
@@ -678,7 +706,7 @@ export default function RegisterPage() {
                 <button
                   onClick={handleNextStep}
                   disabled={isLoading || usernameStatus.available !== true}
-                  className="w-full flex items-center justify-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 md:py-3 mt-3 sm:mt-4 md:mt-5 bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity duration-300 disabled:opacity-50 disabled:cursor-not-allowed font-semibold group text-xs sm:text-sm md:text-base"
+                  className="w-full flex items-center justify-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 md:py-3 mt-3 sm:mt-4 md:mt-5 bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity duration-300 disabled:opacity-50 disabled:cursor-not-allowed font-semibold group text-xs sm:text-sm md:text-base cursor-pointer"
                 >
                   Continue
                   <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -749,7 +777,7 @@ export default function RegisterPage() {
                     <button
                       onClick={handleSendVerificationCode}
                       disabled={isLoading || isSendingCode || isEmailVerified || !email || emailStatus.available !== true}
-                      className="px-2 sm:px-3 md:px-4 py-2 sm:py-2 md:py-2.5 bg-jcoder-secondary border border-jcoder rounded-lg hover:bg-jcoder hover:border-jcoder-primary transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-jcoder-foreground font-medium whitespace-nowrap text-[10px] sm:text-xs md:text-sm lg:text-base"
+                      className="px-2 sm:px-3 md:px-4 py-2 sm:py-2 md:py-2.5 bg-jcoder-secondary border border-jcoder rounded-lg hover:bg-jcoder hover:border-jcoder-primary transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-jcoder-foreground font-medium whitespace-nowrap text-[10px] sm:text-xs md:text-sm lg:text-base cursor-pointer"
                     >
                       {isSendingCode ? (
                         <span className="flex items-center gap-1 sm:gap-2">
@@ -811,7 +839,7 @@ export default function RegisterPage() {
                       <button
                         onClick={handleVerifyCode}
                         disabled={isLoading || isVerifyingCode || verificationCode.length !== 6}
-                        className="px-2 sm:px-3 md:px-4 py-2 sm:py-2 md:py-2.5 bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed font-medium whitespace-nowrap text-[10px] sm:text-xs md:text-sm lg:text-base"
+                        className="px-2 sm:px-3 md:px-4 py-2 sm:py-2 md:py-2.5 bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed font-medium whitespace-nowrap text-[10px] sm:text-xs md:text-sm lg:text-base cursor-pointer"
                       >
                         {isVerifyingCode ? 'Verifying...' : 'Verify'}
                       </button>
@@ -826,14 +854,14 @@ export default function RegisterPage() {
                   <button
                     onClick={handlePreviousStep}
                     disabled={isLoading}
-                    className="flex-1 px-3 sm:px-4 py-2 sm:py-2.5 md:py-3 bg-jcoder-secondary border border-jcoder rounded-lg hover:bg-jcoder hover:border-jcoder-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium text-jcoder-foreground text-xs sm:text-sm md:text-base"
+                    className="flex-1 px-3 sm:px-4 py-2 sm:py-2.5 md:py-3 bg-jcoder-secondary border border-jcoder rounded-lg hover:bg-jcoder hover:border-jcoder-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium text-jcoder-foreground text-xs sm:text-sm md:text-base cursor-pointer"
                   >
                     Back
                   </button>
                   <button
                     onClick={handleNextStep}
                     disabled={isLoading || !isEmailVerified}
-                    className="flex-1 flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 md:py-3 bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed font-semibold group text-xs sm:text-sm md:text-base"
+                    className="flex-1 flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 md:py-3 bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed font-semibold group text-xs sm:text-sm md:text-base cursor-pointer"
                   >
                     Continue
                     <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -845,272 +873,281 @@ export default function RegisterPage() {
             )}
 
             {/* Step 3: Password and About Me */}
-            {currentStep === 3 && (
-              <div className="space-y-2.5 sm:space-y-3">
-                <div>
-                  <h2 className="text-base sm:text-lg md:text-xl font-bold mb-0.5 sm:mb-1 text-jcoder-foreground">Complete your profile</h2>
-                  <p className="text-[10px] sm:text-xs md:text-sm text-jcoder-muted mb-2 sm:mb-3">
-                    Set your password and basic information (optional)
-                  </p>
-                </div>
+            {currentStep === 3 && (() => {
+              const isPasswordValid = Object.values(passwordRequirements).every(req => req === true);
+              const isConfirmPasswordValid = confirmPassword && password === confirmPassword;
+              const hasNoPasswordErrors = !errors.password && !errors.confirmPassword;
+              const shouldShowRequirements = password && !(isPasswordValid && isConfirmPasswordValid && hasNoPasswordErrors);
 
-                <div>
-                  <label htmlFor="password" className="block text-xs sm:text-sm font-medium text-jcoder-muted mb-1 sm:mb-1.5">
-                    Password <span className="text-red-400">*</span>
-                  </label>
-                  <div className="relative">
-                    <input
-                      required
-                      id="password"
-                      type={showPassword ? 'text' : 'password'}
-                      value={password}
-                      disabled={isLoading}
-                      placeholder="••••••••"
-                      onChange={(e) => {
-                        setPassword(e.target.value);
-                      }}
-                      className={`w-full px-2.5 sm:px-3 md:px-4 py-2 sm:py-2 md:py-2.5 pr-8 sm:pr-10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-transparent disabled:opacity-60 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted text-xs sm:text-sm transition-colors ${errors.password
-                        ? 'border-red-400'
-                        : password && Object.values(passwordRequirements).every(req => req === true)
-                          ? 'border-green-400'
-                          : 'border-jcoder'
-                        }`}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      disabled={isLoading}
-                      className="absolute right-2 sm:right-3 top-1/2 transform -translate-y-1/2 text-jcoder-muted hover:text-jcoder-foreground transition-colors disabled:opacity-50"
-                      aria-label={showPassword ? 'Hide password' : 'Show password'}
-                    >
-                      {showPassword ? (
-                        <svg className="w-4 h-4 sm:h-5 sm:w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-                        </svg>
-                      ) : (
-                        <svg className="w-4 h-4 sm:h-5 sm:w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                        </svg>
-                      )}
-                    </button>
-                  </div>
-
-                  {/* Password requirements */}
-                  {password && (
-                    <div className="mt-2 space-y-1">
-                      <div className="flex items-center gap-1.5 text-[10px] sm:text-xs">
-                        <svg
-                          className={`w-3 h-3 sm:w-3.5 sm:h-3.5 ${passwordRequirements.minLength ? 'text-green-400' : 'text-jcoder-muted'}`}
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          {passwordRequirements.minLength ? (
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                          ) : (
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                          )}
-                        </svg>
-                        <span className={passwordRequirements.minLength ? 'text-green-400' : 'text-jcoder-muted'}>
-                          Minimum 8 characters
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1.5 text-[10px] sm:text-xs">
-                        <svg
-                          className={`w-3 h-3 sm:w-3.5 sm:h-3.5 ${passwordRequirements.hasUpperCase ? 'text-green-400' : 'text-jcoder-muted'}`}
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          {passwordRequirements.hasUpperCase ? (
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                          ) : (
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                          )}
-                        </svg>
-                        <span className={passwordRequirements.hasUpperCase ? 'text-green-400' : 'text-jcoder-muted'}>
-                          One uppercase letter
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1.5 text-[10px] sm:text-xs">
-                        <svg
-                          className={`w-3 h-3 sm:w-3.5 sm:h-3.5 ${passwordRequirements.hasLowerCase ? 'text-green-400' : 'text-jcoder-muted'}`}
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          {passwordRequirements.hasLowerCase ? (
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                          ) : (
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                          )}
-                        </svg>
-                        <span className={passwordRequirements.hasLowerCase ? 'text-green-400' : 'text-jcoder-muted'}>
-                          One lowercase letter
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1.5 text-[10px] sm:text-xs">
-                        <svg
-                          className={`w-3 h-3 sm:w-3.5 sm:h-3.5 ${passwordRequirements.hasNumber ? 'text-green-400' : 'text-jcoder-muted'}`}
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          {passwordRequirements.hasNumber ? (
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                          ) : (
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                          )}
-                        </svg>
-                        <span className={passwordRequirements.hasNumber ? 'text-green-400' : 'text-jcoder-muted'}>
-                          One number
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1.5 text-[10px] sm:text-xs">
-                        <svg
-                          className={`w-3 h-3 sm:w-3.5 sm:h-3.5 ${passwordRequirements.hasSpecialChar ? 'text-green-400' : 'text-jcoder-muted'}`}
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          {passwordRequirements.hasSpecialChar ? (
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                          ) : (
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                          )}
-                        </svg>
-                        <span className={passwordRequirements.hasSpecialChar ? 'text-green-400' : 'text-jcoder-muted'}>
-                          One special character (!@#$%^&*...)
-                        </span>
-                      </div>
-                    </div>
-                  )}
-
-                  {errors.password && (
-                    <p className="mt-1 text-xs sm:text-sm text-red-400">{errors.password}</p>
-                  )}
-                  {password && !errors.password && Object.values(passwordRequirements).every(req => req === true) && (
-                    <p className="mt-1 text-xs sm:text-sm text-green-400">Valid password!</p>
-                  )}
-                </div>
-
-                <div>
-                  <label htmlFor="confirmPassword" className="block text-xs sm:text-sm font-medium text-jcoder-muted mb-1 sm:mb-1.5">
-                    Confirm Password <span className="text-red-400">*</span>
-                  </label>
-                  <div className="relative">
-                    <input
-                      required
-                      id="confirmPassword"
-                      type={showConfirmPassword ? 'text' : 'password'}
-                      value={confirmPassword}
-                      disabled={isLoading}
-                      placeholder="••••••••"
-                      onChange={(e) => {
-                        setConfirmPassword(e.target.value);
-                      }}
-                      className={`w-full px-2.5 sm:px-3 md:px-4 py-2 sm:py-2 md:py-2.5 pr-8 sm:pr-10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-transparent disabled:opacity-60 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted text-xs sm:text-sm transition-colors ${errors.confirmPassword
-                        ? 'border-red-400'
-                        : confirmPassword && password === confirmPassword
-                          ? 'border-green-400'
-                          : 'border-jcoder'
-                        }`}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      disabled={isLoading}
-                      className="absolute right-2 sm:right-3 top-1/2 transform -translate-y-1/2 text-jcoder-muted hover:text-jcoder-foreground transition-colors disabled:opacity-50"
-                      aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
-                    >
-                      {showConfirmPassword ? (
-                        <svg className="w-4 h-4 sm:h-5 sm:w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-                        </svg>
-                      ) : (
-                        <svg className="w-4 h-4 sm:h-5 sm:w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                        </svg>
-                      )}
-                    </button>
-                  </div>
-                  {errors.confirmPassword && (
-                    <p className="mt-1 text-xs sm:text-sm text-red-400">{errors.confirmPassword}</p>
-                  )}
-                  {confirmPassword && !errors.confirmPassword && password === confirmPassword && (
-                    <p className="mt-1 text-xs sm:text-sm text-green-400">Passwords match!</p>
-                  )}
-                </div>
-
-                <div className="pt-2 sm:pt-3 border-t border-jcoder">
-                  <h3 className="text-xs sm:text-sm font-semibold text-jcoder-foreground mb-1.5 sm:mb-2 md:mb-3">About you (optional)</h3>
-
-                  <div className="mb-1.5 sm:mb-2 md:mb-3">
-                    <label htmlFor="occupation" className="block text-xs sm:text-sm font-medium text-jcoder-muted mb-1 sm:mb-1.5">
-                      Position / Title
-                    </label>
-                    <input
-                      id="occupation"
-                      type="text"
-                      value={occupation}
-                      disabled={isLoading}
-                      placeholder="Ex: Full Stack Developer"
-                      onChange={(e) => setOccupation(e.target.value)}
-                      className="w-full px-2.5 sm:px-3 md:px-4 py-2 sm:py-2 md:py-2.5 border border-jcoder rounded-lg focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-transparent disabled:opacity-60 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted text-xs sm:text-sm"
-                    />
+              return (
+                <div className="space-y-2.5 sm:space-y-3">
+                  <div>
+                    <h2 className="text-base sm:text-lg md:text-xl font-bold mb-0.5 sm:mb-1 text-jcoder-foreground">Complete your profile</h2>
+                    <p className="text-[10px] sm:text-xs md:text-sm text-jcoder-muted mb-2 sm:mb-3">
+                      Set your password and basic information (optional)
+                    </p>
                   </div>
 
                   <div>
-                    <label htmlFor="description" className="block text-xs sm:text-sm font-medium text-jcoder-muted mb-1 sm:mb-1.5">
-                      Description
+                    <label htmlFor="password" className="block text-xs sm:text-sm font-medium text-jcoder-muted mb-1 sm:mb-1.5">
+                      Password <span className="text-red-400">*</span>
                     </label>
-                    <textarea
-                      id="description"
-                      value={description}
+                    <div className="relative">
+                      <input
+                        required
+                        id="password"
+                        type={showPassword ? 'text' : 'password'}
+                        value={password}
+                        disabled={isLoading}
+                        placeholder="••••••••"
+                        onChange={(e) => {
+                          setPassword(e.target.value);
+                        }}
+                        className={`w-full px-2.5 sm:px-3 md:px-4 py-2 sm:py-2 md:py-2.5 pr-8 sm:pr-10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-transparent disabled:opacity-60 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted text-xs sm:text-sm transition-colors ${errors.password
+                          ? 'border-red-400'
+                          : password && Object.values(passwordRequirements).every(req => req === true)
+                            ? 'border-green-400'
+                            : 'border-jcoder'
+                          }`}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        disabled={isLoading}
+                        className="absolute right-2 sm:right-3 top-1/2 transform -translate-y-1/2 text-jcoder-muted hover:text-jcoder-foreground transition-colors disabled:opacity-50 cursor-pointer"
+                        aria-label={showPassword ? 'Hide password' : 'Show password'}
+                      >
+                        {showPassword ? (
+                          <svg className="w-4 h-4 sm:h-5 sm:w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                          </svg>
+                        ) : (
+                          <svg className="w-4 h-4 sm:h-5 sm:w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          </svg>
+                        )}
+                      </button>
+                    </div>
+
+                    {/* Password requirements */}
+                    {shouldShowRequirements && (
+                      <div className="mt-2 space-y-1">
+                        <div className="flex items-center gap-1.5 text-[10px] sm:text-xs">
+                          <svg
+                            className={`w-3 h-3 sm:w-3.5 sm:h-3.5 ${passwordRequirements.minLength ? 'text-green-400' : 'text-jcoder-muted'}`}
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            {passwordRequirements.minLength ? (
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            ) : (
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            )}
+                          </svg>
+                          <span className={passwordRequirements.minLength ? 'text-green-400' : 'text-jcoder-muted'}>
+                            Minimum 8 characters
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-[10px] sm:text-xs">
+                          <svg
+                            className={`w-3 h-3 sm:w-3.5 sm:h-3.5 ${passwordRequirements.hasUpperCase ? 'text-green-400' : 'text-jcoder-muted'}`}
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            {passwordRequirements.hasUpperCase ? (
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            ) : (
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            )}
+                          </svg>
+                          <span className={passwordRequirements.hasUpperCase ? 'text-green-400' : 'text-jcoder-muted'}>
+                            One uppercase letter
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-[10px] sm:text-xs">
+                          <svg
+                            className={`w-3 h-3 sm:w-3.5 sm:h-3.5 ${passwordRequirements.hasLowerCase ? 'text-green-400' : 'text-jcoder-muted'}`}
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            {passwordRequirements.hasLowerCase ? (
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            ) : (
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            )}
+                          </svg>
+                          <span className={passwordRequirements.hasLowerCase ? 'text-green-400' : 'text-jcoder-muted'}>
+                            One lowercase letter
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-[10px] sm:text-xs">
+                          <svg
+                            className={`w-3 h-3 sm:w-3.5 sm:h-3.5 ${passwordRequirements.hasNumber ? 'text-green-400' : 'text-jcoder-muted'}`}
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            {passwordRequirements.hasNumber ? (
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            ) : (
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            )}
+                          </svg>
+                          <span className={passwordRequirements.hasNumber ? 'text-green-400' : 'text-jcoder-muted'}>
+                            One number
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-[10px] sm:text-xs">
+                          <svg
+                            className={`w-3 h-3 sm:w-3.5 sm:h-3.5 ${passwordRequirements.hasSpecialChar ? 'text-green-400' : 'text-jcoder-muted'}`}
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            {passwordRequirements.hasSpecialChar ? (
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            ) : (
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            )}
+                          </svg>
+                          <span className={passwordRequirements.hasSpecialChar ? 'text-green-400' : 'text-jcoder-muted'}>
+                            One special character (!@#$%^&*...)
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
+                    {errors.password && (
+                      <p className="mt-1 text-xs sm:text-sm text-red-400">{errors.password}</p>
+                    )}
+                    {password && !errors.password && Object.values(passwordRequirements).every(req => req === true) && (
+                      <p className="mt-1 text-xs sm:text-sm text-green-400">Valid password!</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label htmlFor="confirmPassword" className="block text-xs sm:text-sm font-medium text-jcoder-muted mb-1 sm:mb-1.5">
+                      Confirm Password <span className="text-red-400">*</span>
+                    </label>
+                    <div className="relative">
+                      <input
+                        required
+                        id="confirmPassword"
+                        type={showConfirmPassword ? 'text' : 'password'}
+                        value={confirmPassword}
+                        disabled={isLoading}
+                        placeholder="••••••••"
+                        onChange={(e) => {
+                          setConfirmPassword(e.target.value);
+                        }}
+                        className={`w-full px-2.5 sm:px-3 md:px-4 py-2 sm:py-2 md:py-2.5 pr-8 sm:pr-10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-transparent disabled:opacity-60 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted text-xs sm:text-sm transition-colors ${errors.confirmPassword
+                          ? 'border-red-400'
+                          : confirmPassword && password === confirmPassword
+                            ? 'border-green-400'
+                            : 'border-jcoder'
+                          }`}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        disabled={isLoading}
+                        className="absolute right-2 sm:right-3 top-1/2 transform -translate-y-1/2 text-jcoder-muted hover:text-jcoder-foreground transition-colors disabled:opacity-50 cursor-pointer"
+                        aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+                      >
+                        {showConfirmPassword ? (
+                          <svg className="w-4 h-4 sm:h-5 sm:w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                          </svg>
+                        ) : (
+                          <svg className="w-4 h-4 sm:h-5 sm:w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          </svg>
+                        )}
+                      </button>
+                    </div>
+                    {errors.confirmPassword && (
+                      <p className="mt-1 text-xs sm:text-sm text-red-400">{errors.confirmPassword}</p>
+                    )}
+                    {confirmPassword && !errors.confirmPassword && password === confirmPassword && (
+                      <p className="mt-1 text-xs sm:text-sm text-green-400">Passwords match!</p>
+                    )}
+                  </div>
+
+                  <div className="pt-2 sm:pt-3 border-t border-jcoder">
+                    <h3 className="text-xs sm:text-sm font-semibold text-jcoder-foreground mb-1.5 sm:mb-2 md:mb-3">About you (optional)</h3>
+
+                    <div className="mb-1.5 sm:mb-2 md:mb-3">
+                      <label htmlFor="occupation" className="block text-xs sm:text-sm font-medium text-jcoder-muted mb-1 sm:mb-1.5">
+                        Position / Title
+                      </label>
+                      <input
+                        id="occupation"
+                        type="text"
+                        value={occupation}
+                        disabled={isLoading}
+                        placeholder="Ex: Full Stack Developer"
+                        onChange={(e) => setOccupation(e.target.value)}
+                        className="w-full px-2.5 sm:px-3 md:px-4 py-2 sm:py-2 md:py-2.5 border border-jcoder rounded-lg focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-transparent disabled:opacity-60 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted text-xs sm:text-sm"
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="description" className="block text-xs sm:text-sm font-medium text-jcoder-muted mb-1 sm:mb-1.5">
+                        Description
+                      </label>
+                      <textarea
+                        ref={descriptionTextareaRef}
+                        id="description"
+                        value={description}
+                        disabled={isLoading}
+                        placeholder="Tell us a bit about yourself, your experience and passions..."
+                        rows={2}
+                        onChange={(e) => setDescription(e.target.value)}
+                        className="w-full px-2.5 sm:px-3 md:px-4 py-2 sm:py-2 md:py-2.5 border border-jcoder rounded-lg focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-transparent disabled:opacity-60 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted resize-none text-xs sm:text-sm min-h-[60px] transition-all duration-200"
+                        style={{ maxHeight: '200px' }}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex gap-1.5 sm:gap-2">
+                    <button
+                      onClick={handlePreviousStep}
                       disabled={isLoading}
-                      placeholder="Tell us a bit about yourself, your experience and passions..."
-                      rows={2}
-                      onChange={(e) => setDescription(e.target.value)}
-                      className="w-full px-2.5 sm:px-3 md:px-4 py-2 sm:py-2 md:py-2.5 border border-jcoder rounded-lg focus:outline-none focus:ring-2 focus:ring-jcoder-primary focus:border-transparent disabled:opacity-60 bg-jcoder-secondary text-jcoder-foreground placeholder-jcoder-muted resize-none text-xs sm:text-sm"
-                    />
+                      className="flex-1 px-3 sm:px-4 py-2 sm:py-2.5 md:py-3 bg-jcoder-secondary border border-jcoder rounded-lg hover:bg-jcoder hover:border-jcoder-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium text-jcoder-foreground text-xs sm:text-sm md:text-base cursor-pointer"
+                    >
+                      Back
+                    </button>
+                    <button
+                      onClick={handleSubmit}
+                      disabled={isLoading}
+                      className="flex-1 flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 md:py-3 bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed font-semibold group text-xs sm:text-sm md:text-base cursor-pointer"
+                    >
+                      {isLoading ? (
+                        <span className="flex items-center gap-1.5 sm:gap-2">
+                          <svg className="animate-spin h-3.5 w-3.5 sm:h-4 sm:w-4 md:h-5 md:w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          <span className="text-xs sm:text-sm md:text-base">Creating...</span>
+                        </span>
+                      ) : (
+                        <>
+                          <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                          </svg>
+                          <span>Create Account</span>
+                        </>
+                      )}
+                    </button>
                   </div>
                 </div>
-
-                <div className="flex gap-1.5 sm:gap-2">
-                  <button
-                    onClick={handlePreviousStep}
-                    disabled={isLoading}
-                    className="flex-1 px-3 sm:px-4 py-2 sm:py-2.5 md:py-3 bg-jcoder-secondary border border-jcoder rounded-lg hover:bg-jcoder hover:border-jcoder-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium text-jcoder-foreground text-xs sm:text-sm md:text-base"
-                  >
-                    Back
-                  </button>
-                  <button
-                    onClick={handleSubmit}
-                    disabled={isLoading}
-                    className="flex-1 flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 md:py-3 bg-jcoder-gradient text-black rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed font-semibold group text-xs sm:text-sm md:text-base"
-                  >
-                    {isLoading ? (
-                      <span className="flex items-center gap-1.5 sm:gap-2">
-                        <svg className="animate-spin h-3.5 w-3.5 sm:h-4 sm:w-4 md:h-5 md:w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        <span className="text-xs sm:text-sm md:text-base">Creating...</span>
-                      </span>
-                    ) : (
-                      <>
-                        <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-                        </svg>
-                        <span>Create Account</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-              </div>
-            )}
+              );
+            })()}
           </div>
 
           {/* Login Link */}
@@ -1119,14 +1156,14 @@ export default function RegisterPage() {
               Already have an account?{' '}
               <Link
                 href="/sign-in"
-                className="text-jcoder-primary hover:text-jcoder-accent transition-colors font-medium"
+                className="text-jcoder-primary hover:text-jcoder-accent transition-colors font-medium cursor-pointer"
               >
                 Sign in
               </Link>
             </p>
             <Link
               href="/"
-              className="text-[10px] sm:text-xs md:text-sm text-jcoder-muted hover:text-jcoder-primary transition-all duration-200 inline-flex items-center gap-1 hover:gap-2 mt-1.5 sm:mt-2 md:mt-3 group"
+              className="text-[10px] sm:text-xs md:text-sm text-jcoder-muted hover:text-jcoder-primary transition-all duration-200 inline-flex items-center gap-1 hover:gap-2 mt-1.5 sm:mt-2 md:mt-3 group cursor-pointer"
             >
               <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -1168,6 +1205,36 @@ export default function RegisterPage() {
           main {
             overflow-y: hidden !important;
           }
+        }
+        /* Custom scrollbar for Step 3 card */
+        .overflow-y-auto::-webkit-scrollbar {
+          width: 8px;
+        }
+        .overflow-y-auto::-webkit-scrollbar-track {
+          background: transparent;
+          border-radius: 4px;
+        }
+        .overflow-y-auto::-webkit-scrollbar-thumb {
+          background: rgba(59, 130, 246, 0.3);
+          border-radius: 4px;
+        }
+        .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+          background: rgba(59, 130, 246, 0.5);
+        }
+        /* Custom scrollbar for description textarea */
+        textarea#description::-webkit-scrollbar {
+          width: 6px;
+        }
+        textarea#description::-webkit-scrollbar-track {
+          background: transparent;
+          border-radius: 3px;
+        }
+        textarea#description::-webkit-scrollbar-thumb {
+          background: rgba(59, 130, 246, 0.3);
+          border-radius: 3px;
+        }
+        textarea#description::-webkit-scrollbar-thumb:hover {
+          background: rgba(59, 130, 246, 0.5);
         }
       `}</style>
     </div>

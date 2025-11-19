@@ -1781,7 +1781,7 @@ export default function ProfileManagementPage() {
                         <ol className="flex items-center gap-2 text-sm text-jcoder-muted">
                             <li>
                                 <button onClick={() => router.push(`/${username}/admin`)} className="hover:text-jcoder-primary transition-colors group">
-                                    <span className="group-hover:underline">Admin</span>
+                                    <span className="group-hover:underline">Dashboard</span>
                                 </button>
                             </li>
                             <li>
@@ -1805,10 +1805,7 @@ export default function ProfileManagementPage() {
 
                     {/* Profile Header Card */}
                     <div
-                        className="bg-jcoder-card/90 backdrop-blur-sm border border-jcoder rounded-2xl overflow-hidden mb-4 sm:mb-6 shadow-xl shadow-jcoder-primary/10 transform-gpu transition-all duration-300 md:hover:shadow-2xl md:hover:shadow-jcoder-primary/20 md:hover:-translate-y-1"
-                        style={{
-                            transform: windowSize.width >= 768 ? `perspective(1000px) rotateX(${-(mousePosition.y / windowSize.height - 0.5) * 1}deg) rotateY(${(mousePosition.x / windowSize.width - 0.5) * 1}deg) translateZ(0)` : 'none',
-                        }}
+                        className="bg-jcoder-card border border-jcoder rounded-xl sm:rounded-2xl overflow-hidden mb-4 sm:mb-6 shadow-xl shadow-jcoder-primary/10"
                     >
                         {/* Gradient Header */}
                         <div className="h-20 sm:h-24 md:h-32 bg-gradient-to-r from-purple-500 via-pink-500 to-purple-600"></div>

@@ -106,7 +106,7 @@ const TechnologyRow = memo(({
                 <div className="flex items-center justify-center gap-1.5">
                     <button
                         onClick={() => onEdit(tech)}
-                        className="p-2 text-blue-500 hover:bg-blue-500/15 rounded-lg transition-all duration-200 hover:scale-110 active:scale-95 hover:shadow-md hover:shadow-blue-500/20"
+                        className="p-2 text-blue-500 hover:bg-blue-500/15 rounded-lg transition-all duration-200 hover:scale-110 active:scale-95 hover:shadow-md hover:shadow-blue-500/20 cursor-pointer"
                         title="Edit"
                     >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -115,7 +115,7 @@ const TechnologyRow = memo(({
                     </button>
                     <button
                         onClick={() => onDelete(tech)}
-                        className="p-2 text-red-500 hover:bg-red-500/15 rounded-lg transition-all duration-200 hover:scale-110 active:scale-95 hover:shadow-md hover:shadow-red-500/20"
+                        className="p-2 text-red-500 hover:bg-red-500/15 rounded-lg transition-all duration-200 hover:scale-110 active:scale-95 hover:shadow-md hover:shadow-red-500/20 cursor-pointer"
                         title="Delete"
                     >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -156,7 +156,7 @@ const TechnologyRow = memo(({
             <td className="px-4 py-5 text-center">
                 <button
                     onClick={() => onToggleActive(tech)}
-                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 whitespace-nowrap shadow-sm ${tech.isActive
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 whitespace-nowrap shadow-sm cursor-pointer ${tech.isActive
                         ? 'bg-gradient-to-r from-green-500/20 to-green-500/10 text-green-500 border border-green-500/30 hover:from-green-500/30 hover:to-green-500/20 hover:shadow-green-500/20'
                         : 'bg-gradient-to-r from-red-500/20 to-red-500/10 text-red-500 border border-red-500/30 hover:from-red-500/30 hover:to-red-500/20 hover:shadow-red-500/20'
                         }`}
@@ -261,7 +261,7 @@ const TechnologyCard = memo(({
                         </span>
                         <button
                             onClick={() => onToggleActive(tech)}
-                            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium transition-colors ${tech.isActive
+                            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium transition-colors cursor-pointer ${tech.isActive
                                 ? 'bg-green-500/20 text-green-500 hover:bg-green-500/30'
                                 : 'bg-red-500/20 text-red-500 hover:bg-red-500/30'
                                 }`}
@@ -277,7 +277,7 @@ const TechnologyCard = memo(({
             <div className="flex items-center justify-end gap-2 pt-3 border-t border-jcoder/50">
                 <button
                     onClick={() => onEdit(tech)}
-                    className="p-2 text-blue-500 hover:bg-blue-500/10 rounded-lg transition-colors active:scale-95"
+                    className="p-2 text-blue-500 hover:bg-blue-500/10 rounded-lg transition-colors active:scale-95 cursor-pointer"
                     title="Edit"
                 >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -286,7 +286,7 @@ const TechnologyCard = memo(({
                 </button>
                 <button
                     onClick={() => onDelete(tech)}
-                    className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors active:scale-95"
+                    className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors active:scale-95 cursor-pointer"
                     title="Delete"
                 >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -899,8 +899,8 @@ export default function TechnologiesManagementPage() {
                     <nav className="mb-4 px-4 mt-4 md:mt-0">
                         <ol className="flex items-center gap-2 text-sm text-jcoder-muted">
                             <li>
-                                <button onClick={() => router.push(`/${urlUsername}/admin`)} className="hover:text-jcoder-primary transition-colors group">
-                                    <span className="group-hover:underline">Admin</span>
+                                <button onClick={() => router.push(`/${urlUsername}/admin`)} className="hover:text-jcoder-primary transition-colors group cursor-pointer">
+                                    <span className="group-hover:underline">Dashboard</span>
                                 </button>
                             </li>
                             <li>
@@ -926,7 +926,7 @@ export default function TechnologiesManagementPage() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 md:gap-6 mb-4 sm:mb-6 md:mb-8">
                         {/* Total Technologies Card */}
                         <div
-                            className="bg-jcoder-card/90 backdrop-blur-sm border border-jcoder rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-xl shadow-jcoder-primary/10 transform-gpu transition-all duration-300 hover:shadow-2xl hover:shadow-jcoder-primary/20 md:hover:-translate-y-1"
+                            className="bg-jcoder-card border border-jcoder rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-xl shadow-jcoder-primary/10 transform-gpu transition-all duration-300 hover:shadow-2xl hover:shadow-jcoder-primary/20 md:hover:-translate-y-1"
                             style={{
                                 transform: windowSize.width >= 768 ? `perspective(1000px) rotateX(${-(mousePosition.y / windowSize.height - 0.5) * 1}deg) rotateY(${(mousePosition.x / windowSize.width - 0.5) * 1}deg) translateZ(0)` : 'none',
                             }}
@@ -946,7 +946,7 @@ export default function TechnologiesManagementPage() {
 
                         {/* Status Card */}
                         <div
-                            className="bg-jcoder-card/90 backdrop-blur-sm border border-jcoder rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-xl shadow-jcoder-primary/10 transform-gpu transition-all duration-300 hover:shadow-2xl hover:shadow-jcoder-primary/20 md:hover:-translate-y-1"
+                            className="bg-jcoder-card border border-jcoder rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-xl shadow-jcoder-primary/10 transform-gpu transition-all duration-300 hover:shadow-2xl hover:shadow-jcoder-primary/20 md:hover:-translate-y-1"
                             style={{
                                 transform: windowSize.width >= 768 ? `perspective(1000px) rotateX(${-(mousePosition.y / windowSize.height - 0.5) * 1}deg) rotateY(${(mousePosition.x / windowSize.width - 0.5) * 1}deg) translateZ(0)` : 'none',
                             }}
@@ -983,7 +983,7 @@ export default function TechnologiesManagementPage() {
 
                         {/* Last Update Card */}
                         <div
-                            className="bg-jcoder-card/90 backdrop-blur-sm border border-jcoder rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-xl shadow-jcoder-primary/10 transform-gpu transition-all duration-300 hover:shadow-2xl hover:shadow-jcoder-primary/20 md:hover:-translate-y-1"
+                            className="bg-jcoder-card border border-jcoder rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-xl shadow-jcoder-primary/10 transform-gpu transition-all duration-300 hover:shadow-2xl hover:shadow-jcoder-primary/20 md:hover:-translate-y-1"
                             style={{
                                 transform: windowSize.width >= 768 ? `perspective(1000px) rotateX(${-(mousePosition.y / windowSize.height - 0.5) * 1}deg) rotateY(${(mousePosition.x / windowSize.width - 0.5) * 1}deg) translateZ(0)` : 'none',
                             }}
@@ -1275,7 +1275,7 @@ function TechnologyFormModal({ title, technology, onClose, onSubmit, submitting 
                         </h2>
                         <button
                             onClick={onClose}
-                            className="p-1.5 sm:p-2 hover:bg-jcoder-secondary rounded-lg transition-all duration-200 group"
+                            className="p-1.5 sm:p-2 hover:bg-jcoder-secondary rounded-lg transition-all duration-200 group cursor-pointer"
                             disabled={submitting}
                         >
                             <svg className="w-5 h-5 sm:w-6 sm:h-6 text-jcoder-muted group-hover:rotate-90 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1328,7 +1328,7 @@ function TechnologyFormModal({ title, technology, onClose, onSubmit, submitting 
                                     <button
                                         type="button"
                                         onClick={() => setFormData({ ...formData, expertiseLevel: ExpertiseLevel.BASIC })}
-                                        className={`h-full flex-1 transition-all duration-300 relative ${
+                                        className={`h-full flex-1 transition-all duration-300 relative cursor-pointer ${
                                             formData.expertiseLevel === ExpertiseLevel.BASIC 
                                                 ? 'bg-gray-500/30' 
                                                 : 'bg-gray-500/10 hover:bg-gray-500/20'
@@ -1340,7 +1340,7 @@ function TechnologyFormModal({ title, technology, onClose, onSubmit, submitting 
                                     <button
                                         type="button"
                                         onClick={() => setFormData({ ...formData, expertiseLevel: ExpertiseLevel.INTERMEDIATE })}
-                                        className={`h-full flex-1 transition-all duration-300 relative ${
+                                        className={`h-full flex-1 transition-all duration-300 relative cursor-pointer ${
                                             formData.expertiseLevel === ExpertiseLevel.INTERMEDIATE 
                                                 ? 'bg-blue-500/30' 
                                                 : 'bg-blue-500/10 hover:bg-blue-500/20'
@@ -1352,7 +1352,7 @@ function TechnologyFormModal({ title, technology, onClose, onSubmit, submitting 
                                     <button
                                         type="button"
                                         onClick={() => setFormData({ ...formData, expertiseLevel: ExpertiseLevel.ADVANCED })}
-                                        className={`h-full flex-1 transition-all duration-300 relative ${
+                                        className={`h-full flex-1 transition-all duration-300 relative cursor-pointer ${
                                             formData.expertiseLevel === ExpertiseLevel.ADVANCED 
                                                 ? 'bg-purple-500/30' 
                                                 : 'bg-purple-500/10 hover:bg-purple-500/20'
@@ -1364,7 +1364,7 @@ function TechnologyFormModal({ title, technology, onClose, onSubmit, submitting 
                                     <button
                                         type="button"
                                         onClick={() => setFormData({ ...formData, expertiseLevel: ExpertiseLevel.EXPERT })}
-                                        className={`h-full flex-1 transition-all duration-300 relative ${
+                                        className={`h-full flex-1 transition-all duration-300 relative cursor-pointer ${
                                             formData.expertiseLevel === ExpertiseLevel.EXPERT 
                                                 ? 'bg-yellow-500/40' 
                                                 : 'bg-yellow-500/10 hover:bg-yellow-500/20'
@@ -1398,7 +1398,7 @@ function TechnologyFormModal({ title, technology, onClose, onSubmit, submitting 
                                 <button
                                     type="button"
                                     onClick={() => setFormData({ ...formData, expertiseLevel: ExpertiseLevel.BASIC })}
-                                    className={`px-2 py-1 rounded transition-all duration-200 ${
+                                    className={`px-2 py-1 rounded transition-all duration-200 cursor-pointer ${
                                         formData.expertiseLevel === ExpertiseLevel.BASIC
                                             ? 'text-gray-400 font-semibold'
                                             : 'text-jcoder-muted hover:text-gray-400'
@@ -1409,7 +1409,7 @@ function TechnologyFormModal({ title, technology, onClose, onSubmit, submitting 
                                 <button
                                     type="button"
                                     onClick={() => setFormData({ ...formData, expertiseLevel: ExpertiseLevel.INTERMEDIATE })}
-                                    className={`px-2 py-1 rounded transition-all duration-200 ${
+                                    className={`px-2 py-1 rounded transition-all duration-200 cursor-pointer ${
                                         formData.expertiseLevel === ExpertiseLevel.INTERMEDIATE
                                             ? 'text-blue-400 font-semibold'
                                             : 'text-jcoder-muted hover:text-blue-400'
@@ -1420,7 +1420,7 @@ function TechnologyFormModal({ title, technology, onClose, onSubmit, submitting 
                                 <button
                                     type="button"
                                     onClick={() => setFormData({ ...formData, expertiseLevel: ExpertiseLevel.ADVANCED })}
-                                    className={`px-2 py-1 rounded transition-all duration-200 ${
+                                    className={`px-2 py-1 rounded transition-all duration-200 cursor-pointer ${
                                         formData.expertiseLevel === ExpertiseLevel.ADVANCED
                                             ? 'text-purple-400 font-semibold'
                                             : 'text-jcoder-muted hover:text-purple-400'
@@ -1431,7 +1431,7 @@ function TechnologyFormModal({ title, technology, onClose, onSubmit, submitting 
                                 <button
                                     type="button"
                                     onClick={() => setFormData({ ...formData, expertiseLevel: ExpertiseLevel.EXPERT })}
-                                    className={`px-2 py-1 rounded transition-all duration-200 ${
+                                    className={`px-2 py-1 rounded transition-all duration-200 cursor-pointer ${
                                         formData.expertiseLevel === ExpertiseLevel.EXPERT
                                             ? 'text-yellow-400 font-semibold'
                                             : 'text-jcoder-muted hover:text-yellow-400'

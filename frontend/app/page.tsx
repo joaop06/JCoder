@@ -156,7 +156,7 @@ export default function HomePage() {
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center mb-12 sm:mb-16 w-full px-2">
               <Link
                 href="/register"
-                className="group w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-jcoder-gradient text-black font-semibold rounded-lg hover:shadow-jcoder-primary hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2 text-sm sm:text-base"
+                className="group w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-jcoder-gradient text-black font-semibold rounded-lg hover:shadow-jcoder-primary hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2 text-sm sm:text-base cursor-pointer"
               >
                 <span>Get Started</span>
                 <svg className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -165,7 +165,7 @@ export default function HomePage() {
               </Link>
               <Link
                 href="/sign-in"
-                className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 border-2 border-jcoder-primary text-jcoder-primary font-semibold rounded-lg hover:bg-jcoder-primary hover:text-black transition-all duration-300 flex items-center justify-center gap-2 text-sm sm:text-base"
+                className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 border-2 border-jcoder-primary text-jcoder-primary font-semibold rounded-lg hover:bg-jcoder-primary hover:text-black transition-all duration-300 flex items-center justify-center gap-2 text-sm sm:text-base cursor-pointer"
               >
                 <span>Sign In</span>
                 <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -177,7 +177,7 @@ export default function HomePage() {
                   const element = document.getElementById('features');
                   element?.scrollIntoView({ behavior: 'smooth' });
                 }}
-                className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 border-2 border-jcoder-primary text-jcoder-primary font-semibold rounded-lg hover:bg-jcoder-primary hover:text-black transition-all duration-300 flex items-center justify-center gap-2 text-sm sm:text-base"
+                className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 border-2 border-jcoder-primary text-jcoder-primary font-semibold rounded-lg hover:bg-jcoder-primary hover:text-black transition-all duration-300 flex items-center justify-center gap-2 text-sm sm:text-base cursor-pointer"
               >
                 <span>Learn More</span>
                 <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -373,7 +373,7 @@ export default function HomePage() {
                 <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-2">
                   <Link
                     href="/register"
-                    className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-black text-white font-semibold rounded-lg hover:bg-black/90 transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2 text-sm sm:text-base"
+                    className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-black text-white font-semibold rounded-lg hover:bg-black/90 transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2 text-sm sm:text-base cursor-pointer"
                   >
                     <span>Sign Up Now</span>
                     <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -382,7 +382,7 @@ export default function HomePage() {
                   </Link>
                   <Link
                     href="/sign-in"
-                    className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 border-2 border-black text-black font-semibold rounded-lg hover:bg-black hover:text-white transition-all duration-300 flex items-center justify-center gap-2 text-sm sm:text-base"
+                    className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 border-2 border-black text-black font-semibold rounded-lg hover:bg-black hover:text-white transition-all duration-300 flex items-center justify-center gap-2 text-sm sm:text-base cursor-pointer"
                   >
                     <span>I already have an account</span>
                     <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

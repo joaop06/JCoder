@@ -72,13 +72,13 @@ function GenericFooter() {
               <div className="space-y-2">
                 <Link
                   href="/register"
-                  className="block w-full text-center text-sm text-jcoder-muted hover:text-jcoder-primary transition-colors"
+                  className="block w-full text-center text-sm text-jcoder-muted hover:text-jcoder-primary transition-colors cursor-pointer"
                 >
                   Sign Up
                 </Link>
                 <Link
                   href="/sign-in"
-                  className="block w-full text-center text-sm text-jcoder-muted hover:text-jcoder-primary transition-colors"
+                  className="block w-full text-center text-sm text-jcoder-muted hover:text-jcoder-primary transition-colors cursor-pointer"
                 >
                   Sign In
                 </Link>
@@ -136,13 +136,13 @@ function GenericFooter() {
                 <div className="space-y-2">
                   <Link
                     href="/register"
-                    className="block w-full text-center text-sm text-jcoder-muted hover:text-jcoder-primary transition-colors"
+                    className="block w-full text-center text-sm text-jcoder-muted hover:text-jcoder-primary transition-colors cursor-pointer"
                   >
                     Sign Up
                   </Link>
                   <Link
                     href="/sign-in"
-                    className="block w-full text-center text-sm text-jcoder-muted hover:text-jcoder-primary transition-colors"
+                    className="block w-full text-center text-sm text-jcoder-muted hover:text-jcoder-primary transition-colors cursor-pointer"
                   >
                     Sign In
                   </Link>
@@ -260,10 +260,10 @@ function UserFooter({ user, username }: { user: User; username: string }) {
               <h3 className="font-semibold text-jcoder-foreground mb-4">Contact</h3>
               <div className="space-y-2">
                 {displayEmail && (
-                  <a
-                    href={`mailto:${displayEmail}`}
-                    className="flex items-center justify-center gap-2 text-sm text-jcoder-muted hover:text-jcoder-primary transition-colors"
-                  >
+                <a
+                  href={`mailto:${displayEmail}`}
+                  className="flex items-center justify-center gap-2 text-sm text-jcoder-muted hover:text-jcoder-primary transition-colors cursor-pointer"
+                >
                     <LazyImage
                       src="/images/icons/gmail.png"
                       alt="Gmail"
@@ -281,7 +281,7 @@ function UserFooter({ user, username }: { user: User; username: string }) {
                     href={displayGithubUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center justify-center gap-2 text-sm text-jcoder-muted hover:text-jcoder-primary transition-colors"
+                    className="flex items-center justify-center gap-2 text-sm text-jcoder-muted hover:text-jcoder-primary transition-colors cursor-pointer"
                   >
                     <GitHubIcon className="w-4 h-4" />
                     GitHub
@@ -292,7 +292,7 @@ function UserFooter({ user, username }: { user: User; username: string }) {
                     href={displayLinkedinUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center justify-center gap-2 text-sm text-jcoder-muted hover:text-jcoder-primary transition-colors"
+                    className="flex items-center justify-center gap-2 text-sm text-jcoder-muted hover:text-jcoder-primary transition-colors cursor-pointer"
                   >
                     <LazyImage
                       src="/images/icons/linkedin.png"
@@ -391,7 +391,7 @@ function UserFooter({ user, username }: { user: User; username: string }) {
                   {displayEmail && (
                     <a
                       href={`mailto:${displayEmail}`}
-                      className="text-jcoder-muted hover:text-jcoder-primary transition-colors"
+                      className="text-jcoder-muted hover:text-jcoder-primary transition-colors cursor-pointer"
                       title="Gmail"
                     >
                       <LazyImage
@@ -410,7 +410,7 @@ function UserFooter({ user, username }: { user: User; username: string }) {
                       href={displayGithubUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-jcoder-muted hover:text-jcoder-primary transition-colors"
+                      className="text-jcoder-muted hover:text-jcoder-primary transition-colors cursor-pointer"
                       title="GitHub"
                     >
                       <GitHubIcon className="w-7 h-7" />
@@ -421,7 +421,7 @@ function UserFooter({ user, username }: { user: User; username: string }) {
                       href={displayLinkedinUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-jcoder-muted hover:text-jcoder-primary transition-colors"
+                      className="text-jcoder-muted hover:text-jcoder-primary transition-colors cursor-pointer"
                       title="LinkedIn"
                     >
                       <LazyImage

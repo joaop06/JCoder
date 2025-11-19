@@ -82,10 +82,10 @@ export const TableSkeleton = memo(({
     return (
         <>
             {/* Desktop Skeleton */}
-            <div className={`hidden md:block overflow-x-auto ${containerClass}`}>
+            <div className={`hidden md:block overflow-x-auto bg-jcoder-card border border-jcoder rounded-xl sm:rounded-2xl ${containerClass}`}>
                 <table className="w-full">
                     {showHeader && (
-                        <thead className="bg-jcoder-secondary border-b border-jcoder">
+                        <thead className="bg-jcoder-card border-b border-jcoder">
                             <tr>
                                 {(headerColumns || columns).map((col, i) => (
                                     <th
@@ -122,7 +122,7 @@ export const TableSkeleton = memo(({
             </div>
 
             {/* Mobile Skeleton */}
-            <div className="md:hidden divide-y divide-jcoder">
+            <div className="md:hidden bg-jcoder-card border border-jcoder rounded-xl sm:rounded-2xl divide-y divide-jcoder">
                 {mobileRowsArray.map((i) => (
                     <div key={i} className="p-4 animate-pulse">
                         <div className="flex items-start gap-3">

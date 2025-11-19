@@ -400,8 +400,8 @@ export default function MessagesManagementPage() {
                     <nav className="mb-4 px-4 mt-4 md:mt-0">
                         <ol className="flex items-center gap-2 text-sm text-jcoder-muted">
                             <li>
-                                <button onClick={() => router.push(`/${username}/admin`)} className="hover:text-jcoder-primary transition-colors group">
-                                    <span className="group-hover:underline">Admin</span>
+                                <button onClick={() => router.push(`/${username}/admin`)} className="hover:text-jcoder-primary transition-colors group cursor-pointer">
+                                    <span className="group-hover:underline">Dashboard</span>
                                 </button>
                             </li>
                             <li>
@@ -424,13 +424,13 @@ export default function MessagesManagementPage() {
                     </div>
 
                     {/* Messages Container - WhatsApp-like layout */}
-                    <div className="bg-jcoder-card/96 backdrop-blur-sm border border-jcoder rounded-xl sm:rounded-2xl overflow-hidden shadow-xl shadow-jcoder-primary/10 h-[calc(100vh-12rem)] md:h-[calc(100vh-36rem)] flex flex-col px-2 md:px-0">
+                    <div className="bg-jcoder-card border border-jcoder rounded-xl sm:rounded-2xl overflow-hidden shadow-xl shadow-jcoder-primary/10 h-[calc(100vh-12rem)] md:h-[calc(100vh-36rem)] flex flex-col px-2 md:px-0">
                         {/* Desktop: Side-by-side layout */}
                         <div className="hidden md:flex flex-1 overflow-hidden">
                             {/* Conversations Sidebar */}
-                            <div className="w-80 border-r border-jcoder flex flex-col bg-jcoder-secondary/55">
+                            <div className="w-80 border-r border-jcoder flex flex-col bg-jcoder-card">
                                 {/* Conversations Header */}
-                                <div className="p-4 border-b border-jcoder bg-jcoder-card/75">
+                                <div className="p-4 border-b border-jcoder bg-jcoder-card">
                                     <h2 className="text-lg font-semibold text-jcoder-foreground">Conversations</h2>
                                     <p className="text-xs text-jcoder-muted mt-1">
                                         {conversations.length} {conversations.length === 1 ? 'conversation' : 'conversations'}
@@ -442,7 +442,7 @@ export default function MessagesManagementPage() {
                                     {loading ? (
                                         <div className="p-4 space-y-3">
                                             {[1, 2, 3].map((i) => (
-                                                <div key={i} className="flex items-center gap-3 p-3 bg-jcoder-card/50 rounded-lg animate-pulse">
+                                                <div key={i} className="flex items-center gap-3 p-3 bg-jcoder-secondary rounded-lg animate-pulse">
                                                     <div className="w-12 h-12 rounded-full bg-jcoder-secondary"></div>
                                                     <div className="flex-1">
                                                         <div className="h-4 w-24 bg-jcoder-secondary rounded mb-2"></div>
@@ -465,7 +465,7 @@ export default function MessagesManagementPage() {
                                                 <button
                                                     key={conversation.id}
                                                     onClick={() => handleSelectConversation(conversation)}
-                                                    className={`w-full p-4 text-left hover:bg-jcoder-card/65 transition-colors ${selectedConversation?.id === conversation.id ? 'bg-jcoder-card/85 border-l-4 border-jcoder-primary' : ''
+                                                    className={`w-full p-4 text-left hover:bg-jcoder-secondary transition-colors cursor-pointer ${selectedConversation?.id === conversation.id ? 'bg-jcoder-secondary border-l-4 border-jcoder-primary' : ''
                                                         }`}
                                                 >
                                                     <div className="flex items-start gap-3">
@@ -506,11 +506,11 @@ export default function MessagesManagementPage() {
                             </div>
 
                             {/* Messages Area */}
-                            <div className="flex-1 flex flex-col bg-jcoder-card/55">
+                            <div className="flex-1 flex flex-col bg-jcoder-card">
                                 {selectedConversation ? (
                                     <>
                                         {/* Messages Header */}
-                                        <div className="p-4 border-b border-jcoder bg-jcoder-card/75 flex items-center gap-3">
+                                        <div className="p-4 border-b border-jcoder bg-jcoder-card flex items-center gap-3">
                                             <div className="w-10 h-10 rounded-full bg-jcoder-gradient flex items-center justify-center text-black font-semibold text-sm">
                                                 {getInitials(selectedConversation.senderName)}
                                             </div>
@@ -590,7 +590,7 @@ export default function MessagesManagementPage() {
                                                                     </div>
                                                                 )}
                                                                 <div className="flex justify-start">
-                                                                    <div className="max-w-xs lg:max-w-md bg-jcoder-secondary/85 rounded-2xl p-3 relative border border-jcoder/35">
+                                                                    <div className="max-w-xs lg:max-w-md bg-jcoder-secondary rounded-2xl p-3 relative border border-jcoder">
                                                                         <p className="text-sm text-jcoder-foreground whitespace-pre-wrap break-words">
                                                                             {message.message}
                                                                         </p>
@@ -633,7 +633,7 @@ export default function MessagesManagementPage() {
                             {mobileView === 'conversations' ? (
                                 <>
                                     {/* Conversations Header */}
-                                    <div className="p-4 border-b border-jcoder bg-jcoder-card/75">
+                                    <div className="p-4 border-b border-jcoder bg-jcoder-card">
                                         <h2 className="text-lg font-semibold text-jcoder-foreground">Conversations</h2>
                                         <p className="text-xs text-jcoder-muted mt-1">
                                             {conversations.length} {conversations.length === 1 ? 'conversation' : 'conversations'}
@@ -645,7 +645,7 @@ export default function MessagesManagementPage() {
                                         {loading ? (
                                             <div className="p-4 space-y-3">
                                                 {[1, 2, 3].map((i) => (
-                                                    <div key={i} className="flex items-center gap-3 p-3 bg-jcoder-card/50 rounded-lg animate-pulse">
+                                                    <div key={i} className="flex items-center gap-3 p-3 bg-jcoder-secondary rounded-lg animate-pulse">
                                                         <div className="w-12 h-12 rounded-full bg-jcoder-secondary"></div>
                                                         <div className="flex-1">
                                                             <div className="h-4 w-24 bg-jcoder-secondary rounded mb-2"></div>
@@ -668,7 +668,7 @@ export default function MessagesManagementPage() {
                                                     <button
                                                         key={conversation.id}
                                                         onClick={() => handleSelectConversation(conversation)}
-                                                        className="w-full p-4 text-left hover:bg-jcoder-card/65 transition-colors"
+                                                        className="w-full p-4 text-left hover:bg-jcoder-secondary transition-colors cursor-pointer"
                                                     >
                                                         <div className="flex items-start gap-3">
                                                             <div className="flex-shrink-0 w-12 h-12 rounded-full bg-jcoder-gradient flex items-center justify-center text-black font-semibold text-sm">
@@ -706,7 +706,7 @@ export default function MessagesManagementPage() {
                             ) : (
                                 <>
                                     {/* Messages Header with Back Button */}
-                                    <div className="p-4 border-b border-jcoder bg-jcoder-card/75 flex items-center gap-3">
+                                    <div className="p-4 border-b border-jcoder bg-jcoder-card flex items-center gap-3">
                                         <button
                                             onClick={handleBackToConversations}
                                             className="p-2 hover:bg-jcoder-secondary rounded-lg transition-colors"
@@ -798,7 +798,7 @@ export default function MessagesManagementPage() {
                                                                 </div>
                                                             )}
                                                             <div className="flex justify-start">
-                                                                <div className="max-w-[85%] bg-jcoder-secondary/85 rounded-2xl p-3 relative border border-jcoder/35">
+                                                                <div className="max-w-[85%] bg-jcoder-secondary rounded-2xl p-3 relative border border-jcoder">
                                                                     <p className="text-sm text-jcoder-foreground whitespace-pre-wrap break-words">
                                                                         {message.message}
                                                                     </p>

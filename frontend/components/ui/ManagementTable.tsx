@@ -63,9 +63,9 @@ export function ManagementTable<T>({
     onRetry,
 }: ManagementTableProps<T>) {
     return (
-        <div className="bg-jcoder-card/95 backdrop-blur-sm border border-jcoder rounded-xl overflow-hidden shadow-xl shadow-jcoder-primary/5">
+        <div className="bg-jcoder-card border border-jcoder rounded-xl sm:rounded-2xl overflow-hidden shadow-xl shadow-jcoder-primary/5">
             {/* Header */}
-            <div className="p-4 sm:p-6 border-b border-jcoder/50 bg-gradient-to-r from-jcoder-card via-jcoder-card/98 to-jcoder-card">
+            <div className="p-4 sm:p-6 border-b border-jcoder/50 bg-jcoder-card">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div className="min-w-0 flex-1">
                         <h2 className="text-lg sm:text-xl font-bold text-jcoder-foreground mb-1.5 tracking-tight">{title}</h2>
@@ -123,7 +123,7 @@ export function ManagementTable<T>({
                     <div className="hidden md:block overflow-x-auto">
                         <table className="w-full">
                             <thead>
-                                <tr className="bg-gradient-to-r from-jcoder-secondary/80 via-jcoder-secondary to-jcoder-secondary/80 border-b-2 border-jcoder-primary/50 shadow-md shadow-jcoder-primary/10">
+                                <tr className="bg-jcoder-card border-b-2 border-jcoder-primary/50 shadow-md shadow-jcoder-primary/10">
                                     {columns.map((column, index) => (
                                         <th
                                             key={index}
@@ -154,7 +154,7 @@ export function ManagementTable<T>({
 
                     {/* Pagination */}
                     {paginationMeta && onPageChange && onLimitChange && (
-                        <div className="border-t border-jcoder/30 bg-gradient-to-r from-jcoder-card/50 via-jcoder-card to-jcoder-card/50">
+                        <div className="border-t border-jcoder/30 bg-jcoder-card">
                             <Pagination
                                 meta={paginationMeta}
                                 onPageChange={onPageChange}

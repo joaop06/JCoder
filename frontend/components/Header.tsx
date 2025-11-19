@@ -121,7 +121,7 @@ export default function Header({
 
       setIsAdmin((!!userSession?.user && !!token) || isAdminProp);
       setIsLoggedIn(Boolean(userSession?.user && token));
-      
+
       // Initialize timestamp from localStorage if available
       const lastUpdate = localStorage.getItem('profileImageUpdated');
       if (lastUpdate) {
@@ -145,7 +145,7 @@ export default function Header({
       const newTimestamp = timestamp || Date.now();
       setProfileImageTimestamp(newTimestamp);
       profileImageTimestampRef.current = newTimestamp;
-      
+
       // Also update logged in state in case user data changed
       try {
         const userSession = UsersService.getUserSession?.();
@@ -166,7 +166,7 @@ export default function Header({
       }
     };
     window.addEventListener('profileImageUpdated', handleCustomEvent);
-    
+
     // Also listen for storage events (in case localStorage is updated directly)
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'user' || e.key === 'profileImageUpdated') {
@@ -174,7 +174,7 @@ export default function Header({
       }
     };
     window.addEventListener('storage', handleStorageChange);
-    
+
     // Poll localStorage for changes (since storage event only fires in other tabs)
     // Use a ref to track the last known timestamp to avoid infinite loops
     const storagePollInterval = setInterval(() => {
@@ -290,7 +290,7 @@ export default function Header({
 
   // Logo component
   const Logo = useCallback(({ href = '/', className = '' }: { href?: string; className?: string }) => (
-    <Link href={href} className={`flex items-center gap-2 hover:opacity-80 transition-opacity ${className}`}>
+    <Link href={href} className={`flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer ${className}`}>
       <LazyImage
         src="/images/jcoder-logo.png"
         alt="JCoder"
@@ -347,13 +347,13 @@ export default function Header({
               <ThemeToggle size="sm" />
               <Link
                 href={loggedInUsername ? `/${loggedInUsername}` : '/'}
-                className="px-4 py-2 text-sm text-jcoder-muted hover:text-jcoder-foreground border border-jcoder/50 hover:border-jcoder/70 rounded-lg transition-all duration-300"
+                className="px-4 py-2 text-sm text-jcoder-muted hover:text-jcoder-foreground border border-jcoder/50 hover:border-jcoder/70 rounded-lg transition-all duration-300 cursor-pointer"
               >
                 Portfolio
               </Link>
               <Link
                 href={loggedInUsername ? `/${loggedInUsername}/admin` : '/admin'}
-                className="px-4 py-2 text-sm text-jcoder-foreground hover:text-jcoder-primary border border-jcoder/50 hover:border-jcoder-primary/70 rounded-lg transition-all duration-300"
+                className="px-4 py-2 text-sm text-jcoder-foreground hover:text-jcoder-primary border border-jcoder/50 hover:border-jcoder-primary/70 rounded-lg transition-all duration-300 cursor-pointer"
               >
                 Admin
               </Link>
@@ -363,13 +363,13 @@ export default function Header({
               <ThemeToggle size="sm" />
               <Link
                 href={loggedInUsername ? `/${loggedInUsername}` : '/'}
-                className="px-3 py-1.5 text-xs sm:text-sm text-jcoder-muted hover:text-jcoder-foreground border border-jcoder/50 hover:border-jcoder/70 rounded-lg transition-all duration-300 whitespace-nowrap"
+                className="px-3 py-1.5 text-xs sm:text-sm text-jcoder-muted hover:text-jcoder-foreground border border-jcoder/50 hover:border-jcoder/70 rounded-lg transition-all duration-300 whitespace-nowrap cursor-pointer"
               >
                 Portfolio
               </Link>
               <Link
                 href={loggedInUsername ? `/${loggedInUsername}/admin` : '/admin'}
-                className="px-3 py-1.5 text-xs sm:text-sm text-jcoder-foreground hover:text-jcoder-primary border border-jcoder/50 hover:border-jcoder-primary/70 rounded-lg transition-all duration-300 whitespace-nowrap"
+                className="px-3 py-1.5 text-xs sm:text-sm text-jcoder-foreground hover:text-jcoder-primary border border-jcoder/50 hover:border-jcoder-primary/70 rounded-lg transition-all duration-300 whitespace-nowrap cursor-pointer"
               >
                 Admin
               </Link>
@@ -391,13 +391,13 @@ export default function Header({
               <ThemeToggle size="sm" />
               <Link
                 href="/sign-in"
-                className="px-4 py-2 text-sm text-jcoder-muted hover:text-jcoder-foreground border border-jcoder/50 hover:border-jcoder/70 rounded-lg transition-all duration-300"
+                className="px-4 py-2 text-sm text-jcoder-muted hover:text-jcoder-foreground border border-jcoder/50 hover:border-jcoder/70 rounded-lg transition-all duration-300 cursor-pointer"
               >
                 Sign In
               </Link>
               <Link
                 href="/register"
-                className="px-4 py-2 text-sm text-jcoder-foreground hover:text-jcoder-primary border border-jcoder/50 hover:border-jcoder-primary/70 rounded-lg transition-all duration-300"
+                className="px-4 py-2 text-sm text-jcoder-foreground hover:text-jcoder-primary border border-jcoder/50 hover:border-jcoder-primary/70 rounded-lg transition-all duration-300 cursor-pointer"
               >
                 Sign Up
               </Link>
@@ -407,13 +407,13 @@ export default function Header({
               <ThemeToggle size="sm" />
               <Link
                 href="/sign-in"
-                className="px-3 py-1.5 text-xs sm:text-sm text-jcoder-muted hover:text-jcoder-foreground border border-jcoder/50 hover:border-jcoder/70 rounded-lg transition-all duration-300 whitespace-nowrap"
+                className="px-3 py-1.5 text-xs sm:text-sm text-jcoder-muted hover:text-jcoder-foreground border border-jcoder/50 hover:border-jcoder/70 rounded-lg transition-all duration-300 whitespace-nowrap cursor-pointer"
               >
                 Sign In
               </Link>
               <Link
                 href="/register"
-                className="px-3 py-1.5 text-xs sm:text-sm text-jcoder-foreground hover:text-jcoder-primary border border-jcoder/50 hover:border-jcoder-primary/70 rounded-lg transition-all duration-300 whitespace-nowrap"
+                className="px-3 py-1.5 text-xs sm:text-sm text-jcoder-foreground hover:text-jcoder-primary border border-jcoder/50 hover:border-jcoder-primary/70 rounded-lg transition-all duration-300 whitespace-nowrap cursor-pointer"
               >
                 Sign Up
               </Link>
@@ -445,7 +445,7 @@ export default function Header({
                     <button
                       key={section}
                       onClick={() => handleNavigationClick(section)}
-                      className={`group relative px-4 py-2 text-sm font-semibold capitalize transition-colors duration-300 ${isActive
+                      className={`group relative px-4 py-2 text-sm font-semibold capitalize transition-colors duration-300 cursor-pointer ${isActive
                         ? 'text-jcoder-primary'
                         : 'text-jcoder-foreground hover:text-jcoder-primary'
                         }`}
@@ -474,7 +474,7 @@ export default function Header({
                     <div className="relative" ref={profileDropdownRef}>
                       <button
                         onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
-                        className="w-8 h-8 rounded-full overflow-hidden border border-jcoder hover:border-jcoder-primary transition-colors flex items-center justify-center bg-jcoder-secondary"
+                        className="w-8 h-8 rounded-full overflow-hidden border border-jcoder hover:border-jcoder-primary transition-colors flex items-center justify-center bg-jcoder-secondary cursor-pointer"
                         aria-label="Profile menu"
                       >
                         {profileImageData.imageUrl ? (
@@ -504,42 +504,42 @@ export default function Header({
                             <Link
                               href={getAdminRoute('/')}
                               onClick={() => setIsProfileDropdownOpen(false)}
-                              className="block px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors"
+                              className="block px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors cursor-pointer"
                             >
                               Dashboard
                             </Link>
                             <Link
                               href={getAdminRoute('/profile')}
                               onClick={() => setIsProfileDropdownOpen(false)}
-                              className="block px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors"
+                              className="block px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors cursor-pointer"
                             >
                               Profile
                             </Link>
                             <Link
                               href={getAdminRoute('/applications')}
                               onClick={() => setIsProfileDropdownOpen(false)}
-                              className="block px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors"
+                              className="block px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors cursor-pointer"
                             >
                               Applications
                             </Link>
                             <Link
                               href={getAdminRoute('/technologies')}
                               onClick={() => setIsProfileDropdownOpen(false)}
-                              className="block px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors"
+                              className="block px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors cursor-pointer"
                             >
                               Technologies
                             </Link>
                             <Link
                               href={getAdminRoute('/messages')}
                               onClick={() => setIsProfileDropdownOpen(false)}
-                              className="block px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors"
+                              className="block px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors cursor-pointer"
                             >
                               Messages
                             </Link>
                             <div className="border-t border-jcoder my-1"></div>
                             <button
                               onClick={handleSignOutClick}
-                              className="w-full text-left px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors"
+                              className="w-full text-left px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors cursor-pointer"
                             >
                               Sign out
                             </button>
@@ -556,7 +556,7 @@ export default function Header({
                   <div className="relative" ref={mobileMenuRef}>
                     <button
                       onClick={toggleMobileMenu}
-                      className="w-8 h-8 rounded-full overflow-hidden border border-jcoder hover:border-jcoder-primary transition-colors flex items-center justify-center bg-jcoder-secondary"
+                      className="w-8 h-8 rounded-full overflow-hidden border border-jcoder hover:border-jcoder-primary transition-colors flex items-center justify-center bg-jcoder-secondary cursor-pointer"
                       aria-label="Menu"
                     >
                       {profileImageData.imageUrl ? (
@@ -586,7 +586,7 @@ export default function Header({
                             <button
                               key={section}
                               onClick={() => handleNavigationClick(section)}
-                              className={`w-full text-left px-3 py-2 rounded-md text-sm capitalize transition-colors ${activeSection === section
+                              className={`w-full text-left px-3 py-2 rounded-md text-sm capitalize transition-colors cursor-pointer ${activeSection === section
                                 ? 'text-jcoder-primary font-medium bg-jcoder-secondary'
                                 : 'text-jcoder-foreground hover:text-jcoder-primary hover:bg-jcoder-secondary'
                                 }`}
@@ -602,35 +602,35 @@ export default function Header({
                               <Link
                                 href={getAdminRoute('/')}
                                 onClick={() => setIsMobileMenuOpen(false)}
-                                className="block px-3 py-2 rounded-md text-sm text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors"
+                                className="block px-3 py-2 rounded-md text-sm text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors cursor-pointer"
                               >
                                 Dashboard
                               </Link>
                               <Link
                                 href={getAdminRoute('/profile')}
                                 onClick={() => setIsMobileMenuOpen(false)}
-                                className="block px-3 py-2 rounded-md text-sm text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors"
+                                className="block px-3 py-2 rounded-md text-sm text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors cursor-pointer"
                               >
                                 Profile
                               </Link>
                               <Link
                                 href={getAdminRoute('/applications')}
                                 onClick={() => setIsMobileMenuOpen(false)}
-                                className="block px-3 py-2 rounded-md text-sm text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors"
+                                className="block px-3 py-2 rounded-md text-sm text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors cursor-pointer"
                               >
                                 Applications
                               </Link>
                               <Link
                                 href={getAdminRoute('/technologies')}
                                 onClick={() => setIsMobileMenuOpen(false)}
-                                className="block px-3 py-2 rounded-md text-sm text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors"
+                                className="block px-3 py-2 rounded-md text-sm text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors cursor-pointer"
                               >
                                 Technologies
                               </Link>
                               <Link
                                 href={getAdminRoute('/messages')}
                                 onClick={() => setIsMobileMenuOpen(false)}
-                                className="block px-3 py-2 rounded-md text-sm text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors"
+                                className="block px-3 py-2 rounded-md text-sm text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors cursor-pointer"
                               >
                                 Messages
                               </Link>
@@ -646,7 +646,7 @@ export default function Header({
                                   setIsMobileMenuOpen(false);
                                   handleSignOutClick();
                                 }}
-                                className="w-full text-left px-3 py-2 rounded-md text-sm text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors"
+                                className="w-full text-left px-3 py-2 rounded-md text-sm text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors cursor-pointer"
                               >
                                 Sign out
                               </button>
@@ -687,13 +687,13 @@ export default function Header({
               <div className="flex gap-3 justify-end">
                 <button
                   onClick={handleCancelSignOut}
-                  className="px-4 py-2 rounded-md border border-jcoder text-jcoder-muted hover:bg-jcoder-secondary hover:text-jcoder-foreground transition-colors"
+                  className="px-4 py-2 rounded-md border border-jcoder text-jcoder-muted hover:bg-jcoder-secondary hover:text-jcoder-foreground transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleConfirmSignOut}
-                  className="px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700 transition-colors"
+                  className="px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700 transition-colors cursor-pointer"
                 >
                   Sign Out
                 </button>
@@ -722,7 +722,7 @@ export default function Header({
                   <button
                     key={section}
                     onClick={() => handleNavigationClick(section)}
-                    className={`group relative px-4 py-2 text-sm font-semibold capitalize transition-colors duration-300 ${isActive
+                    className={`group relative px-4 py-2 text-sm font-semibold capitalize transition-colors duration-300 cursor-pointer ${isActive
                       ? 'text-jcoder-primary'
                       : 'text-jcoder-foreground hover:text-jcoder-primary'
                       }`}
@@ -755,7 +755,7 @@ export default function Header({
                 <div className="relative" ref={mobileMenuRef}>
                   <button
                     onClick={toggleMobileMenu}
-                    className="p-2 rounded-lg text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors"
+                    className="p-2 rounded-lg text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors cursor-pointer"
                     aria-label="Menu"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -771,7 +771,7 @@ export default function Header({
                             <button
                               key={section}
                               onClick={() => handleNavigationClick(section)}
-                              className={`group relative w-full text-left px-4 py-3 text-sm font-semibold capitalize transition-colors duration-300 ${isActive
+                              className={`group relative w-full text-left px-4 py-3 text-sm font-semibold capitalize transition-colors duration-300 cursor-pointer ${isActive
                                 ? 'text-jcoder-primary'
                                 : 'text-jcoder-foreground hover:text-jcoder-primary'
                                 }`}
@@ -840,7 +840,7 @@ export default function Header({
                     <Link
                       key={tab.path}
                       href={getAdminRoute(tab.path)}
-                      className={`group relative px-4 py-2 text-sm font-semibold transition-colors duration-300 ${isActive
+                      className={`group relative px-4 py-2 text-sm font-semibold transition-colors duration-300 cursor-pointer ${isActive
                         ? 'text-jcoder-primary'
                         : 'text-jcoder-foreground hover:text-jcoder-primary'
                         }`}
@@ -868,7 +868,7 @@ export default function Header({
                   <div className="relative" ref={profileDropdownRef}>
                     <button
                       onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
-                      className="w-8 h-8 rounded-full overflow-hidden border border-jcoder hover:border-jcoder-primary transition-colors flex items-center justify-center bg-jcoder-secondary"
+                      className="w-8 h-8 rounded-full overflow-hidden border border-jcoder hover:border-jcoder-primary transition-colors flex items-center justify-center bg-jcoder-secondary cursor-pointer"
                       aria-label="Profile menu"
                     >
                       {profileImageData.imageUrl ? (
@@ -897,42 +897,42 @@ export default function Header({
                           <Link
                             href={getAdminRoute('/')}
                             onClick={() => setIsProfileDropdownOpen(false)}
-                            className="block px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors"
+                            className="block px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors cursor-pointer"
                           >
                             Dashboard
                           </Link>
                           <Link
                             href={getAdminRoute('/profile')}
                             onClick={() => setIsProfileDropdownOpen(false)}
-                            className="block px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors"
+                            className="block px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors cursor-pointer"
                           >
                             Profile
                           </Link>
                           <Link
                             href={getAdminRoute('/applications')}
                             onClick={() => setIsProfileDropdownOpen(false)}
-                            className="block px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors"
+                            className="block px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors cursor-pointer"
                           >
                             Applications
                           </Link>
                           <Link
                             href={getAdminRoute('/technologies')}
                             onClick={() => setIsProfileDropdownOpen(false)}
-                            className="block px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors"
+                            className="block px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors cursor-pointer"
                           >
                             Technologies
                           </Link>
                           <Link
                             href={getAdminRoute('/messages')}
                             onClick={() => setIsProfileDropdownOpen(false)}
-                            className="block px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors"
+                            className="block px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors cursor-pointer"
                           >
                             Messages
                           </Link>
                           <div className="border-t border-jcoder my-1"></div>
                           <button
                             onClick={handleSignOutClick}
-                            className="w-full text-left px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors"
+                            className="w-full text-left px-3 py-2 rounded-md text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors cursor-pointer"
                           >
                             Sign out
                           </button>
@@ -948,7 +948,7 @@ export default function Header({
                   <div className="relative" ref={mobileMenuRef}>
                     <button
                       onClick={toggleMobileMenu}
-                      className="w-8 h-8 rounded-full overflow-hidden border border-jcoder hover:border-jcoder-primary transition-colors flex items-center justify-center bg-jcoder-secondary"
+                      className="w-8 h-8 rounded-full overflow-hidden border border-jcoder hover:border-jcoder-primary transition-colors flex items-center justify-center bg-jcoder-secondary cursor-pointer"
                       aria-label="Menu"
                     >
                       {profileImageData.imageUrl ? (
@@ -980,7 +980,7 @@ export default function Header({
                                 key={tab.path}
                                 href={getAdminRoute(tab.path)}
                                 onClick={() => setIsMobileMenuOpen(false)}
-                                className={`group relative block px-4 py-3 text-sm font-semibold transition-colors duration-300 ${isActive
+                                className={`group relative block px-4 py-3 text-sm font-semibold transition-colors duration-300 cursor-pointer ${isActive
                                   ? 'text-jcoder-primary'
                                   : 'text-jcoder-foreground hover:text-jcoder-primary'
                                   }`}
@@ -1004,7 +1004,7 @@ export default function Header({
                               setIsMobileMenuOpen(false);
                               handleSignOutClick();
                             }}
-                            className="w-full text-left px-3 py-2 rounded-md text-sm text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors"
+                            className="w-full text-left px-3 py-2 rounded-md text-sm text-jcoder-muted hover:text-jcoder-primary hover:bg-jcoder-secondary transition-colors cursor-pointer"
                           >
                             Sign out
                           </button>
@@ -1043,13 +1043,13 @@ export default function Header({
               <div className="flex gap-3 justify-end">
                 <button
                   onClick={handleCancelSignOut}
-                  className="px-4 py-2 rounded-md border border-jcoder text-jcoder-muted hover:bg-jcoder-secondary hover:text-jcoder-foreground transition-colors"
+                  className="px-4 py-2 rounded-md border border-jcoder text-jcoder-muted hover:bg-jcoder-secondary hover:text-jcoder-foreground transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleConfirmSignOut}
-                  className="px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700 transition-colors"
+                  className="px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700 transition-colors cursor-pointer"
                 >
                   Sign Out
                 </button>
@@ -1098,13 +1098,13 @@ export default function Header({
             <div className="flex gap-3 justify-end">
               <button
                 onClick={handleCancelSignOut}
-                className="px-4 py-2 rounded-md border border-jcoder text-jcoder-muted hover:bg-jcoder-secondary hover:text-jcoder-foreground transition-colors"
+                className="px-4 py-2 rounded-md border border-jcoder text-jcoder-muted hover:bg-jcoder-secondary hover:text-jcoder-foreground transition-colors cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 onClick={handleConfirmSignOut}
-                className="px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700 transition-colors"
+                className="px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700 transition-colors cursor-pointer"
               >
                 Sign Out
               </button>

@@ -29,7 +29,7 @@ export const TimelineItem: React.FC<TimelineItemProps> = ({
             {/* Timeline dot */}
             <div className={`absolute left-0 top-2 w-3 h-3 rounded-full -translate-x-1.5 ${isActive ? 'bg-jcoder-primary ring-4 ring-jcoder-primary ring-opacity-20' : 'bg-jcoder'}`}></div>
 
-            <div className="bg-jcoder-secondary rounded-lg p-4 hover:border hover:border-jcoder-primary transition-all duration-200">
+            <div className="bg-jcoder-secondary rounded-lg p-4 border border-jcoder hover:border-jcoder-primary transition-colors duration-200">
                 <div className="flex items-start justify-between gap-4 mb-2">
                     <div className="flex-1">
                         <h4 className="text-base md:text-lg font-semibold text-jcoder-foreground">
