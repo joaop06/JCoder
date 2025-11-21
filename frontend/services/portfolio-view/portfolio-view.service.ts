@@ -15,8 +15,8 @@ import { ApiService } from "../api.service";
 
 export const PortfolioViewService = {
     /**
-     * Busca dados básicos do perfil com About Me
-     * Rota otimizada para carregamento inicial do portfólio
+     * Fetches basic profile data with About Me
+     * Optimized route for initial portfolio loading
      * GET /portfolio/:username/profile
      */
     async getProfileWithAboutMe(username: string): Promise<User> {
@@ -29,8 +29,8 @@ export const PortfolioViewService = {
     },
 
     /**
-     * Busca educações do usuário
-     * Carregamento sob demanda para melhor performance mobile
+     * Fetches user educations
+     * On-demand loading for better mobile performance
      * GET /portfolio/:username/educations
      */
     async getEducations(username: string, pagination: PaginationDto = {}): Promise<PaginatedResponseDto<UserComponentEducation>> {
@@ -51,7 +51,7 @@ export const PortfolioViewService = {
     },
 
     /**
-     * Busca experiências do usuário
+     * Fetches user experiences
      * GET /portfolio/:username/experiences
      */
     async getExperiences(username: string, pagination: PaginationDto = {}): Promise<PaginatedResponseDto<UserComponentExperience>> {
@@ -72,7 +72,7 @@ export const PortfolioViewService = {
     },
 
     /**
-     * Busca certificados do usuário
+     * Fetches user certificates
      * GET /portfolio/:username/certificates
      */
     async getCertificates(username: string, pagination: PaginationDto = {}): Promise<PaginatedResponseDto<UserComponentCertificate>> {
@@ -93,7 +93,7 @@ export const PortfolioViewService = {
     },
 
     /**
-     * Busca referências do usuário
+     * Fetches user references
      * GET /portfolio/:username/references
      */
     async getReferences(username: string, pagination: PaginationDto = {}): Promise<PaginatedResponseDto<UserComponentReference>> {
@@ -114,8 +114,8 @@ export const PortfolioViewService = {
     },
 
     /**
-     * Busca todas as aplicações do usuário (sem componentes)
-     * Listagem otimizada para performance
+     * Fetches all user applications (without components)
+     * Optimized listing for performance
      * GET /portfolio/:username/applications
      */
     async getApplications(username: string, pagination: PaginationDto = {}): Promise<PaginatedResponseDto<Application>> {
@@ -136,8 +136,8 @@ export const PortfolioViewService = {
     },
 
     /**
-     * Busca detalhes de uma aplicação específica (com componentes)
-     * Carregamento sob demanda quando usuário clica em uma aplicação
+     * Fetches details of a specific application (with components)
+     * On-demand loading when user clicks on an application
      * GET /portfolio/:username/applications/:id
      */
     async getApplicationDetails(username: string, id: number): Promise<Application> {
@@ -150,7 +150,7 @@ export const PortfolioViewService = {
     },
 
     /**
-     * Busca tecnologias do usuário
+     * Fetches user technologies
      * GET /portfolio/:username/technologies
      */
     async getTechnologies(username: string, pagination: PaginationDto = {}): Promise<PaginatedResponseDto<Technology>> {
@@ -171,8 +171,8 @@ export const PortfolioViewService = {
     },
 
     /**
-     * Verifica disponibilidade do username
-     * Usado para validação em tempo real durante o cadastro
+     * Checks username availability
+     * Used for real-time validation during registration
      * GET /portfolio/check-username/:username
      */
     async checkUsernameAvailability(username: string): Promise<{ available: boolean; username: string }> {
@@ -185,8 +185,8 @@ export const PortfolioViewService = {
     },
 
     /**
-     * Verifica disponibilidade do email
-     * Usado para validação em tempo real durante o cadastro
+     * Checks email availability
+     * Used for real-time validation during registration
      * GET /portfolio/check-email/:email
      */
     async checkEmailAvailability(email: string): Promise<{ available: boolean; email: string }> {
@@ -199,8 +199,8 @@ export const PortfolioViewService = {
     },
 
     /**
-     * Envia uma mensagem ao administrador do portfólio
-     * Endpoint público para usuários comuns enviarem mensagens
+     * Sends a message to the portfolio administrator
+     * Public endpoint for regular users to send messages
      * POST /portfolio/:username/messages
      */
     async createMessage(
@@ -219,8 +219,8 @@ export const PortfolioViewService = {
     },
 
     /**
-     * Cadastro de novo usuário administrador
-     * Permite que novos usuários criem suas contas e comecem a gerenciar seus portfólios
+     * Registration of new administrator user
+     * Allows new users to create their accounts and start managing their portfolios
      * POST /portfolio/register
      */
     async register(createUserDto: CreateUserDto): Promise<User> {
@@ -233,7 +233,7 @@ export const PortfolioViewService = {
     },
 
     /**
-     * Envia código de verificação para o email
+     * Sends verification code to email
      * POST /portfolio/send-email-verification
      */
     async sendEmailVerification(email: string): Promise<{ message: string }> {
@@ -246,7 +246,7 @@ export const PortfolioViewService = {
     },
 
     /**
-     * Verifica o código de verificação do email
+     * Verifies email verification code
      * POST /portfolio/verify-email-code
      */
     async verifyEmailCode(email: string, code: string): Promise<{ verified: boolean; message: string }> {

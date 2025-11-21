@@ -101,7 +101,7 @@ export default function ApplicationsCarousel({ applications, username, mouse }: 
     }, PAUSE_ON_INTERACTION);
   }, [startProgressAnimation]);
 
-  // Função para avançar automaticamente
+  // Function to advance automatically
   const autoAdvance = useCallback(() => {
     if (isPaused || !isAutoPlaying) return;
 
@@ -183,7 +183,7 @@ export default function ApplicationsCarousel({ applications, username, mouse }: 
     };
 
     const handleMouseLeave = () => {
-      // Não pausa ao sair, apenas ao entrar
+      // Doesn't pause on exit, only on enter
     };
 
     const handleTouchStart = () => {

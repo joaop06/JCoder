@@ -1,8 +1,8 @@
 import { ApiService } from '../api.service';
 
 /**
- * Gera um fingerprint único do navegador baseado em características do dispositivo
- * Isso ajuda a identificar visitantes únicos mesmo sem cookies
+ * Generates a unique browser fingerprint based on device characteristics
+ * This helps identify unique visitors even without cookies
  */
 function generateBrowserFingerprint(): string {
   const canvas = document.createElement('canvas');
@@ -34,7 +34,7 @@ function generateBrowserFingerprint(): string {
     nav.deviceMemory || '',
   ].join('|');
 
-  // Hash simples (em produção, considere usar uma biblioteca de hash)
+  // Simple hash (in production, consider using a hash library)
   let hash = 0;
   for (let i = 0; i < fingerprint.length; i++) {
     const char = fingerprint.charCodeAt(i);
@@ -45,7 +45,7 @@ function generateBrowserFingerprint(): string {
 }
 
 /**
- * Obtém ou cria um fingerprint persistente no localStorage
+ * Gets or creates a persistent fingerprint in localStorage
  */
 function getOrCreateFingerprint(): string {
   const STORAGE_KEY = 'jcoder_portfolio_fingerprint';
@@ -60,8 +60,8 @@ function getOrCreateFingerprint(): string {
 }
 
 /**
- * Verifica se o usuário atual é o dono do portfólio
- * Compara o username da URL com o username do usuário logado
+ * Checks if the current user is the portfolio owner
+ * Compares the URL username with the logged-in user's username
  */
 function isPortfolioOwner(username: string): boolean {
   try {
@@ -76,12 +76,12 @@ function isPortfolioOwner(username: string): boolean {
 }
 
 /**
- * Serviço para tracking de acessos ao portfólio
+ * Service for tracking portfolio access
  */
 export const PortfolioTrackingService = {
   /**
-   * Registra um acesso ao portfólio
-   * @param username - Username do portfólio acessado
+   * Records a portfolio access
+   * @param username - Username of the accessed portfolio
    */
   async trackView(username: string): Promise<void> {
     try {
@@ -98,14 +98,14 @@ export const PortfolioTrackingService = {
         },
         undefined, // config
         {
-          // Não retry em caso de erro para evitar múltiplas contagens
+          // No retry on error to avoid multiple counts
           retries: 0,
           retryDelay: 0,
         }
       );
     } catch (error) {
-      // Silenciosamente falha - não queremos interromper a experiência do usuário
-      // Log apenas em desenvolvimento
+      // Silently fails - we don't want to interrupt the user experience
+      // Log only in development
       if (process.env.NODE_ENV === 'development') {
         console.warn('[PortfolioTracking] Failed to track view:', error);
       }

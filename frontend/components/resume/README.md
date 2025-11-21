@@ -1,24 +1,24 @@
-# Sistema de Templates de Currículo
+# Resume Template System
 
-Este módulo fornece um sistema extensível para criação e geração de currículos em PDF com múltiplos templates pré-definidos.
+This module provides an extensible system for creating and generating resume PDFs with multiple predefined templates.
 
-## Estrutura
+## Structure
 
 ```
 components/resume/
-├── Resume.tsx                    # Componente principal
-├── types.ts                      # Tipos e interfaces
-├── utils.ts                      # Funções auxiliares compartilhadas
-├── index.ts                      # Exports públicos
+├── Resume.tsx                    # Main component
+├── types.ts                      # Types and interfaces
+├── utils.ts                      # Shared helper functions
+├── index.ts                      # Public exports
 └── templates/
-    ├── index.ts                  # Registry de templates
+    ├── index.ts                  # Template registry
     └── classic/
-        └── ClassicTemplate.tsx   # Template clássico
+        └── ClassicTemplate.tsx   # Classic template
 ```
 
-## Uso Básico
+## Basic Usage
 
-### Renderizar um currículo
+### Render a resume
 
 ```tsx
 import { Resume, ResumeTemplateType } from '@/components/resume';
@@ -36,22 +36,22 @@ import { Resume, ResumeTemplateType } from '@/components/resume';
 ```
 
 
-## Criando um Novo Template
+## Creating a New Template
 
-### 1. Adicionar o tipo no enum
+### 1. Add the type to the enum
 
-Em `types.ts`:
+In `types.ts`:
 
 ```typescript
 export enum ResumeTemplateType {
   CLASSIC = 'classic',
-  MODERN = 'modern',  // Novo template
+  MODERN = 'modern',  // New template
 }
 ```
 
-### 2. Criar o componente do template
+### 2. Create the template component
 
-Criar `templates/modern/ModernTemplate.tsx`:
+Create `templates/modern/ModernTemplate.tsx`:
 
 ```tsx
 'use client';
@@ -64,28 +64,28 @@ export default function ModernTemplate({ data }: ResumeTemplateProps) {
 
   return (
     <div id="resume-content-modern" className="resume-pdf modern-template" style={{
-      // Seu layout personalizado aqui
+      // Your custom layout here
     }}>
-      {/* Conteúdo do template */}
+      {/* Template content */}
     </div>
   );
 }
 ```
 
-### 3. Registrar o template
+### 3. Register the template
 
-Em `templates/index.ts`:
+In `templates/index.ts`:
 
 ```typescript
 import ModernTemplate from './modern/ModernTemplate';
 
 export const resumeTemplates: Record<ResumeTemplateType, ResumeTemplate> = {
-  // ... templates existentes
+  // ... existing templates
   [ResumeTemplateType.MODERN]: {
     metadata: {
       id: ResumeTemplateType.MODERN,
       name: 'Modern',
-      description: 'Layout moderno e minimalista',
+      description: 'Modern and minimalist layout',
     },
     Component: ModernTemplate,
     getResumeElementId: (type) => {
@@ -98,7 +98,7 @@ export const resumeTemplates: Record<ResumeTemplateType, ResumeTemplate> = {
 };
 ```
 
-### 4. Usar o novo template
+### 4. Use the new template
 
 ```tsx
 <Resume
@@ -107,24 +107,24 @@ export const resumeTemplates: Record<ResumeTemplateType, ResumeTemplate> = {
 />
 ```
 
-## Características dos Templates
+## Template Characteristics
 
-Cada template deve:
+Each template must:
 
-1. **Ter um ID único**: O elemento raiz deve ter um `id` único que corresponda ao retornado por `getResumeElementId`
-2. **Ser otimizado para PDF**: Usar unidades `mm` e cores que funcionem bem em impressão
-3. **Ser responsivo ao conteúdo**: Adaptar-se quando seções estão vazias
-4. **Usar helpers compartilhados**: Utilizar funções de `utils.ts` para formatação
+1. **Have a unique ID**: The root element must have a unique `id` that matches the one returned by `getResumeElementId`
+2. **Be optimized for PDF**: Use `mm` units and colors that work well in printing
+3. **Be content responsive**: Adapt when sections are empty
+4. **Use shared helpers**: Use functions from `utils.ts` for formatting
 
-## Funções Auxiliares Disponíveis
+## Available Helper Functions
 
-- `formatDate(date)`: Formata uma data
-- `formatDateRange(start, end, isCurrent)`: Formata um intervalo de datas
-- `getExpertiseLevelLabel(level)`: Retorna o label do nível de expertise
-- `stripHtml(html)`: Remove tags HTML de uma string
-- `getSkillBarWidth(level)`: Calcula a largura da barra de skill
+- `formatDate(date)`: Formats a date
+- `formatDateRange(start, end, isCurrent)`: Formats a date range
+- `getExpertiseLevelLabel(level)`: Returns the expertise level label
+- `stripHtml(html)`: Removes HTML tags from a string
+- `getSkillBarWidth(level)`: Calculates the skill bar width
 
-## Exemplo Completo de Template
+## Complete Template Example
 
-Veja `templates/classic/ClassicTemplate.tsx` para um exemplo completo de implementação.
+See `templates/classic/ClassicTemplate.tsx` for a complete implementation example.
 

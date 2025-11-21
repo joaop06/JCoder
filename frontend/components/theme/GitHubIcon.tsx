@@ -10,7 +10,7 @@ interface GitHubIconProps {
 export default function GitHubIcon({ className = "w-6 h-6", alt = "GitHub" }: GitHubIconProps) {
     const { theme } = useTheme();
 
-    // Aplica dark:invert apenas quando o tema é escuro
+    // Applies dark:invert only when theme is dark
     const iconClassName = theme === 'dark'
         ? `${className} invert`
         : className;

@@ -67,7 +67,7 @@ describe('DeleteUserProfileImageUseCase', () => {
     });
 
     describe('execute', () => {
-        it('deve deletar imagem de perfil com sucesso', async () => {
+        it('should delete profile image successfully', async () => {
             // Arrange
             const userId = 1;
             const updatedUser = {
@@ -98,7 +98,7 @@ describe('DeleteUserProfileImageUseCase', () => {
             expect(result.profileImage).toBeNull();
         });
 
-        it('deve retornar o usuário sem alterações quando não tem imagem de perfil', async () => {
+        it('should return user without changes when has no profile image', async () => {
             // Arrange
             const userId = 3;
 
@@ -113,7 +113,7 @@ describe('DeleteUserProfileImageUseCase', () => {
             expect(result).toEqual(mockUser3);
         });
 
-        it('deve lançar UserNotFoundException quando o usuário não existe', async () => {
+        it('should throw UserNotFoundException when user does not exist', async () => {
             // Arrange
             const userId = 999;
 
@@ -124,7 +124,7 @@ describe('DeleteUserProfileImageUseCase', () => {
             expect(imageStorageService.deleteImage).not.toHaveBeenCalled();
         });
 
-        it('deve garantir segmentação por usuário - múltiplos usuários deletando imagens simultaneamente', async () => {
+        it('should ensure user segmentation - multiple users deleting images simultaneously', async () => {
             // Arrange
             const user1Id = 1;
             const user2Id = 2;
@@ -167,7 +167,7 @@ describe('DeleteUserProfileImageUseCase', () => {
             );
         });
 
-        it('deve garantir que apenas a imagem do usuário correto é deletada', async () => {
+        it('should ensure that only the correct user\'s image is deleted', async () => {
             // Arrange
             const user1Id = 1;
 
@@ -189,7 +189,7 @@ describe('DeleteUserProfileImageUseCase', () => {
                 undefined,
                 'user1',
             );
-            // Verifica que não foi chamado com os dados do user2
+            // Verify that it was not called with user2's data
             expect(imageStorageService.deleteImage).not.toHaveBeenCalledWith(
                 ResourceType.User,
                 2,

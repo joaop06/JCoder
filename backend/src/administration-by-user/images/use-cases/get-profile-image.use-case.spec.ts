@@ -72,7 +72,7 @@ describe('GetProfileImageUseCase', () => {
     });
 
     describe('execute', () => {
-        it('deve retornar o caminho da imagem de perfil com sucesso', async () => {
+        it('should return profile image path successfully', async () => {
             // Arrange
             const applicationId = 1;
             const expectedImagePath = '/path/to/user1/applications/1/profile-image-1.jpg';
@@ -99,7 +99,7 @@ describe('GetProfileImageUseCase', () => {
             expect(result).toBe(expectedImagePath);
         });
 
-        it('deve lançar ApplicationNotFoundException quando a aplicação não tem imagem de perfil', async () => {
+        it('should throw ApplicationNotFoundException when application has no profile image', async () => {
             // Arrange
             const applicationId = 1;
             const applicationWithoutImage = {
@@ -116,7 +116,7 @@ describe('GetProfileImageUseCase', () => {
             expect(imageStorageService.getImagePath).not.toHaveBeenCalled();
         });
 
-        it('deve lançar ApplicationNotFoundException quando a aplicação não existe', async () => {
+        it('should throw ApplicationNotFoundException when application does not exist', async () => {
             // Arrange
             const applicationId = 999;
 
@@ -136,7 +136,7 @@ describe('GetProfileImageUseCase', () => {
             );
         });
 
-        it('deve garantir segmentação por usuário - múltiplos usuários com aplicações diferentes', async () => {
+        it('should ensure user segmentation - multiple users with different applications', async () => {
             // Arrange
             const user1ApplicationId = 1;
             const user2ApplicationId = 2;
@@ -177,7 +177,7 @@ describe('GetProfileImageUseCase', () => {
             expect(result1).not.toBe(result2);
         });
 
-        it('deve usar cache quando a aplicação está em cache', async () => {
+        it('should use cache when application is cached', async () => {
             // Arrange
             const applicationId = 1;
             const expectedImagePath = '/path/to/user1/applications/1/profile-image-1.jpg';
@@ -194,7 +194,7 @@ describe('GetProfileImageUseCase', () => {
             expect(applicationRepository.findOne).not.toHaveBeenCalled();
         });
 
-        it('deve buscar do banco quando não está em cache', async () => {
+        it('should fetch from database when not cached', async () => {
             // Arrange
             const applicationId = 1;
             const expectedImagePath = '/path/to/user1/applications/1/profile-image-1.jpg';

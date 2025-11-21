@@ -100,7 +100,7 @@ describe('UploadImagesUseCase', () => {
     });
 
     describe('execute', () => {
-        it('deve fazer upload de múltiplas imagens com sucesso', async () => {
+        it('should upload multiple images successfully', async () => {
             // Arrange
             const applicationId = 1;
             const files = [mockFile1, mockFile2];
@@ -135,7 +135,7 @@ describe('UploadImagesUseCase', () => {
             expect(result.images).toEqual(['existing-image.jpg', ...newFilenames]);
         });
 
-        it('deve fazer upload de imagens em aplicação sem imagens existentes', async () => {
+        it('should upload images to application without existing images', async () => {
             // Arrange
             const applicationId = 2;
             const files = [mockFile1];
@@ -156,7 +156,7 @@ describe('UploadImagesUseCase', () => {
             expect(result.images).toEqual(newFilenames);
         });
 
-        it('deve lançar ApplicationNotFoundException quando a aplicação não existe', async () => {
+        it('should throw ApplicationNotFoundException when application does not exist', async () => {
             // Arrange
             const applicationId = 999;
             const files = [mockFile1];
@@ -178,7 +178,7 @@ describe('UploadImagesUseCase', () => {
             expect(imageStorageService.uploadImages).not.toHaveBeenCalled();
         });
 
-        it('deve garantir segmentação por usuário - múltiplos usuários fazendo upload simultaneamente', async () => {
+        it('should ensure user segmentation - multiple users uploading simultaneously', async () => {
             // Arrange
             const user1ApplicationId = 1;
             const user2ApplicationId = 2;
@@ -234,7 +234,7 @@ describe('UploadImagesUseCase', () => {
             expect(result2.images).not.toContain('user1-image.jpg');
         });
 
-        it('deve manter imagens existentes ao adicionar novas', async () => {
+        it('should keep existing images when adding new ones', async () => {
             // Arrange
             const applicationId = 1;
             const files = [mockFile1];
@@ -263,7 +263,7 @@ describe('UploadImagesUseCase', () => {
             expect(result.images).toContain('new-image.jpg');
         });
 
-        it('deve invalidar cache após fazer upload', async () => {
+        it('should invalidate cache after uploading', async () => {
             // Arrange
             const applicationId = 1;
             const files = [mockFile1];

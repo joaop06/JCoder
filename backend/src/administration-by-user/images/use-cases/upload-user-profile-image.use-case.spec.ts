@@ -75,7 +75,7 @@ describe('UploadUserProfileImageUseCase', () => {
     });
 
     describe('execute', () => {
-        it('deve fazer upload de imagem de perfil com sucesso quando não existe imagem anterior', async () => {
+        it('should upload profile image successfully when no previous image exists', async () => {
             // Arrange
             const userId = 2;
             const newFilename = 'new-profile.jpg';
@@ -104,7 +104,7 @@ describe('UploadUserProfileImageUseCase', () => {
             expect(result.profileImage).toBe(newFilename);
         });
 
-        it('deve deletar imagem anterior antes de fazer upload de nova imagem', async () => {
+        it('should delete previous image before uploading new image', async () => {
             // Arrange
             const userId = 1;
             const newFilename = 'new-profile.jpg';
@@ -140,7 +140,7 @@ describe('UploadUserProfileImageUseCase', () => {
             expect(result.profileImage).toBe(newFilename);
         });
 
-        it('deve lançar UserNotFoundException quando o usuário não existe', async () => {
+        it('should throw UserNotFoundException when user does not exist', async () => {
             // Arrange
             const userId = 999;
 
@@ -153,7 +153,7 @@ describe('UploadUserProfileImageUseCase', () => {
             expect(imageStorageService.uploadImage).not.toHaveBeenCalled();
         });
 
-        it('deve garantir segmentação por usuário - múltiplos usuários fazendo upload simultaneamente', async () => {
+        it('should ensure user segmentation - multiple users uploading simultaneously', async () => {
             // Arrange
             const user1Id = 1;
             const user2Id = 2;
@@ -206,7 +206,7 @@ describe('UploadUserProfileImageUseCase', () => {
             expect(result2.profileImage).toBe(user2NewFilename);
         });
 
-        it('deve garantir que imagens de diferentes usuários são armazenadas em diretórios separados', async () => {
+        it('should ensure that images from different users are stored in separate directories', async () => {
             // Arrange
             const user1Id = 1;
             const user2Id = 2;
@@ -236,7 +236,7 @@ describe('UploadUserProfileImageUseCase', () => {
             await useCase.execute(user1Id, mockFile);
             await useCase.execute(user2Id, mockFile);
 
-            // Assert - Verifica que o username foi passado corretamente para cada usuário
+            // Assert - Verify that the username was passed correctly for each user
             const user1Call = imageStorageService.uploadImage.mock.calls[0];
             const user2Call = imageStorageService.uploadImage.mock.calls[1];
 

@@ -5,7 +5,7 @@ export class RegisterPortfolioViewDto {
   @ApiPropertyOptional({
     type: 'string',
     example: 'abc123def456',
-    description: 'Fingerprint único do navegador para deduplicação',
+    description: 'Unique browser fingerprint for deduplication',
   })
   @IsOptional()
   @IsString()
@@ -14,7 +14,7 @@ export class RegisterPortfolioViewDto {
   @ApiPropertyOptional({
     type: 'string',
     example: 'https://example.com',
-    description: 'URL de referência (de onde veio)',
+    description: 'Referrer URL (where it came from)',
   })
   @IsOptional()
   @IsString()
@@ -23,7 +23,7 @@ export class RegisterPortfolioViewDto {
   @ApiPropertyOptional({
     type: 'boolean',
     default: false,
-    description: 'Indica se o acesso foi do próprio dono do portfólio (via cookie/localStorage)',
+    description: 'Indicates if the access was from the portfolio owner (via cookie/localStorage)',
   })
   @IsOptional()
   @IsBoolean()

@@ -69,7 +69,7 @@ describe('DeleteTechnologyProfileImageUseCase', () => {
     });
 
     describe('execute', () => {
-        it('deve deletar imagem de perfil com sucesso', async () => {
+        it('should delete profile image successfully', async () => {
             // Arrange
             const technologyId = 1;
             const updatedTechnology = {
@@ -98,7 +98,7 @@ describe('DeleteTechnologyProfileImageUseCase', () => {
             expect(result.profileImage).toBeNull();
         });
 
-        it('deve retornar a tecnologia sem alterações quando não tem imagem de perfil', async () => {
+        it('should return technology without changes when has no profile image', async () => {
             // Arrange
             const technologyId = 3;
 
@@ -113,7 +113,7 @@ describe('DeleteTechnologyProfileImageUseCase', () => {
             expect(result).toEqual(mockTechnology3);
         });
 
-        it('deve lançar TechnologyNotFoundException quando a tecnologia não existe', async () => {
+        it('should throw TechnologyNotFoundException when technology does not exist', async () => {
             // Arrange
             const technologyId = 999;
 
@@ -126,7 +126,7 @@ describe('DeleteTechnologyProfileImageUseCase', () => {
             expect(imageStorageService.deleteImage).not.toHaveBeenCalled();
         });
 
-        it('deve garantir que múltiplas tecnologias podem deletar suas imagens', async () => {
+        it('should ensure that multiple technologies can delete their images', async () => {
             // Arrange
             const technology1Id = 1;
             const technology2Id = 2;

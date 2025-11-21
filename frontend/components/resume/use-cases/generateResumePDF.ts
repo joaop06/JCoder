@@ -4,17 +4,17 @@ import { ResumeTemplateType } from '../types';
 import { getResumeTemplate } from '../templates';
 
 /**
- * Interface para representar uma seção detectada
+ * Interface to represent a detected section
  */
 interface SectionInfo {
   element: HTMLElement;
-  top: number; // Posição Y no canvas (em mm)
-  bottom: number; // Posição Y final no canvas (em mm)
-  height: number; // Altura da seção (em mm)
+  top: number; // Y position in canvas (in mm)
+  bottom: number; // Final Y position in canvas (in mm)
+  height: number; // Section height (in mm)
 }
 
 /**
- * Calcula as posições das seções no canvas usando dados pré-coletados
+ * Calculates section positions in canvas using pre-collected data
  */
 function calculateSectionPositions(
   sectionRects: Array<{
@@ -29,22 +29,22 @@ function calculateSectionPositions(
 ): SectionInfo[] {
   const sections: SectionInfo[] = [];
 
-  // O html2canvas captura o elemento com scale
-  // O canvas tem dimensões: canvas.width = element.scrollWidth * scale
-  // As posições dos elementos no canvas são proporcionais às posições no DOM
-  // mas multiplicadas pelo scale
+  // html2canvas captures the element with scale
+  // Canvas has dimensions: canvas.width = element.scrollWidth * scale
+  // Element positions in canvas are proportional to DOM positions
+  // but multiplied by scale
 
-  // Altura do canvas em pixels
+  // Canvas height in pixels
   const canvasHeightPx = canvas.height;
 
-  // Fator de conversão: pixels do DOM original para mm no PDF
-  // imgHeight é a altura do canvas convertida para mm no PDF
-  // Então: 1 pixel no DOM = (imgHeight / canvasHeightPx) mm no PDF
-  // Mas o canvas foi escalado, então: 1 pixel no DOM = (imgHeight / (canvasHeightPx / scale)) mm
+  // Conversion factor: original DOM pixels to mm in PDF
+  // imgHeight is the canvas height converted to mm in PDF
+  // So: 1 pixel in DOM = (imgHeight / canvasHeightPx) mm in PDF
+  // But canvas was scaled, so: 1 pixel in DOM = (imgHeight / (canvasHeightPx / scale)) mm
   const pixelsPerMm = (canvasHeightPx / scale) / imgHeight;
 
   sectionRects.forEach((sectionRect) => {
-    // Converter pixels do DOM para mm no PDF
+    // Convert DOM pixels to mm in PDF
     const topMm = sectionRect.relativeTop / pixelsPerMm;
     const bottomMm = sectionRect.relativeBottom / pixelsPerMm;
     const heightMm = bottomMm - topMm;
@@ -57,14 +57,14 @@ function calculateSectionPositions(
     });
   });
 
-  // Ordenar por posição top
+  // Sort by top position
   sections.sort((a, b) => a.top - b.top);
 
   return sections;
 }
 
 /**
- * Extrai uma parte específica do canvas como uma nova imagem
+ * Extracts a specific part of the canvas as a new image
  */
 function extractCanvasSection(
   canvas: HTMLCanvasElement,
@@ -79,33 +79,33 @@ function extractCanvasSection(
     throw new Error('Could not get canvas context');
   }
 
-  // Calcular posições em pixels no canvas
-  // startY e height estão em mm no PDF
-  // Precisamos converter para pixels no canvas
+  // Calculate positions in pixels in canvas
+  // startY and height are in mm in PDF
+  // We need to convert to pixels in canvas
   const canvasHeightPx = canvas.height;
   const canvasWidthPx = canvas.width;
 
-  // Fator de conversão: mm no PDF para pixels no canvas
-  // imgHeight (mm) corresponde a canvasHeightPx (pixels)
+  // Conversion factor: mm in PDF to pixels in canvas
+  // imgHeight (mm) corresponds to canvasHeightPx (pixels)
   const mmPerPx = imgHeight / canvasHeightPx;
   const pixelsPerMm = canvasHeightPx / imgHeight;
 
   const startYPx = Math.floor(startY * pixelsPerMm);
   const heightPx = Math.ceil(height * pixelsPerMm);
 
-  // Garantir que não ultrapassamos os limites do canvas
+  // Ensure we don't exceed canvas limits
   const actualStartYPx = Math.max(0, Math.min(startYPx, canvasHeightPx));
   const actualHeightPx = Math.min(heightPx, canvasHeightPx - actualStartYPx);
 
   if (actualHeightPx <= 0) {
-    // Se a altura for 0 ou negativa, retornar uma imagem vazia
+    // If height is 0 or negative, return an empty image
     const emptyCanvas = document.createElement('canvas');
     emptyCanvas.width = canvasWidthPx;
     emptyCanvas.height = 1;
     return emptyCanvas.toDataURL('image/png', 1.0);
   }
 
-  // Criar um novo canvas para a seção
+  // Create a new canvas for the section
   const sectionCanvas = document.createElement('canvas');
   sectionCanvas.width = canvasWidthPx;
   sectionCanvas.height = actualHeightPx;
@@ -115,7 +115,7 @@ function extractCanvasSection(
     throw new Error('Could not create section canvas context');
   }
 
-  // Copiar a parte do canvas original
+  // Copy the part from the original canvas
   sectionCtx.drawImage(
     canvas,
     0, actualStartYPx, canvasWidthPx, actualHeightPx, // source
@@ -126,7 +126,7 @@ function extractCanvasSection(
 }
 
 /**
- * Adiciona páginas ao PDF respeitando as seções, evitando quebras no meio delas
+ * Adds pages to PDF respecting sections, avoiding breaks in the middle of them
  */
 function addPagesWithSectionAwareness(
   pdf: jsPDF,
@@ -137,14 +137,14 @@ function addPagesWithSectionAwareness(
   sections: SectionInfo[],
   scale: number
 ): void {
-  let position = 0; // Posição Y atual no canvas (em mm)
+  let position = 0; // Current Y position in canvas (in mm)
   let pageNumber = 0;
 
   while (position < imgHeight) {
     const remainingHeight = imgHeight - position;
     const availablePageHeight = pdfHeight;
 
-    // Verificar se há uma seção que começaria nesta página mas não caberia completamente
+    // Check if there's a section that would start on this page but wouldn't fit completely
     const nextSection = sections.find(
       (section) => section.top >= position && section.top < position + availablePageHeight
     );
@@ -152,14 +152,14 @@ function addPagesWithSectionAwareness(
     let contentHeight: number;
 
     if (nextSection) {
-      // Verificar se a seção completa cabe na página atual
+      // Check if the complete section fits on the current page
       const sectionFits = nextSection.bottom <= position + availablePageHeight;
 
       if (!sectionFits) {
-        // A seção não cabe completamente na página atual
-        // Mover a seção inteira para a próxima página
+        // The section doesn't fit completely on the current page
+        // Move the entire section to the next page
         if (nextSection.top > position) {
-          // Há conteúdo antes da seção - adicionar até antes dela
+          // There's content before the section - add up to before it
           contentHeight = nextSection.top - position;
 
           if (contentHeight > 0) {
@@ -185,13 +185,13 @@ function addPagesWithSectionAwareness(
           }
         }
 
-        // Ir para próxima página para colocar a seção inteira
+        // Go to next page to place the entire section
         if (position < imgHeight) {
           pdf.addPage();
           pageNumber++;
         }
 
-        // Adicionar a seção completa na nova página
+        // Add the complete section on the new page
         const sectionHeight = nextSection.bottom - nextSection.top;
         const sectionImage = extractCanvasSection(
           canvas,
@@ -213,22 +213,22 @@ function addPagesWithSectionAwareness(
 
         position = nextSection.bottom;
 
-        // Se ainda há conteúdo após a seção, continuar
+        // If there's still content after the section, continue
         if (position < imgHeight) {
           pdf.addPage();
           pageNumber++;
         }
         continue;
       } else {
-        // A seção cabe na página atual, adicionar normalmente
+        // The section fits on the current page, add normally
         contentHeight = Math.min(availablePageHeight, remainingHeight);
       }
     } else {
-      // Não há seção nesta parte, adicionar normalmente
+      // No section in this part, add normally
       contentHeight = Math.min(availablePageHeight, remainingHeight);
     }
 
-    // Extrair e adicionar a parte do canvas
+    // Extract and add the canvas part
     const sectionImage = extractCanvasSection(
       canvas,
       position,
@@ -249,7 +249,7 @@ function addPagesWithSectionAwareness(
 
     position += contentHeight;
 
-    // Se ainda há conteúdo, adicionar nova página
+    // If there's still content, add new page
     if (position < imgHeight) {
       pdf.addPage();
       pageNumber++;
@@ -258,67 +258,67 @@ function addPagesWithSectionAwareness(
 }
 
 /**
- * Opções para geração de PDF
+ * Options for PDF generation
  */
 export interface GenerateResumePDFOptions {
   /**
-   * Tipo de template a ser usado para gerar o PDF
+   * Template type to be used to generate the PDF
    * @default ResumeTemplateType.CLASSIC
    */
   templateType?: ResumeTemplateType;
 
   /**
-   * Nome do arquivo PDF (sem extensão)
-   * Se não fornecido, será gerado automaticamente
+   * PDF file name (without extension)
+   * If not provided, will be generated automatically
    */
   fileName?: string;
 
   /**
-   * Delay em milissegundos antes de capturar o elemento
-   * Útil para garantir que imagens e estilos estejam carregados
+   * Delay in milliseconds before capturing the element
+   * Useful to ensure images and styles are loaded
    * @default 300
    */
   captureDelay?: number;
 
   /**
-   * Escala da captura (afeta qualidade)
-   * Valores maiores = melhor qualidade, mas arquivo maior
+   * Capture scale (affects quality)
+   * Higher values = better quality, but larger file
    * @default 2
    */
   scale?: number;
 
   /**
-   * Formato do PDF
+   * PDF format
    * @default 'a4'
    */
   format?: 'a4' | 'letter';
 
   /**
-   * Orientação do PDF
+   * PDF orientation
    * @default 'portrait'
    */
   orientation?: 'portrait' | 'landscape';
 }
 
 /**
- * Use case: Gera e faz download do PDF do currículo
+ * Use case: Generates and downloads the resume PDF
  * 
- * Captura o elemento HTML do template especificado e converte para PDF.
- * O elemento é temporariamente movido para fora da viewport durante a captura
- * para não interferir na visualização da página.
+ * Captures the HTML element of the specified template and converts it to PDF.
+ * The element is temporarily moved outside the viewport during capture
+ * to avoid interfering with page viewing.
  * 
- * @param options - Opções de geração do PDF
- * @throws {Error} Se o elemento do currículo não for encontrado
+ * @param options - PDF generation options
+ * @throws {Error} If the resume element is not found
  * 
  * @example
  * ```typescript
- * // Geração básica com template padrão
+ * // Basic generation with default template
  * await generateResumePDF();
  * 
- * // Geração com template específico e opções
+ * // Generation with specific template and options
  * await generateResumePDF({
  *   templateType: ResumeTemplateType.MODERN,
- *   fileName: 'Meu_Curriculo_2024',
+ *   fileName: 'My_Resume_2024',
  *   scale: 3,
  *   captureDelay: 500,
  * });
@@ -336,7 +336,7 @@ export async function generateResumePDF(
     orientation = 'portrait',
   } = options;
 
-  // Obter o template e seu ID de elemento
+  // Get the template and its element ID
   const template = getResumeTemplate(templateType);
   const resumeElementId = template.getResumeElementId(templateType);
   const resumeElement = document.getElementById(resumeElementId);
@@ -350,7 +350,7 @@ export async function generateResumePDF(
   }
 
   try {
-    // Salvar estilos originais do elemento e do pai
+    // Save original styles of element and parent
     const parentElement = resumeElement.parentElement;
     const originalStyles = {
       parent: {
@@ -372,7 +372,7 @@ export async function generateResumePDF(
       },
     };
 
-    // Mostrar elemento temporariamente fora da viewport
+    // Show element temporarily outside viewport
     if (parentElement) {
       parentElement.style.display = 'block';
       parentElement.style.position = 'absolute';
@@ -390,12 +390,12 @@ export async function generateResumePDF(
     resumeElement.style.visibility = 'visible';
     resumeElement.style.transform = 'none';
 
-    // Aguardar um momento para garantir que o elemento está renderizado
-    // Isso é importante para imagens e fontes carregarem
+    // Wait a moment to ensure the element is rendered
+    // This is important for images and fonts to load
     await new Promise(resolve => setTimeout(resolve, captureDelay));
 
-    // Detectar seções ANTES de capturar o canvas
-    // Isso é necessário porque getBoundingClientRect precisa do elemento visível
+    // Detect sections BEFORE capturing the canvas
+    // This is necessary because getBoundingClientRect needs the visible element
     const sectionElements = Array.from(resumeElement.querySelectorAll('section'));
     const sectionRects = sectionElements.map((section) => {
       const rect = section.getBoundingClientRect();
@@ -471,7 +471,7 @@ export async function generateResumePDF(
       scale
     );
 
-    // Gerar nome do arquivo se não fornecido
+    // Generate file name if not provided
     const finalFileName = fileName ||
       `Resume_${templateType}_${new Date().getFullYear()}_${String(new Date().getMonth() + 1).padStart(2, '0')}.pdf`;
 

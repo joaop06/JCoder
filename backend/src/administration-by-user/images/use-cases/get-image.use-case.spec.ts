@@ -72,7 +72,7 @@ describe('GetImageUseCase', () => {
     });
 
     describe('execute', () => {
-        it('deve retornar o caminho da imagem com sucesso', async () => {
+        it('should return image path successfully', async () => {
             // Arrange
             const applicationId = 1;
             const filename = 'image1.jpg';
@@ -95,7 +95,7 @@ describe('GetImageUseCase', () => {
             expect(result).toBe(expectedImagePath);
         });
 
-        it('deve lançar ApplicationNotFoundException quando a imagem não existe no array de imagens', async () => {
+        it('should throw ApplicationNotFoundException when image does not exist in images array', async () => {
             // Arrange
             const applicationId = 1;
             const filename = 'nonexistent.jpg';
@@ -109,7 +109,7 @@ describe('GetImageUseCase', () => {
             expect(imageStorageService.getImagePath).not.toHaveBeenCalled();
         });
 
-        it('deve lançar ApplicationNotFoundException quando a aplicação não tem imagens', async () => {
+        it('should throw ApplicationNotFoundException when application has no images', async () => {
             // Arrange
             const applicationId = 1;
             const filename = 'image1.jpg';
@@ -126,7 +126,7 @@ describe('GetImageUseCase', () => {
             );
         });
 
-        it('deve lançar ApplicationNotFoundException quando a aplicação não existe', async () => {
+        it('should throw ApplicationNotFoundException when application does not exist', async () => {
             // Arrange
             const applicationId = 999;
             const filename = 'image1.jpg';
@@ -147,7 +147,7 @@ describe('GetImageUseCase', () => {
             );
         });
 
-        it('deve garantir segmentação por usuário - múltiplos usuários buscando imagens', async () => {
+        it('should ensure user segmentation - multiple users fetching images', async () => {
             // Arrange
             const user1ApplicationId = 1;
             const user2ApplicationId = 2;
@@ -190,7 +190,7 @@ describe('GetImageUseCase', () => {
             expect(result1).not.toBe(result2);
         });
 
-        it('deve garantir que usuário não pode acessar imagem de outro usuário', async () => {
+        it('should ensure that user cannot access another user\'s image', async () => {
             // Arrange
             const user1ApplicationId = 1;
             const user2Filename = 'image3.jpg'; // Imagem do user2
@@ -203,7 +203,7 @@ describe('GetImageUseCase', () => {
             );
         });
 
-        it('deve usar cache quando a aplicação está em cache', async () => {
+        it('should use cache when application is cached', async () => {
             // Arrange
             const applicationId = 1;
             const filename = 'image1.jpg';

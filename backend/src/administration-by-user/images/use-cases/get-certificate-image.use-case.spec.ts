@@ -59,7 +59,7 @@ describe('GetCertificateImageUseCase', () => {
     });
 
     describe('execute', () => {
-        it('deve retornar o caminho da imagem de certificado com sucesso', async () => {
+        it('should return certificate image path successfully', async () => {
             // Arrange
             const username = 'user1';
             const certificateId = 1;
@@ -87,7 +87,7 @@ describe('GetCertificateImageUseCase', () => {
             expect(result).toBe(expectedImagePath);
         });
 
-        it('deve lançar erro quando o certificado não tem imagem', async () => {
+        it('should throw error when certificate has no image', async () => {
             // Arrange
             const username = 'user1';
             const certificateId = 1;
@@ -107,7 +107,7 @@ describe('GetCertificateImageUseCase', () => {
             expect(imageStorageService.getImagePath).not.toHaveBeenCalled();
         });
 
-        it('deve lançar ComponentNotFoundException quando o certificado não existe', async () => {
+        it('should throw ComponentNotFoundException when certificate does not exist', async () => {
             // Arrange
             const username = 'user1';
             const certificateId = 999;
@@ -121,9 +121,9 @@ describe('GetCertificateImageUseCase', () => {
             expect(imageStorageService.getImagePath).not.toHaveBeenCalled();
         });
 
-        it('deve lançar ComponentNotFoundException quando o certificado pertence a outro usuário', async () => {
+        it('should throw ComponentNotFoundException when certificate belongs to another user', async () => {
             // Arrange
-            const username = 'user2'; // Tentando acessar certificado do user1
+            const username = 'user2'; // Trying to access user1's certificate
             const certificateId = 1;
 
             certificateRepository.findOne.mockResolvedValue(
@@ -137,7 +137,7 @@ describe('GetCertificateImageUseCase', () => {
             expect(imageStorageService.getImagePath).not.toHaveBeenCalled();
         });
 
-        it('deve garantir segmentação por usuário - múltiplos usuários buscando imagens', async () => {
+        it('should ensure user segmentation - multiple users fetching images', async () => {
             // Arrange
             const user1Username = 'user1';
             const user2Username = 'user2';
@@ -180,7 +180,7 @@ describe('GetCertificateImageUseCase', () => {
             expect(result1).not.toBe(result2);
         });
 
-        it('deve garantir que usuário não pode acessar certificado de outro usuário', async () => {
+        it('should ensure that user cannot access another user\'s certificate', async () => {
             // Arrange
             const user1Username = 'user1';
             const user1CertificateId = 1;
@@ -203,7 +203,7 @@ describe('GetCertificateImageUseCase', () => {
                 'certificates',
                 'user1',
             );
-            // Verifica que não foi chamado com os dados do user2
+            // Verify that it was not called with user2's data
             expect(imageStorageService.getImagePath).not.toHaveBeenCalledWith(
                 ResourceType.User,
                 2,
