@@ -1,4 +1,5 @@
-import 'reflect-metadata';
+// Import reflect-metadata first using require to ensure proper initialization order
+require('reflect-metadata');
 
 // E2E test setup
 beforeAll(async () => {

@@ -3,22 +3,64 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ResourceType } from '../enums/resource-type.enum';
 import { DeleteImageUseCase } from './delete-image.use-case';
+import { ApplicationNotFoundException } from '../../applications/exceptions/application-not-found.exception';
+
+// Mock das entidades para evitar dependências circulares
+jest.mock('../../users/entities/user.entity', () => ({
+    User: class User {},
+}));
+
+jest.mock('../../applications/entities/application.entity', () => ({
+    Application: class Application {},
+}));
+
+// Mock do uuid antes de importar ImageStorageService
+jest.mock('uuid', () => ({
+    v4: jest.fn(() => 'mock-uuid'),
+}));
+
+// Mock dos serviços antes de importar
+jest.mock('../../../@common/services/cache.service', () => ({
+    CacheService: jest.fn().mockImplementation(() => ({
+        applicationKey: jest.fn(),
+        getOrSet: jest.fn(),
+        del: jest.fn(),
+    })),
+}));
+
+jest.mock('../services/image-storage.service', () => ({
+    ImageStorageService: jest.fn().mockImplementation(() => ({
+        deleteImage: jest.fn(),
+    })),
+}));
+
+jest.mock('../images.service', () => ({
+    ImagesService: jest.fn().mockImplementation(() => ({
+        findApplicationById: jest.fn(),
+    })),
+}));
+
 import { CacheService } from '../../../@common/services/cache.service';
 import { ImageStorageService } from '../services/image-storage.service';
+import { ImagesService } from '../images.service';
 import { Application } from '../../applications/entities/application.entity';
-import { ApplicationNotFoundException } from '../../applications/exceptions/application-not-found.exception';
+
+// Mock das entidades para evitar dependências circulares
+class Application {}
 
 describe('DeleteImageUseCase', () => {
     let useCase: DeleteImageUseCase;
-    let cacheService: jest.Mocked<CacheService>;
-    let imageStorageService: jest.Mocked<ImageStorageService>;
-    let applicationRepository: jest.Mocked<Repository<Application>>;
+    let cacheService: CacheService;
+    let imageStorageService: ImageStorageService;
+    let imagesService: ImagesService;
+    let applicationRepository: Repository<Application>;
 
     const mockApplication1: Partial<Application> = {
         id: 1,
         userId: 1,
         name: 'Application 1',
         images: ['image1.jpg', 'image2.jpg', 'image3.jpg'],
+        user: { username: 'user1' } as any,
     };
 
     const mockApplication2: Partial<Application> = {
@@ -26,11 +68,11 @@ describe('DeleteImageUseCase', () => {
         userId: 2,
         name: 'Application 2',
         images: ['image4.jpg', 'image5.jpg'],
+        user: { username: 'user2' } as any,
     };
 
     beforeEach(async () => {
         const mockApplicationRepository = {
-            findOne: jest.fn(),
             save: jest.fn(),
         };
 
@@ -40,8 +82,11 @@ describe('DeleteImageUseCase', () => {
 
         const mockCacheService = {
             applicationKey: jest.fn((id: number, type: string) => `app:${id}:${type}`),
-            getOrSet: jest.fn(),
             del: jest.fn(),
+        };
+
+        const mockImagesService = {
+            findApplicationById: jest.fn(),
         };
 
         const module: TestingModule = await Test.createTestingModule({
@@ -59,13 +104,18 @@ describe('DeleteImageUseCase', () => {
                     provide: CacheService,
                     useValue: mockCacheService,
                 },
+                {
+                    provide: ImagesService,
+                    useValue: mockImagesService,
+                },
             ],
         }).compile();
 
         useCase = module.get<DeleteImageUseCase>(DeleteImageUseCase);
-        applicationRepository = module.get(getRepositoryToken(Application));
-        imageStorageService = module.get(ImageStorageService);
-        cacheService = module.get(CacheService);
+        applicationRepository = module.get<Repository<Application>>(getRepositoryToken(Application));
+        imageStorageService = module.get<ImageStorageService>(ImageStorageService);
+        cacheService = module.get<CacheService>(CacheService);
+        imagesService = module.get<ImagesService>(ImagesService);
     });
 
     afterEach(() => {
@@ -82,27 +132,27 @@ describe('DeleteImageUseCase', () => {
                 images: ['image1.jpg', 'image3.jpg'],
             };
 
-            cacheService.getOrSet.mockResolvedValue(mockApplication1 as Application);
-            imageStorageService.deleteImage.mockResolvedValue();
-            applicationRepository.save.mockResolvedValue(updatedApplication as Application);
+            (imagesService.findApplicationById as jest.Mock).mockResolvedValue(mockApplication1 as Application);
+            (imageStorageService.deleteImage as jest.Mock).mockResolvedValue();
+            (applicationRepository.save as jest.Mock).mockResolvedValue(updatedApplication as Application);
 
             // Act
             await useCase.execute(applicationId, filename);
 
             // Assert
-            expect(imageStorageService.deleteImage).toHaveBeenCalledWith(
+            expect(imageStorageService.deleteImage as jest.Mock).toHaveBeenCalledWith(
                 ResourceType.Application,
                 applicationId,
                 filename,
                 undefined,
                 'user1',
             );
-            expect(applicationRepository.save).toHaveBeenCalledWith(
+            expect(applicationRepository.save as jest.Mock).toHaveBeenCalledWith(
                 expect.objectContaining({
                     images: ['image1.jpg', 'image3.jpg'],
                 }),
             );
-            expect(cacheService.del).toHaveBeenCalledWith(`app:${applicationId}:full`);
+            expect(cacheService.del as jest.Mock).toHaveBeenCalledWith(`app:${applicationId}:full`);
         });
 
         it('should throw ApplicationNotFoundException when image does not exist in array', async () => {
@@ -110,13 +160,13 @@ describe('DeleteImageUseCase', () => {
             const applicationId = 1;
             const filename = 'nonexistent.jpg';
 
-            cacheService.getOrSet.mockResolvedValue(mockApplication1 as Application);
+            (imagesService.findApplicationById as jest.Mock).mockResolvedValue(mockApplication1 as Application);
 
             // Act & Assert
             await expect(useCase.execute(applicationId, filename)).rejects.toThrow(
                 ApplicationNotFoundException,
             );
-            expect(imageStorageService.deleteImage).not.toHaveBeenCalled();
+            expect(imageStorageService.deleteImage as jest.Mock).not.toHaveBeenCalled();
         });
 
         it('should throw ApplicationNotFoundException when application has no images', async () => {
@@ -128,7 +178,7 @@ describe('DeleteImageUseCase', () => {
                 images: null as any,
             };
 
-            cacheService.getOrSet.mockResolvedValue(applicationWithoutImages as Application);
+            (imagesService.findApplicationById as jest.Mock).mockResolvedValue(applicationWithoutImages as Application);
 
             // Act & Assert
             await expect(useCase.execute(applicationId, filename)).rejects.toThrow(
@@ -168,7 +218,7 @@ describe('DeleteImageUseCase', () => {
                 .mockResolvedValueOnce(mockApplication1 as Application)
                 .mockResolvedValueOnce(mockApplication2 as Application);
 
-            imageStorageService.deleteImage.mockResolvedValue();
+            (imageStorageService.deleteImage as jest.Mock).mockResolvedValue();
             applicationRepository.save
                 .mockResolvedValueOnce({
                     ...mockApplication1,
@@ -207,9 +257,9 @@ describe('DeleteImageUseCase', () => {
             const user1ApplicationId = 1;
             const user1Filename = 'image2.jpg';
 
-            cacheService.getOrSet.mockResolvedValue(mockApplication1 as Application);
-            imageStorageService.deleteImage.mockResolvedValue();
-            applicationRepository.save.mockResolvedValue({
+            (imagesService.findApplicationById as jest.Mock).mockResolvedValue(mockApplication1 as Application);
+            (imageStorageService.deleteImage as jest.Mock).mockResolvedValue();
+            (applicationRepository.save as jest.Mock).mockResolvedValue({
                 ...mockApplication1,
                 images: ['image1.jpg', 'image3.jpg'],
             } as Application);
@@ -218,7 +268,7 @@ describe('DeleteImageUseCase', () => {
             await useCase.execute(user1ApplicationId, user1Filename);
 
             // Assert
-            expect(imageStorageService.deleteImage).toHaveBeenCalledWith(
+            expect(imageStorageService.deleteImage as jest.Mock).toHaveBeenCalledWith(
                 ResourceType.Application,
                 user1ApplicationId,
                 user1Filename,
@@ -240,9 +290,9 @@ describe('DeleteImageUseCase', () => {
             const applicationId = 1;
             const filename = 'image2.jpg';
 
-            cacheService.getOrSet.mockResolvedValue(mockApplication1 as Application);
-            imageStorageService.deleteImage.mockResolvedValue();
-            applicationRepository.save.mockResolvedValue({
+            (imagesService.findApplicationById as jest.Mock).mockResolvedValue(mockApplication1 as Application);
+            (imageStorageService.deleteImage as jest.Mock).mockResolvedValue();
+            (applicationRepository.save as jest.Mock).mockResolvedValue({
                 ...mockApplication1,
                 images: ['image1.jpg', 'image3.jpg'],
             } as Application);
@@ -251,7 +301,7 @@ describe('DeleteImageUseCase', () => {
             await useCase.execute(applicationId, filename);
 
             // Assert
-            expect(applicationRepository.save).toHaveBeenCalledWith(
+            expect(applicationRepository.save as jest.Mock).toHaveBeenCalledWith(
                 expect.objectContaining({
                     images: expect.arrayContaining(['image1.jpg', 'image3.jpg']),
                 }),
@@ -266,9 +316,9 @@ describe('DeleteImageUseCase', () => {
             const applicationId = 1;
             const filename = 'image2.jpg';
 
-            cacheService.getOrSet.mockResolvedValue(mockApplication1 as Application);
-            imageStorageService.deleteImage.mockResolvedValue();
-            applicationRepository.save.mockResolvedValue({
+            (imagesService.findApplicationById as jest.Mock).mockResolvedValue(mockApplication1 as Application);
+            (imageStorageService.deleteImage as jest.Mock).mockResolvedValue();
+            (applicationRepository.save as jest.Mock).mockResolvedValue({
                 ...mockApplication1,
                 images: ['image1.jpg', 'image3.jpg'],
             } as Application);
@@ -277,7 +327,7 @@ describe('DeleteImageUseCase', () => {
             await useCase.execute(applicationId, filename);
 
             // Assert
-            expect(cacheService.del).toHaveBeenCalledWith(`app:${applicationId}:full`);
+            expect(cacheService.del as jest.Mock).toHaveBeenCalledWith(`app:${applicationId}:full`);
         });
     });
 });

@@ -4,16 +4,53 @@ import { ImageType } from '../enums/image-type.enum';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ResourceType } from '../enums/resource-type.enum';
 import { UploadImagesUseCase } from './upload-images.use-case';
+import { ApplicationNotFoundException } from '../../applications/exceptions/application-not-found.exception';
+
+// Mock das entidades para evitar dependências circulares
+jest.mock('../../users/entities/user.entity', () => ({
+    User: class User {},
+}));
+
+jest.mock('../../applications/entities/application.entity', () => ({
+    Application: class Application {},
+}));
+
+// Mock do uuid antes de importar ImageStorageService
+jest.mock('uuid', () => ({
+    v4: jest.fn(() => 'mock-uuid'),
+}));
+
+// Mock dos serviços antes de importar
+jest.mock('../../../@common/services/cache.service', () => ({
+    CacheService: jest.fn().mockImplementation(() => ({
+        applicationKey: jest.fn(),
+        del: jest.fn(),
+    })),
+}));
+
+jest.mock('../services/image-storage.service', () => ({
+    ImageStorageService: jest.fn().mockImplementation(() => ({
+        uploadImages: jest.fn(),
+    })),
+}));
+
+jest.mock('../images.service', () => ({
+    ImagesService: jest.fn().mockImplementation(() => ({
+        findApplicationById: jest.fn(),
+    })),
+}));
+
 import { CacheService } from '../../../@common/services/cache.service';
 import { ImageStorageService } from '../services/image-storage.service';
+import { ImagesService } from '../images.service';
 import { Application } from '../../applications/entities/application.entity';
-import { ApplicationNotFoundException } from '../../applications/exceptions/application-not-found.exception';
 
 describe('UploadImagesUseCase', () => {
     let useCase: UploadImagesUseCase;
-    let cacheService: jest.Mocked<CacheService>;
-    let imageStorageService: jest.Mocked<ImageStorageService>;
-    let applicationRepository: jest.Mocked<Repository<Application>>;
+    let cacheService: CacheService;
+    let imageStorageService: ImageStorageService;
+    let imagesService: ImagesService;
+    let applicationRepository: Repository<Application>;
 
     const mockFile1: Express.Multer.File = {
         fieldname: 'images',
@@ -46,6 +83,7 @@ describe('UploadImagesUseCase', () => {
         userId: 1,
         name: 'Application 1',
         images: ['existing-image.jpg'],
+        user: { username: 'user1' } as any,
     };
 
     const mockApplication2: Partial<Application> = {
@@ -53,11 +91,11 @@ describe('UploadImagesUseCase', () => {
         userId: 2,
         name: 'Application 2',
         images: [],
+        user: { username: 'user2' } as any,
     };
 
     beforeEach(async () => {
         const mockApplicationRepository = {
-            findOne: jest.fn(),
             save: jest.fn(),
         };
 
@@ -67,8 +105,11 @@ describe('UploadImagesUseCase', () => {
 
         const mockCacheService = {
             applicationKey: jest.fn((id: number, type: string) => `app:${id}:${type}`),
-            getOrSet: jest.fn(),
             del: jest.fn(),
+        };
+
+        const mockImagesService = {
+            findApplicationById: jest.fn(),
         };
 
         const module: TestingModule = await Test.createTestingModule({
@@ -86,13 +127,18 @@ describe('UploadImagesUseCase', () => {
                     provide: CacheService,
                     useValue: mockCacheService,
                 },
+                {
+                    provide: ImagesService,
+                    useValue: mockImagesService,
+                },
             ],
         }).compile();
 
         useCase = module.get<UploadImagesUseCase>(UploadImagesUseCase);
-        applicationRepository = module.get(getRepositoryToken(Application));
-        imageStorageService = module.get(ImageStorageService);
-        cacheService = module.get(CacheService);
+        applicationRepository = module.get<Repository<Application>>(getRepositoryToken(Application));
+        imageStorageService = module.get<ImageStorageService>(ImageStorageService);
+        cacheService = module.get<CacheService>(CacheService);
+        imagesService = module.get<ImagesService>(ImagesService);
     });
 
     afterEach(() => {
@@ -110,15 +156,15 @@ describe('UploadImagesUseCase', () => {
                 images: ['existing-image.jpg', ...newFilenames],
             };
 
-            cacheService.getOrSet.mockResolvedValue(mockApplication1 as Application);
-            imageStorageService.uploadImages.mockResolvedValue(newFilenames);
-            applicationRepository.save.mockResolvedValue(updatedApplication as Application);
+            (imagesService.findApplicationById as jest.Mock).mockResolvedValue(mockApplication1 as Application);
+            (imageStorageService.uploadImages as jest.Mock).mockResolvedValue(newFilenames);
+            (applicationRepository.save as jest.Mock).mockResolvedValue(updatedApplication as Application);
 
             // Act
             const result = await useCase.execute(applicationId, files);
 
             // Assert
-            expect(imageStorageService.uploadImages).toHaveBeenCalledWith(
+            expect(imageStorageService.uploadImages as jest.Mock).toHaveBeenCalledWith(
                 files,
                 ResourceType.Application,
                 applicationId,
@@ -126,12 +172,12 @@ describe('UploadImagesUseCase', () => {
                 undefined,
                 'user1',
             );
-            expect(applicationRepository.save).toHaveBeenCalledWith(
+            expect(applicationRepository.save as jest.Mock).toHaveBeenCalledWith(
                 expect.objectContaining({
                     images: ['existing-image.jpg', ...newFilenames],
                 }),
             );
-            expect(cacheService.del).toHaveBeenCalledWith(`app:${applicationId}:full`);
+            expect(cacheService.del as jest.Mock).toHaveBeenCalledWith(`app:${applicationId}:full`);
             expect(result.images).toEqual(['existing-image.jpg', ...newFilenames]);
         });
 
@@ -145,9 +191,9 @@ describe('UploadImagesUseCase', () => {
                 images: newFilenames,
             };
 
-            cacheService.getOrSet.mockResolvedValue(mockApplication2 as Application);
-            imageStorageService.uploadImages.mockResolvedValue(newFilenames);
-            applicationRepository.save.mockResolvedValue(updatedApplication as Application);
+            (imagesService.findApplicationById as jest.Mock).mockResolvedValue(mockApplication2 as Application);
+            (imageStorageService.uploadImages as jest.Mock).mockResolvedValue(newFilenames);
+            (applicationRepository.save as jest.Mock).mockResolvedValue(updatedApplication as Application);
 
             // Act
             const result = await useCase.execute(applicationId, files);
@@ -161,21 +207,13 @@ describe('UploadImagesUseCase', () => {
             const applicationId = 999;
             const files = [mockFile1];
 
-            cacheService.getOrSet.mockImplementation(async (key, fn) => {
-                if (typeof fn === 'function') {
-                    const result = await fn();
-                    return result;
-                }
-                return null;
-            });
-
-            applicationRepository.findOne.mockResolvedValue(null);
+            (imagesService.findApplicationById as jest.Mock).mockRejectedValue(new ApplicationNotFoundException());
 
             // Act & Assert
             await expect(useCase.execute(applicationId, files)).rejects.toThrow(
                 ApplicationNotFoundException,
             );
-            expect(imageStorageService.uploadImages).not.toHaveBeenCalled();
+            expect(imageStorageService.uploadImages as jest.Mock).not.toHaveBeenCalled();
         });
 
         it('should ensure user segmentation - multiple users uploading simultaneously', async () => {
@@ -187,15 +225,15 @@ describe('UploadImagesUseCase', () => {
             const user1Filenames = ['user1-image.jpg'];
             const user2Filenames = ['user2-image.jpg'];
 
-            cacheService.getOrSet
+            (imagesService.findApplicationById as jest.Mock)
                 .mockResolvedValueOnce(mockApplication1 as Application)
                 .mockResolvedValueOnce(mockApplication2 as Application);
 
-            imageStorageService.uploadImages
+            (imageStorageService.uploadImages as jest.Mock)
                 .mockResolvedValueOnce(user1Filenames)
                 .mockResolvedValueOnce(user2Filenames);
 
-            applicationRepository.save
+            (applicationRepository.save as jest.Mock)
                 .mockResolvedValueOnce({
                     ...mockApplication1,
                     images: [...(mockApplication1.images || []), ...user1Filenames],
@@ -210,7 +248,7 @@ describe('UploadImagesUseCase', () => {
             const result2 = await useCase.execute(user2ApplicationId, user2Files);
 
             // Assert
-            expect(imageStorageService.uploadImages).toHaveBeenNthCalledWith(
+            expect(imageStorageService.uploadImages as jest.Mock).toHaveBeenNthCalledWith(
                 1,
                 user1Files,
                 ResourceType.Application,
@@ -219,7 +257,7 @@ describe('UploadImagesUseCase', () => {
                 undefined,
                 'user1',
             );
-            expect(imageStorageService.uploadImages).toHaveBeenNthCalledWith(
+            expect(imageStorageService.uploadImages as jest.Mock).toHaveBeenNthCalledWith(
                 2,
                 user2Files,
                 ResourceType.Application,
@@ -249,9 +287,9 @@ describe('UploadImagesUseCase', () => {
                 images: [...existingImages, ...newFilenames],
             };
 
-            cacheService.getOrSet.mockResolvedValue(applicationWithImages as Application);
-            imageStorageService.uploadImages.mockResolvedValue(newFilenames);
-            applicationRepository.save.mockResolvedValue(updatedApplication as Application);
+            (imagesService.findApplicationById as jest.Mock).mockResolvedValue(applicationWithImages as Application);
+            (imageStorageService.uploadImages as jest.Mock).mockResolvedValue(newFilenames);
+            (applicationRepository.save as jest.Mock).mockResolvedValue(updatedApplication as Application);
 
             // Act
             const result = await useCase.execute(applicationId, files);
@@ -269,9 +307,9 @@ describe('UploadImagesUseCase', () => {
             const files = [mockFile1];
             const newFilenames = ['new-image.jpg'];
 
-            cacheService.getOrSet.mockResolvedValue(mockApplication1 as Application);
-            imageStorageService.uploadImages.mockResolvedValue(newFilenames);
-            applicationRepository.save.mockResolvedValue({
+            (imagesService.findApplicationById as jest.Mock).mockResolvedValue(mockApplication1 as Application);
+            (imageStorageService.uploadImages as jest.Mock).mockResolvedValue(newFilenames);
+            (applicationRepository.save as jest.Mock).mockResolvedValue({
                 ...mockApplication1,
                 images: [...(mockApplication1.images || []), ...newFilenames],
             } as Application);
@@ -280,7 +318,7 @@ describe('UploadImagesUseCase', () => {
             await useCase.execute(applicationId, files);
 
             // Assert
-            expect(cacheService.del).toHaveBeenCalledWith(`app:${applicationId}:full`);
+            expect(cacheService.del as jest.Mock).toHaveBeenCalledWith(`app:${applicationId}:full`);
         });
     });
 });

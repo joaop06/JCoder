@@ -7,12 +7,22 @@
     "rootDir": ".",
     "testEnvironment": "node",
     "testRegex": ".e2e-spec.ts$",
+    "preset": "ts-jest",
     "transform": {
-        "^.+\\.(t|j)s$": "@swc/jest"
+        "^.+\\.(t|j)s$": ["ts-jest", {
+            "tsconfig": {
+                "experimentalDecorators": true,
+                "emitDecoratorMetadata": true
+            }
+        }]
     },
-    "moduleNameMapping": {
+    "moduleNameMapper": {
         "^src/(.*)$": "<rootDir>/../src/$1"
     },
+    "transformIgnorePatterns": [
+        "node_modules/(?!uuid|uuidv7)"
+    ],
+    "extensionsToTreatAsEsm": [],
     "setupFilesAfterEnv": [
         "<rootDir>/setup-e2e.ts"
     ],
@@ -21,5 +31,7 @@
     "forceExit": true,
     "clearMocks": true,
     "resetMocks": true,
-    "restoreMocks": true
+    "restoreMocks": true,
+    "maxWorkers": 1,
+    "detectOpenHandles": true
 }

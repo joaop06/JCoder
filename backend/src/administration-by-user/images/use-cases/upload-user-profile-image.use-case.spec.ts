@@ -2,16 +2,35 @@ import { Repository } from 'typeorm';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { ImageType } from '../enums/image-type.enum';
 import { Test, TestingModule } from '@nestjs/testing';
-import { User } from '../../users/entities/user.entity';
 import { ResourceType } from '../enums/resource-type.enum';
+import { UserNotFoundException } from '../../users/exceptions/user-not-found.exception';
+
+// Mock das entidades para evitar dependências circulares
+jest.mock('../../users/entities/user.entity', () => ({
+    User: class User {},
+}));
+
+// Mock do uuid antes de importar ImageStorageService
+jest.mock('uuid', () => ({
+    v4: jest.fn(() => 'mock-uuid'),
+}));
+
+// Mock dos serviços antes de importar
+jest.mock('../services/image-storage.service', () => ({
+    ImageStorageService: jest.fn().mockImplementation(() => ({
+        uploadImage: jest.fn(),
+        deleteImage: jest.fn(),
+    })),
+}));
+
+import { User } from '../../users/entities/user.entity';
 import { ImageStorageService } from '../services/image-storage.service';
 import { UploadUserProfileImageUseCase } from './upload-user-profile-image.use-case';
-import { UserNotFoundException } from '../../users/exceptions/user-not-found.exception';
 
 describe('UploadUserProfileImageUseCase', () => {
     let useCase: UploadUserProfileImageUseCase;
-    let userRepository: jest.Mocked<Repository<User>>;
-    let imageStorageService: jest.Mocked<ImageStorageService>;
+    let userRepository: Repository<User>;
+    let imageStorageService: ImageStorageService;
 
     const mockFile: Express.Multer.File = {
         fieldname: 'profileImage',
@@ -66,8 +85,8 @@ describe('UploadUserProfileImageUseCase', () => {
         }).compile();
 
         useCase = module.get<UploadUserProfileImageUseCase>(UploadUserProfileImageUseCase);
-        userRepository = module.get(getRepositoryToken(User));
-        imageStorageService = module.get(ImageStorageService);
+        userRepository = module.get<Repository<User>>(getRepositoryToken(User));
+        imageStorageService = module.get<ImageStorageService>(ImageStorageService);
     });
 
     afterEach(() => {
@@ -84,16 +103,16 @@ describe('UploadUserProfileImageUseCase', () => {
                 profileImage: newFilename,
             };
 
-            userRepository.findOne.mockResolvedValue(mockUser2 as User);
-            imageStorageService.uploadImage.mockResolvedValue(newFilename);
-            userRepository.save.mockResolvedValue(updatedUser as User);
+            (userRepository.findOne as jest.Mock).mockResolvedValue(mockUser2 as User);
+            (imageStorageService.uploadImage as jest.Mock).mockResolvedValue(newFilename);
+            (userRepository.save as jest.Mock).mockResolvedValue(updatedUser as User);
 
             // Act
             const result = await useCase.execute(userId, mockFile);
 
             // Assert
             expect(imageStorageService.deleteImage).not.toHaveBeenCalled();
-            expect(imageStorageService.uploadImage).toHaveBeenCalledWith(
+            expect(imageStorageService.uploadImage as jest.Mock).toHaveBeenCalledWith(
                 mockFile,
                 ResourceType.User,
                 userId,
@@ -113,23 +132,23 @@ describe('UploadUserProfileImageUseCase', () => {
                 profileImage: newFilename,
             };
 
-            userRepository.findOne.mockResolvedValue(mockUser1 as User);
-            imageStorageService.deleteImage.mockResolvedValue();
-            imageStorageService.uploadImage.mockResolvedValue(newFilename);
-            userRepository.save.mockResolvedValue(updatedUser as User);
+            (userRepository.findOne as jest.Mock).mockResolvedValue(mockUser1 as User);
+            (imageStorageService.deleteImage as jest.Mock).mockResolvedValue();
+            (imageStorageService.uploadImage as jest.Mock).mockResolvedValue(newFilename);
+            (userRepository.save as jest.Mock).mockResolvedValue(updatedUser as User);
 
             // Act
             const result = await useCase.execute(userId, mockFile);
 
             // Assert
-            expect(imageStorageService.deleteImage).toHaveBeenCalledWith(
+            expect(imageStorageService.deleteImage as jest.Mock).toHaveBeenCalledWith(
                 ResourceType.User,
                 userId,
                 'old-profile.jpg',
                 undefined,
                 'user1',
             );
-            expect(imageStorageService.uploadImage).toHaveBeenCalledWith(
+            expect(imageStorageService.uploadImage as jest.Mock).toHaveBeenCalledWith(
                 mockFile,
                 ResourceType.User,
                 userId,
@@ -144,7 +163,7 @@ describe('UploadUserProfileImageUseCase', () => {
             // Arrange
             const userId = 999;
 
-            userRepository.findOne.mockResolvedValue(null);
+            (userRepository.findOne as jest.Mock).mockResolvedValue(null);
 
             // Act & Assert
             await expect(useCase.execute(userId, mockFile)).rejects.toThrow(
@@ -164,7 +183,7 @@ describe('UploadUserProfileImageUseCase', () => {
                 .mockResolvedValueOnce(mockUser1 as User)
                 .mockResolvedValueOnce(mockUser2 as User);
 
-            imageStorageService.deleteImage.mockResolvedValue();
+            (imageStorageService.deleteImage as jest.Mock).mockResolvedValue();
             imageStorageService.uploadImage
                 .mockResolvedValueOnce(user1NewFilename)
                 .mockResolvedValueOnce(user2NewFilename);
@@ -217,7 +236,7 @@ describe('UploadUserProfileImageUseCase', () => {
                 .mockResolvedValueOnce(mockUser1 as User)
                 .mockResolvedValueOnce(mockUser2 as User);
 
-            imageStorageService.deleteImage.mockResolvedValue();
+            (imageStorageService.deleteImage as jest.Mock).mockResolvedValue();
             imageStorageService.uploadImage
                 .mockResolvedValueOnce(user1NewFilename)
                 .mockResolvedValueOnce(user2NewFilename);
