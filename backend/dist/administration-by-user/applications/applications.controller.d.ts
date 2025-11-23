@@ -1,0 +1,32 @@
+import { Application } from './entities/application.entity';
+import { ApplicationsService } from './applications.service';
+import { ApplicationsStatsDto } from './dto/applications-stats.dto';
+import { CreateApplicationDto } from './dto/create-application.dto';
+import { UpdateApplicationDto } from './dto/update-application.dto';
+import { ReorderApplicationDto } from './dto/reorder-application.dto';
+import { CreateApplicationUseCase } from './use-cases/create-application.use-case';
+import { DeleteApplicationUseCase } from './use-cases/delete-application.use-case';
+import { UpdateApplicationUseCase } from './use-cases/update-application.use-case';
+import { ReorderApplicationUseCase } from './use-cases/reorder-application.use-case';
+import { PaginationDto, PaginatedResponseDto } from '../../@common/dto/pagination.dto';
+import { DeleteApplicationComponentUseCase } from './use-cases/delete-application-component.use-case';
+export declare class ApplicationsController {
+    private readonly applicationsService;
+    private readonly createApplicationUseCase;
+    private readonly deleteApplicationUseCase;
+    private readonly updateApplicationUseCase;
+    private readonly reorderApplicationUseCase;
+    private readonly deleteApplicationComponentUseCase;
+    constructor(applicationsService: ApplicationsService, createApplicationUseCase: CreateApplicationUseCase, deleteApplicationUseCase: DeleteApplicationUseCase, updateApplicationUseCase: UpdateApplicationUseCase, reorderApplicationUseCase: ReorderApplicationUseCase, deleteApplicationComponentUseCase: DeleteApplicationComponentUseCase);
+    findAll(username: string, paginationDto: PaginationDto): Promise<PaginatedResponseDto<Application>>;
+    getStats(username: string): Promise<ApplicationsStatsDto>;
+    findById(username: string, id: number): Promise<Application>;
+    create(username: string, createApplicationDto: CreateApplicationDto): Promise<Application>;
+    update(username: string, id: number, updateApplicationDto: UpdateApplicationDto): Promise<Application>;
+    delete(username: string, id: number): Promise<void>;
+    reorder(username: string, id: number, reorderApplicationDto: ReorderApplicationDto): Promise<Application>;
+    deleteApiComponent(username: string, id: number): Promise<Application>;
+    deleteMobileComponent(username: string, id: number): Promise<Application>;
+    deleteLibraryComponent(username: string, id: number): Promise<Application>;
+    deleteFrontendComponent(username: string, id: number): Promise<Application>;
+}

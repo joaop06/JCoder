@@ -1,0 +1,3 @@
+module.exports=[58978,a=>{"use strict";a.s(["Canvas",()=>b.Canvas,"ReactThreeFiber",()=>c.t,"_roots",()=>c._,"act",()=>c.x,"addAfterEffect",()=>c.k,"addEffect",()=>c.j,"addTail",()=>c.l,"advance",()=>c.n,"applyProps",()=>c.s,"buildGraph",()=>c.y,"context",()=>c.q,"createEvents",()=>c.g,"createPortal",()=>c.o,"createRoot",()=>c.c,"dispose",()=>c.w,"events",()=>c.f,"extend",()=>c.e,"flushGlobalEffects",()=>c.h,"flushSync",()=>c.p,"getRootState",()=>c.v,"invalidate",()=>c.m,"reconciler",()=>c.r,"unmountComponentAtNode",()=>c.d,"useFrame",()=>c.D,"useGraph",()=>c.F,"useInstanceHandle",()=>c.z,"useLoader",()=>c.G,"useStore",()=>c.A,"useThree",()=>c.C]);var b=a.i(54816),c=a.i(78956)}];
+
+//# sourceMappingURL=2ed48_%40react-three_fiber_dist_react-three-fiber_esm_8b59ee1d.js.map

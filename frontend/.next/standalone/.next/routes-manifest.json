@@ -1,0 +1,146 @@
+{
+  "version": 3,
+  "pages404": true,
+  "caseSensitive": false,
+  "basePath": "",
+  "redirects": [
+    {
+      "source": "/:path+/",
+      "destination": "/:path+",
+      "internal": true,
+      "statusCode": 308,
+      "regex": "^(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))/$"
+    }
+  ],
+  "headers": [],
+  "rewrites": {
+    "beforeFiles": [],
+    "afterFiles": [],
+    "fallback": []
+  },
+  "dynamicRoutes": [
+    {
+      "page": "/[username]",
+      "regex": "^/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPusername": "nxtPusername"
+      },
+      "namedRegex": "^/(?<nxtPusername>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/[username]/admin",
+      "regex": "^/([^/]+?)/admin(?:/)?$",
+      "routeKeys": {
+        "nxtPusername": "nxtPusername"
+      },
+      "namedRegex": "^/(?<nxtPusername>[^/]+?)/admin(?:/)?$"
+    },
+    {
+      "page": "/[username]/admin/applications",
+      "regex": "^/([^/]+?)/admin/applications(?:/)?$",
+      "routeKeys": {
+        "nxtPusername": "nxtPusername"
+      },
+      "namedRegex": "^/(?<nxtPusername>[^/]+?)/admin/applications(?:/)?$"
+    },
+    {
+      "page": "/[username]/admin/applications/new",
+      "regex": "^/([^/]+?)/admin/applications/new(?:/)?$",
+      "routeKeys": {
+        "nxtPusername": "nxtPusername"
+      },
+      "namedRegex": "^/(?<nxtPusername>[^/]+?)/admin/applications/new(?:/)?$"
+    },
+    {
+      "page": "/[username]/admin/applications/[id]/edit",
+      "regex": "^/([^/]+?)/admin/applications/([^/]+?)/edit(?:/)?$",
+      "routeKeys": {
+        "nxtPusername": "nxtPusername",
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/(?<nxtPusername>[^/]+?)/admin/applications/(?<nxtPid>[^/]+?)/edit(?:/)?$"
+    },
+    {
+      "page": "/[username]/admin/messages",
+      "regex": "^/([^/]+?)/admin/messages(?:/)?$",
+      "routeKeys": {
+        "nxtPusername": "nxtPusername"
+      },
+      "namedRegex": "^/(?<nxtPusername>[^/]+?)/admin/messages(?:/)?$"
+    },
+    {
+      "page": "/[username]/admin/profile",
+      "regex": "^/([^/]+?)/admin/profile(?:/)?$",
+      "routeKeys": {
+        "nxtPusername": "nxtPusername"
+      },
+      "namedRegex": "^/(?<nxtPusername>[^/]+?)/admin/profile(?:/)?$"
+    },
+    {
+      "page": "/[username]/admin/technologies",
+      "regex": "^/([^/]+?)/admin/technologies(?:/)?$",
+      "routeKeys": {
+        "nxtPusername": "nxtPusername"
+      },
+      "namedRegex": "^/(?<nxtPusername>[^/]+?)/admin/technologies(?:/)?$"
+    },
+    {
+      "page": "/[username]/applications/[id]",
+      "regex": "^/([^/]+?)/applications/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPusername": "nxtPusername",
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/(?<nxtPusername>[^/]+?)/applications/(?<nxtPid>[^/]+?)(?:/)?$"
+    }
+  ],
+  "staticRoutes": [
+    {
+      "page": "/",
+      "regex": "^/(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/(?:/)?$"
+    },
+    {
+      "page": "/_not-found",
+      "regex": "^/_not\\-found(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/_not\\-found(?:/)?$"
+    },
+    {
+      "page": "/favicon.ico",
+      "regex": "^/favicon\\.ico(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/favicon\\.ico(?:/)?$"
+    },
+    {
+      "page": "/register",
+      "regex": "^/register(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/register(?:/)?$"
+    },
+    {
+      "page": "/sign-in",
+      "regex": "^/sign\\-in(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/sign\\-in(?:/)?$"
+    }
+  ],
+  "dataRoutes": [],
+  "rsc": {
+    "header": "rsc",
+    "varyHeader": "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch",
+    "prefetchHeader": "next-router-prefetch",
+    "didPostponeHeader": "x-nextjs-postponed",
+    "contentTypeHeader": "text/x-component",
+    "suffix": ".rsc",
+    "prefetchSuffix": ".prefetch.rsc",
+    "prefetchSegmentHeader": "next-router-segment-prefetch",
+    "prefetchSegmentSuffix": ".segment.rsc",
+    "prefetchSegmentDirSuffix": ".segments"
+  },
+  "rewriteHeaders": {
+    "pathHeader": "x-nextjs-rewritten-path",
+    "queryHeader": "x-nextjs-rewritten-query"
+  }
+}

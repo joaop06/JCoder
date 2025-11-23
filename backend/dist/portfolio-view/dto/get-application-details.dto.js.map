@@ -1,0 +1,1 @@
+{"version":3,"file":"get-application-details.dto.js","sourceRoot":"","sources":["../../../src/portfolio-view/dto/get-application-details.dto.ts"],"names":[],"mappings":";;;;;;;;;;;;AAAA,6CAA8C;AAC9C,8GAAoG;AAEpG,MAAa,wBAAyB,SAAQ,gCAAW;CAMxD;AAND,4DAMC;AADS;IAJP,IAAA,qBAAW,EAAC;QACX,IAAI,EAAE,gCAAW;QACjB,WAAW,EAAE,kDAAkD;KAChE,CAAC;;oDACiB;AACpB,CAAC"}

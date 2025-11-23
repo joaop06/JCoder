@@ -1,0 +1,16 @@
+{
+  "/[username]/admin/applications/[id]/edit/page": "app/[username]/admin/applications/[id]/edit/page.js",
+  "/[username]/admin/applications/new/page": "app/[username]/admin/applications/new/page.js",
+  "/[username]/admin/applications/page": "app/[username]/admin/applications/page.js",
+  "/[username]/admin/messages/page": "app/[username]/admin/messages/page.js",
+  "/[username]/admin/page": "app/[username]/admin/page.js",
+  "/[username]/admin/profile/page": "app/[username]/admin/profile/page.js",
+  "/[username]/admin/technologies/page": "app/[username]/admin/technologies/page.js",
+  "/[username]/applications/[id]/page": "app/[username]/applications/[id]/page.js",
+  "/[username]/page": "app/[username]/page.js",
+  "/_not-found/page": "app/_not-found/page.js",
+  "/favicon.ico/route": "app/favicon.ico/route.js",
+  "/page": "app/page.js",
+  "/register/page": "app/register/page.js",
+  "/sign-in/page": "app/sign-in/page.js"
+}
