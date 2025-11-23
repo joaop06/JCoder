@@ -73,7 +73,7 @@ describe('DeleteProfileImageUseCase', () => {
     });
 
     describe('execute', () => {
-        it('deve deletar imagem de perfil com sucesso', async () => {
+        it('should delete profile image successfully', async () => {
             // Arrange
             const applicationId = 1;
             const updatedApplication = {
@@ -104,7 +104,7 @@ describe('DeleteProfileImageUseCase', () => {
             expect(cacheService.del).toHaveBeenCalledWith(`app:${applicationId}:full`);
         });
 
-        it('deve lançar ApplicationNotFoundException quando a aplicação não tem imagem de perfil', async () => {
+        it('should throw ApplicationNotFoundException when application has no profile image', async () => {
             // Arrange
             const applicationId = 1;
             const applicationWithoutImage = {
@@ -121,7 +121,7 @@ describe('DeleteProfileImageUseCase', () => {
             expect(imageStorageService.deleteImage).not.toHaveBeenCalled();
         });
 
-        it('deve lançar ApplicationNotFoundException quando a aplicação não existe', async () => {
+        it('should throw ApplicationNotFoundException when application does not exist', async () => {
             // Arrange
             const applicationId = 999;
 
@@ -141,7 +141,7 @@ describe('DeleteProfileImageUseCase', () => {
             );
         });
 
-        it('deve garantir segmentação por usuário - múltiplos usuários deletando imagens simultaneamente', async () => {
+        it('should ensure user segmentation - multiple users deleting images simultaneously', async () => {
             // Arrange
             const user1ApplicationId = 1;
             const user2ApplicationId = 2;
@@ -184,7 +184,7 @@ describe('DeleteProfileImageUseCase', () => {
             );
         });
 
-        it('deve garantir que apenas a imagem do usuário correto é deletada', async () => {
+        it('should ensure that only the correct user\'s image is deleted', async () => {
             // Arrange
             const user1ApplicationId = 1;
             const user2ApplicationId = 2;
@@ -210,7 +210,7 @@ describe('DeleteProfileImageUseCase', () => {
                 undefined,
                 'user1',
             );
-            // Verifica que não foi chamado com os dados do user2
+            // Verify that it was not called with user2's data
             expect(imageStorageService.deleteImage).not.toHaveBeenCalledWith(
                 ResourceType.Application,
                 user2ApplicationId,
@@ -220,7 +220,7 @@ describe('DeleteProfileImageUseCase', () => {
             );
         });
 
-        it('deve invalidar cache após deletar imagem', async () => {
+        it('should invalidate cache after deleting image', async () => {
             // Arrange
             const applicationId = 1;
 

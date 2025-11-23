@@ -4,21 +4,21 @@ export class PortfolioEngagementStatsDto {
   @ApiProperty({
     type: 'number',
     example: 150,
-    description: 'Total de acessos únicos no período',
+    description: 'Total unique accesses in the period',
   })
   totalViews: number;
 
   @ApiProperty({
     type: 'number',
     example: 120,
-    description: 'Total de visitantes únicos (excluindo duplicatas no período)',
+    description: 'Total unique visitors (excluding duplicates in the period)',
   })
   uniqueVisitors: number;
 
   @ApiProperty({
     type: 'number',
     example: 30,
-    description: 'Acessos do próprio dono do portfólio (excluídos das estatísticas)',
+    description: 'Portfolio owner accesses (excluded from statistics)',
   })
   ownerViews: number;
 
@@ -32,7 +32,7 @@ export class PortfolioEngagementStatsDto {
         uniqueVisitors: { type: 'number', example: 8 },
       },
     },
-    description: 'Estatísticas diárias no período',
+    description: 'Daily statistics in the period',
   })
   dailyStats: Array<{
     date: string;
@@ -46,7 +46,7 @@ export class PortfolioEngagementStatsDto {
       country: { type: 'string', example: 'BR' },
       count: { type: 'number', example: 45 },
     },
-    description: 'Top países de origem dos visitantes',
+    description: 'Top visitor origin countries',
   })
   topCountries: Array<{
     country: string;
@@ -59,7 +59,7 @@ export class PortfolioEngagementStatsDto {
       referer: { type: 'string', example: 'https://google.com' },
       count: { type: 'number', example: 20 },
     },
-    description: 'Top referrers (origens de tráfego)',
+    description: 'Top referrers (traffic sources)',
   })
   topReferers: Array<{
     referer: string;

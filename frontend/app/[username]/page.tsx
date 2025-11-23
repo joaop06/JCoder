@@ -233,7 +233,7 @@ export default function PortfolioPage() {
     setLoadingAboutMe(true);
     try {
       const profileData = await PortfolioViewService.getProfileWithAboutMe(username);
-      // Backend retorna userComponentAboutMe, não aboutMe
+      // Backend returns userComponentAboutMe, not aboutMe
       setAboutMe(profileData.userComponentAboutMe || null);
       setUser(profileData);
 

@@ -3,22 +3,58 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { Test, TestingModule } from '@nestjs/testing';
 import { GetImageUseCase } from './get-image.use-case';
 import { ResourceType } from '../enums/resource-type.enum';
+import { ApplicationNotFoundException } from '../../applications/exceptions/application-not-found.exception';
+
+// Mock das entidades para evitar dependências circulares
+jest.mock('../../users/entities/user.entity', () => ({
+    User: class User {},
+}));
+
+jest.mock('../../applications/entities/application.entity', () => ({
+    Application: class Application {},
+}));
+
+// Mock do uuid antes de importar ImageStorageService
+jest.mock('uuid', () => ({
+    v4: jest.fn(() => 'mock-uuid'),
+}));
+
+// Mock dos serviços antes de importar
+jest.mock('../../../@common/services/cache.service', () => ({
+    CacheService: jest.fn().mockImplementation(() => ({
+        applicationKey: jest.fn(),
+        getOrSet: jest.fn(),
+    })),
+}));
+
+jest.mock('../services/image-storage.service', () => ({
+    ImageStorageService: jest.fn().mockImplementation(() => ({
+        getImagePath: jest.fn(),
+    })),
+}));
+
+jest.mock('../images.service', () => ({
+    ImagesService: jest.fn().mockImplementation(() => ({
+        findApplicationById: jest.fn(),
+    })),
+}));
+
 import { CacheService } from '../../../@common/services/cache.service';
 import { ImageStorageService } from '../services/image-storage.service';
+import { ImagesService } from '../images.service';
 import { Application } from '../../applications/entities/application.entity';
-import { ApplicationNotFoundException } from '../../applications/exceptions/application-not-found.exception';
 
 describe('GetImageUseCase', () => {
     let useCase: GetImageUseCase;
-    let applicationRepository: jest.Mocked<Repository<Application>>;
-    let imageStorageService: jest.Mocked<ImageStorageService>;
-    let cacheService: jest.Mocked<CacheService>;
+    let imagesService: ImagesService;
+    let imageStorageService: ImageStorageService;
 
     const mockApplication1: Partial<Application> = {
         id: 1,
         userId: 1,
         name: 'Application 1',
         images: ['image1.jpg', 'image2.jpg'],
+        user: { username: 'user1' } as any,
     };
 
     const mockApplication2: Partial<Application> = {
@@ -26,45 +62,35 @@ describe('GetImageUseCase', () => {
         userId: 2,
         name: 'Application 2',
         images: ['image3.jpg', 'image4.jpg'],
+        user: { username: 'user2' } as any,
     };
 
     beforeEach(async () => {
-        const mockApplicationRepository = {
-            findOne: jest.fn(),
-        };
-
         const mockImageStorageService = {
             getImagePath: jest.fn(),
         };
 
-        const mockCacheService = {
-            applicationKey: jest.fn((id: number, type: string) => `app:${id}:${type}`),
-            getOrSet: jest.fn(),
-            del: jest.fn(),
+        const mockImagesService = {
+            findApplicationById: jest.fn(),
         };
 
         const module: TestingModule = await Test.createTestingModule({
             providers: [
                 GetImageUseCase,
                 {
-                    provide: getRepositoryToken(Application),
-                    useValue: mockApplicationRepository,
+                    provide: ImagesService,
+                    useValue: mockImagesService,
                 },
                 {
                     provide: ImageStorageService,
                     useValue: mockImageStorageService,
                 },
-                {
-                    provide: CacheService,
-                    useValue: mockCacheService,
-                },
             ],
         }).compile();
 
         useCase = module.get<GetImageUseCase>(GetImageUseCase);
-        applicationRepository = module.get(getRepositoryToken(Application));
-        imageStorageService = module.get(ImageStorageService);
-        cacheService = module.get(CacheService);
+        imagesService = module.get<ImagesService>(ImagesService);
+        imageStorageService = module.get<ImageStorageService>(ImageStorageService);
     });
 
     afterEach(() => {
@@ -72,20 +98,20 @@ describe('GetImageUseCase', () => {
     });
 
     describe('execute', () => {
-        it('deve retornar o caminho da imagem com sucesso', async () => {
+        it('should return image path successfully', async () => {
             // Arrange
             const applicationId = 1;
             const filename = 'image1.jpg';
             const expectedImagePath = '/path/to/user1/applications/1/image1.jpg';
 
-            cacheService.getOrSet.mockResolvedValue(mockApplication1 as Application);
+            (imagesService.findApplicationById as jest.Mock).mockResolvedValue(mockApplication1 as Application);
             imageStorageService.getImagePath.mockResolvedValue(expectedImagePath);
 
             // Act
             const result = await useCase.execute(applicationId, filename);
 
             // Assert
-            expect(imageStorageService.getImagePath).toHaveBeenCalledWith(
+            expect(imageStorageService.getImagePath as jest.Mock).toHaveBeenCalledWith(
                 ResourceType.Application,
                 applicationId,
                 filename,
@@ -95,21 +121,21 @@ describe('GetImageUseCase', () => {
             expect(result).toBe(expectedImagePath);
         });
 
-        it('deve lançar ApplicationNotFoundException quando a imagem não existe no array de imagens', async () => {
+        it('should throw ApplicationNotFoundException when image does not exist in images array', async () => {
             // Arrange
             const applicationId = 1;
             const filename = 'nonexistent.jpg';
 
-            cacheService.getOrSet.mockResolvedValue(mockApplication1 as Application);
+            (imagesService.findApplicationById as jest.Mock).mockResolvedValue(mockApplication1 as Application);
 
             // Act & Assert
             await expect(useCase.execute(applicationId, filename)).rejects.toThrow(
                 ApplicationNotFoundException,
             );
-            expect(imageStorageService.getImagePath).not.toHaveBeenCalled();
+            expect(imageStorageService.getImagePath as jest.Mock).not.toHaveBeenCalled();
         });
 
-        it('deve lançar ApplicationNotFoundException quando a aplicação não tem imagens', async () => {
+        it('should throw ApplicationNotFoundException when application has no images', async () => {
             // Arrange
             const applicationId = 1;
             const filename = 'image1.jpg';
@@ -118,7 +144,7 @@ describe('GetImageUseCase', () => {
                 images: null as any,
             };
 
-            cacheService.getOrSet.mockResolvedValue(applicationWithoutImages as Application);
+            (imagesService.findApplicationById as jest.Mock).mockResolvedValue(applicationWithoutImages as Application);
 
             // Act & Assert
             await expect(useCase.execute(applicationId, filename)).rejects.toThrow(
@@ -126,20 +152,12 @@ describe('GetImageUseCase', () => {
             );
         });
 
-        it('deve lançar ApplicationNotFoundException quando a aplicação não existe', async () => {
+        it('should throw ApplicationNotFoundException when application does not exist', async () => {
             // Arrange
             const applicationId = 999;
             const filename = 'image1.jpg';
 
-            cacheService.getOrSet.mockImplementation(async (key, fn) => {
-                if (typeof fn === 'function') {
-                    const result = await fn();
-                    return result;
-                }
-                return null;
-            });
-
-            applicationRepository.findOne.mockResolvedValue(null);
+            (imagesService.findApplicationById as jest.Mock).mockRejectedValue(new ApplicationNotFoundException());
 
             // Act & Assert
             await expect(useCase.execute(applicationId, filename)).rejects.toThrow(
@@ -147,7 +165,7 @@ describe('GetImageUseCase', () => {
             );
         });
 
-        it('deve garantir segmentação por usuário - múltiplos usuários buscando imagens', async () => {
+        it('should ensure user segmentation - multiple users fetching images', async () => {
             // Arrange
             const user1ApplicationId = 1;
             const user2ApplicationId = 2;
@@ -156,11 +174,11 @@ describe('GetImageUseCase', () => {
             const user1ImagePath = '/path/to/user1/applications/1/image1.jpg';
             const user2ImagePath = '/path/to/user2/applications/2/image3.jpg';
 
-            cacheService.getOrSet
+            (imagesService.findApplicationById as jest.Mock)
                 .mockResolvedValueOnce(mockApplication1 as Application)
                 .mockResolvedValueOnce(mockApplication2 as Application);
 
-            imageStorageService.getImagePath
+            (imageStorageService.getImagePath as jest.Mock)
                 .mockResolvedValueOnce(user1ImagePath)
                 .mockResolvedValueOnce(user2ImagePath);
 
@@ -169,7 +187,7 @@ describe('GetImageUseCase', () => {
             const result2 = await useCase.execute(user2ApplicationId, user2Filename);
 
             // Assert
-            expect(imageStorageService.getImagePath).toHaveBeenNthCalledWith(
+            expect(imageStorageService.getImagePath as jest.Mock).toHaveBeenNthCalledWith(
                 1,
                 ResourceType.Application,
                 user1ApplicationId,
@@ -177,7 +195,7 @@ describe('GetImageUseCase', () => {
                 undefined,
                 'user1',
             );
-            expect(imageStorageService.getImagePath).toHaveBeenNthCalledWith(
+            expect(imageStorageService.getImagePath as jest.Mock).toHaveBeenNthCalledWith(
                 2,
                 ResourceType.Application,
                 user2ApplicationId,
@@ -190,12 +208,12 @@ describe('GetImageUseCase', () => {
             expect(result1).not.toBe(result2);
         });
 
-        it('deve garantir que usuário não pode acessar imagem de outro usuário', async () => {
+        it('should ensure that user cannot access another user\'s image', async () => {
             // Arrange
             const user1ApplicationId = 1;
             const user2Filename = 'image3.jpg'; // Imagem do user2
 
-            cacheService.getOrSet.mockResolvedValue(mockApplication1 as Application);
+            (imagesService.findApplicationById as jest.Mock).mockResolvedValue(mockApplication1 as Application);
 
             // Act & Assert
             await expect(useCase.execute(user1ApplicationId, user2Filename)).rejects.toThrow(
@@ -203,23 +221,23 @@ describe('GetImageUseCase', () => {
             );
         });
 
-        it('deve usar cache quando a aplicação está em cache', async () => {
+        it('should use cache when application is cached', async () => {
             // Arrange
             const applicationId = 1;
             const filename = 'image1.jpg';
             const expectedImagePath = '/path/to/user1/applications/1/image1.jpg';
 
-            cacheService.getOrSet.mockResolvedValue(mockApplication1 as Application);
-            imageStorageService.getImagePath.mockResolvedValue(expectedImagePath);
+            (imagesService.findApplicationById as jest.Mock).mockResolvedValue(mockApplication1 as Application);
+            (imageStorageService.getImagePath as jest.Mock).mockResolvedValue(expectedImagePath);
 
             // Act
             await useCase.execute(applicationId, filename);
             await useCase.execute(applicationId, filename);
 
             // Assert
-            expect(cacheService.getOrSet).toHaveBeenCalledTimes(2);
-            expect(applicationRepository.findOne).not.toHaveBeenCalled();
+            expect(imagesService.findApplicationById).toHaveBeenCalledTimes(2);
         });
     });
 });
+
 

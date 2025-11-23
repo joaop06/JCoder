@@ -27,7 +27,7 @@ export class PortfolioView {
     example: 1,
     type: 'number',
     nullable: false,
-    description: 'ID do usuário dono do portfólio acessado',
+    description: 'ID of the portfolio owner user',
   })
   @Column({ nullable: false })
   userId: number;
@@ -40,7 +40,7 @@ export class PortfolioView {
     type: 'string',
     nullable: true,
     example: '192.168.1.1',
-    description: 'Endereço IP do visitante',
+    description: 'Visitor IP address',
   })
   @Column({ nullable: true, length: 45 })
   ipAddress?: string;
@@ -49,7 +49,7 @@ export class PortfolioView {
     type: 'string',
     nullable: true,
     example: 'abc123def456',
-    description: 'Fingerprint único do navegador para deduplicação',
+    description: 'Unique browser fingerprint for deduplication',
   })
   @Column({ nullable: true, length: 64 })
   fingerprint?: string;
@@ -67,7 +67,7 @@ export class PortfolioView {
     type: 'string',
     nullable: true,
     example: 'https://example.com',
-    description: 'URL de referência (de onde veio)',
+    description: 'Referrer URL (where it came from)',
   })
   @Column({ type: 'text', nullable: true })
   referer?: string;
@@ -75,7 +75,7 @@ export class PortfolioView {
   @ApiProperty({
     type: 'boolean',
     default: false,
-    description: 'Indica se o acesso foi do próprio dono do portfólio',
+    description: 'Indicates if the access was from the portfolio owner',
   })
   @Column({ default: false })
   isOwner: boolean;
@@ -84,7 +84,7 @@ export class PortfolioView {
     type: 'string',
     nullable: true,
     example: 'BR',
-    description: 'Código do país do visitante (ISO 3166-1 alpha-2)',
+    description: 'Visitor country code (ISO 3166-1 alpha-2)',
   })
   @Column({ nullable: true, length: 2 })
   country?: string;
@@ -93,7 +93,7 @@ export class PortfolioView {
     type: 'string',
     nullable: true,
     example: 'São Paulo',
-    description: 'Cidade do visitante',
+    description: 'Visitor city',
   })
   @Column({ nullable: true, length: 100 })
   city?: string;

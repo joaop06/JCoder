@@ -77,7 +77,7 @@ describe('UploadTechnologyProfileImageUseCase', () => {
     });
 
     describe('execute', () => {
-        it('deve fazer upload de imagem de perfil com sucesso quando não existe imagem anterior', async () => {
+        it('should upload profile image successfully when no previous image exists', async () => {
             // Arrange
             const technologyId = 2;
             const newFilename = 'new-profile.jpg';
@@ -104,7 +104,7 @@ describe('UploadTechnologyProfileImageUseCase', () => {
             expect(result.profileImage).toBe(newFilename);
         });
 
-        it('deve deletar imagem anterior antes de fazer upload de nova imagem', async () => {
+        it('should delete previous image before uploading new image', async () => {
             // Arrange
             const technologyId = 1;
             const newFilename = 'new-profile.jpg';
@@ -136,7 +136,7 @@ describe('UploadTechnologyProfileImageUseCase', () => {
             expect(result.profileImage).toBe(newFilename);
         });
 
-        it('deve lançar TechnologyNotFoundException quando a tecnologia não existe', async () => {
+        it('should throw TechnologyNotFoundException when technology does not exist', async () => {
             // Arrange
             const technologyId = 999;
 
@@ -149,7 +149,7 @@ describe('UploadTechnologyProfileImageUseCase', () => {
             expect(imageStorageService.uploadImage).not.toHaveBeenCalled();
         });
 
-        it('deve garantir que múltiplas tecnologias podem ter imagens de perfil', async () => {
+        it('should ensure that multiple technologies can have profile images', async () => {
             // Arrange
             const technology1Id = 1;
             const technology2Id = 2;

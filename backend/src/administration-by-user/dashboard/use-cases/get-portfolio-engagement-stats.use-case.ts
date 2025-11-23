@@ -23,7 +23,7 @@ export class GetPortfolioEngagementStatsUseCase {
     username: string,
     query: GetPortfolioEngagementQueryDto,
   ): Promise<PortfolioEngagementStatsDto> {
-    // Verificar se o usuário existe
+    // Check if user exists
     const user = await this.userRepository.findOne({
       where: { username },
     });
@@ -56,7 +56,7 @@ export class GetPortfolioEngagementStatsUseCase {
       .andWhere('view.createdAt <= :endDate', { endDate })
       .getCount();
 
-    // Visitantes únicos (baseado em IP + fingerprint)
+    // Unique visitors (based on IP + fingerprint)
     const uniqueVisitorsQuery = await queryBuilder
       .andWhere('view.isOwner = false')
       .select('DISTINCT CONCAT(COALESCE(view.ipAddress, ""), "-", COALESCE(view.fingerprint, ""))', 'visitor')
@@ -64,10 +64,10 @@ export class GetPortfolioEngagementStatsUseCase {
 
     const uniqueVisitors = new Set(uniqueVisitorsQuery.map((v) => v.visitor)).size;
 
-    // Estatísticas diárias
+    // Daily statistics
     const dailyStats = await this.getDailyStats(user.id, startDate, endDate);
 
-    // Top países
+    // Top countries
     const topCountries = await this.getTopCountries(user.id, startDate, endDate);
 
     // Top referrers
@@ -141,7 +141,7 @@ export class GetPortfolioEngagementStatsUseCase {
       .orderBy('DATE(view.createdAt)', 'ASC')
       .getRawMany();
 
-    // Calcular visitantes únicos por dia
+    // Calculate unique visitors per day
     const dailyUniqueVisitors = await this.portfolioViewRepository
       .createQueryBuilder('view')
       .select('DATE(view.createdAt)', 'date')
@@ -152,7 +152,7 @@ export class GetPortfolioEngagementStatsUseCase {
       .andWhere('view.createdAt <= :endDate', { endDate })
       .getRawMany();
 
-    // Agrupar por data e contar visitantes únicos
+    // Group by date and count unique visitors
     const uniqueByDate = new Map<string, Set<string>>();
     dailyUniqueVisitors.forEach((row) => {
       const date = row.date.toISOString().split('T')[0];

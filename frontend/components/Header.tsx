@@ -453,7 +453,7 @@ export default function Header({
                       <span className="relative z-10">
                         {section === 'tech-stack' ? 'Technologies' : section}
                       </span>
-                      {/* Barra inferior - sempre visível quando ativa, cresce no hover quando inativa */}
+                      {/* Bottom bar - always visible when active, grows on hover when inactive */}
                       <span
                         className={`absolute bottom-0 left-0 h-0.5 bg-jcoder-primary origin-left transition-all duration-500 ease-out ${isActive
                           ? 'w-full'
@@ -581,7 +581,7 @@ export default function Header({
                     {isMobileMenuOpen && (
                       <div className="absolute right-0 top-full mt-2 w-56 bg-jcoder-card backdrop-blur-lg border border-jcoder rounded-lg shadow-2xl z-50">
                         <div className="p-2">
-                          {/* Seção Superior - Abas do Portfólio */}
+                          {/* Top Section - Portfolio Tabs */}
                           {!isApplicationDetailPage && portfolioSections.map((section) => (
                             <button
                               key={section}
@@ -595,7 +595,7 @@ export default function Header({
                             </button>
                           ))}
 
-                          {/* Seção Intermediária - Abas Administrativas (apenas se for o próprio portfólio) */}
+                          {/* Middle Section - Administrative Tabs (only if it's your own portfolio) */}
                           {isOwnPortfolio && (
                             <>
                               <div className="border-t border-jcoder my-2"></div>
@@ -637,7 +637,7 @@ export default function Header({
                             </>
                           )}
 
-                          {/* Seção Inferior - Sign Out */}
+                          {/* Bottom Section - Sign Out */}
                           {isOwnPortfolio && (
                             <>
                               <div className="border-t border-jcoder my-2"></div>
@@ -730,7 +730,7 @@ export default function Header({
                     <span className="relative z-10">
                       {section === 'tech-stack' ? 'Technologies' : section}
                     </span>
-                    {/* Barra inferior - sempre visível quando ativa, cresce no hover quando inativa */}
+                    {/* Bottom bar - always visible when active, grows on hover when inactive */}
                     <span
                       className={`absolute bottom-0 left-0 h-0.5 bg-jcoder-primary origin-left transition-all duration-500 ease-out ${isActive
                         ? 'w-full'
@@ -779,7 +779,7 @@ export default function Header({
                               <span className="relative z-10">
                                 {section === 'tech-stack' ? 'Technologies' : section}
                               </span>
-                              {/* Barra inferior - sempre visível quando ativa, cresce no hover quando inativa */}
+                              {/* Bottom bar - always visible when active, grows on hover when inactive */}
                               <span
                                 className={`absolute bottom-0 left-0 h-0.5 bg-jcoder-primary origin-left transition-all duration-500 ease-out ${isActive
                                   ? 'w-full'
@@ -848,7 +848,7 @@ export default function Header({
                       <span className="relative z-10">
                         {tab.label}
                       </span>
-                      {/* Barra inferior */}
+                      {/* Bottom bar */}
                       <span
                         className={`absolute bottom-0 left-0 h-0.5 transition-all duration-500 ease-out ${isActive
                           ? 'w-full bg-jcoder-primary'
@@ -988,7 +988,7 @@ export default function Header({
                                 <span className="relative z-10">
                                   {tab.label}
                                 </span>
-                                {/* Barra inferior */}
+                                {/* Bottom bar */}
                                 <span
                                   className={`absolute bottom-0 left-0 h-0.5 transition-all duration-500 ease-out ${isActive
                                     ? 'w-full bg-jcoder-primary'

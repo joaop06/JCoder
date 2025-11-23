@@ -67,7 +67,7 @@ describe('DeleteCertificateImageUseCase', () => {
     });
 
     describe('execute', () => {
-        it('deve deletar imagem de certificado com sucesso', async () => {
+        it('should delete certificate image successfully', async () => {
             // Arrange
             const username = 'user1';
             const certificateId = 1;
@@ -106,7 +106,7 @@ describe('DeleteCertificateImageUseCase', () => {
             expect(result.profileImage).toBeNull();
         });
 
-        it('deve retornar o certificado sem alterações quando não tem imagem', async () => {
+        it('should return certificate without changes when has no image', async () => {
             // Arrange
             const username = 'user3';
             const certificateId = 3;
@@ -124,7 +124,7 @@ describe('DeleteCertificateImageUseCase', () => {
             expect(result).toEqual(mockCertificate3);
         });
 
-        it('deve lançar ComponentNotFoundException quando o certificado não existe', async () => {
+        it('should throw ComponentNotFoundException when certificate does not exist', async () => {
             // Arrange
             const username = 'user1';
             const certificateId = 999;
@@ -138,9 +138,9 @@ describe('DeleteCertificateImageUseCase', () => {
             expect(imageStorageService.deleteImage).not.toHaveBeenCalled();
         });
 
-        it('deve lançar ComponentNotFoundException quando o certificado pertence a outro usuário', async () => {
+        it('should throw ComponentNotFoundException when certificate belongs to another user', async () => {
             // Arrange
-            const username = 'user2'; // Tentando acessar certificado do user1
+            const username = 'user2'; // Trying to access user1's certificate
             const certificateId = 1;
 
             certificateRepository.findOne.mockResolvedValue(
@@ -154,7 +154,7 @@ describe('DeleteCertificateImageUseCase', () => {
             expect(imageStorageService.deleteImage).not.toHaveBeenCalled();
         });
 
-        it('deve garantir segmentação por usuário - múltiplos usuários deletando imagens simultaneamente', async () => {
+        it('should ensure user segmentation - multiple users deleting images simultaneously', async () => {
             // Arrange
             const user1Username = 'user1';
             const user2Username = 'user2';
@@ -199,7 +199,7 @@ describe('DeleteCertificateImageUseCase', () => {
             );
         });
 
-        it('deve garantir que apenas a imagem do usuário correto é deletada', async () => {
+        it('should ensure that only the correct user\'s image is deleted', async () => {
             // Arrange
             const user1Username = 'user1';
             const user1CertificateId = 1;
@@ -224,7 +224,7 @@ describe('DeleteCertificateImageUseCase', () => {
                 'certificates',
                 'user1',
             );
-            // Verifica que não foi chamado com os dados do user2
+            // Verify that it was not called with user2's data
             expect(imageStorageService.deleteImage).not.toHaveBeenCalledWith(
                 ResourceType.User,
                 2,

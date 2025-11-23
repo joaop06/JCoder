@@ -61,7 +61,7 @@ describe('GetTechnologyProfileImageUseCase', () => {
     });
 
     describe('execute', () => {
-        it('deve retornar o caminho da imagem de perfil com sucesso', async () => {
+        it('should return profile image path successfully', async () => {
             // Arrange
             const technologyId = 1;
             const expectedImagePath = '/path/to/technologies/1/nodejs-profile.jpg';
@@ -81,7 +81,7 @@ describe('GetTechnologyProfileImageUseCase', () => {
             expect(result).toBe(expectedImagePath);
         });
 
-        it('deve lançar erro quando a tecnologia não tem imagem de perfil', async () => {
+        it('should throw error when technology has no profile image', async () => {
             // Arrange
             const technologyId = 1;
             const technologyWithoutImage = {
@@ -100,7 +100,7 @@ describe('GetTechnologyProfileImageUseCase', () => {
             expect(imageStorageService.getImagePath).not.toHaveBeenCalled();
         });
 
-        it('deve lançar TechnologyNotFoundException quando a tecnologia não existe', async () => {
+        it('should throw TechnologyNotFoundException when technology does not exist', async () => {
             // Arrange
             const technologyId = 999;
 
@@ -113,7 +113,7 @@ describe('GetTechnologyProfileImageUseCase', () => {
             expect(imageStorageService.getImagePath).not.toHaveBeenCalled();
         });
 
-        it('deve garantir que múltiplas tecnologias podem buscar suas imagens', async () => {
+        it('should ensure that multiple technologies can fetch their images', async () => {
             // Arrange
             const technology1Id = 1;
             const technology2Id = 2;

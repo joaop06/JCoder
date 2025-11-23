@@ -24,7 +24,7 @@ import { useState, useEffect, useCallback, useRef, Suspense, useMemo, lazy, memo
 import { PortfolioViewService } from '@/services/portfolio-view/portfolio-view.service';
 import { ImagesService } from '@/services/administration-by-user/images.service';
 
-// Lazy load componentes WebGL pesados
+// Lazy load heavy WebGL components
 const Canvas = lazy(() => import('@react-three/fiber').then(mod => ({ default: mod.Canvas })));
 const WebGLBackground = lazy(() => import('@/components/webgl/WebGLBackground'));
 const Hero3D = lazy(() => import('@/components/webgl/Hero3D'));
@@ -231,7 +231,7 @@ export default function ProfileManagementPage() {
         setCheckingAuth(false);
     }, [router]);
 
-    // Carregamento progressivo: primeiro dados essenciais, depois componentes
+    // Progressive loading: first essential data, then components
     const loadUserProfile = useCallback(async () => {
         setLoading(true);
         setLoadingStates({
@@ -251,14 +251,14 @@ export default function ProfileManagementPage() {
                 return;
             }
 
-            // FASE 1: Carregar dados básicos do usuário primeiro (crítico)
+            // PHASE 1: Load basic user data first (critical)
             let userData = userSession.user;
             if (!userData.id && userSession.user.username) {
                 try {
                     userData = await UsersService.getProfile(userSession.user.username);
                 } catch (err) {
                     console.error('Error fetching user profile from API:', err);
-                    // Usar dados do localStorage mesmo sem id
+                    // Use localStorage data even without id
                 }
             }
 
@@ -283,10 +283,10 @@ export default function ProfileManagementPage() {
             });
 
             setLoadingStates(prev => ({ ...prev, user: false }));
-            setLoading(false); // Permite renderização inicial
+            setLoading(false); // Allows initial rendering
 
-            // FASE 2: Carregar componentes em paralelo (não bloqueante)
-            // Usar requestIdleCallback se disponível, senão setTimeout
+            // PHASE 2: Load components in parallel (non-blocking)
+            // Use requestIdleCallback if available, otherwise setTimeout
             const loadComponents = async () => {
                 try {
                     setLoadingStates(prev => ({ ...prev, aboutMe: true, educations: true, experiences: true, certificates: true, references: true }));
@@ -327,7 +327,7 @@ export default function ProfileManagementPage() {
                         });
                     }
 
-                    // Helper para extrair array de dados paginados ou arrays
+                    // Helper to extract array of paginated data or arrays
                     const extractDataArray = <T,>(data: any): T[] => {
                         if (!data) return [];
                         if (Array.isArray(data)) return data;
@@ -363,7 +363,7 @@ export default function ProfileManagementPage() {
                 }
             };
 
-            // Aguardar próximo frame para não bloquear renderização inicial
+            // Wait for next frame to avoid blocking initial rendering
             if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
                 requestIdleCallback(loadComponents, { timeout: 2000 });
             } else {
@@ -388,18 +388,18 @@ export default function ProfileManagementPage() {
         loadUserProfile();
     }, [isAuthenticated, loadUserProfile]);
 
-    // Intersection Observer para lazy load de seções
+    // Intersection Observer for lazy loading sections
     useEffect(() => {
         if (typeof window === 'undefined' || !('IntersectionObserver' in window) || loading) return;
 
         let observer: IntersectionObserver | null = null;
         let timeoutId: NodeJS.Timeout;
 
-        // Aguardar próximo frame para garantir que o DOM está renderizado
+        // Wait for next frame to ensure DOM is rendered
         timeoutId = setTimeout(() => {
             const observerOptions = {
                 root: null,
-                rootMargin: '100px', // Carregar 100px antes de entrar na viewport
+                rootMargin: '100px', // Load 100px before entering viewport
                 threshold: 0.01,
             };
 
@@ -409,7 +409,7 @@ export default function ProfileManagementPage() {
                         const sectionId = entry.target.getAttribute('data-section');
                         if (sectionId) {
                             setVisibleSections(prev => ({ ...prev, [sectionId]: true }));
-                            // Desconectar após primeira visualização para economizar recursos
+                            // Disconnect after first view to save resources
                             newObserver.unobserve(entry.target);
                         }
                     }
@@ -418,7 +418,7 @@ export default function ProfileManagementPage() {
 
             observer = newObserver;
 
-            // Observar seções
+            // Observe sections
             const sections = document.querySelectorAll('[data-section]');
             sections.forEach(section => newObserver.observe(section));
         }, 100);
@@ -431,7 +431,7 @@ export default function ProfileManagementPage() {
                 observer!.disconnect();
             }
         };
-    }, [loading]); // Re-executar quando loading mudar
+    }, [loading]); // Re-execute when loading changes
 
     // Real-time username availability check
     useEffect(() => {
@@ -1652,7 +1652,7 @@ export default function ProfileManagementPage() {
         return new Date(date).toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
     }, []);
 
-    // Helper para obter inicial do nome - memoizado
+    // Helper to get name initial - memoized
     const getInitial = useMemo(() => {
         if (user?.fullName) return user.fullName.charAt(0).toUpperCase();
         if (user?.firstName) return user.firstName.charAt(0).toUpperCase();

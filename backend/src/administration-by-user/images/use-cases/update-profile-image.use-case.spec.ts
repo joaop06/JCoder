@@ -51,7 +51,7 @@ describe('UpdateProfileImageUseCase', () => {
     });
 
     describe('execute', () => {
-        it('deve chamar uploadProfileImageUseCase.execute com os parâmetros corretos', async () => {
+        it('should call uploadProfileImageUseCase.execute with correct parameters', async () => {
             // Arrange
             const applicationId = 1;
 
@@ -68,7 +68,7 @@ describe('UpdateProfileImageUseCase', () => {
             expect(result).toEqual(mockApplication);
         });
 
-        it('deve propagar erros do uploadProfileImageUseCase', async () => {
+        it('should propagate errors from uploadProfileImageUseCase', async () => {
             // Arrange
             const applicationId = 1;
             const error = new Error('Upload failed');
@@ -81,7 +81,7 @@ describe('UpdateProfileImageUseCase', () => {
             );
         });
 
-        it('deve garantir que update é essencialmente o mesmo que upload', async () => {
+        it('should ensure that update is essentially the same as upload', async () => {
             // Arrange
             const applicationId = 1;
 

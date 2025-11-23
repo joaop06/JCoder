@@ -59,7 +59,7 @@ describe('GetUserProfileImageUseCase', () => {
     });
 
     describe('execute', () => {
-        it('deve retornar o caminho da imagem de perfil com sucesso', async () => {
+        it('should return profile image path successfully', async () => {
             // Arrange
             const userId = 1;
             const expectedImagePath = '/path/to/user1/users/1/profile-image-1.jpg';
@@ -81,7 +81,7 @@ describe('GetUserProfileImageUseCase', () => {
             expect(result).toBe(expectedImagePath);
         });
 
-        it('deve lançar erro quando o usuário não tem imagem de perfil', async () => {
+        it('should throw error when user has no profile image', async () => {
             // Arrange
             const userId = 1;
             const userWithoutImage = {
@@ -98,7 +98,7 @@ describe('GetUserProfileImageUseCase', () => {
             expect(imageStorageService.getImagePath).not.toHaveBeenCalled();
         });
 
-        it('deve lançar UserNotFoundException quando o usuário não existe', async () => {
+        it('should throw UserNotFoundException when user does not exist', async () => {
             // Arrange
             const userId = 999;
 
@@ -109,7 +109,7 @@ describe('GetUserProfileImageUseCase', () => {
             expect(imageStorageService.getImagePath).not.toHaveBeenCalled();
         });
 
-        it('deve garantir segmentação por usuário - múltiplos usuários buscando imagens', async () => {
+        it('should ensure user segmentation - multiple users fetching images', async () => {
             // Arrange
             const user1Id = 1;
             const user2Id = 2;
@@ -150,7 +150,7 @@ describe('GetUserProfileImageUseCase', () => {
             expect(result1).not.toBe(result2);
         });
 
-        it('deve garantir que usuário não pode acessar imagem de outro usuário', async () => {
+        it('should ensure that user cannot access another user\'s image', async () => {
             // Arrange
             const user1Id = 1;
 
@@ -170,7 +170,7 @@ describe('GetUserProfileImageUseCase', () => {
                 undefined,
                 'user1',
             );
-            // Verifica que não foi chamado com os dados do user2
+            // Verify that it was not called with user2's data
             expect(imageStorageService.getImagePath).not.toHaveBeenCalledWith(
                 ResourceType.User,
                 2,

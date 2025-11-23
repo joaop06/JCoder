@@ -13,7 +13,7 @@ export class GetPortfolioEngagementQueryDto {
   @ApiPropertyOptional({
     enum: DateRangeType,
     default: DateRangeType.MONTH,
-    description: 'Tipo de range de data',
+    description: 'Date range type',
   })
   @IsOptional()
   @IsEnum(DateRangeType)
@@ -23,7 +23,7 @@ export class GetPortfolioEngagementQueryDto {
     type: 'string',
     format: 'date',
     example: '2024-01-01',
-    description: 'Data inicial (usado quando rangeType é CUSTOM)',
+    description: 'Start date (used when rangeType is CUSTOM)',
   })
   @IsOptional()
   @IsDateString()
@@ -33,7 +33,7 @@ export class GetPortfolioEngagementQueryDto {
     type: 'string',
     format: 'date',
     example: '2024-01-31',
-    description: 'Data final (usado quando rangeType é CUSTOM)',
+    description: 'End date (used when rangeType is CUSTOM)',
   })
   @IsOptional()
   @IsDateString()

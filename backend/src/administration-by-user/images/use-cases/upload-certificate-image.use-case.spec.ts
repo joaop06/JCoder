@@ -75,7 +75,7 @@ describe('UploadCertificateImageUseCase', () => {
     });
 
     describe('execute', () => {
-        it('deve fazer upload de imagem de certificado com sucesso quando não existe imagem anterior', async () => {
+        it('should upload certificate image successfully when no previous image exists', async () => {
             // Arrange
             const username = 'user2';
             const certificateId = 2;
@@ -109,7 +109,7 @@ describe('UploadCertificateImageUseCase', () => {
             expect(result.profileImage).toBe(newFilename);
         });
 
-        it('deve deletar imagem anterior antes de fazer upload de nova imagem', async () => {
+        it('should delete previous image before uploading new image', async () => {
             // Arrange
             const username = 'user1';
             const certificateId = 1;
@@ -150,7 +150,7 @@ describe('UploadCertificateImageUseCase', () => {
             expect(result.profileImage).toBe(newFilename);
         });
 
-        it('deve lançar ComponentNotFoundException quando o certificado não existe', async () => {
+        it('should throw ComponentNotFoundException when certificate does not exist', async () => {
             // Arrange
             const username = 'user1';
             const certificateId = 999;
@@ -164,9 +164,9 @@ describe('UploadCertificateImageUseCase', () => {
             expect(imageStorageService.uploadImage).not.toHaveBeenCalled();
         });
 
-        it('deve lançar ComponentNotFoundException quando o certificado pertence a outro usuário', async () => {
+        it('should throw ComponentNotFoundException when certificate belongs to another user', async () => {
             // Arrange
-            const username = 'user2'; // Tentando acessar certificado do user1
+            const username = 'user2'; // Trying to access user1's certificate
             const certificateId = 1;
 
             certificateRepository.findOne.mockResolvedValue(
@@ -180,7 +180,7 @@ describe('UploadCertificateImageUseCase', () => {
             expect(imageStorageService.uploadImage).not.toHaveBeenCalled();
         });
 
-        it('deve garantir segmentação por usuário - múltiplos usuários fazendo upload simultaneamente', async () => {
+        it('should ensure user segmentation - multiple users uploading simultaneously', async () => {
             // Arrange
             const user1Username = 'user1';
             const user2Username = 'user2';
@@ -243,7 +243,7 @@ describe('UploadCertificateImageUseCase', () => {
             expect(result2.profileImage).toBe(user2NewFilename);
         });
 
-        it('deve garantir que imagens de diferentes usuários são armazenadas em diretórios separados', async () => {
+        it('should ensure that images from different users are stored in separate directories', async () => {
             // Arrange
             const user1Username = 'user1';
             const user2Username = 'user2';
@@ -275,7 +275,7 @@ describe('UploadCertificateImageUseCase', () => {
             await useCase.execute(user1Username, user1CertificateId, mockFile);
             await useCase.execute(user2Username, user2CertificateId, mockFile);
 
-            // Assert - Verifica que o username foi passado corretamente para cada usuário
+            // Assert - Verify that the username was passed correctly for each user
             const user1Call = imageStorageService.uploadImage.mock.calls[0];
             const user2Call = imageStorageService.uploadImage.mock.calls[1];
 

@@ -9,7 +9,7 @@ import { UserNotFoundException } from '../../administration-by-user/users/except
 
 @Injectable()
 export class RegisterPortfolioViewUseCase {
-  // Cooldown de 30 minutos para evitar duplicação de acessos do mesmo visitante
+  // 30-minute cooldown to prevent duplicate visits from the same visitor
   private readonly COOLDOWN_MINUTES = 30;
 
   constructor(
@@ -24,7 +24,7 @@ export class RegisterPortfolioViewUseCase {
     dto: RegisterPortfolioViewDto,
     request: Request,
   ): Promise<void> {
-    // Buscar o usuário pelo username
+    // Find user by username
     const user = await this.userRepository.findOne({
       where: { username },
     });
@@ -39,7 +39,7 @@ export class RegisterPortfolioViewUseCase {
     const userAgent = request.headers['user-agent'] || null;
     const referer = (dto.referer || request.headers['referer'] || null)?.trim() || null;
 
-    // Se for acesso do próprio dono, apenas registrar e retornar (não conta nas estatísticas)
+    // If it's the owner's access, just register and return (doesn't count in statistics)
     if (dto.isOwner === true) {
       await this.portfolioViewRepository.save({
         userId: user.id,
@@ -52,18 +52,18 @@ export class RegisterPortfolioViewUseCase {
       return;
     }
 
-    // Verificar se já houve acesso recente (cooldown)
+    // Check if there was a recent access (cooldown)
     const cooldownDate = new Date();
     cooldownDate.setMinutes(cooldownDate.getMinutes() - this.COOLDOWN_MINUTES);
 
-    // Construir query de verificação de cooldown
+    // Build cooldown verification query
     const queryBuilder = this.portfolioViewRepository
       .createQueryBuilder('view')
       .where('view.userId = :userId', { userId: user.id })
       .andWhere('view.isOwner = false')
       .andWhere('view.createdAt >= :cooldownDate', { cooldownDate });
 
-    // Adicionar condições de IP ou fingerprint apenas se existirem
+    // Add IP or fingerprint conditions only if they exist
     const conditions: string[] = [];
     const params: Record<string, any> = {};
 
@@ -77,21 +77,21 @@ export class RegisterPortfolioViewUseCase {
       params.fingerprint = fingerprint;
     }
 
-    // Se não houver IP nem fingerprint válidos, não podemos verificar cooldown
-    // mas ainda assim registramos o acesso
+    // If there are no valid IP or fingerprint, we can't verify cooldown
+    // but we still register the access
     if (conditions.length > 0) {
       queryBuilder.andWhere(`(${conditions.join(' OR ')})`, params);
       const existingView = await queryBuilder
         .orderBy('view.createdAt', 'DESC')
         .getOne();
 
-      // Se já houve acesso recente, não registrar novamente
+      // If there was a recent access, don't register again
       if (existingView) {
         return;
       }
     }
 
-    // Registrar novo acesso
+    // Register new access
     await this.portfolioViewRepository.save({
       userId: user.id,
       ipAddress: ipAddress,
@@ -99,7 +99,7 @@ export class RegisterPortfolioViewUseCase {
       userAgent: userAgent,
       referer: referer,
       isOwner: false,
-      // TODO: Adicionar geolocalização se necessário (usando serviço externo)
+      // TODO: Add geolocation if needed (using external service)
       // country: ...,
       // city: ...,
     });
@@ -114,7 +114,7 @@ export class RegisterPortfolioViewUseCase {
       if (forwarded) {
         const ips = Array.isArray(forwarded) ? forwarded[0] : forwarded;
         const ip = ips.split(',')[0].trim();
-        // Validar formato básico de IP
+        // Validate basic IP format
         if (ip && ip.length > 0 && ip.length <= 45) {
           return ip;
         }
@@ -125,7 +125,7 @@ export class RegisterPortfolioViewUseCase {
       }
       return null;
     } catch (error) {
-      // Em caso de erro, retornar null em vez de 'unknown'
+      // In case of error, return null instead of 'unknown'
       return null;
     }
   }
