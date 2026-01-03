@@ -29,13 +29,13 @@ export class DeleteImageUseCase {
             throw new ApplicationNotFoundException();
         }
 
-        // Delete the image file using the generic service with username segmentation
+        // Delete the image file using the generic service with userId segmentation
         await this.imageStorageService.deleteImage(
             ResourceType.Application,
             id,
             filename,
             undefined,
-            application.user.username,
+            application.userId,
         );
 
         // Remove from application images array

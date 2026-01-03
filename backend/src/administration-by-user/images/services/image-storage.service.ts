@@ -36,12 +36,12 @@ export class ImageStorageService {
         resourceId: number | string,
         imageType: ImageType,
         subPath?: string,
-        username?: string,
+        userId?: number,
     ): Promise<string> {
         const config = this.getImageConfig(resourceType, imageType);
         this.validateFile(file, config);
 
-        const dirPath = this.buildDirectoryPath(resourceType, resourceId, subPath, username);
+        const dirPath = this.buildDirectoryPath(resourceType, resourceId, subPath, userId);
         await this.ensureDirectory(dirPath);
 
         const filename = await this.processAndSaveImage(file, dirPath, imageType, config);
@@ -57,7 +57,7 @@ export class ImageStorageService {
         resourceId: number | string,
         imageType: ImageType,
         subPath?: string,
-        username?: string,
+        userId?: number,
     ): Promise<string[]> {
         if (!files || files.length === 0) {
             return [];
@@ -66,7 +66,7 @@ export class ImageStorageService {
         const config = this.getImageConfig(resourceType, imageType);
         files.forEach(file => this.validateFile(file, config));
 
-        const dirPath = this.buildDirectoryPath(resourceType, resourceId, subPath, username);
+        const dirPath = this.buildDirectoryPath(resourceType, resourceId, subPath, userId);
         await this.ensureDirectory(dirPath);
 
         const uploadPromises = files.map(file =>
@@ -84,9 +84,9 @@ export class ImageStorageService {
         resourceId: number | string,
         filename: string,
         subPath?: string,
-        username?: string,
+        userId?: number,
     ): Promise<string> {
-        const dirPath = this.buildDirectoryPath(resourceType, resourceId, subPath, username);
+        const dirPath = this.buildDirectoryPath(resourceType, resourceId, subPath, userId);
         const filePath = path.join(dirPath, filename);
 
         try {
@@ -105,9 +105,9 @@ export class ImageStorageService {
         resourceId: number | string,
         filename: string,
         subPath?: string,
-        username?: string,
+        userId?: number,
     ): Promise<void> {
-        const dirPath = this.buildDirectoryPath(resourceType, resourceId, subPath, username);
+        const dirPath = this.buildDirectoryPath(resourceType, resourceId, subPath, userId);
         const filePath = path.join(dirPath, filename);
 
         try {
@@ -125,20 +125,20 @@ export class ImageStorageService {
         resourceId: number | string,
         filenames: string[],
         subPath?: string,
-        username?: string,
+        userId?: number,
     ): Promise<void> {
         if (!filenames || filenames.length === 0) {
             return;
         }
 
         const deletePromises = filenames.map(filename =>
-            this.deleteImage(resourceType, resourceId, filename, subPath, username)
+            this.deleteImage(resourceType, resourceId, filename, subPath, userId)
         );
 
         await Promise.all(deletePromises);
 
         // Try to remove the directory if it's empty
-        await this.cleanupEmptyDirectory(resourceType, resourceId, subPath, username);
+        await this.cleanupEmptyDirectory(resourceType, resourceId, subPath, userId);
     }
 
     /**
@@ -147,9 +147,9 @@ export class ImageStorageService {
     async deleteAllResourceImages(
         resourceType: ResourceType,
         resourceId: number | string,
-        username?: string,
+        userId?: number,
     ): Promise<void> {
-        const dirPath = this.buildDirectoryPath(resourceType, resourceId, undefined, username);
+        const dirPath = this.buildDirectoryPath(resourceType, resourceId, undefined, userId);
 
         try {
             await fs.rm(dirPath, { recursive: true, force: true });
@@ -166,10 +166,10 @@ export class ImageStorageService {
         resourceId: number | string,
         filename: string,
         subPath?: string,
-        username?: string,
+        userId?: number,
     ): Promise<boolean> {
         try {
-            await this.getImagePath(resourceType, resourceId, filename, subPath, username);
+            await this.getImagePath(resourceType, resourceId, filename, subPath, userId);
             return true;
         } catch {
             return false;
@@ -334,20 +334,22 @@ export class ImageStorageService {
 
     /**
      * Build directory path for resource images
-     * Structure: {basePath}/{username}/{resourceType}/{resourceId}/{subPath}
-     * If username is not provided, it will be omitted (for global resources like technologies)
+     * Structure: {basePath}/user-{userId}/{resourceType}/{resourceId}/{subPath}
+     * If userId is not provided, it will be omitted (for global resources like technologies)
+     * Uses userId instead of username to avoid issues when username changes
      */
     private buildDirectoryPath(
         resourceType: ResourceType,
         resourceId: number | string,
         subPath?: string,
-        username?: string,
+        userId?: number,
     ): string {
         const parts = [this.uploadBasePath];
 
-        // Add username if provided (for user-specific resources)
-        if (username) {
-            parts.push(username);
+        // Add userId if provided (for user-specific resources)
+        // Using userId instead of username ensures paths don't break when username changes
+        if (userId) {
+            parts.push(`user-${userId}`);
         }
 
         parts.push(resourceType, resourceId.toString());
@@ -377,9 +379,9 @@ export class ImageStorageService {
         resourceType: ResourceType,
         resourceId: number | string,
         subPath?: string,
-        username?: string,
+        userId?: number,
     ): Promise<void> {
-        const dirPath = this.buildDirectoryPath(resourceType, resourceId, subPath, username);
+        const dirPath = this.buildDirectoryPath(resourceType, resourceId, subPath, userId);
 
         try {
             const files = await fs.readdir(dirPath);
@@ -388,6 +390,69 @@ export class ImageStorageService {
             }
         } catch (error) {
             // Directory might not exist or might not be empty, ignore error
+        }
+    }
+
+    /**
+     * Migrate user images folder from old username-based structure to new userId-based structure
+     * This is used when username changes to ensure images remain accessible
+     */
+    async migrateUserImagesFolder(oldUsername: string, userId: number): Promise<void> {
+        const oldPath = path.join(this.uploadBasePath, oldUsername);
+        const newPath = path.join(this.uploadBasePath, `user-${userId}`);
+
+        try {
+            // Check if old path exists
+            await fs.access(oldPath);
+
+            // Check if new path already exists
+            try {
+                await fs.access(newPath);
+                // If both exist, merge contents (move files from old to new)
+                await this.mergeDirectories(oldPath, newPath);
+                // Remove old directory after merging
+                await fs.rm(oldPath, { recursive: true, force: true });
+            } catch {
+                // New path doesn't exist, just rename
+                await fs.rename(oldPath, newPath);
+            }
+        } catch {
+            // Old path doesn't exist, nothing to migrate
+        }
+    }
+
+    /**
+     * Merge contents from source directory to destination directory
+     */
+    private async mergeDirectories(sourcePath: string, destPath: string): Promise<void> {
+        const entries = await fs.readdir(sourcePath, { withFileTypes: true });
+
+        for (const entry of entries) {
+            const sourceEntry = path.join(sourcePath, entry.name);
+            const destEntry = path.join(destPath, entry.name);
+
+            if (entry.isDirectory()) {
+                // Recursively merge subdirectories
+                try {
+                    await fs.access(destEntry);
+                    await this.mergeDirectories(sourceEntry, destEntry);
+                    // Remove source subdirectory after merging
+                    await fs.rm(sourceEntry, { recursive: true, force: true });
+                } catch {
+                    // Destination doesn't exist, just move
+                    await fs.rename(sourceEntry, destEntry);
+                }
+            } else {
+                // Move file if it doesn't exist in destination
+                try {
+                    await fs.access(destEntry);
+                    // File exists in destination, remove source file
+                    await fs.unlink(sourceEntry);
+                } catch {
+                    // File doesn't exist in destination, move it
+                    await fs.rename(sourceEntry, destEntry);
+                }
+            }
         }
     }
 

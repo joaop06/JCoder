@@ -46,18 +46,18 @@ export class UploadCertificateImageUseCase {
                 certificateId,
                 certificate.profileImage,
                 'certificates',
-                certificate.user.username,
+                certificate.userId,
             );
         }
 
-        // Upload new image with username segmentation
+        // Upload new image with userId segmentation
         const filename = await this.imageStorageService.uploadImage(
             file,
             ResourceType.User,
             certificateId,
             ImageType.Component,
             'certificates',
-            certificate.user.username,
+            certificate.userId,
         );
 
         // Update certificate with new image

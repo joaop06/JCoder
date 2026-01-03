@@ -33,18 +33,18 @@ export class UploadTechnologyProfileImageUseCase {
                 id,
                 technology.profileImage,
                 undefined,
-                technology.user.username,
+                technology.userId,
             );
         }
 
-        // Upload new profile image with username segmentation
+        // Upload new profile image with userId segmentation
         const filename = await this.imageStorageService.uploadImage(
             file,
             ResourceType.Technology,
             id,
             ImageType.Profile,
             undefined,
-            technology.user.username,
+            technology.userId,
         );
 
         // Update technology with new profile image

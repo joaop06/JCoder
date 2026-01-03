@@ -30,13 +30,13 @@ export class DeleteTechnologyProfileImageUseCase {
             return technology;
         }
 
-        // Delete profile image file with username segmentation
+        // Delete profile image file with userId segmentation
         await this.imageStorageService.deleteImage(
             ResourceType.Technology,
             id,
             technology.profileImage,
             undefined,
-            technology.user.username,
+            technology.userId,
         );
 
         // Update technology removing profile image reference

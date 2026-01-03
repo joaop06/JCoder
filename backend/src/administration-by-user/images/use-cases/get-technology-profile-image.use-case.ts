@@ -34,7 +34,7 @@ export class GetTechnologyProfileImageUseCase {
             id,
             technology.profileImage,
             undefined,
-            technology.user.username,
+            technology.userId,
         );
     }
 };

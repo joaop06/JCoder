@@ -30,18 +30,18 @@ export class UploadUserProfileImageUseCase {
                 userId,
                 user.profileImage,
                 undefined,
-                user.username,
+                userId,
             );
         }
 
-        // Upload new profile image with username segmentation
+        // Upload new profile image with userId segmentation
         const profileImageFilename = await this.imageStorageService.uploadImage(
             file,
             ResourceType.User,
             userId,
             ImageType.Profile,
             undefined,
-            user.username,
+            userId,
         );
 
         // Update user with new profile image
