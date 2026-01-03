@@ -38,7 +38,7 @@ export class GetCertificateImageUseCase {
             certificateId,
             certificate.profileImage,
             'certificates',
-            certificate.user.username,
+            certificate.userId,
         );
     }
 };

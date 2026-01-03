@@ -6,11 +6,13 @@ import { UpdateProfileDto } from "../dto/update-profile.dto";
 import { EmailAlreadyExistsException } from "../exceptions/email-already-exists.exception";
 import { UsernameAlreadyExistsException } from "../exceptions/username-already-exists.exception";
 import { InvalidCurrentPasswordException } from "../exceptions/invalid-current-password.exception";
+import { ImageStorageService } from "../../images/services/image-storage.service";
 
 @Injectable()
 export class UpdateProfileUseCase {
     constructor(
         private readonly usersService: UsersService,
+        private readonly imageStorageService: ImageStorageService,
     ) { }
 
     async execute(username: string, updateProfileDto: UpdateProfileDto): Promise<User> {
@@ -38,7 +40,19 @@ export class UpdateProfileUseCase {
             if (usernameExists) {
                 throw new UsernameAlreadyExistsException();
             }
+            
+            // Store old username for folder migration
+            const oldUsername = user.username;
             user.username = updateProfileDto.username;
+            
+            // Migrate user images folder from old username to new userId-based structure
+            // This ensures images remain accessible after username change
+            try {
+                await this.imageStorageService.migrateUserImagesFolder(oldUsername, user.id);
+            } catch (error) {
+                // Log error but don't fail the update - images will be migrated on next access
+                console.error(`Failed to migrate images folder for user ${user.id}:`, error);
+            }
         }
 
         // Check if email is being changed and if it's already in use

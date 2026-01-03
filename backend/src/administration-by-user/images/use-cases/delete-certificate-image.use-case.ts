@@ -38,13 +38,13 @@ export class DeleteCertificateImageUseCase {
             return certificate;
         }
 
-        // Delete the image file with username segmentation
+        // Delete the image file with userId segmentation
         await this.imageStorageService.deleteImage(
             ResourceType.User,
             certificateId,
             certificate.profileImage,
             'certificates',
-            certificate.user.username,
+            certificate.userId,
         );
 
         // Remove image reference from certificate

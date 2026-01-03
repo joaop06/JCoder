@@ -23,7 +23,7 @@ export class GetProfileImageUseCase {
             id,
             application.profileImage,
             undefined,
-            application.user.username,
+            application.userId,
         );
     }
 };

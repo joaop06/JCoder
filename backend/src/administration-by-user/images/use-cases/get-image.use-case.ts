@@ -23,7 +23,7 @@ export class GetImageUseCase {
             id,
             filename,
             undefined,
-            application.user.username,
+            application.userId,
         );
     }
 };

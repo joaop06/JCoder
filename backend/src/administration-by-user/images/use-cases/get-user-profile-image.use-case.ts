@@ -31,7 +31,7 @@ export class GetUserProfileImageUseCase {
             userId,
             user.profileImage,
             undefined,
-            user.username,
+            userId,
         );
     }
 }
